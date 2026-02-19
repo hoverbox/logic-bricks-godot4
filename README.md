@@ -94,6 +94,10 @@ Animation, Animation Tree, Camera, Character (gravity + jump), Collision, Edit O
 - Godot 4.3+
 - GDScript only (no C# dependency, no GDExtension)
 
+## Acknowledgments
+
+This plugin was developed with AI assistance (Claude by Anthropic) for code generation, architecture design, and documentation.
+
 ## License
 
 MIT — see [LICENSE](LICENSE)
