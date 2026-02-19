@@ -1,0 +1,10 @@
+# Normalize line endings
+* text=auto
+
+# Exclude from Asset Library download
+screenshots/** export-ignore
+.gdignore export-ignore
+README.md export-ignore
+CHANGELOG.md export-ignore
+.gitignore export-ignore
+.gitattributes export-ignore
