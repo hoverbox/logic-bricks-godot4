@@ -145,7 +145,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("\t\tvelocity.y = sqrt(2.0 * %.3f * %.3f)" % [gravity_strength, jump_height])
 		code_lines.append("\t\t_jumps_remaining -= 1")
 
-	# Post-process: move_and_slide after all chains
+	# Post-process: normalize diagonal + move_and_slide after all chains
+	post_process.append("# Normalize diagonal movement (prevent faster diagonal speed)")
+	post_process.append("var _h_vel = Vector2(velocity.x, velocity.z)")
+	post_process.append("var _max_axis = maxf(absf(velocity.x), absf(velocity.z))")
+	post_process.append("if _h_vel.length() > _max_axis and _max_axis > 0.0:")
+	post_process.append("\t_h_vel = _h_vel.normalized() * _max_axis")
+	post_process.append("\tvelocity.x = _h_vel.x")
+	post_process.append("\tvelocity.z = _h_vel.y")
 	post_process.append("# Move after all velocity changes are applied")
 	post_process.append("move_and_slide()")
 
