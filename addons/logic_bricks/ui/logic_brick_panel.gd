@@ -2060,7 +2060,7 @@ func _on_property_changed(value, graph_node: GraphNode, property_name: String) -
     if graph_node.has_meta("brick_data"):
         var brick_data = graph_node.get_meta("brick_data")
         brick_data["brick_instance"].set_property(property_name, value)
-        #print("Logic Bricks: Property '%s' changed to: '%s'" % [property_name, value])
+        print("Logic Bricks: Property '%s' changed to: '%s'" % [property_name, value])
         
         # Check if any properties depend on this one (for dynamic dropdowns like animation lists)
         if property_name == "animation_node_path":
