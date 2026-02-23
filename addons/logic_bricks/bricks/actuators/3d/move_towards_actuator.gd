@@ -16,7 +16,6 @@ func _initialize_properties() -> void:
 	properties = {
 		"behavior": "seek",                    # "seek", "flee", "path_follow"
 		"target_group": "",                    # Group name of target objects
-		"nav_agent_name": "NavigationAgent3D", # Name of NavigationAgent3D child node (Path Follow only)
 		"arrival_distance": 1.0,               # Distance at which target is considered reached
 		"velocity": 5.0,                       # Movement speed
 		"acceleration": 0.0,                   # Acceleration (0 = instant, >0 = gradual)
@@ -42,11 +41,6 @@ func get_property_definitions() -> Array:
 			"name": "target_group",
 			"type": TYPE_STRING,
 			"default": ""
-		},
-		{
-			"name": "nav_agent_name",
-			"type": TYPE_STRING,
-			"default": "NavigationAgent3D"
 		},
 		{
 			"name": "arrival_distance",
@@ -98,12 +92,28 @@ func get_property_definitions() -> Array:
 	]
 
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Moves toward or away from a target.\nSeek: move directly toward target\nFlee: move away from target\nPath Follow: use NavigationAgent3D to pathfind toward target.",
+		"behavior": "Seek: move directly toward nearest target\nFlee: move directly away from nearest target\nPath Follow: use NavigationAgent3D to navigate around obstacles",
+		"target_group": "Group name of target nodes.\nThe nearest node in this group will be targeted.",
+		"arrival_distance": "Distance at which the target is considered reached.",
+		"velocity": "Movement speed.",
+		"acceleration": "Acceleration rate. 0 = instant full speed.",
+		"turn_speed": "Rotation speed in degrees/sec. 0 = instant.",
+		"face_target": "Rotate the node to face the target.",
+		"facing_axis": "Which local axis points toward the target.",
+		"use_navmesh_normal": "Align to navmesh surface normal (Path Follow only).",
+		"self_terminate": "Stop executing when target is reached.",
+		"lock_y_velocity": "Lock vertical (Y) velocity to zero.",
+	}
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var behavior = properties.get("behavior", "seek")
 	var target_group = properties.get("target_group", "")
-	var nav_agent_name = properties.get("nav_agent_name", "NavigationAgent3D")
 	var arrival_distance = properties.get("arrival_distance", 1.0)
-	var velocity = properties.get("velocity", 5.0)
+	var vel = properties.get("velocity", 5.0)
 	var acceleration = properties.get("acceleration", 0.0)
 	var turn_speed = properties.get("turn_speed", 0.0)
 	var face_target = properties.get("face_target", false)
@@ -114,31 +124,39 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	
 	# Normalize enums
 	if typeof(behavior) == TYPE_STRING:
-		behavior = behavior.to_lower()
+		behavior = behavior.to_lower().replace(" ", "_")
 	if typeof(facing_axis) == TYPE_STRING:
 		facing_axis = facing_axis.to_lower()
 	
 	var code_lines: Array[String] = []
+	var member_vars: Array[String] = []
 	
 	# Early exit if no target group
 	if target_group.is_empty():
-		code_lines.append("pass # No target group set")
+		code_lines.append("pass  # No target group set")
 		return {"actuator_code": "\n".join(code_lines)}
 	
-	# Get target position based on behavior
+	# For path_follow, add an @export for the NavigationAgent3D
+	var nav_var = "_nav_agent_%s" % chain_name
+	if behavior == "path_follow":
+		member_vars.append("@export var %s: NavigationAgent3D" % nav_var)
+	
 	match behavior:
 		"seek", "flee":
-			code_lines.append(_generate_direct_movement(behavior, target_group, arrival_distance, velocity, acceleration, turn_speed, face_target, facing_axis, lock_y_velocity, self_terminate))
+			code_lines.append(_generate_direct_movement(behavior, target_group, arrival_distance, vel, acceleration, turn_speed, face_target, facing_axis, lock_y_velocity, self_terminate))
 		
 		"path_follow":
-			code_lines.append(_generate_pathfinding_movement(target_group, nav_agent_name, arrival_distance, velocity, acceleration, turn_speed, face_target, facing_axis, use_navmesh_normal, lock_y_velocity, self_terminate))
+			code_lines.append(_generate_pathfinding_movement(target_group, nav_var, arrival_distance, vel, acceleration, turn_speed, face_target, facing_axis, use_navmesh_normal, lock_y_velocity, self_terminate))
 		
 		_:
-			code_lines.append("pass # Unknown behavior")
+			code_lines.append("pass  # Unknown behavior")
 	
-	return {
+	var result = {
 		"actuator_code": "\n".join(code_lines)
 	}
+	if member_vars.size() > 0:
+		result["member_vars"] = member_vars
+	return result
 
 
 func _generate_direct_movement(behavior: String, target_group: String, arrival_dist: float, vel: float, accel: float, turn: float, face: bool, axis: String, lock_y: bool, terminate: bool) -> String:
@@ -181,7 +199,7 @@ func _generate_direct_movement(behavior: String, target_group: String, arrival_d
 		lines.append("\t\tvar _current_vel = Vector3.ZERO")
 		lines.append("\t\tif self is CharacterBody3D:")
 		lines.append("\t\t\t_current_vel = velocity")
-		lines.append("\t\tvar _new_vel = _current_vel.move_toward(_target_vel, %.2f * delta)" % accel)
+		lines.append("\t\tvar _new_vel = _current_vel.move_toward(_target_vel, %.2f * _delta)" % accel)
 	else:
 		lines.append("\t\tvar _new_vel = _move_dir * %.2f" % vel)
 	
@@ -191,22 +209,23 @@ func _generate_direct_movement(behavior: String, target_group: String, arrival_d
 		for line in face_code.split("\n"):
 			lines.append("\t\t" + line)
 	
-	# Apply movement - use move_and_slide for CharacterBody3D, direct position for others
+	# Apply movement
 	lines.append("\t\tif self is CharacterBody3D:")
 	lines.append("\t\t\tvelocity = _new_vel")
 	lines.append("\t\t\tmove_and_slide()")
 	lines.append("\t\telse:")
-	lines.append("\t\t\tglobal_position += _new_vel * delta")
+	lines.append("\t\t\tglobal_position += _new_vel * _delta")
 	
 	return "\n".join(lines)
 
 
-func _generate_pathfinding_movement(target_group: String, agent_name: String, arrival_dist: float, vel: float, accel: float, turn: float, face: bool, axis: String, use_normal: bool, lock_y: bool, terminate: bool) -> String:
+func _generate_pathfinding_movement(target_group: String, nav_var: String, arrival_dist: float, vel: float, accel: float, turn: float, face: bool, axis: String, use_normal: bool, lock_y: bool, terminate: bool) -> String:
 	var lines: Array[String] = []
 	
-	# Get nav agent
-	lines.append("var _nav_agent = (get_node_or_null(\"%s\") if has_node(\"%s\") else null)" % [agent_name, agent_name])
-	lines.append("if _nav_agent:")
+	# Check nav agent export
+	lines.append("if not %s:" % nav_var)
+	lines.append("\tpush_warning(\"Move Towards: No NavigationAgent3D assigned to '%s' — drag one into the inspector\")" % nav_var)
+	lines.append("else:")
 	
 	# Find nearest target in the group
 	lines.append("\tvar _targets = get_tree().get_nodes_in_group(\"%s\")" % target_group)
@@ -222,7 +241,7 @@ func _generate_pathfinding_movement(target_group: String, agent_name: String, ar
 	lines.append("\t\tif _nearest_target:")
 	
 	# Update navigation target
-	lines.append("\t\t\t_nav_agent.target_position = _nearest_target.global_position")
+	lines.append("\t\t\t%s.target_position = _nearest_target.global_position" % nav_var)
 	
 	# Check arrival
 	if terminate:
@@ -230,8 +249,8 @@ func _generate_pathfinding_movement(target_group: String, agent_name: String, ar
 		lines.append("\t\t\t\treturn  # Target reached, self-terminate")
 	
 	# Get next position from navigation
-	lines.append("\t\t\tif not _nav_agent.is_navigation_finished():")
-	lines.append("\t\t\t\tvar _next_pos = _nav_agent.get_next_path_position()")
+	lines.append("\t\t\tif not %s.is_navigation_finished():" % nav_var)
+	lines.append("\t\t\t\tvar _next_pos = %s.get_next_path_position()" % nav_var)
 	lines.append("\t\t\t\tvar _move_dir = (_next_pos - global_position).normalized()")
 	
 	# Lock Y if needed
@@ -245,7 +264,7 @@ func _generate_pathfinding_movement(target_group: String, agent_name: String, ar
 		lines.append("\t\t\t\tvar _current_vel = Vector3.ZERO")
 		lines.append("\t\t\t\tif self is CharacterBody3D:")
 		lines.append("\t\t\t\t\t_current_vel = velocity")
-		lines.append("\t\t\t\tvar _new_vel = _current_vel.move_toward(_target_vel, %.2f * delta)" % accel)
+		lines.append("\t\t\t\tvar _new_vel = _current_vel.move_toward(_target_vel, %.2f * _delta)" % accel)
 	else:
 		lines.append("\t\t\t\tvar _new_vel = _move_dir * %.2f" % vel)
 	
@@ -255,12 +274,12 @@ func _generate_pathfinding_movement(target_group: String, agent_name: String, ar
 		for line in face_code.split("\n"):
 			lines.append("\t\t\t\t" + line)
 	
-	# Apply movement - use move_and_slide for CharacterBody3D, direct position for others
+	# Apply movement
 	lines.append("\t\t\t\tif self is CharacterBody3D:")
 	lines.append("\t\t\t\t\tvelocity = _new_vel")
 	lines.append("\t\t\t\t\tmove_and_slide()")
 	lines.append("\t\t\t\telse:")
-	lines.append("\t\t\t\t\tglobal_position += _new_vel * delta")
+	lines.append("\t\t\t\t\tglobal_position += _new_vel * _delta")
 	
 	return "\n".join(lines)
 
@@ -285,7 +304,7 @@ func _generate_look_at_code(target_pos: String, axis: String, turn_speed: float)
 		# Gradual rotation
 		lines.append("\tvar _target_basis = Basis.looking_at(_look_dir, Vector3.UP)")
 		lines.append("\tvar _rotation_speed = deg_to_rad(%.2f)" % turn_speed)
-		lines.append("\tglobal_transform.basis = global_transform.basis.slerp(_target_basis, _rotation_speed * delta).orthonormalized()")
+		lines.append("\tglobal_transform.basis = global_transform.basis.slerp(_target_basis, _rotation_speed * _delta).orthonormalized()")
 	else:
 		# Instant rotation
 		lines.append("\tlook_at(global_position + _look_dir, Vector3.UP)")

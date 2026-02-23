@@ -1347,13 +1347,13 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
             var behavior = properties.get("behavior", "seek")
             # Normalize to lowercase
             if typeof(behavior) == TYPE_STRING:
-                behavior = behavior.to_lower()
+                behavior = behavior.to_lower().replace(" ", "_")
             
-            # nav_agent_name is only relevant for path_follow
+            # use_navmesh_normal is only relevant for path_follow
             for child in graph_node.get_children():
                 if child.has_meta("property_name"):
                     var prop_name = child.get_meta("property_name")
-                    if prop_name == "nav_agent_name":
+                    if prop_name == "use_navmesh_normal":
                         child.visible = (behavior == "path_follow")
         
         "variable_actuator":  # Variable Actuator
@@ -2060,7 +2060,7 @@ func _on_property_changed(value, graph_node: GraphNode, property_name: String) -
     if graph_node.has_meta("brick_data"):
         var brick_data = graph_node.get_meta("brick_data")
         brick_data["brick_instance"].set_property(property_name, value)
-        print("Logic Bricks: Property '%s' changed to: '%s'" % [property_name, value])
+        #print("Logic Bricks: Property '%s' changed to: '%s'" % [property_name, value])
         
         # Check if any properties depend on this one (for dynamic dropdowns like animation lists)
         if property_name == "animation_node_path":
