@@ -4,6 +4,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Message Sensor - Detect messages sent by Message Actuator
 ## Listens for messages with a specific subject
+## Automatically adds the node to the broadcast listener group
 
 
 func _init() -> void:
@@ -36,6 +37,14 @@ func get_property_definitions() -> Array:
 	]
 
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Detects messages sent by a Message Actuator.\nListens for a specific subject.",
+		"subject": "Message subject to listen for.\nMust match what the Message Actuator sends.",
+		"match_mode": "Exact: subject must match exactly\nContains: subject contains the text\nStarts With: subject starts with the text",
+	}
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var subject = properties.get("subject", "")
 	var match_mode = properties.get("match_mode", "exact")
@@ -46,7 +55,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	
 	if subject.is_empty():
 		return {
-			"sensor_code": "var sensor_active = false # Message sensor: no subject specified"
+			"sensor_code": "var sensor_active = false  # Message sensor: no subject specified"
 		}
 	
 	var code_lines: Array[String] = []
@@ -88,9 +97,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	handler_code.append("\t\t%s = body" % msg_body_var)
 	handler_code.append("\t\t%s = sender" % msg_sender_var)
 	
+	# Add node to broadcast listener group via ready code
+	var ready_code: Array[String] = []
+	ready_code.append("add_to_group(\"_logic_bricks_message_listeners\")")
+	
 	var result = {
 		"sensor_code": "\n".join(code_lines),
-		"methods": ["\n".join(handler_code)]
+		"methods": ["\n".join(handler_code)],
+		"ready_code": ready_code
 	}
 	
 	if member_vars.size() > 0:
