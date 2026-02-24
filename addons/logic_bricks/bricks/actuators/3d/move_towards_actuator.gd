@@ -298,14 +298,13 @@ func _generate_look_at_code(target_pos: String, axis: String, turn_speed: float)
 		"-z": axis_vector = "Vector3.BACK"
 	
 	lines.append("var _look_dir = %s - global_position" % target_pos)
-	lines.append("_look_dir.y = 0.0  # Only rotate around Y axis")
 	lines.append("if _look_dir.length() > 0.001:")
 	
 	if turn_speed > 0.0:
 		# Gradual rotation
-		lines.append("\tvar _target_angle = atan2(_look_dir.x, _look_dir.z)")
-		lines.append("\tvar _current_angle = rotation.y")
-		lines.append("\trotation.y = lerp_angle(_current_angle, _target_angle, deg_to_rad(%.2f) * _delta)" % turn_speed)
+		lines.append("\tvar _target_basis = Basis.looking_at(_look_dir, Vector3.UP)")
+		lines.append("\tvar _rotation_speed = deg_to_rad(%.2f)" % turn_speed)
+		lines.append("\tglobal_transform.basis = global_transform.basis.slerp(_target_basis, _rotation_speed * _delta).orthonormalized()")
 	else:
 		# Instant rotation
 		lines.append("\tlook_at(global_position + _look_dir, Vector3.UP)")
