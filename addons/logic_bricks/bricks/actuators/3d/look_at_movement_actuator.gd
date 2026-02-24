@@ -97,16 +97,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\t\t")
 
 	if smoothing > 0.001:
-		code_lines.append("\t\t# Smooth rotation using look_at")
+		code_lines.append("\t\t# Smooth Y-axis rotation only")
+		code_lines.append("\t\tvar _target_angle = atan2(_movement_dir.x, _movement_dir.z) + %s" % y_offset)
 		code_lines.append("\t\tvar _current_y = %s.global_rotation.y" % target_var)
-		code_lines.append("\t\t%s.look_at(_look_target, Vector3.UP)" % target_var)
-		code_lines.append("\t\tvar _target_y = %s.global_rotation.y + %s" % [target_var, y_offset])
-		code_lines.append("\t\t%s.global_rotation.y = lerp_angle(_current_y, _target_y, %f)" % [target_var, smoothing])
+		code_lines.append("\t\t%s.global_rotation.y = lerp_angle(_current_y, _target_angle, %f)" % [target_var, smoothing])
 	else:
-		code_lines.append("\t\t# Instant rotation")
-		code_lines.append("\t\t%s.look_at(_look_target, Vector3.UP)" % target_var)
-		if y_offset != "0.0":
-			code_lines.append("\t\t%s.global_rotation.y += %s" % [target_var, y_offset])
+		code_lines.append("\t\t# Instant Y-axis rotation")
+		code_lines.append("\t\t%s.global_rotation.y = atan2(_movement_dir.x, _movement_dir.z) + %s" % [target_var, y_offset])
 
 	return {
 		"actuator_code": "\n".join(code_lines),
