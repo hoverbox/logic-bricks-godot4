@@ -36,6 +36,14 @@ func get_property_definitions() -> Array:
 	]
 
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Rotates a node to face the direction of movement.\n\n⚠ Adds an @export in the Inspector — assign the mesh/Node3D to rotate there.",
+		"forward_axis": "Which direction the mesh considers 'forward'.\n-Z is Godot's default forward direction.",
+		"smoothing": "How smoothly to rotate.\n0 = instant, higher = smoother.",
+	}
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var forward_axis = properties.get("forward_axis", "-z")
 	var smoothing = properties.get("smoothing", 0.1)

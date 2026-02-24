@@ -54,6 +54,13 @@ func get_property_definitions() -> Array:
 	]
 
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Instantly sets position to a target node or coordinates.\nUseful for respawning, portals, checkpoints.\n\n⚠ Target Node mode adds an @export in the Inspector — assign the destination node there.",
+		"mode": "Target Node: teleport to another node's position\nCoordinates: teleport to specific X/Y/Z values",
+	}
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = properties.get("mode", "target_node")
 	var x = properties.get("x", 0.0)

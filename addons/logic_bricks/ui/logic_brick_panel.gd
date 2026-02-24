@@ -172,7 +172,7 @@ func _create_add_menu() -> void:
     
     sensors_menu.add_item("Collision", 102)
     sensors_menu.set_item_metadata(2, {"type": "sensor", "class": "CollisionSensor"})
-    sensors_menu.set_item_tooltip(2, "Detects collisions using an Area3D node.\nRequires an Area3D child or reference.")
+    sensors_menu.set_item_tooltip(2, "Detects collisions using an Area3D node.\nRequires an Area3D child or reference.\n⚠ Adds @export in Inspector — assign your Area3D.")
     
     sensors_menu.add_item("Compare Variable", 103)
     sensors_menu.set_item_metadata(3, {"type": "sensor", "class": "VariableSensor"})
@@ -221,29 +221,29 @@ func _create_add_menu() -> void:
     
     # Populate Actuators submenu (alphabetical order)
     var _actuator_items = [
-        ["Animation", 300, "AnimationActuator", "Plays, stops, or queues animations via AnimationPlayer."],
-        ["Animation Tree", 301, "AnimationTreeActuator", "Controls AnimationTree: travel states, set parameters/conditions."],
-        ["Camera", 302, "CameraActuator", "Camera follow, orbit, or positioning with smooth movement."],
+        ["Animation", 300, "AnimationActuator", "Plays, stops, or queues animations via AnimationPlayer.\n⚠ Adds @export in Inspector — assign your AnimationPlayer."],
+        ["Animation Tree", 301, "AnimationTreeActuator", "Controls AnimationTree: travel states, set parameters/conditions.\n⚠ Adds @export in Inspector — assign your AnimationTree."],
+        ["Camera", 302, "CameraActuator", "Camera follow, orbit, or positioning with smooth movement.\n⚠ Adds @export in Inspector — assign your Camera3D."],
         ["Character", 303, "CharacterActuator", "All-in-one: gravity, jumping, and ground detection."],
         ["Collision", 322, "CollisionActuator", "Modify collision properties: enable/disable shapes, layers, masks."],
         ["Edit Object", 304, "EditObjectActuator", "Add, remove, or replace objects in the scene at runtime."],
         ["Game", 305, "GameActuator", "Game-level actions: quit, restart, pause/unpause."],
-        ["Look At Movement", 306, "LookAtMovementActuator", "Rotates the node to face a target or direction."],
+        ["Look At Movement", 306, "LookAtMovementActuator", "Rotates a node to face the direction of movement.\n⚠ Adds @export in Inspector — assign the mesh/Node3D to rotate."],
         ["Message", 307, "MessageActuator", "Sends a message to all nodes in a target group."],
         ["Modify Variable", 308, "VariableActuator", "Modify a logic brick variable (assign, add, subtract, etc)."],
         ["Motion", 309, "MotionActuator", "Move or rotate: translation, velocity, force, torque."],
         ["Mouse", 310, "MouseActuator", "Mouse-based camera rotation with sensitivity and clamping."],
-        ["Move Towards", 311, "MoveTowardsActuator", "Seek, flee, or path-follow toward a target node."],
+        ["Move Towards", 311, "MoveTowardsActuator", "Seek, flee, or path-follow toward a target node.\n⚠ Path Follow adds @export in Inspector — assign your NavigationAgent3D."],
         ["Parent", 312, "ParentActuator", "Change the node's parent in the scene tree."],
         ["Physics", 313, "PhysicsActuator", "Modify physics properties: gravity scale, mass, friction."],
-        ["Property", 314, "PropertyActuator", "Set any property on a target node (visible, modulate, etc)."],
+        ["Property", 314, "PropertyActuator", "Set any property on a target node (visible, modulate, etc).\n⚠ Adds @export in Inspector — assign the target node."],
         ["Random", 315, "RandomActuator", "Set a variable to a random value within a range."],
         ["Save Game", 316, "SaveGameActuator", "Save/load position, rotation, and variables to JSON."],
         ["Scene", 317, "SceneActuator", "Change or reload scenes."],
         ["Sound", 318, "SoundActuator", "Play audio with random pitch, buses, and play modes."],
         ["State", 319, "StateActuator", "Change the logic brick state (1-30)."],
-        ["Teleport", 320, "TeleportActuator", "Instantly move to a target node or coordinates."],
-        ["Text", 321, "TextActuator", "Display text or variable values on a UI Label."],
+        ["Teleport", 320, "TeleportActuator", "Instantly move to a target node or coordinates.\n⚠ Target Node mode adds @export in Inspector — assign the destination."],
+        ["Text", 321, "TextActuator", "Display text or variable values on a UI Label.\n⚠ Adds @export in Inspector — assign your text node."],
     ]
     for i in _actuator_items.size():
         actuators_menu.add_item(_actuator_items[i][0], _actuator_items[i][1])

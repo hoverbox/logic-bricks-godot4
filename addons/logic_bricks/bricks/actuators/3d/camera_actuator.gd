@@ -103,6 +103,13 @@ func get_property_definitions() -> Array:
 	]
 
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Controls camera behavior.\nModes: Set Active, Smooth Follow.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there.",
+		"mode": "Set Active: switch to this camera\nSmooth Follow: camera follows with smoothing and dead zones",
+	}
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = properties.get("mode", "smooth_follow")
 

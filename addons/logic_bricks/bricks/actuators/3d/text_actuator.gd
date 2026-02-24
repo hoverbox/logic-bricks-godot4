@@ -4,7 +4,6 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ## Text Actuator - Updates a Label or Label3D node with variable values or static text
 ## The text node is assigned via @export variable in the inspector (drag and drop)
 ## Modes: Variable (display a logic brick variable), Static (set fixed text)
-## Automatically reads from GlobalVars if variable isn't found locally
 
 
 func _init() -> void:
@@ -57,7 +56,7 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Updates a Label, Label3D, or RichTextLabel with text.\nCan display variable values or static text.\nAutomatically reads from GlobalVars if variable isn't found locally.",
+		"_description": "Updates a Label, Label3D, or RichTextLabel with text.\nCan display variable values or static text.\nWorks with local and global variables.\n\n⚠ Adds an @export in the Inspector — assign your text node there.",
 		"mode": "Variable: display a variable's value\nStatic: display fixed text",
 		"variable_name": "Name of the variable to display.\nWorks with local and global variables.",
 		"prefix": "Text before the value (e.g. 'Score: ').",
@@ -85,25 +84,16 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	member_vars.append("@export var %s: Node" % text_node_var)
 
 	code_lines.append("# Update text display")
-	code_lines.append("if not %s:" % text_node_var)
-	code_lines.append("\tpush_warning(\"Text Actuator: No text node assigned to '%s' — drag a Label, Label3D, or RichTextLabel into the inspector\")" % text_node_var)
-	code_lines.append("else:")
+	code_lines.append("if %s:" % text_node_var)
 
 	match mode:
 		"variable":
 			if variable_name.is_empty():
 				code_lines.append("\tpush_warning(\"Text Actuator: No variable name specified\")")
 			else:
-				code_lines.append("\t# Get variable (local or global)")
-				code_lines.append("\tvar _value")
-				code_lines.append("\tif \"%s\" in self:" % variable_name)
-				code_lines.append("\t\t_value = str(self.get(\"%s\"))" % variable_name)
-				code_lines.append("\telse:")
-				code_lines.append("\t\tvar _gv = get_node_or_null(\"/root/GlobalVars\")")
-				code_lines.append("\t\tif _gv and \"%s\" in _gv:" % variable_name)
-				code_lines.append("\t\t\t_value = str(_gv.get(\"%s\"))" % variable_name)
-				code_lines.append("\t\telse:")
-				code_lines.append("\t\t\t_value = \"???\"")
+				# Direct variable access — works with local vars, @export vars, 
+				# and global proxy vars (getter reads from GlobalVars automatically)
+				code_lines.append("\tvar _value = str(%s)" % variable_name)
 
 				if not prefix.is_empty() and not suffix.is_empty():
 					code_lines.append("\tvar _display_text = \"%s\" + _value + \"%s\"" % [prefix, suffix])
@@ -114,7 +104,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				else:
 					code_lines.append("\tvar _display_text = _value")
 
-				code_lines.append("\t")
 				_append_set_text_code(code_lines, text_node_var, "_display_text")
 
 		"static":

@@ -94,7 +94,7 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Moves toward or away from a target.\nSeek: move directly toward target\nFlee: move away from target\nPath Follow: use NavigationAgent3D to pathfind toward target.",
+		"_description": "Moves toward or away from a target.\nSeek: move directly toward target\nFlee: move away from target\nPath Follow: use NavigationAgent3D to pathfind toward target.\n\n⚠ Path Follow adds an @export in the Inspector — assign your NavigationAgent3D there.",
 		"behavior": "Seek: move directly toward nearest target\nFlee: move directly away from nearest target\nPath Follow: use NavigationAgent3D to navigate around obstacles",
 		"target_group": "Group name of target nodes.\nThe nearest node in this group will be targeted.",
 		"arrival_distance": "Distance at which the target is considered reached.",
@@ -209,10 +209,10 @@ func _generate_direct_movement(behavior: String, target_group: String, arrival_d
 		for line in face_code.split("\n"):
 			lines.append("\t\t" + line)
 	
-	# Apply movement
+	# Apply movement - set velocity for CharacterBody3D (manager calls move_and_slide)
 	lines.append("\t\tif self is CharacterBody3D:")
-	lines.append("\t\t\tvelocity = _new_vel")
-	lines.append("\t\t\tmove_and_slide()")
+	lines.append("\t\t\tvelocity.x = _new_vel.x")
+	lines.append("\t\t\tvelocity.z = _new_vel.z")
 	lines.append("\t\telse:")
 	lines.append("\t\t\tglobal_position += _new_vel * _delta")
 	
@@ -274,10 +274,10 @@ func _generate_pathfinding_movement(target_group: String, nav_var: String, arriv
 		for line in face_code.split("\n"):
 			lines.append("\t\t\t\t" + line)
 	
-	# Apply movement
+	# Apply movement - set velocity for CharacterBody3D (manager calls move_and_slide)
 	lines.append("\t\t\t\tif self is CharacterBody3D:")
-	lines.append("\t\t\t\t\tvelocity = _new_vel")
-	lines.append("\t\t\t\t\tmove_and_slide()")
+	lines.append("\t\t\t\t\tvelocity.x = _new_vel.x")
+	lines.append("\t\t\t\t\tvelocity.z = _new_vel.z")
 	lines.append("\t\t\t\telse:")
 	lines.append("\t\t\t\t\tglobal_position += _new_vel * _delta")
 	

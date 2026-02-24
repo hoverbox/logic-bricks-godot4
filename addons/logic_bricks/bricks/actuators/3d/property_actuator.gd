@@ -93,6 +93,13 @@ func get_property_definitions() -> Array:
 	]
 
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Sets a property on this node or a target node.\nCan set visibility, scale, color, or any property.\n\n⚠ Adds an @export in the Inspector — assign the target node there (leave empty for self).",
+		"property_name": "Godot property path (e.g. 'visible', 'scale', 'modulate:a').",
+	}
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var property_name = properties.get("property_name", "")
 	var value_type = properties.get("value_type", "bool")

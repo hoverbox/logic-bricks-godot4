@@ -73,7 +73,7 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Play, stop, or control animations via AnimationPlayer.",
+		"_description": "Play, stop, or control animations via AnimationPlayer.\n\n⚠ Adds an @export in the Inspector — assign your AnimationPlayer there.",
 		"animation_node_path": "Path to child node containing the AnimationPlayer\n(e.g. your imported GLB model name).",
 		"mode": "Play: start animation\nStop: stop playback\nPause: freeze at current frame\nQueue: play after current finishes",
 		"animation_name": "Name of the animation to play.",

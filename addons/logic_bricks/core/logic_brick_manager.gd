@@ -256,9 +256,26 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			code_lines.append(mv)
 		code_lines.append("")
 	
-	# Generate _ready() function if any bricks need initialization (e.g. signal connections)
-	if ready_code.size() > 0:
+	# Generate _ready() function
+	# Collect export validation checks from member vars
+	var export_checks: Array[String] = []
+	for mv in member_vars:
+		if mv.begins_with("@export var "):
+			# Extract variable name: "@export var _nav_agent__33: NavigationAgent3D" -> "_nav_agent__33"
+			var parts = mv.replace("@export var ", "").split(":")
+			if parts.size() >= 1:
+				var var_name = parts[0].strip_edges()
+				# Generate a readable label from the var name
+				var label = var_name
+				export_checks.append("if not %s:" % var_name)
+				export_checks.append("\tpush_warning(\"Logic Bricks: '%s' is not assigned! Drag a node into the inspector.\")" % label)
+	
+	if ready_code.size() > 0 or export_checks.size() > 0:
 		code_lines.append("func _ready() -> void:")
+		# Export validation first
+		for ec in export_checks:
+			code_lines.append("\t" + ec)
+		# Then other ready code
 		for rc in ready_code:
 			code_lines.append("\t" + rc)
 		code_lines.append("")
