@@ -2,9 +2,12 @@
 * text=auto
 
 # Exclude from Asset Library download
-screenshots/** export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
 .gdignore export-ignore
 README.md export-ignore
 CHANGELOG.md export-ignore
-.gitignore export-ignore
-.gitattributes export-ignore
+LICENSE export-ignore
+icon.png export-ignore
+screenshots/ export-ignore
+screenshots/** export-ignore
