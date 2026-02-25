@@ -10,10 +10,14 @@ var manager = null
 var editor_interface = null
 var plugin = null  # Reference to the EditorPlugin (for autoload registration)
 var current_node: Node = null
+var _clipboard_graph: Dictionary = {}  # Stored graph data for copy/paste
+var _clipboard_vars: Array = []  # Stored variables for copy/paste
 var is_locked: bool = false  # Lock to prevent losing current_node on selection change
 
 var node_info_label: Label
 var lock_button: Button
+var _copy_button: Button
+var _paste_button: Button
 var graph_edit: GraphEdit
 var add_menu: PopupMenu
 var sensors_menu: PopupMenu
@@ -60,6 +64,18 @@ func _init() -> void:
     lock_button.tooltip_text = "Lock selection (prevents panel from changing when clicking elsewhere)"
     lock_button.pressed.connect(_on_lock_toggled)
     header_hbox.add_child(lock_button)
+    
+    _copy_button = Button.new()
+    _copy_button.text = "C"
+    _copy_button.tooltip_text = "Copy all logic bricks and variables from this node"
+    _copy_button.pressed.connect(_on_copy_bricks_pressed)
+    header_hbox.add_child(_copy_button)
+    
+    _paste_button = Button.new()
+    _paste_button.text = "P"
+    _paste_button.tooltip_text = "Paste copied logic bricks and variables to this node"
+    _paste_button.pressed.connect(_on_paste_bricks_pressed)
+    header_hbox.add_child(_paste_button)
     
     # Separator
     var separator1 = HSeparator.new()
@@ -423,6 +439,16 @@ func _create_frames_tab() -> void:
     delete_button.modulate = Color(1, 0.5, 0.5)
     delete_button.pressed.connect(_on_frame_delete_pressed)
     frame_settings_container.add_child(delete_button)
+
+
+func _enter_tree() -> void:
+    # Set editor icons now that the theme is available
+    if _copy_button:
+        _copy_button.icon = get_theme_icon("ActionCopy", "EditorIcons")
+        _copy_button.text = ""
+    if _paste_button:
+        _paste_button.icon = get_theme_icon("ActionPaste", "EditorIcons")
+        _paste_button.text = ""
 
 
 func set_selected_node(node: Node) -> void:
@@ -2110,6 +2136,65 @@ func _on_debug_message_changed(new_message: String, graph_node: GraphNode, brick
     brick_instance.debug_message = new_message
     _save_graph_to_metadata()
     #print("Logic Bricks: Debug message set to: ", new_message)
+
+
+func _on_copy_bricks_pressed() -> void:
+    if not current_node:
+        push_warning("Logic Bricks: No node selected to copy from.")
+        return
+    
+    if not current_node.has_meta("logic_bricks_graph"):
+        push_warning("Logic Bricks: No logic bricks on this node to copy.")
+        return
+    
+    # Deep copy graph data
+    var graph_data = current_node.get_meta("logic_bricks_graph")
+    _clipboard_graph = graph_data.duplicate(true)
+    
+    # Deep copy variables if they exist
+    if current_node.has_meta("logic_bricks_variables"):
+        var vars_data = current_node.get_meta("logic_bricks_variables")
+        _clipboard_vars = vars_data.duplicate(true)
+    else:
+        _clipboard_vars = []
+    
+    print("Logic Bricks: Copied %d bricks and %d variables from '%s'" % [_clipboard_graph.get("nodes", []).size(), _clipboard_vars.size(), current_node.name])
+
+
+func _on_paste_bricks_pressed() -> void:
+    if not current_node:
+        push_warning("Logic Bricks: No node selected to paste to.")
+        return
+    
+    if _clipboard_graph.is_empty():
+        push_warning("Logic Bricks: Nothing to paste. Copy bricks from a node first.")
+        return
+    
+    # Never paste to instanced nodes
+    if _is_part_of_instance(current_node):
+        push_warning("Logic Bricks: Cannot paste to an instanced node.")
+        return
+    
+    # Set the metadata on the target node
+    current_node.set_meta("logic_bricks_graph", _clipboard_graph.duplicate(true))
+    
+    if _clipboard_vars.size() > 0:
+        current_node.set_meta("logic_bricks_variables", _clipboard_vars.duplicate(true))
+    
+    # Mark scene as modified
+    _mark_scene_modified()
+    
+    # Reload the graph to show the pasted bricks
+    await _load_graph_from_metadata()
+    
+    # Reload variables
+    if current_node.has_meta("logic_bricks_variables"):
+        variables_data = current_node.get_meta("logic_bricks_variables").duplicate(true)
+    else:
+        variables_data = []
+    _refresh_variables_ui()
+    
+    print("Logic Bricks: Pasted %d bricks and %d variables to '%s'" % [_clipboard_graph.get("nodes", []).size(), _clipboard_vars.size(), current_node.name])
 
 
 func _on_view_chain_code(controller_node: GraphNode) -> void:
