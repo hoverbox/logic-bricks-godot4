@@ -181,12 +181,7 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("# Set velocity on active axes")
 			if space == "local":
 				code_lines.append("var _motion_vel = global_transform.basis * %s" % vec)
-				if not _is_zero(x):
-					code_lines.append("velocity.x = _motion_vel.x")
-				if not _is_zero(y):
-					code_lines.append("velocity.y = _motion_vel.y")
-				if not _is_zero(z):
-					code_lines.append("velocity.z = _motion_vel.z")
+				code_lines.append("velocity = _motion_vel")
 			else:
 				if not _is_zero(x):
 					code_lines.append("velocity.x = %s" % vx)
