@@ -18,8 +18,12 @@ func _initialize_properties() -> void:
 		# Mouse look properties
 		"use_x_axis": true,
 		"use_y_axis": true,
+		"x_target": "self",              # "self" or child node name
+		"y_target": "self",              # "self" or child node name
 		"x_sensitivity": 0.1,
 		"y_sensitivity": 0.1,
+		"x_invert": false,               # Invert X axis
+		"y_invert": false,               # Invert Y axis
 		"x_threshold": 0.0,
 		"y_threshold": 0.0,
 		"x_min_degrees": 0.0,           # 0 = no limit
@@ -59,6 +63,16 @@ func get_property_definitions() -> Array:
 			"default": true
 		},
 		{
+			"name": "x_target",
+			"type": TYPE_STRING,
+			"default": "self"
+		},
+		{
+			"name": "y_target",
+			"type": TYPE_STRING,
+			"default": "self"
+		},
+		{
 			"name": "x_sensitivity",
 			"type": TYPE_FLOAT,
 			"default": 0.1
@@ -67,6 +81,16 @@ func get_property_definitions() -> Array:
 			"name": "y_sensitivity",
 			"type": TYPE_FLOAT,
 			"default": 0.1
+		},
+		{
+			"name": "x_invert",
+			"type": TYPE_BOOL,
+			"default": false
+		},
+		{
+			"name": "y_invert",
+			"type": TYPE_BOOL,
+			"default": false
 		},
 		{
 			"name": "x_threshold",
@@ -135,8 +159,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var cursor_visible = properties.get("cursor_visible", false)
 	var use_x_axis = properties.get("use_x_axis", true)
 	var use_y_axis = properties.get("use_y_axis", true)
+	var x_target = properties.get("x_target", "self")
+	var y_target = properties.get("y_target", "self")
 	var x_sensitivity = properties.get("x_sensitivity", 0.1)
 	var y_sensitivity = properties.get("y_sensitivity", 0.1)
+	var x_invert = properties.get("x_invert", false)
+	var y_invert = properties.get("y_invert", false)
 	var x_threshold = properties.get("x_threshold", 0.0)
 	var y_threshold = properties.get("y_threshold", 0.0)
 	var x_min = properties.get("x_min_degrees", 0.0)
@@ -180,55 +208,79 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			
 			if use_x_axis:
 				code_lines.append("# X axis (horizontal) mouse movement")
-				code_lines.append("if abs(_mouse_delta.x) > %.3f:" % x_threshold)
-				code_lines.append("\tvar _x_rotation = -_mouse_delta.x * %.3f" % x_sensitivity)
+				
+				# Determine target node and indentation
+				var x_indent = ""
+				var x_node_ref = "self" if x_target == "self" else ("get_node_or_null(\"%s\")" % x_target)
+				if x_target != "self":
+					code_lines.append("var _x_target = %s" % x_node_ref)
+					code_lines.append("if _x_target:")
+					x_indent = "\t"
+				
+				code_lines.append("%sif abs(_mouse_delta.x) > %.3f:" % [x_indent, x_threshold])
+				var x_mult = 1.0 if x_invert else -1.0
+				code_lines.append("%s\tvar _x_rotation = _mouse_delta.x * %.3f * %.1f" % [x_indent, x_sensitivity, x_mult])
 				
 				# Apply limits if set
 				if x_min != 0.0 or x_max != 0.0:
 					var axis_index = {"x": "0", "y": "1", "z": "2"}[x_rot_axis]
+					var target_prefix = "_x_target." if x_target != "self" else ""
 					if x_use_local:
-						code_lines.append("\tvar _current_rot = rotation_degrees[%s]" % axis_index)
+						code_lines.append("%s\tvar _current_rot = %srotation_degrees[%s]" % [x_indent, target_prefix, axis_index])
 					else:
-						code_lines.append("\tvar _current_rot = global_rotation_degrees[%s]" % axis_index)
+						code_lines.append("%s\tvar _current_rot = %sglobal_rotation_degrees[%s]" % [x_indent, target_prefix, axis_index])
 					
-					code_lines.append("\tvar _new_rot = _current_rot + _x_rotation")
+					code_lines.append("%s\tvar _new_rot = _current_rot + _x_rotation" % x_indent)
 					if x_min != 0.0:
-						code_lines.append("\t_new_rot = max(_new_rot, %.2f)" % x_min)
+						code_lines.append("%s\t_new_rot = max(_new_rot, %.2f)" % [x_indent, x_min])
 					if x_max != 0.0:
-						code_lines.append("\t_new_rot = min(_new_rot, %.2f)" % x_max)
-					code_lines.append("\t_x_rotation = _new_rot - _current_rot")
+						code_lines.append("%s\t_new_rot = min(_new_rot, %.2f)" % [x_indent, x_max])
+					code_lines.append("%s\t_x_rotation = _new_rot - _current_rot" % x_indent)
 				
 				# Apply rotation
 				var x_axis_vector = {"x": "Vector3.RIGHT", "y": "Vector3.UP", "z": "Vector3.BACK"}[x_rot_axis]
+				var target_prefix = "_x_target." if x_target != "self" else ""
 				if x_use_local:
-					code_lines.append("\trotate_object_local(%s, deg_to_rad(_x_rotation))" % x_axis_vector)
+					code_lines.append("%s\t%srotate_object_local(%s, deg_to_rad(_x_rotation))" % [x_indent, target_prefix, x_axis_vector])
 				else:
-					code_lines.append("\trotate(%s, deg_to_rad(_x_rotation))" % x_axis_vector)
+					code_lines.append("%s\t%srotate(%s, deg_to_rad(_x_rotation))" % [x_indent, target_prefix, x_axis_vector])
 				code_lines.append("")
 			
 			if use_y_axis:
 				code_lines.append("# Y axis (vertical) mouse movement")
-				code_lines.append("if abs(_mouse_delta.y) > %.3f:" % y_threshold)
-				code_lines.append("\tvar _y_rotation = -_mouse_delta.y * %.3f" % y_sensitivity)
+				
+				# Determine target node and indentation
+				var y_indent = ""
+				var y_node_ref = "self" if y_target == "self" else ("get_node_or_null(\"%s\")" % y_target)
+				if y_target != "self":
+					code_lines.append("var _y_target = %s" % y_node_ref)
+					code_lines.append("if _y_target:")
+					y_indent = "\t"
+				
+				code_lines.append("%sif abs(_mouse_delta.y) > %.3f:" % [y_indent, y_threshold])
+				var y_mult = 1.0 if y_invert else -1.0
+				code_lines.append("%s\tvar _y_rotation = _mouse_delta.y * %.3f * %.1f" % [y_indent, y_sensitivity, y_mult])
 				
 				# Apply limits
 				if y_min != 0.0 or y_max != 0.0:
 					var axis_index = {"x": "0", "y": "1", "z": "2"}[y_rot_axis]
+					var target_prefix = "_y_target." if y_target != "self" else ""
 					if y_use_local:
-						code_lines.append("\tvar _current_rot = rotation_degrees[%s]" % axis_index)
+						code_lines.append("%s\tvar _current_rot = %srotation_degrees[%s]" % [y_indent, target_prefix, axis_index])
 					else:
-						code_lines.append("\tvar _current_rot = global_rotation_degrees[%s]" % axis_index)
+						code_lines.append("%s\tvar _current_rot = %sglobal_rotation_degrees[%s]" % [y_indent, target_prefix, axis_index])
 					
-					code_lines.append("\tvar _new_rot = _current_rot + _y_rotation")
-					code_lines.append("\t_new_rot = clamp(_new_rot, %.2f, %.2f)" % [y_min, y_max])
-					code_lines.append("\t_y_rotation = _new_rot - _current_rot")
+					code_lines.append("%s\tvar _new_rot = _current_rot + _y_rotation" % y_indent)
+					code_lines.append("%s\t_new_rot = clamp(_new_rot, %.2f, %.2f)" % [y_indent, y_min, y_max])
+					code_lines.append("%s\t_y_rotation = _new_rot - _current_rot" % y_indent)
 				
 				# Apply rotation
 				var y_axis_vector = {"x": "Vector3.RIGHT", "y": "Vector3.UP", "z": "Vector3.BACK"}[y_rot_axis]
+				var target_prefix = "_y_target." if y_target != "self" else ""
 				if y_use_local:
-					code_lines.append("\trotate_object_local(%s, deg_to_rad(_y_rotation))" % y_axis_vector)
+					code_lines.append("%s\t%srotate_object_local(%s, deg_to_rad(_y_rotation))" % [y_indent, target_prefix, y_axis_vector])
 				else:
-					code_lines.append("\trotate(%s, deg_to_rad(_y_rotation))" % y_axis_vector)
+					code_lines.append("%s\t%srotate(%s, deg_to_rad(_y_rotation))" % [y_indent, target_prefix, y_axis_vector])
 				code_lines.append("")
 			
 			if recenter:
