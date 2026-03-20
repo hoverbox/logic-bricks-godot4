@@ -22,6 +22,7 @@ func _initialize_properties() -> void:
 		"neg_z": false,         # -Z (forward)
 		"threshold": 0.1,
 		"use_local_axes": false,
+		"invert": false,        # Invert the result
 	}
 
 
@@ -67,6 +68,11 @@ func get_property_definitions() -> Array:
 			"type": TYPE_BOOL,
 			"default": false
 		},
+		{
+			"name": "invert",
+			"type": TYPE_BOOL,
+			"default": false
+		},
 	]
 
 
@@ -81,12 +87,14 @@ func get_tooltip_definitions() -> Dictionary:
 		"neg_z": "-Z direction (forward).",
 		"threshold": "Minimum speed to count as moving.\nIncrease if jitter causes false positives.",
 		"use_local_axes": "Use the node's local axes instead of world axes.",
+		"invert": "Invert the result.\nActive when NOT moving in the checked directions.",
 	}
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var threshold = properties.get("threshold", 0.1)
 	var use_local = properties.get("use_local_axes", false)
+	var invert = properties.get("invert", false)
 	
 	if typeof(threshold) == TYPE_STRING:
 		threshold = float(threshold) if str(threshold).is_valid_float() else 0.1
@@ -122,9 +130,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		conditions.append("_ms_vel.z < -%.3f" % threshold)
 	
 	if conditions.is_empty():
-		code_lines.append("var sensor_active = false  # No directions checked")
+		code_lines.append("var sensor_active = %s  # No directions checked" % ("true" if invert else "false"))
 	else:
-		code_lines.append("var sensor_active = %s" % " or ".join(conditions))
+		var joined = " or ".join(conditions)
+		if invert:
+			code_lines.append("var sensor_active = not (%s)" % joined)
+		else:
+			code_lines.append("var sensor_active = %s" % joined)
 	
 	return {
 		"sensor_code": "\n".join(code_lines),

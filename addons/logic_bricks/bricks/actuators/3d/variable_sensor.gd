@@ -79,7 +79,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		eval_type = eval_type.to_lower().replace(" ", "_")
 	
 	if var_name.is_empty():
-		return {"sensor_code": "var sensor_active = false\npush_warning(\"Compare Variable: No variable name set — open the brick and enter a variable name\")"}
+		return {
+		"sensor_code": "var sensor_active = false",
+		"ready_code": ["push_warning(\"Compare Variable: No variable name set — open the brick and enter a variable name\")"]
+	}
 	
 	# Sanitize variable name
 	var sanitized_name = var_name.strip_edges().replace(" ", "_")
@@ -111,7 +114,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if value.is_empty():
 				code_lines.append("var sensor_active = false")
 				code_lines.append("push_warning(\"Compare Variable: No comparison value set for '%s' — open the brick and enter a value\" % sanitized_name)")
-			else:
+				else:
 				var compare_value = _parse_value(value)
 				code_lines.append("var sensor_active = (%s != null and %s == %s)" % [val_expr, val_expr, compare_value])
 		
@@ -119,7 +122,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if value.is_empty():
 				code_lines.append("var sensor_active = false")
 				code_lines.append("push_warning(\"Compare Variable: No comparison value set for '%s' — open the brick and enter a value\" % sanitized_name)")
-			else:
+				else:
 				var compare_value = _parse_value(value)
 				code_lines.append("var sensor_active = (%s != null and %s != %s)" % [val_expr, val_expr, compare_value])
 		
@@ -127,7 +130,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if value.is_empty():
 				code_lines.append("var sensor_active = false")
 				code_lines.append("push_warning(\"Compare Variable: No comparison value set for '%s' — open the brick and enter a value\" % sanitized_name)")
-			else:
+				else:
 				var compare_value = _parse_value(value)
 				code_lines.append("var sensor_active = (%s != null and %s > %s)" % [val_expr, val_expr, compare_value])
 		
@@ -135,7 +138,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if value.is_empty():
 				code_lines.append("var sensor_active = false")
 				code_lines.append("push_warning(\"Compare Variable: No comparison value set for '%s' — open the brick and enter a value\" % sanitized_name)")
-			else:
+				else:
 				var compare_value = _parse_value(value)
 				code_lines.append("var sensor_active = (%s != null and %s < %s)" % [val_expr, val_expr, compare_value])
 		
@@ -143,7 +146,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if value.is_empty():
 				code_lines.append("var sensor_active = false")
 				code_lines.append("push_warning(\"Compare Variable: No comparison value set for '%s' — open the brick and enter a value\" % sanitized_name)")
-			else:
+				else:
 				var compare_value = _parse_value(value)
 				code_lines.append("var sensor_active = (%s != null and %s >= %s)" % [val_expr, val_expr, compare_value])
 		
@@ -151,7 +154,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if value.is_empty():
 				code_lines.append("var sensor_active = false")
 				code_lines.append("push_warning(\"Compare Variable: No comparison value set for '%s' — open the brick and enter a value\" % sanitized_name)")
-			else:
+				else:
 				var compare_value = _parse_value(value)
 				code_lines.append("var sensor_active = (%s != null and %s <= %s)" % [val_expr, val_expr, compare_value])
 		
@@ -159,7 +162,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if min_val.is_empty() or max_val.is_empty():
 				code_lines.append("var sensor_active = false")
 				code_lines.append("push_warning(\"Compare Variable: Min/Max values not set for '%s' — open the brick and set interval values\" % sanitized_name)")
-			else:
+				else:
 				var min_compare = _parse_value(min_val)
 				var max_compare = _parse_value(max_val)
 				code_lines.append("var sensor_active = (%s != null and %s >= %s and %s <= %s)" % [val_expr, val_expr, min_compare, val_expr, max_compare])

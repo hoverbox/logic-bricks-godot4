@@ -161,16 +161,16 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var use_y_axis = properties.get("use_y_axis", true)
 	var x_target = properties.get("x_target", "self")
 	var y_target = properties.get("y_target", "self")
-	var x_sensitivity = properties.get("x_sensitivity", 0.1)
-	var y_sensitivity = properties.get("y_sensitivity", 0.1)
+	var x_sensitivity = float(properties.get("x_sensitivity", 0.1))
+	var y_sensitivity = float(properties.get("y_sensitivity", 0.1))
 	var x_invert = properties.get("x_invert", false)
 	var y_invert = properties.get("y_invert", false)
-	var x_threshold = properties.get("x_threshold", 0.0)
-	var y_threshold = properties.get("y_threshold", 0.0)
-	var x_min = properties.get("x_min_degrees", 0.0)
-	var x_max = properties.get("x_max_degrees", 0.0)
-	var y_min = properties.get("y_min_degrees", -90.0)
-	var y_max = properties.get("y_max_degrees", 90.0)
+	var x_threshold = float(properties.get("x_threshold", 0.0))
+	var y_threshold = float(properties.get("y_threshold", 0.0))
+	var x_min = float(properties.get("x_min_degrees", 0.0))
+	var x_max = float(properties.get("x_max_degrees", 0.0))
+	var y_min = float(properties.get("y_min_degrees", -90.0))
+	var y_max = float(properties.get("y_max_degrees", 90.0))
 	var x_rot_axis = properties.get("x_rotation_axis", "y")
 	var y_rot_axis = properties.get("y_rotation_axis", "x")
 	var x_use_local = properties.get("x_use_local", false)
@@ -185,7 +185,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if typeof(y_rot_axis) == TYPE_STRING:
 		y_rot_axis = y_rot_axis.to_lower()
 	
-	print("Mouse Actuator Debug - mode: %s" % mode)
 	
 	var code_lines: Array[String] = []
 	

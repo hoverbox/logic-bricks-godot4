@@ -40,8 +40,17 @@ func get_property_definitions() -> Array:
 	]
 
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Fires after a set duration, optionally repeating.\nUseful for timed events, cooldowns, and periodic actions.",
+		"duration": "Seconds before the sensor fires.",
+		"repeat": "Fire repeatedly on an interval, or just once.",
+		"start_on_ready": "Start counting immediately when the node is ready.\nDisable to start the timer manually via a Variable Actuator.",
+	}
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var duration = properties.get("duration", 1.0)
+	var duration = float(properties.get("duration", 1.0))
 	var repeat = properties.get("repeat", false)
 	var start_on_ready = properties.get("start_on_ready", true)
 

@@ -259,13 +259,18 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	# Generate _ready() function
 	# Collect export validation checks from member vars
 	var export_checks: Array[String] = []
+	# Primitive types that should NOT get null-checks
+	var primitive_types = ["float", "int", "bool", "String", "Vector2", "Vector3", "Color", "Basis", "Transform3D"]
 	for mv in member_vars:
 		if mv.begins_with("@export var "):
-			# Extract variable name: "@export var _nav_agent__33: NavigationAgent3D" -> "_nav_agent__33"
+			# Extract variable name and type: "@export var _cam: Camera3D" -> name="_cam", type="Camera3D"
 			var parts = mv.replace("@export var ", "").split(":")
-			if parts.size() >= 1:
+			if parts.size() >= 2:
 				var var_name = parts[0].strip_edges()
-				# Generate a readable label from the var name
+				var var_type = parts[1].strip_edges()
+				# Skip null-checks for primitive types — they always have a value
+				if var_type in primitive_types:
+					continue
 				var label = var_name
 				export_checks.append("if not %s:" % var_name)
 				export_checks.append("\tpush_warning(\"Logic Bricks: '%s' is not assigned! Drag a node into the inspector.\")" % label)
@@ -598,8 +603,6 @@ func _get_brick_script_path(brick_type: String) -> String:
 			return "res://addons/logic_bricks/bricks/sensors/3d/random_sensor.gd"
 		"RaycastSensor":
 			return "res://addons/logic_bricks/bricks/sensors/3d/raycast_sensor.gd"
-		"TimerSensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/timer_sensor.gd"
 		"MovementSensor":
 			return "res://addons/logic_bricks/bricks/sensors/3d/movement_sensor.gd"
 		"MouseSensor":
@@ -672,6 +675,38 @@ func _get_brick_script_path(brick_type: String) -> String:
 			return "res://addons/logic_bricks/bricks/actuators/3d/game_actuator.gd"
 		"PrintActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/print_actuator.gd"
+		"EnvironmentActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/environment_actuator.gd"
+		"Audio2DActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/audio_2d_actuator.gd"
+		"ModulateActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/modulate_actuator.gd"
+		"VisibilityActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/visibility_actuator.gd"
+		"ProgressBarActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/progress_bar_actuator.gd"
+		"TweenActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/tween_actuator.gd"
+		"ImpulseActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/impulse_actuator.gd"
+		"MusicActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/music_actuator.gd"
+		"ScreenShakeActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/screen_shake_actuator.gd"
+		"ScreenFlashActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/screen_flash_actuator.gd"
+		"RumbleActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/rumble_actuator.gd"
+		"ShaderParamActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/shader_param_actuator.gd"
+		"LightActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/light_actuator.gd"
+		"ThirdPersonCameraActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/third_person_camera_actuator.gd"
+		"CameraZoomActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/camera_zoom_actuator.gd"
+		"ObjectPoolActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/object_pool_actuator.gd"
 		"ANDController", "Controller":
 			return "res://addons/logic_bricks/bricks/controllers/controller.gd"
 	return ""

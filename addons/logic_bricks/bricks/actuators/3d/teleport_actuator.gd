@@ -63,15 +63,24 @@ func get_tooltip_definitions() -> Dictionary:
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = properties.get("mode", "target_node")
-	var x = properties.get("x", 0.0)
-	var y = properties.get("y", 0.0)
-	var z = properties.get("z", 0.0)
+	var x = float(properties.get("x", 0.0))
+	var y = float(properties.get("y", 0.0))
+	var z = float(properties.get("z", 0.0))
 	var copy_rotation = properties.get("copy_rotation", false)
 
 	if typeof(mode) == TYPE_STRING:
 		mode = mode.to_lower().replace(" ", "_")
 
-	var teleport_target_var = "_teleport_target_%s" % chain_name
+	# Use instance name if set, otherwise use brick name, sanitized for use as a variable
+	var _export_label = instance_name if not instance_name.is_empty() else brick_name
+	_export_label = _export_label.to_lower().replace(" ", "_")
+	var _regex = RegEx.new()
+	_regex.compile("[^a-z0-9_]")
+	_export_label = _regex.sub(_export_label, "", true)
+	if _export_label.is_empty():
+		_export_label = chain_name
+
+	var teleport_target_var = "_%s" % _export_label
 	var member_vars: Array[String] = []
 	var code_lines: Array[String] = []
 

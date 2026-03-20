@@ -78,7 +78,7 @@ func get_tooltip_definitions() -> Dictionary:
 		"action_name": "Input Map action name (e.g. 'jump', 'ui_accept').",
 		"negative_action": "Input Map action for the -1 direction.\nExample: 'move_left', 'move_forward', 'look_down'\nMust match an action in Project > Input Map.",
 		"positive_action": "Input Map action for the +1 direction.\nExample: 'move_right', 'move_back', 'look_up'\nMust match an action in Project > Input Map.",
-		"invert": "Flip the axis value.\nUseful when the direction feels backwards.",
+		"invert": "Invert the sensor result.\nButton modes: active when action is NOT pressed.\nAxis mode: flips the axis value.",
 		"store_in": "Variable name to store the axis value (-1.0 to 1.0).\nCreate this variable in the Variables tab.\nThen use it in a Motion actuator field (e.g. 'up * speed').",
 		"deadzone": "Ignore stick values smaller than this.\nPrevents drift from loose joysticks.\n0.1 is a good default.",
 	}
@@ -102,18 +102,20 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 func _generate_button_code(input_mode: String) -> Dictionary:
 	var action_name = properties.get("action_name", "ui_accept")
-	var code = ""
+	var invert = properties.get("invert", false)
+	var raw = ""
 
 	match input_mode:
 		"pressed":
-			code = "var sensor_active = Input.is_action_pressed(\"%s\")" % action_name
+			raw = "Input.is_action_pressed(\"%s\")" % action_name
 		"just_pressed":
-			code = "var sensor_active = Input.is_action_just_pressed(\"%s\")" % action_name
+			raw = "Input.is_action_just_pressed(\"%s\")" % action_name
 		"just_released":
-			code = "var sensor_active = Input.is_action_just_released(\"%s\")" % action_name
+			raw = "Input.is_action_just_released(\"%s\")" % action_name
 		_:
-			code = "var sensor_active = Input.is_action_pressed(\"%s\")" % action_name
+			raw = "Input.is_action_pressed(\"%s\")" % action_name
 
+	var code = "var sensor_active = %s%s" % ["not " if invert else "", raw]
 	return {"sensor_code": code}
 
 

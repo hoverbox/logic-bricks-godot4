@@ -90,6 +90,10 @@ func serialize() -> Dictionary:
 		# Special handling for acronyms
 		if part == "and":
 			class_name_str += "AND"
+		elif part == "2d":
+			class_name_str += "2D"
+		elif part == "3d":
+			class_name_str += "3D"
 		else:
 			class_name_str += part.capitalize()
 	

@@ -136,10 +136,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("pass  # No target group set")
 		return {"actuator_code": "\n".join(code_lines)}
 	
-	# For path_follow, add an @export for the NavigationAgent3D
+	# For path_follow, add an @export for the NavigationAgent3D and stuck-detection state
 	var nav_var = "_nav_agent_%s" % chain_name
 	if behavior == "path_follow":
 		member_vars.append("@export var %s: NavigationAgent3D" % nav_var)
+		member_vars.append("var _mt_stuck_offset_%s: Vector3 = Vector3.ZERO" % nav_var)
 	
 	match behavior:
 		"seek", "flee":
@@ -221,12 +222,12 @@ func _generate_direct_movement(behavior: String, target_group: String, arrival_d
 
 func _generate_pathfinding_movement(target_group: String, nav_var: String, arrival_dist: float, vel: float, accel: float, turn: float, face: bool, axis: String, use_normal: bool, lock_y: bool, terminate: bool) -> String:
 	var lines: Array[String] = []
-	
+
 	# Check nav agent export
 	lines.append("if not %s:" % nav_var)
 	lines.append("\tpush_warning(\"Move Towards: No NavigationAgent3D assigned to '%s' — drag one into the inspector\")" % nav_var)
 	lines.append("else:")
-	
+
 	# Find nearest target in the group
 	lines.append("\tvar _targets = get_tree().get_nodes_in_group(\"%s\")" % target_group)
 	lines.append("\tif _targets.size() > 0:")
@@ -239,25 +240,25 @@ func _generate_pathfinding_movement(target_group: String, nav_var: String, arriv
 	lines.append("\t\t\t\t_nearest_target = _t")
 	lines.append("\t\t")
 	lines.append("\t\tif _nearest_target:")
-	
-	# Update navigation target
-	lines.append("\t\t\t%s.target_position = _nearest_target.global_position" % nav_var)
-	
-	# Check arrival
+
+	# Arrival check
 	if terminate:
 		lines.append("\t\t\tif _nearest_dist <= %.2f:" % arrival_dist)
 		lines.append("\t\t\t\treturn  # Target reached, self-terminate")
-	
-	# Get next position from navigation
+
+	# Raycast forward along movement direction.
+	# If it hits something that isn't the target, pick a random offset and repath.
+	# Offset is held until the ray is clear again.
+	lines.append("\t\t\t%s.target_position = _nearest_target.global_position + _mt_stuck_offset_%s" % [nav_var, nav_var])
 	lines.append("\t\t\tif not %s.is_navigation_finished():" % nav_var)
 	lines.append("\t\t\t\tvar _next_pos = %s.get_next_path_position()" % nav_var)
 	lines.append("\t\t\t\tvar _move_dir = (_next_pos - global_position).normalized()")
-	
-	# Lock Y if needed
+
+	# Lock Y if needed (inside the if-not-finished block, before movement)
 	if lock_y:
 		lines.append("\t\t\t\t_move_dir.y = 0.0")
 		lines.append("\t\t\t\t_move_dir = _move_dir.normalized()")
-	
+
 	# Apply velocity (with or without acceleration)
 	if accel > 0.0:
 		lines.append("\t\t\t\tvar _target_vel = _move_dir * %.2f" % vel)
@@ -267,20 +268,36 @@ func _generate_pathfinding_movement(target_group: String, nav_var: String, arriv
 		lines.append("\t\t\t\tvar _new_vel = _current_vel.move_toward(_target_vel, %.2f * _delta)" % accel)
 	else:
 		lines.append("\t\t\t\tvar _new_vel = _move_dir * %.2f" % vel)
-	
+
 	# Face target if enabled
 	if face:
 		var face_code = _generate_look_at_code("_next_pos", axis, turn)
 		for line in face_code.split("\n"):
 			lines.append("\t\t\t\t" + line)
-	
-	# Apply movement - set velocity for CharacterBody3D (manager calls move_and_slide)
+
+	# Apply movement
 	lines.append("\t\t\t\tif self is CharacterBody3D:")
 	lines.append("\t\t\t\t\tvelocity.x = _new_vel.x")
 	lines.append("\t\t\t\t\tvelocity.z = _new_vel.z")
 	lines.append("\t\t\t\telse:")
 	lines.append("\t\t\t\t\tglobal_position += _new_vel * _delta")
-	
+
+	# Raycast — only fires when no offset is active
+	lines.append("\t\t\t\tif _mt_stuck_offset_%s == Vector3.ZERO:" % nav_var)
+	lines.append("\t\t\t\t\tvar _ray_params = PhysicsRayQueryParameters3D.new()")
+	lines.append("\t\t\t\t\t_ray_params.from = global_position + Vector3.UP * 0.5")
+	lines.append("\t\t\t\t\t_ray_params.to = _ray_params.from + _move_dir * 1.5")
+	lines.append("\t\t\t\t\t_ray_params.exclude = [get_rid(), _nearest_target.get_rid()]")
+	lines.append("\t\t\t\t\tvar _ray_hit = get_world_3d().direct_space_state.intersect_ray(_ray_params)")
+	lines.append("\t\t\t\t\tif _ray_hit:")
+	lines.append("\t\t\t\t\t\tvar _perp = _move_dir.cross(Vector3.UP).normalized()")
+	lines.append("\t\t\t\t\t\tvar _side = 1.0 if randf() > 0.5 else -1.0")
+	lines.append("\t\t\t\t\t\t_mt_stuck_offset_%s = _perp * _side * randf_range(1.5, 3.0)" % nav_var)
+	lines.append("\t\t\telse:")
+	lines.append("\t\t\t\t# Offset active — clear it only once we've arrived at the offset destination")
+	lines.append("\t\t\t\tif %s.is_navigation_finished():" % nav_var)
+	lines.append("\t\t\t\t\t_mt_stuck_offset_%s = Vector3.ZERO" % nav_var)
+
 	return "\n".join(lines)
 
 

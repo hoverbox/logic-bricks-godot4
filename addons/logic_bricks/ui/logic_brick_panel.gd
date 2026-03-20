@@ -13,6 +13,8 @@ var current_node: Node = null
 var _clipboard_graph: Dictionary = {}  # Stored graph data for copy/paste
 var _clipboard_vars: Array = []  # Stored variables for copy/paste
 var is_locked: bool = false  # Lock to prevent losing current_node on selection change
+var _instance_override: bool = false  # Allow editing instanced nodes when true
+var _instance_panel: PanelContainer = null  # The instance warning/choice panel
 
 var node_info_label: Label
 var lock_button: Button
@@ -23,6 +25,7 @@ var add_menu: PopupMenu
 var sensors_menu: PopupMenu
 var controllers_menu: PopupMenu
 var actuators_menu: PopupMenu
+var actuator_submenus: Dictionary = {}  # name -> PopupMenu, for sub-submenu ID lookup
 var next_node_id: int = 0
 var last_mouse_position: Vector2 = Vector2.ZERO
 
@@ -226,45 +229,136 @@ func _create_add_menu() -> void:
     sensors_menu.set_item_metadata(11, {"type": "sensor", "class": "RaycastSensor"})
     sensors_menu.set_item_tooltip(11, "Casts a ray to detect objects in a direction.\nUseful for line-of-sight or ground detection.")
     
-    sensors_menu.add_item("Timer", 112)
-    sensors_menu.set_item_metadata(12, {"type": "sensor", "class": "TimerSensor"})
-    sensors_menu.set_item_tooltip(12, "Activates after a set time duration. Can repeat.")
     
     # Populate Controllers submenu
     controllers_menu.add_item("Controller", 200)
     controllers_menu.set_item_metadata(0, {"type": "controller", "class": "Controller"})
     controllers_menu.set_item_tooltip(0, "Logic gate that combines sensor inputs.\nAND, OR, NAND, NOR, XOR modes.")
     
-    # Populate Actuators submenu (alphabetical order)
-    var _actuator_items = [
-        ["Animation", 300, "AnimationActuator", "Plays, stops, or queues animations via AnimationPlayer.\n⚠ Adds @export in Inspector — assign your AnimationPlayer."],
-        ["Animation Tree", 301, "AnimationTreeActuator", "Controls AnimationTree: travel states, set parameters/conditions.\n⚠ Adds @export in Inspector — assign your AnimationTree."],
-        ["Camera", 302, "CameraActuator", "Camera follow, orbit, or positioning with smooth movement.\n⚠ Adds @export in Inspector — assign your Camera3D."],
-        ["Character", 303, "CharacterActuator", "All-in-one: gravity, jumping, and ground detection."],
-        ["Collision", 322, "CollisionActuator", "Modify collision properties: enable/disable shapes, layers, masks."],
-        ["Edit Object", 304, "EditObjectActuator", "Add, remove, or replace objects in the scene at runtime."],
-        ["Game", 305, "GameActuator", "Game-level actions: quit, restart, pause/unpause."],
-        ["Look At Movement", 306, "LookAtMovementActuator", "Rotates a node to face the direction of movement.\n⚠ Adds @export in Inspector — assign the mesh/Node3D to rotate."],
-        ["Message", 307, "MessageActuator", "Sends a message to all nodes in a target group."],
-        ["Modify Variable", 308, "VariableActuator", "Modify a logic brick variable (assign, add, subtract, etc)."],
-        ["Motion", 309, "MotionActuator", "Move or rotate: translation, velocity, force, torque."],
-        ["Mouse", 310, "MouseActuator", "Mouse-based camera rotation with sensitivity and clamping."],
-        ["Move Towards", 311, "MoveTowardsActuator", "Seek, flee, or path-follow toward a target node.\n⚠ Path Follow adds @export in Inspector — assign your NavigationAgent3D."],
-        ["Parent", 312, "ParentActuator", "Change the node's parent in the scene tree."],
-        ["Physics", 313, "PhysicsActuator", "Modify physics properties: gravity scale, mass, friction."],
-        ["Property", 314, "PropertyActuator", "Set any property on a target node (visible, modulate, etc).\n⚠ Adds @export in Inspector — assign the target node."],
-        ["Random", 315, "RandomActuator", "Set a variable to a random value within a range."],
-        ["Save Game", 316, "SaveGameActuator", "Save/load position, rotation, and variables to JSON."],
-        ["Scene", 317, "SceneActuator", "Change or reload scenes."],
-        ["Sound", 318, "SoundActuator", "Play audio with random pitch, buses, and play modes."],
-        ["State", 319, "StateActuator", "Change the logic brick state (1-30)."],
-        ["Teleport", 320, "TeleportActuator", "Instantly move to a target node or coordinates.\n⚠ Target Node mode adds @export in Inspector — assign the destination."],
-        ["Text", 321, "TextActuator", "Display text or variable values on a UI Label.\n⚠ Adds @export in Inspector — assign your text node."],
+    # Populate Actuators submenu — grouped into categories
+    var _actuator_groups = [
+        {
+            "label": "Animation",
+            "items": [
+                ["Animation", 300, "AnimationActuator", "Plays, stops, or queues animations via AnimationPlayer.\n⚠ Adds @export in Inspector — assign your AnimationPlayer."],
+                ["Animation Tree", 301, "AnimationTreeActuator", "Controls AnimationTree: travel states, set parameters/conditions.\n⚠ Adds @export in Inspector — assign your AnimationTree."],
+            ]
+        },
+        {
+            "label": "Movement",
+            "items": [
+                ["Motion", 309, "MotionActuator", "Move or rotate: translation, velocity, force, torque."],
+                ["Character", 303, "CharacterActuator", "All-in-one: gravity, jumping, and ground detection."],
+                ["Look At Movement", 306, "LookAtMovementActuator", "Rotates a node to face the direction of movement.\n⚠ Adds @export in Inspector — assign the mesh/Node3D to rotate."],
+                ["Move Towards", 311, "MoveTowardsActuator", "Seek, flee, or path-follow toward a target node.\n⚠ Path Follow adds @export in Inspector — assign your NavigationAgent3D."],
+                ["Teleport", 320, "TeleportActuator", "Instantly move to a target node or coordinates.\n⚠ Target Node mode adds @export in Inspector — assign the destination."],
+                ["Mouse", 310, "MouseActuator", "Mouse-based camera rotation with sensitivity and clamping."],
+            ]
+        },
+        {
+            "label": "Physics",
+            "items": [
+                ["Physics", 313, "PhysicsActuator", "Modify physics properties: gravity scale, mass, friction."],
+                ["Impulse", 329, "ImpulseActuator", "Apply a one-shot impulse to a RigidBody3D."],
+                ["Collision", 322, "CollisionActuator", "Modify collision properties: enable/disable shapes, layers, masks."],
+            ]
+        },
+        {
+            "label": "Object",
+            "items": [
+                ["Edit Object", 304, "EditObjectActuator", "Add, remove, or replace objects in the scene at runtime."],
+                ["Object Pool", 330, "ObjectPoolActuator", "Spawn/recycle objects from a pre-allocated pool for better performance."],
+                ["Parent", 312, "ParentActuator", "Change the node's parent in the scene tree."],
+                ["Property", 314, "PropertyActuator", "Set any property on a target node (visible, modulate, etc).\n⚠ Adds @export in Inspector — assign the target node."],
+                ["Visibility", 328, "VisibilityActuator", "Show, hide, or toggle visibility of this node or an assigned node.\nWorks with Node3D, Control, Sprite2D, and any node with a visible property."],
+            ]
+        },
+        {
+            "label": "Environment",
+            "items": [
+                ["Environment", 323, "EnvironmentActuator", "Modify WorldEnvironment properties at runtime: fog, glow, SSAO, tone mapping, color correction."],
+                ["Light", 337, "LightActuator", "Control OmniLight3D, SpotLight3D, or DirectionalLight3D properties.\nSupports FX presets: Flicker, Strobe, Pulse, Fade In/Out."],
+            ]
+        },
+        {
+            "label": "Camera",
+            "items": [
+                ["Camera", 302, "CameraActuator", "Camera follow, orbit, or positioning with smooth movement.\n⚠ Adds @export in Inspector — assign your Camera3D."],
+                ["Camera Zoom", 332, "CameraZoomActuator", "Change camera FOV (3D) or zoom (2D) with optional lerp.\n⚠ Adds @export in Inspector — assign your camera."],
+                ["Screen Shake", 333, "ScreenShakeActuator", "Trauma-based camera shake. Attach to your Camera3D node."],
+                ["3rd Person Camera", 338, "ThirdPersonCameraActuator", "Mouse and/or joystick orbit camera for third-person games.\nAssign a SpringArm3D or pivot node as the camera mount."],
+            ]
+        },
+        {
+            "label": "Audio",
+            "items": [
+                ["Audio 3D", 318, "SoundActuator", "Play 3D audio with random pitch, buses, and play modes.\n⚠ Adds @export in Inspector — assign your AudioStreamPlayer3D."],
+                ["Audio 2D", 324, "Audio2DActuator", "Control an AudioStreamPlayer or AudioStreamPlayer2D.\n⚠ Adds @export in Inspector — assign your audio node."],
+                ["Music", 334, "MusicActuator", "Control background music with crossfade support.\n⚠ Adds @export in Inspector — assign AudioStreamPlayer node(s)."],
+            ]
+        },
+        {
+            "label": "Game Feel",
+            "items": [
+                ["Screen Flash", 335, "ScreenFlashActuator", "Flash a color over the screen.\n⚠ Adds @export in Inspector — assign a full-screen ColorRect."],
+                ["Rumble", 336, "RumbleActuator", "Trigger controller haptic vibration."],
+            ]
+        },
+        {
+            "label": "UI",
+            "items": [
+                ["Text", 321, "TextActuator", "Display text or variable values on a UI Label.\n⚠ Adds @export in Inspector — assign your text node."],
+                ["Modulate", 325, "ModulateActuator", "Set or smoothly transition the color/alpha of this node.\nUseful for fades, flashes, and tints."],
+                ["Progress Bar", 326, "ProgressBarActuator", "Set the value, min, or max of a ProgressBar, HSlider, or VSlider.\n⚠ Adds @export in Inspector — assign your Range node."],
+                ["Tween", 327, "TweenActuator", "Animate any property on a node using Godot's Tween system."],
+            ]
+        },
+        {
+            "label": "Logic",
+            "items": [
+                ["State", 319, "StateActuator", "Change the logic brick state (1-30)."],
+                ["Random", 315, "RandomActuator", "Set a variable to a random value within a range."],
+                ["Message", 307, "MessageActuator", "Sends a message to all nodes in a target group."],
+                ["Modify Variable", 308, "VariableActuator", "Modify a logic brick variable (assign, add, subtract, etc)."],
+            ]
+        },
+        {
+            "label": "Game",
+            "items": [
+                ["Game", 305, "GameActuator", "Game-level actions: quit, restart, pause/unpause."],
+                ["Scene", 317, "SceneActuator", "Change or reload scenes."],
+                ["Save Game", 316, "SaveGameActuator", "Save/load position, rotation, and variables to JSON."],
+            ]
+        },
     ]
-    for i in _actuator_items.size():
-        actuators_menu.add_item(_actuator_items[i][0], _actuator_items[i][1])
-        actuators_menu.set_item_metadata(i, {"type": "actuator", "class": _actuator_items[i][2]})
-        actuators_menu.set_item_tooltip(i, _actuator_items[i][3])
+    
+    for group in _actuator_groups:
+        var group_label: String = group["label"]
+        var group_items: Array = group["items"]
+        
+        # Single-item groups go directly into the actuators menu, no submenu needed
+        if group_items.size() == 1:
+            var item = group_items[0]
+            actuators_menu.add_item(item[0], item[1])
+            var idx = actuators_menu.get_item_index(item[1])
+            actuators_menu.set_item_metadata(idx, {"type": "actuator", "class": item[2]})
+            actuators_menu.set_item_tooltip(idx, item[3])
+        else:
+            # Create a submenu for this group
+            var submenu = PopupMenu.new()
+            var submenu_name = "ActuatorSub_" + group_label.replace(" ", "_")
+            submenu.name = submenu_name
+            actuators_menu.add_child(submenu)
+            submenu.id_pressed.connect(_on_add_menu_item_selected)
+            actuator_submenus[submenu_name] = submenu
+            
+            for item in group_items:
+                submenu.add_item(item[0], item[1])
+                var idx = submenu.get_item_index(item[1])
+                submenu.set_item_metadata(idx, {"type": "actuator", "class": item[2]})
+                submenu.set_item_tooltip(idx, item[3])
+            
+            actuators_menu.add_submenu_item(group_label, submenu_name)
 
 
 func _create_side_panel() -> void:
@@ -456,6 +550,10 @@ func set_selected_node(node: Node) -> void:
     if is_locked:
         return
     
+    # Reset instance override when switching nodes
+    _instance_override = false
+    _hide_instance_panel()
+    
     # Save current state before switching (but NOT if current node is an instance)
     if current_node and not _is_part_of_instance(current_node):
         _save_graph_to_metadata()
@@ -486,14 +584,18 @@ func _update_ui() -> void:
         return
     
     # Check if node is part of an instanced scene
-    if _is_part_of_instance(current_node):
-        node_info_label.text = "⚠ INSTANCED NODE: %s\nThis node is from an instanced scene. Logic Bricks cannot be edited on instances.\nEdit the original scene file instead." % current_node.name
-        node_info_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.0))
+    if _is_part_of_instance(current_node) and not _instance_override:
+        node_info_label.text = "⚠ Instanced Node: %s" % current_node.name
+        node_info_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.0))
         graph_edit.visible = false
         side_panel.visible = false
         if instructions_label:
-            instructions_label.visible = true
+            instructions_label.visible = false
+        _show_instance_panel()
         return
+    
+    # Hide instance panel if showing
+    _hide_instance_panel()
     
     # Reset label color to normal
     node_info_label.remove_theme_color_override("font_color")
@@ -513,6 +615,88 @@ func _update_ui() -> void:
 
 func _is_supported_node(node: Node) -> bool:
     return node is Node3D or node is CharacterBody3D or node is RigidBody3D
+
+
+func _show_instance_panel() -> void:
+    if _instance_panel:
+        _instance_panel.visible = true
+        return
+    
+    # Build the panel
+    _instance_panel = PanelContainer.new()
+    _instance_panel.name = "InstancePanel"
+    _instance_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    
+    var vbox = VBoxContainer.new()
+    vbox.add_theme_constant_override("separation", 10)
+    _instance_panel.add_child(vbox)
+    
+    # Warning icon + title
+    var title = Label.new()
+    title.text = "⚠  Instanced Scene"
+    title.add_theme_font_size_override("font_size", 15)
+    title.add_theme_color_override("font_color", Color(1.0, 0.6, 0.0))
+    title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    vbox.add_child(title)
+    
+    # Description
+    var desc = Label.new()
+    desc.text = "This node belongs to an instanced scene.\nChanges made here will only affect this instance.\nTo change all instances, edit the original scene."
+    desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+    vbox.add_child(desc)
+    
+    var sep = HSeparator.new()
+    vbox.add_child(sep)
+    
+    # Buttons
+    var btn_box = HBoxContainer.new()
+    btn_box.alignment = BoxContainer.ALIGNMENT_CENTER
+    btn_box.add_theme_constant_override("separation", 12)
+    vbox.add_child(btn_box)
+    
+    var open_btn = Button.new()
+    open_btn.text = "📂  Open Original Scene"
+    open_btn.tooltip_text = "Open the original scene file for this instance"
+    open_btn.pressed.connect(_on_open_original_pressed)
+    btn_box.add_child(open_btn)
+    
+    var override_btn = Button.new()
+    override_btn.text = "✏  Edit This Instance"
+    override_btn.tooltip_text = "Add Logic Bricks to this instance only.\nWarning: these bricks will not appear in the original scene."
+    override_btn.pressed.connect(_on_edit_instance_pressed)
+    btn_box.add_child(override_btn)
+    
+    # Insert above the graph_edit in the layout
+    var parent = graph_edit.get_parent()
+    var graph_index = graph_edit.get_index()
+    parent.add_child(_instance_panel)
+    parent.move_child(_instance_panel, graph_index)
+
+
+func _hide_instance_panel() -> void:
+    if _instance_panel:
+        _instance_panel.visible = false
+
+
+func _on_open_original_pressed() -> void:
+    if not current_node or not editor_interface:
+        return
+    # Walk up to find the instanced scene root
+    var target = current_node
+    var edited_root = editor_interface.get_edited_scene_root()
+    while target:
+        if target.scene_file_path != "" and target != edited_root:
+            editor_interface.open_scene_from_path(target.scene_file_path)
+            return
+        target = target.get_parent()
+
+
+func _on_edit_instance_pressed() -> void:
+    _instance_override = true
+    _hide_instance_panel()
+    _update_ui()
 
 
 func _is_part_of_instance(node: Node) -> bool:
@@ -570,8 +754,8 @@ func _save_graph_to_metadata() -> void:
     if not current_node:
         return
     
-    # Never save to instanced nodes
-    if _is_part_of_instance(current_node):
+    # Never save to instanced nodes (unless user explicitly chose to edit the instance)
+    if _is_part_of_instance(current_node) and not _instance_override:
         return
     
     var graph_data = {
@@ -675,9 +859,16 @@ func _on_add_menu_item_selected(id: int) -> void:
         var item_index = controllers_menu.get_item_index(id)
         metadata = controllers_menu.get_item_metadata(item_index)
     elif id >= 300 and id < 400:
-        # Actuators menu (300-399)
+        # Actuators — check direct items first, then sub-submenus
         var item_index = actuators_menu.get_item_index(id)
-        metadata = actuators_menu.get_item_metadata(item_index)
+        if item_index >= 0:
+            metadata = actuators_menu.get_item_metadata(item_index)
+        else:
+            for submenu in actuator_submenus.values():
+                var sub_index = submenu.get_item_index(id)
+                if sub_index >= 0:
+                    metadata = submenu.get_item_metadata(sub_index)
+                    break
     
     if metadata:
         var brick_type = metadata["type"]
@@ -698,7 +889,7 @@ func _create_graph_node(brick_type: String, brick_class: String, position: Vecto
     next_node_id += 1
     
     graph_node.position_offset = position
-    graph_node.title = brick_class.replace("Sensor", "").replace("Controller", "").replace("Actuator", "")
+    graph_node.title = brick_instance.get_brick_name()
     
     # Store brick data
     graph_node.set_meta("brick_data", {
@@ -787,7 +978,7 @@ func _create_graph_node_from_data(node_data: Dictionary) -> void:
     var graph_node = BrickGraphNode.new()
     graph_node.name = node_data["id"]
     graph_node.position_offset = position
-    graph_node.title = brick_class.replace("Sensor", "").replace("Controller", "").replace("Actuator", "")
+    graph_node.title = brick_instance.get_brick_name()
     
     # Store brick data
     graph_node.set_meta("brick_data", {
@@ -848,8 +1039,6 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/sensors/3d/random_sensor.gd"
         "RaycastSensor":
             script_path = "res://addons/logic_bricks/bricks/sensors/3d/raycast_sensor.gd"
-        "TimerSensor":
-            script_path = "res://addons/logic_bricks/bricks/sensors/3d/timer_sensor.gd"
         "MovementSensor":
             script_path = "res://addons/logic_bricks/bricks/sensors/3d/movement_sensor.gd"
         "MouseSensor":
@@ -906,6 +1095,38 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/mouse_actuator.gd"
         "GameActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/game_actuator.gd"
+        "EnvironmentActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/environment_actuator.gd"
+        "Audio2DActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/audio_2d_actuator.gd"
+        "ModulateActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/modulate_actuator.gd"
+        "VisibilityActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/visibility_actuator.gd"
+        "ProgressBarActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/progress_bar_actuator.gd"
+        "TweenActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/tween_actuator.gd"
+        "ImpulseActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/impulse_actuator.gd"
+        "MusicActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/music_actuator.gd"
+        "ScreenShakeActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/screen_shake_actuator.gd"
+        "ScreenFlashActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/screen_flash_actuator.gd"
+        "RumbleActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/rumble_actuator.gd"
+        "ShaderParamActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/shader_param_actuator.gd"
+        "LightActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/light_actuator.gd"
+        "ThirdPersonCameraActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/third_person_camera_actuator.gd"
+        "CameraZoomActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/camera_zoom_actuator.gd"
+        "ObjectPoolActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/object_pool_actuator.gd"
         "PhysicsActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/physics_actuator.gd"
         "ANDController", "Controller":
@@ -965,6 +1186,8 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
     
     # Create UI based on property definitions if available
     if prop_definitions.size() > 0:
+        var current_group_container: VBoxContainer = null  # Active group body
+        
         for prop_def in prop_definitions:
             var property_name = prop_def["name"]
             var property_value = properties.get(property_name, prop_def.get("default", null))
@@ -973,6 +1196,40 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
             var hint_string = prop_def.get("hint_string", "")
             
             var ui_element = null
+            
+            # === Collapsible group header (hint == 999) ===
+            if property_type == TYPE_NIL and hint == 999:
+                # Outer container so we can set_meta on it
+                var group_outer = VBoxContainer.new()
+                group_outer.set_meta("property_name", property_name)
+                
+                # Check if this group should start collapsed
+                var start_collapsed = prop_def.get("collapsed", false)
+                
+                # Header button
+                var group_btn = Button.new()
+                group_btn.text = ("▸ " if start_collapsed else "▾ ") + hint_string
+                group_btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+                group_btn.flat = true
+                group_btn.add_theme_font_size_override("font_size", 11)
+                group_outer.add_child(group_btn)
+                
+                # Body container (holds the properties in this group)
+                var group_body = VBoxContainer.new()
+                group_body.name = "GroupBody"
+                group_body.visible = not start_collapsed
+                group_outer.add_child(group_body)
+                
+                # Toggle collapse on click
+                group_btn.pressed.connect(func():
+                    group_body.visible = not group_body.visible
+                    group_btn.text = ("▾ " if group_body.visible else "▸ ") + hint_string
+                    graph_node.reset_size()
+                )
+                
+                graph_node.add_child(group_outer)
+                current_group_container = group_body
+                continue
             
             # Check if this is an enum
             if hint == PROPERTY_HINT_ENUM and not hint_string.is_empty():
@@ -1004,27 +1261,60 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
                     
                     option_button.selected = selected_index
                 
-                # Special case: Animation list from AnimationPlayer
+                # Special case: Animation list — scans scene tree for all AnimationPlayers
                 elif hint_string == "__ANIMATION_LIST__":
-                    # Get animations from AnimationPlayer on the node specified by animation_node_path
-                    var anim_node_path = properties.get("animation_node_path", "")
-                    var animation_list = _get_animations_from_node_path(graph_node, anim_node_path)
+                    option_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+                    
+                    # Populate from all AnimationPlayers found in the scene tree
+                    var animation_list = _get_all_animations_in_scene()
                     
                     var selected_index = 0
-                    for i in range(animation_list.size()):
-                        var anim_name = animation_list[i]
-                        option_button.add_item(anim_name, i)
-                        option_button.set_item_metadata(i, anim_name)
-                        
-                        if anim_name == property_value:
-                            selected_index = i
-                    
-                    # Add empty option if no selection
                     if animation_list.is_empty():
-                        option_button.add_item("(No animations found)", 0)
+                        option_button.add_item("(Click ↻ to load animations)", 0)
                         option_button.disabled = true
+                    else:
+                        option_button.disabled = false
+                        for i in range(animation_list.size()):
+                            var anim_name = animation_list[i]
+                            option_button.add_item(anim_name, i)
+                            option_button.set_item_metadata(i, anim_name)
+                            if anim_name == property_value:
+                                selected_index = i
+                        option_button.selected = selected_index
                     
-                    option_button.selected = selected_index
+                    # Add a Refresh button to rescan the scene
+                    var refresh_btn = Button.new()
+                    refresh_btn.text = "↻"
+                    refresh_btn.tooltip_text = "Scan scene for AnimationPlayer nodes and reload animation list"
+                    refresh_btn.custom_minimum_size = Vector2(28, 0)
+                    refresh_btn.pressed.connect(func():
+                        var new_list = _get_all_animations_in_scene()
+                        option_button.clear()
+                        if new_list.is_empty():
+                            option_button.add_item("(No animations found)", 0)
+                            option_button.disabled = true
+                        else:
+                            option_button.disabled = false
+                            var new_selected = 0
+                            var current_val = brick_instance.get_property(property_name, "")
+                            for i in range(new_list.size()):
+                                var anim_name = new_list[i]
+                                option_button.add_item(anim_name, i)
+                                option_button.set_item_metadata(i, anim_name)
+                                if anim_name == current_val:
+                                    new_selected = i
+                            option_button.selected = new_selected
+                        graph_node.reset_size()
+                    )
+                    
+                    option_button.item_selected.connect(_on_enum_property_changed.bind(graph_node, property_name, property_type))
+                    hbox.add_child(option_button)
+                    hbox.add_child(refresh_btn)
+                    ui_element = hbox
+                    # Skip the normal item_selected connection below since we connected it above
+                    graph_node.add_child(ui_element)
+                    ui_element.set_meta("property_name", property_name)
+                    continue
                 
                 # Regular enum dropdown
                 else:
@@ -1084,7 +1374,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
                 spinbox.name = "PropertyControl_" + property_name
                 spinbox.min_value = -10000
                 spinbox.max_value = 10000
-                spinbox.value = property_value
+                spinbox.value = float(str(property_value))
                 spinbox.value_changed.connect(_on_property_changed.bind(graph_node, property_name))
                 hbox.add_child(spinbox)
                 ui_element = hbox
@@ -1098,10 +1388,18 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
                 
                 var spinbox = SpinBox.new()
                 spinbox.name = "PropertyControl_" + property_name
-                spinbox.step = 0.01
-                spinbox.min_value = -10000
-                spinbox.max_value = 10000
-                spinbox.value = property_value
+                # Parse range from hint_string if provided (format: "min,max,step")
+                if hint == PROPERTY_HINT_RANGE and not hint_string.is_empty():
+                    var range_parts = hint_string.split(",")
+                    if range_parts.size() >= 1: spinbox.min_value = float(range_parts[0])
+                    if range_parts.size() >= 2: spinbox.max_value = float(range_parts[1])
+                    if range_parts.size() >= 3: spinbox.step = float(range_parts[2])
+                    else: spinbox.step = 0.01
+                else:
+                    spinbox.step = 0.01
+                    spinbox.min_value = -10000
+                    spinbox.max_value = 10000
+                spinbox.value = float(str(property_value))
                 spinbox.value_changed.connect(_on_property_changed.bind(graph_node, property_name))
                 hbox.add_child(spinbox)
                 ui_element = hbox
@@ -1147,13 +1445,96 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
                 hbox.add_child(line_edit)
                 ui_element = hbox
             
+            # Color picker
+            elif property_type == TYPE_COLOR:
+                var hbox = HBoxContainer.new()
+                var label = Label.new()
+                label.text = _format_property_name(property_name) + ":"
+                label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+                hbox.add_child(label)
+                
+                var color_btn = ColorPickerButton.new()
+                color_btn.name = "PropertyControl_" + property_name
+                color_btn.custom_minimum_size = Vector2(80, 0)
+                if typeof(property_value) == TYPE_COLOR:
+                    color_btn.color = property_value
+                color_btn.color_changed.connect(_on_property_changed.bind(graph_node, property_name))
+                hbox.add_child(color_btn)
+                ui_element = hbox
+            
+            # === Dynamic array list (e.g. track list) ===
+            elif property_type == TYPE_ARRAY:
+                var item_hint        = prop_def.get("item_hint", PROPERTY_HINT_NONE)
+                var item_hint_string = prop_def.get("item_hint_string", "")
+                var item_label_text  = prop_def.get("item_label", "Item")
+                
+                var vbox = VBoxContainer.new()
+                vbox.set_meta("property_name", property_name)
+                
+                # Header row: label + Add button
+                var header = HBoxContainer.new()
+                var arr_label = Label.new()
+                arr_label.text = _format_property_name(property_name) + ":"
+                arr_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+                header.add_child(arr_label)
+                var add_btn = Button.new()
+                add_btn.text = "+"
+                add_btn.custom_minimum_size = Vector2(28, 0)
+                header.add_child(add_btn)
+                vbox.add_child(header)
+                
+                # Item list container
+                var list_vbox = VBoxContainer.new()
+                list_vbox.name = "ArrayListContainer"
+                vbox.add_child(list_vbox)
+                
+                # Build the list rows — called immediately and after any add/remove
+                var capture_linked = prop_def.get("linked_array", "")
+                var capture_linked_default = prop_def.get("linked_default", "")
+                _build_array_property_list(
+                    list_vbox, graph_node, brick_instance,
+                    property_name, item_hint, item_hint_string, item_label_text,
+                    capture_linked, capture_linked_default
+                )
+                
+                # Add button handler
+                add_btn.pressed.connect(func():
+                    var upd_arr: Array = brick_instance.get_property(property_name)
+                    if typeof(upd_arr) != TYPE_ARRAY:
+                        upd_arr = []
+                    upd_arr.append("")
+                    brick_instance.set_property(property_name, upd_arr)
+                    # If this array has a linked array, append its default value too
+                    var linked = prop_def.get("linked_array", "")
+                    var linked_default = prop_def.get("linked_default", "")
+                    if not linked.is_empty():
+                        var linked_arr: Array = brick_instance.get_property(linked)
+                        if typeof(linked_arr) != TYPE_ARRAY:
+                            linked_arr = []
+                        linked_arr.append(linked_default)
+                        brick_instance.set_property(linked, linked_arr)
+                    _save_graph_to_metadata()
+                    _build_array_property_list(
+                        list_vbox, graph_node, brick_instance,
+                        property_name, item_hint, item_hint_string, item_label_text,
+                        linked, linked_default
+                    )
+                    graph_node.reset_size()
+                )
+                
+                ui_element = vbox
+
             if ui_element:
                 # Store property name on the UI element for conditional visibility
                 ui_element.set_meta("property_name", property_name)
                 # Apply tooltip from brick's tooltip definitions
                 if tooltips.has(property_name):
                     ui_element.tooltip_text = tooltips[property_name]
-                graph_node.add_child(ui_element)
+                # Place inside active group container if one exists, otherwise on graph node
+                if current_group_container != null:
+                    current_group_container.add_child(ui_element)
+                else:
+                    graph_node.add_child(ui_element)
     else:
         # Fallback: create UI from properties directly (old behavior)
         for property_name in properties:
@@ -1180,6 +1561,8 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
                 hbox.add_child(ui_element)
                 ui_element = hbox
             
+            
+
             elif property_value is float:
                 var hbox = HBoxContainer.new()
                 var label = Label.new()
@@ -1310,6 +1693,137 @@ func _get_animation_players(graph_node: GraphNode) -> Array[String]:
     return players
 
 
+func _build_array_property_list(
+        list_vbox: VBoxContainer,
+        graph_node: GraphNode,
+        brick_instance,
+        property_name: String,
+        item_hint: int,
+        item_hint_string: String,
+        item_label_text: String,
+        linked_array: String = "",
+        linked_default: String = "") -> void:
+    # Clear existing rows
+    for c in list_vbox.get_children():
+        c.queue_free()
+    
+    var current_arr: Array = brick_instance.get_property(property_name)
+    if typeof(current_arr) != TYPE_ARRAY:
+        current_arr = []
+    
+    for idx in current_arr.size():
+        var row = HBoxContainer.new()
+        
+        var idx_label = Label.new()
+        idx_label.text = "%s %d:" % [item_label_text, idx]
+        idx_label.custom_minimum_size = Vector2(56, 0)
+        row.add_child(idx_label)
+        
+        if item_hint == PROPERTY_HINT_FILE:
+            var le = LineEdit.new()
+            le.text = str(current_arr[idx])
+            le.placeholder_text = "Select file..."
+            le.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+            le.editable = false
+            le.tooltip_text = le.text
+            row.add_child(le)
+            
+            var pick_btn = Button.new()
+            pick_btn.text = "..."
+            pick_btn.custom_minimum_size = Vector2(28, 0)
+            var capture_idx = idx
+            var capture_le = le
+            pick_btn.pressed.connect(func():
+                var dialog = EditorFileDialog.new()
+                dialog.file_mode = EditorFileDialog.FILE_MODE_OPEN_FILE
+                for f in item_hint_string.split(","):
+                    dialog.add_filter(f.strip_edges())
+                add_child(dialog)
+                dialog.popup_centered(Vector2(900, 700))
+                dialog.file_selected.connect(func(path: String):
+                    var upd: Array = brick_instance.get_property(property_name)
+                    if typeof(upd) != TYPE_ARRAY: upd = []
+                    while upd.size() <= capture_idx: upd.append("")
+                    upd[capture_idx] = path
+                    brick_instance.set_property(property_name, upd)
+                    capture_le.text = path
+                    capture_le.tooltip_text = path
+                    _save_graph_to_metadata()
+                    dialog.queue_free()
+                )
+            )
+            row.add_child(pick_btn)
+        else:
+            var le = LineEdit.new()
+            le.text = str(current_arr[idx])
+            le.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+            var capture_idx = idx
+            le.text_changed.connect(func(val: String):
+                var upd: Array = brick_instance.get_property(property_name)
+                if typeof(upd) != TYPE_ARRAY: upd = []
+                while upd.size() <= capture_idx: upd.append("")
+                upd[capture_idx] = val
+                brick_instance.set_property(property_name, upd)
+                _save_graph_to_metadata()
+            )
+            row.add_child(le)
+        
+        # Remove button
+        var rm_btn = Button.new()
+        rm_btn.text = "-"
+        rm_btn.custom_minimum_size = Vector2(28, 0)
+        var capture_idx_rm = idx
+        rm_btn.pressed.connect(func():
+            var upd: Array = brick_instance.get_property(property_name)
+            if typeof(upd) != TYPE_ARRAY: upd = []
+            upd.remove_at(capture_idx_rm)
+            brick_instance.set_property(property_name, upd)
+            # Sync linked array if set
+            if not linked_array.is_empty():
+                var linked_upd: Array = brick_instance.get_property(linked_array)
+                if typeof(linked_upd) != TYPE_ARRAY: linked_upd = []
+                if capture_idx_rm < linked_upd.size():
+                    linked_upd.remove_at(capture_idx_rm)
+                    brick_instance.set_property(linked_array, linked_upd)
+            _save_graph_to_metadata()
+            _build_array_property_list(
+                list_vbox, graph_node, brick_instance,
+                property_name, item_hint, item_hint_string, item_label_text,
+                linked_array, linked_default
+            )
+            graph_node.reset_size()
+        )
+        row.add_child(rm_btn)
+        list_vbox.add_child(row)
+
+
+func _get_all_animations_in_scene() -> Array[String]:
+    # Recursively search current_node's entire subtree for AnimationPlayer nodes
+    # and collect all unique animation names across all of them
+    var animations: Array[String] = []
+    
+    if not current_node:
+        return animations
+    
+    var players: Array[AnimationPlayer] = []
+    _find_animation_players_recursive(current_node, players)
+    
+    for player in players:
+        for anim_name in player.get_animation_list():
+            if anim_name not in animations:
+                animations.append(anim_name)
+    
+    animations.sort()
+    return animations
+
+
+func _find_animation_players_recursive(node: Node, result: Array[AnimationPlayer]) -> void:
+    for child in node.get_children():
+        if child is AnimationPlayer:
+            result.append(child)
+        _find_animation_players_recursive(child, result)
+
+
 func _rebuild_dependent_property(graph_node: GraphNode, property_name: String) -> void:
     # Find and rebuild the UI for a property that depends on another property
     if not graph_node.has_meta("brick_data"):
@@ -1337,9 +1851,8 @@ func _rebuild_dependent_property(graph_node: GraphNode, property_name: String) -
     var option_button: OptionButton = property_control
     option_button.clear()
     
-    # Get the animation list based on current animation_node_path
-    var anim_node_path = properties.get("animation_node_path", "")
-    var animation_list = _get_animations_from_node_path(graph_node, anim_node_path)
+    # Get the animation list (legacy path kept for other bricks that may use it)
+    var animation_list: Array[String] = []
     
     var current_value = properties.get(property_name, "")
     var selected_index = 0
@@ -1358,6 +1871,19 @@ func _rebuild_dependent_property(graph_node: GraphNode, property_name: String) -
                 selected_index = i
         
         option_button.selected = selected_index
+
+
+func _find_prop_nodes(graph_node: GraphNode) -> Array:
+    var result = []
+    for child in graph_node.get_children():
+        if child.has_meta("property_name"):
+            result.append(child)
+            var group_body = child.get_node_or_null("GroupBody")
+            if group_body:
+                for grandchild in group_body.get_children():
+                    if grandchild.has_meta("property_name"):
+                        result.append(grandchild)
+    return result
 
 
 func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> void:
@@ -1522,18 +2048,18 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
                             child.visible = (physics_action == "set_angular_damping")
         
         "collision_sensor":  # Collision Sensor
-            var collision_type = properties.get("collision_type", "area_child")
+            var filter_type = properties.get("filter_type", "any")
             
             # Normalize
-            if typeof(collision_type) == TYPE_STRING:
-                collision_type = collision_type.to_lower().replace(" ", "_")
+            if typeof(filter_type) == TYPE_STRING:
+                filter_type = filter_type.to_lower()
             
-            # Show area_node_name only for area_child type
+            # Show filter_value only when filtering by group or name
             for child in graph_node.get_children():
                 if child.has_meta("property_name"):
                     var prop_name = child.get_meta("property_name")
-                    if prop_name == "area_node_name":
-                        child.visible = (collision_type == "area_child")
+                    if prop_name == "filter_value":
+                        child.visible = (filter_type in ["group", "name"])
         
         "random_actuator":  # Random Actuator
             var distribution = properties.get("distribution", "int_uniform")
@@ -1618,6 +2144,86 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
                     if prop_name == "parent_node":
                         child.visible = (mode == "set_parent")
         
+        "property_actuator":  # Property Actuator
+            var node_type = properties.get("node_type", "node_3d")
+            if typeof(node_type) == TYPE_STRING:
+                node_type = node_type.to_lower().replace(" ", "_")
+            
+            # All groups and their node type prefix
+            var group_type_map = {
+                "_group_n3d_visibility": "node_3d",
+                "_group_n3d_transform":  "node_3d",
+                "_group_mesh_basic":     "mesh_instance_3d",
+                "_group_col_basic":      "collision_shape_3d",
+                "_group_light_basic":    "light_3d",
+                "_group_light_color":    "light_3d",
+                "_group_light_shadow":   "light_3d",
+                "_group_rb_basic":       "rigid_body_3d",
+                "_group_rb_damping":     "rigid_body_3d",
+                "_group_cb_basic":       "character_body_3d",
+                "_group_cb_floor":       "character_body_3d",
+                "_group_anim_basic":     "animation_player",
+                "_group_ctrl_basic":     "control",
+                "_group_ctrl_transform": "control",
+                "_group_lbl_basic":      "label",
+                "_group_btn_basic":      "button",
+                "_group_cam_basic":      "camera_3d",
+                "_group_spr_basic":     "sprite_3d",
+                "_group_spr_display":   "sprite_3d",
+                "_group_spr_frames":    "sprite_3d",
+                "_group_custom":         "custom",
+            }
+            # All property keys and their node type
+            var prop_type_map = {
+                "n3d_visible": "node_3d", "n3d_pos_x": "node_3d", "n3d_pos_y": "node_3d",
+                "n3d_pos_z": "node_3d", "n3d_rot_x": "node_3d", "n3d_rot_y": "node_3d",
+                "n3d_rot_z": "node_3d", "n3d_scale_x": "node_3d", "n3d_scale_y": "node_3d",
+                "n3d_scale_z": "node_3d",
+                "mesh_visible": "mesh_instance_3d", "mesh_cast_shadow": "mesh_instance_3d",
+                "col_disabled": "collision_shape_3d",
+                "light_visible": "light_3d", "light_energy": "light_3d",
+                "light_color": "light_3d", "light_shadow": "light_3d",
+                "rb_freeze": "rigid_body_3d", "rb_mass": "rigid_body_3d",
+                "rb_gravity_scale": "rigid_body_3d", "rb_linear_damp": "rigid_body_3d",
+                "rb_angular_damp": "rigid_body_3d",
+                "cb_up_dir_y": "character_body_3d", "cb_max_slides": "character_body_3d",
+                "cb_floor_max_angle": "character_body_3d", "cb_stop_on_slope": "character_body_3d",
+                "cb_block_on_wall": "character_body_3d", "cb_slide_on_ceiling": "character_body_3d",
+                "anim_speed_scale": "animation_player",
+                "ctrl_visible": "control", "ctrl_modulate": "control",
+                "ctrl_size_x": "control", "ctrl_size_y": "control",
+                "ctrl_pos_x": "control", "ctrl_pos_y": "control",
+                "ctrl_rotation": "control", "ctrl_scale_x": "control", "ctrl_scale_y": "control",
+                "lbl_text": "label", "lbl_visible": "label", "lbl_modulate": "label",
+                "btn_disabled": "button", "btn_text": "button", "btn_visible": "button",
+                "cam_fov": "camera_3d", "cam_near": "camera_3d",
+                "cam_far": "camera_3d", "cam_current": "camera_3d",
+                "spr_visible": "sprite_3d", "spr_modulate": "sprite_3d",
+                "spr_flip_h": "sprite_3d", "spr_flip_v": "sprite_3d",
+                "spr_pixel_size": "sprite_3d", "spr_billboard": "sprite_3d",
+                "spr_transparent": "sprite_3d", "spr_shaded": "sprite_3d",
+                "spr_double_sided": "sprite_3d", "spr_frame": "sprite_3d",
+                "spr_hframes": "sprite_3d", "spr_vframes": "sprite_3d",
+                "custom_property": "custom", "custom_value": "custom",
+            }
+            
+            for child in graph_node.get_children():
+                if child.has_meta("property_name"):
+                    var prop_name = child.get_meta("property_name")
+                    if prop_name in group_type_map:
+                        child.visible = (group_type_map[prop_name] == node_type)
+                    elif prop_name in prop_type_map:
+                        child.visible = (prop_type_map[prop_name] == node_type)
+                # Also check inside group bodies
+                elif child is VBoxContainer:
+                    for subchild in child.get_children():
+                        if subchild.has_meta("property_name"):
+                            var prop_name = subchild.get_meta("property_name")
+                            if prop_name in prop_type_map:
+                                # Parent group visibility handles this —
+                                # individual items inside groups don't need separate handling
+                                pass
+        
         "mouse_sensor":  # Mouse Sensor
             var detection_type = properties.get("detection_type", "button")
             
@@ -1675,6 +2281,186 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
                         "mesh_path":
                             child.visible = (edit_type == "replace_mesh")
         
+        "audio_2d_actuator":  # Audio 2D Actuator
+            var mode = properties.get("mode", "play")
+            if typeof(mode) == TYPE_STRING:
+                mode = mode.to_lower().replace(" ", "_")
+            var is_play     = (mode == "play")
+            var is_fade     = (mode in ["fade_in", "fade_out"])
+            var needs_file  = (mode in ["play", "fade_in"])
+            for child in graph_node.get_children():
+                if child.has_meta("property_name"):
+                    var prop_name = child.get_meta("property_name")
+                    match prop_name:
+                        "sound_file":
+                            child.visible = needs_file
+                        "player_type", "play_mode", "loop", "pitch_random", "audio_bus":
+                            child.visible = is_play
+                        "fade_duration":
+                            child.visible = is_fade
+                        "volume", "pitch":
+                            child.visible = (mode != "stop")
+        
+        "modulate_actuator":  # Modulate Actuator
+            var transition = properties.get("transition", false)
+            for child in graph_node.get_children():
+                if child.has_meta("property_name"):
+                    var prop_name = child.get_meta("property_name")
+                    if prop_name == "transition_speed":
+                        child.visible = transition
+        
+        "visibility_actuator":  # Visibility Actuator
+            var target_mode = properties.get("target_mode", "self")
+            if typeof(target_mode) == TYPE_STRING:
+                target_mode = target_mode.to_lower()
+            # No extra fields to show/hide — target_mode controls @export presence via code gen
+        
+        "progress_bar_actuator":  # Progress Bar Actuator
+            var set_value = properties.get("set_value", true)
+            var set_min = properties.get("set_min", false)
+            var set_max = properties.get("set_max", false)
+            var transition = properties.get("transition", false)
+            for child in graph_node.get_children():
+                if child.has_meta("property_name"):
+                    var prop_name = child.get_meta("property_name")
+                    match prop_name:
+                        "value":
+                            child.visible = set_value
+                        "min_value":
+                            child.visible = set_min
+                        "max_value":
+                            child.visible = set_max
+                        "transition_speed":
+                            child.visible = transition and set_value
+        
+        "tween_actuator":  # Tween Actuator
+            var target_mode = properties.get("target_mode", "self")
+            if typeof(target_mode) == TYPE_STRING:
+                target_mode = target_mode.to_lower()
+            # No fields conditionally hidden — all always relevant
+        
+        "impulse_actuator":  # Impulse Actuator
+            var impulse_type = properties.get("impulse_type", "central")
+            if typeof(impulse_type) == TYPE_STRING:
+                impulse_type = impulse_type.to_lower()
+            for child in graph_node.get_children():
+                if child.has_meta("property_name"):
+                    var prop_name = child.get_meta("property_name")
+                    match prop_name:
+                        "pos_x", "pos_y", "pos_z":
+                            child.visible = (impulse_type == "positional")
+                        "space":
+                            child.visible = (impulse_type != "torque")
+        
+        "music_actuator":  # Music Actuator
+            var music_mode = properties.get("music_mode", "tracks")
+            if typeof(music_mode) == TYPE_STRING:
+                music_mode = music_mode.to_lower()
+            var is_tracks  = (music_mode == "tracks")
+            var is_set     = (music_mode == "set")
+            var is_control = (music_mode == "control")
+            var control_action = properties.get("control_action", "play")
+            if typeof(control_action) == TYPE_STRING:
+                control_action = control_action.to_lower()
+            var is_crossfade = (control_action == "crossfade")
+            for child in graph_node.get_children():
+                if child.has_meta("property_name"):
+                    var prop_name = child.get_meta("property_name")
+                    match prop_name:
+                        "tracks", "volume_db", "loop", "audio_bus", "persist":
+                            child.visible = is_tracks
+                        "set_track", "set_play":
+                            child.visible = is_set
+                        "control_action":
+                            child.visible = is_control
+                        "to_track", "crossfade_time":
+                            child.visible = is_control and is_crossfade
+        
+        "screen_flash_actuator":  # Screen Flash Actuator — no conditional fields
+            pass
+        
+        "screen_shake_actuator":  # Screen Shake Actuator — all fields always visible
+            pass
+        
+        "rumble_actuator":  # Rumble Actuator
+            var action = properties.get("action", "vibrate")
+            if typeof(action) == TYPE_STRING:
+                action = action.to_lower()
+            for child in graph_node.get_children():
+                if child.has_meta("property_name"):
+                    var prop_name = child.get_meta("property_name")
+                    match prop_name:
+                        "weak_motor", "strong_motor", "duration":
+                            child.visible = (action == "vibrate")
+        
+        "shader_param_actuator":  # Shader Parameter Actuator (legacy — removed from menu)
+            pass
+        
+        "light_actuator":  # Light Actuator
+            var light_type = properties.get("light_type", "omni").to_lower().replace(" ", "_")
+            var fx         = properties.get("fx", "normal").to_lower().replace(" ", "_")
+            var is_spot    = (light_type == "spotlight3d")
+            var is_omni_or_spot = (light_type in ["omnilight3d", "spotlight3d"])
+            for node in _find_prop_nodes(graph_node):
+                var prop_name = node.get_meta("property_name")
+                match prop_name:
+                    "set_range", "light_range":
+                        node.visible = is_omni_or_spot
+                    "set_spot_angle", "spot_angle", "set_spot_attenuation", "spot_attenuation":
+                        node.visible = is_spot
+                    "fx_params_group":
+                        node.visible = (fx != "normal")
+                    "flicker_normal_energy", "flicker_min", "flicker_max", "flicker_idle_min", "flicker_idle_max", "flicker_burst_duration":
+                        node.visible = (fx == "flicker")
+                    "strobe_frequency", "strobe_on_energy", "strobe_off_energy":
+                        node.visible = (fx == "strobe")
+                    "pulse_min", "pulse_max", "pulse_speed":
+                        node.visible = (fx == "pulse")
+                    "fade_target", "fade_speed":
+                        node.visible = (fx in ["fade_in", "fade_out"])
+        
+        "third_person_camera_actuator":  # 3rd Person Camera Actuator
+            var input_mode = properties.get("input_mode", "mouse").to_lower()
+            var use_joy = input_mode in ["joystick", "both"]
+            for node in _find_prop_nodes(graph_node):
+                var prop_name = node.get_meta("property_name")
+                match prop_name:
+                    "joy_group", "joystick_device", "joy_axis_x", "joy_axis_y", "joy_deadzone", "joy_sensitivity":
+                        node.visible = use_joy
+                    "capture_mouse":
+                        node.visible = input_mode in ["mouse", "both"]
+        
+        "camera_zoom_actuator":  # Camera Zoom Actuator
+            var camera_type = properties.get("camera_type", "camera_3d")
+            if typeof(camera_type) == TYPE_STRING:
+                camera_type = camera_type.to_lower().replace(" ", "_")
+            var transition = properties.get("transition", true)
+            for child in graph_node.get_children():
+                if child.has_meta("property_name"):
+                    var prop_name = child.get_meta("property_name")
+                    match prop_name:
+                        "fov":
+                            child.visible = (camera_type == "camera_3d")
+                        "zoom":
+                            child.visible = (camera_type == "camera_2d")
+                        "transition_speed":
+                            child.visible = transition
+        
+        "object_pool_actuator":  # Object Pool Actuator
+            var action = properties.get("action", "spawn")
+            if typeof(action) == TYPE_STRING:
+                action = action.to_lower().replace(" ", "_")
+            var spawn_at_self = properties.get("spawn_at_self", true)
+            var is_spawn = (action == "spawn")
+            for child in graph_node.get_children():
+                if child.has_meta("property_name"):
+                    var prop_name = child.get_meta("property_name")
+                    match prop_name:
+                        "scenes", "pool_sizes", "spawn_mode", "spawn_delay", "spawn_at_self", "inherit_rotation":
+                            child.visible = is_spawn
+                        "spawn_node":
+                            child.visible = is_spawn and not spawn_at_self
+        
         "game_actuator":  # Game Actuator
             var action = properties.get("action", "exit")
             
@@ -1708,8 +2494,10 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
                     match prop_name:
                         "action_name":
                             child.visible = is_button
-                        "negative_action", "positive_action", "invert", "store_in", "deadzone":
+                        "negative_action", "positive_action", "store_in", "deadzone":
                             child.visible = is_axis
+                        "invert":
+                            child.visible = true  # Invert is useful for all input modes
 
 
 
@@ -1769,6 +2557,25 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
             value = str(value)
     
     brick_instance.set_property(property_name, value)
+    
+    # When a screen shake preset is selected, populate the value fields
+    var brick_class = brick_data.get("brick_class", "")
+    if brick_class == "ScreenShakeActuator" and property_name == "preset":
+        if brick_instance.has_method("get_preset_values"):
+            var preset_vals = brick_instance.get_preset_values(str(value))
+            if preset_vals.size() == 5:
+                var field_names = ["trauma", "max_offset", "max_rotation", "decay", "noise_speed"]
+                for i in field_names.size():
+                    var fname = field_names[i]
+                    var fval = preset_vals[i]
+                    brick_instance.set_property(fname, fval)
+                    for child in graph_node.get_children():
+                        if child.has_meta("property_name") and child.get_meta("property_name") == fname:
+                            var ctrl = child.find_child("PropertyControl_" + fname, true, false)
+                            if ctrl and ctrl is LineEdit:
+                                ctrl.text = fval
+                            break
+    
     _save_graph_to_metadata()
     #print("Logic Bricks: Property '%s' changed to: '%s'" % [property_name, value])
     
@@ -2101,13 +2908,8 @@ func _on_delete_nodes_request(nodes: Array) -> void:
 func _on_property_changed(value, graph_node: GraphNode, property_name: String) -> void:
     if graph_node.has_meta("brick_data"):
         var brick_data = graph_node.get_meta("brick_data")
-        brick_data["brick_instance"].set_property(property_name, value)
-        #print("Logic Bricks: Property '%s' changed to: '%s'" % [property_name, value])
-        
-        # Check if any properties depend on this one (for dynamic dropdowns like animation lists)
-        if property_name == "animation_node_path":
-            # Rebuild the animation_name dropdown
-            _rebuild_dependent_property(graph_node, "animation_name")
+        var brick_instance = brick_data["brick_instance"]
+        brick_instance.set_property(property_name, value)
         
         _save_graph_to_metadata()
 
@@ -2649,8 +3451,8 @@ func _save_variables_to_metadata() -> void:
     if not current_node:
         return
     
-    # Never save to instanced nodes
-    if _is_part_of_instance(current_node):
+    # Never save to instanced nodes (unless user explicitly chose to edit the instance)
+    if _is_part_of_instance(current_node) and not _instance_override:
         return
     
     # Save all variables (both local and global defined on this node)
@@ -3077,8 +3879,8 @@ func _save_frames_to_metadata() -> void:
     if not current_node:
         return
     
-    # Never save to instanced nodes
-    if _is_part_of_instance(current_node):
+    # Never save to instanced nodes (unless user explicitly chose to edit the instance)
+    if _is_part_of_instance(current_node) and not _instance_override:
         return
     
     var frames_data = []

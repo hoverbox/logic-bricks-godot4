@@ -93,7 +93,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		mode = mode.to_lower().replace(" ", "_")
 	
 	if var_name.is_empty():
-		return {"actuator_code": "pass  # Variable actuator: no variable name specified"}
+		return {"actuator_code": "push_warning(\"Modify Variable: No variable name set — open the brick and enter a variable name\")"}
 	
 	var sanitized_name = _sanitize_name(var_name)
 	var code_lines: Array[String] = []
@@ -105,21 +105,21 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	match mode:
 		"assign":
 			if value.is_empty():
-				code_lines.append("\tpass  # No value to assign")
+				code_lines.append("\tpush_warning(\"Modify Variable: No value set for '%s' — open the brick and enter a value\")" % sanitized_name)
 			else:
 				var parsed_value = _parse_value(value)
 				code_lines.append("\t_target.set(\"%s\", %s)" % [sanitized_name, parsed_value])
 		
 		"add":
 			if value.is_empty():
-				code_lines.append("\tpass  # No value to add")
+				code_lines.append("\tpush_warning(\"Modify Variable: No value set for '%s' — open the brick and enter a value\")" % sanitized_name)
 			else:
 				var parsed_value = _parse_value(value)
 				code_lines.append("\t_target.set(\"%s\", _target.get(\"%s\") + %s)" % [sanitized_name, sanitized_name, parsed_value])
 		
 		"copy":
 			if source_var.is_empty():
-				code_lines.append("\tpass  # No source variable specified")
+				code_lines.append("\tpush_warning(\"Modify Variable: No source variable set for Copy mode — open the brick and enter a source variable name\")")
 			else:
 				var sanitized_source = _sanitize_name(source_var)
 				# Resolve source variable too
