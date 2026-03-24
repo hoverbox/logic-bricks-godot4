@@ -2,8 +2,8 @@
 
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Motion Actuator - Unified actuator for all movement types
-## Combines Location, Rotation, Force, Torque, and Linear Velocity
+## Motion Actuator - Movement actuator for location and rotation
+## For physics forces/torque/linear velocity, use the Physics actuators in the Physics submenu
 
 
 func _init() -> void:
@@ -14,13 +14,10 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"motion_type": "location",  # location, rotation, force, torque, linear_velocity
+		"motion_type": "location",  # location, rotation
 		
 		# Location properties
-		"movement_method": "translate",  # translate, velocity, position
-		
-		# Linear Velocity properties
-		"velocity_mode": "set",  # set, add, average
+		"movement_method": "character_velocity",  # translate, character_velocity, position
 		
 		# Common properties
 		"x": "0.0",
@@ -37,22 +34,15 @@ func get_property_definitions() -> Array:
 			"name": "motion_type",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Location,Rotation,Force,Torque,Linear Velocity",
+			"hint_string": "Location,Rotation",
 			"default": "location"
 		},
 		{
 			"name": "movement_method",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Translate,Velocity,Position",
-			"default": "translate"
-		},
-		{
-			"name": "velocity_mode",
-			"type": TYPE_STRING,
-			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Set,Add,Average",
-			"default": "set"
+			"hint_string": "Character Velocity,Translate,Position",
+			"default": "character_velocity"
 		},
 		{
 			"name": "x",
@@ -87,9 +77,8 @@ func get_property_definitions() -> Array:
 func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Moves or rotates the node.\nX/Y/Z fields accept numbers, variable names, or math expressions.",
-		"motion_type": "Location: move by offset or set position\nRotation: rotate by degrees\nForce/Torque: physics (RigidBody3D)\nLinear Velocity: set velocity (RigidBody3D)",
-		"movement_method": "Translate: move by offset each frame\nVelocity: set velocity on active axes\nPosition: set absolute position",
-		"velocity_mode": "Set: replace velocity\nAdd: accumulate\nAverage: blend",
+		"motion_type": "Location: move by offset, set velocity, or set position\nRotation: rotate by degrees each frame\n\nFor physics forces, torque, or RigidBody velocity,\nuse the Physics actuators in the Physics submenu.",
+		"movement_method": "Character Velocity: set velocity on active axes (CharacterBody3D)\nTranslate: move by offset each frame\nPosition: set absolute position",
 		"x": "X axis value. Accepts:\n• A number: 5.0\n• A variable: speed\n• An expression: input_x * speed",
 		"y": "Y axis value. Accepts:\n• A number: 5.0\n• A variable: speed\n• An expression: input_y * speed",
 		"z": "Z axis value. Accepts:\n• A number: 5.0\n• A variable: speed\n• An expression: input_z * speed",
@@ -111,12 +100,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			return _generate_location_code(node, chain_name)
 		"rotation":
 			return _generate_rotation_code(node, chain_name)
-		"force":
-			return _generate_force_code(node, chain_name)
-		"torque":
-			return _generate_torque_code(node, chain_name)
-		"linear_velocity":
-			return _generate_linear_velocity_code(node, chain_name)
 		_:
 			return {"actuator_code": "# Unknown motion type: %s" % motion_type}
 
@@ -153,13 +136,13 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 	var y = properties.get("y", 0.0)
 	var z = properties.get("z", 0.0)
 	var space = properties.get("space", "local")
-	var movement_method = properties.get("movement_method", "translate")
+	var movement_method = properties.get("movement_method", "character_velocity")
 	
 	# Normalize
 	if typeof(space) == TYPE_STRING:
 		space = space.to_lower()
 	if typeof(movement_method) == TYPE_STRING:
-		movement_method = movement_method.to_lower()
+		movement_method = movement_method.to_lower().replace(" ", "_")
 	
 	var code_lines: Array[String] = []
 	var call_mas = properties.get("call_move_and_slide", false)
@@ -177,8 +160,8 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("# Move in global space")
 				code_lines.append("global_position += %s" % vec)
 		
-		"velocity":
-			code_lines.append("# Set velocity on active axes")
+		"character_velocity":
+			code_lines.append("# Set CharacterBody3D velocity on active axes")
 			if space == "local":
 				code_lines.append("var _motion_vel = global_transform.basis * %s" % vec)
 				code_lines.append("velocity.x = _motion_vel.x")
@@ -235,103 +218,3 @@ func _generate_rotation_code(node: Node, chain_name: String) -> Dictionary:
 	
 	return {"actuator_code": code}
 
-
-func _generate_force_code(node: Node, chain_name: String) -> Dictionary:
-	var x = properties.get("x", 0.0)
-	var y = properties.get("y", 0.0)
-	var z = properties.get("z", 0.0)
-	var space = properties.get("space", "local")
-	
-	if typeof(space) == TYPE_STRING:
-		space = space.to_lower()
-	
-	var code_lines: Array[String] = []
-	
-	if not node is RigidBody3D:
-		code_lines.append("# WARNING: Force actuator only works with RigidBody3D!")
-		code_lines.append("# Current node type: %s" % node.get_class())
-		code_lines.append("push_warning(\"Force actuator requires RigidBody3D, but node '%s' is %s\")" % [node.name, node.get_class()])
-		code_lines.append("# Force NOT applied")
-		return {"actuator_code": "\n".join(code_lines)}
-	
-	var vec = "Vector3(%s, %s, %s)" % [_to_expr(x), _to_expr(y), _to_expr(z)]
-	
-	if space == "local":
-		code_lines.append("# Apply force in local space")
-		code_lines.append("apply_central_force(global_transform.basis * %s)" % vec)
-	else:
-		code_lines.append("# Apply force in global space")
-		code_lines.append("apply_central_force(%s)" % vec)
-	
-	return {"actuator_code": "\n".join(code_lines)}
-
-
-func _generate_torque_code(node: Node, chain_name: String) -> Dictionary:
-	var x = properties.get("x", 0.0)
-	var y = properties.get("y", 0.0)
-	var z = properties.get("z", 0.0)
-	var space = properties.get("space", "local")
-	
-	if typeof(space) == TYPE_STRING:
-		space = space.to_lower()
-	
-	var code_lines: Array[String] = []
-	
-	if not node is RigidBody3D:
-		code_lines.append("# WARNING: Torque actuator only works with RigidBody3D!")
-		code_lines.append("# Current node type: %s" % node.get_class())
-		code_lines.append("push_warning(\"Torque actuator requires RigidBody3D, but node '%s' is %s\")" % [node.name, node.get_class()])
-		code_lines.append("# Torque NOT applied")
-		return {"actuator_code": "\n".join(code_lines)}
-	
-	var vec = "Vector3(%s, %s, %s)" % [_to_expr(x), _to_expr(y), _to_expr(z)]
-	
-	if space == "local":
-		code_lines.append("# Apply torque in local space")
-		code_lines.append("apply_torque(global_transform.basis * %s)" % vec)
-	else:
-		code_lines.append("# Apply torque in global space")
-		code_lines.append("apply_torque(%s)" % vec)
-	
-	return {"actuator_code": "\n".join(code_lines)}
-
-
-func _generate_linear_velocity_code(node: Node, chain_name: String) -> Dictionary:
-	var x = properties.get("x", 0.0)
-	var y = properties.get("y", 0.0)
-	var z = properties.get("z", 0.0)
-	var space = properties.get("space", "local")
-	var velocity_mode = properties.get("velocity_mode", "set")
-	
-	if typeof(space) == TYPE_STRING:
-		space = space.to_lower()
-	if typeof(velocity_mode) == TYPE_STRING:
-		velocity_mode = velocity_mode.to_lower()
-	
-	var code_lines: Array[String] = []
-	
-	if not node is RigidBody3D:
-		code_lines.append("# WARNING: Linear Velocity actuator only works with RigidBody3D!")
-		code_lines.append("# Current node type: %s" % node.get_class())
-		code_lines.append("push_warning(\"Linear Velocity actuator requires RigidBody3D, but node '%s' is %s\")" % [node.name, node.get_class()])
-		code_lines.append("# Velocity NOT applied")
-		return {"actuator_code": "\n".join(code_lines)}
-	
-	var vec = "Vector3(%s, %s, %s)" % [_to_expr(x), _to_expr(y), _to_expr(z)]
-	if space == "local":
-		vec = "global_transform.basis * " + vec
-	
-	match velocity_mode:
-		"set":
-			code_lines.append("# Set linear velocity")
-			code_lines.append("linear_velocity = %s" % vec)
-		
-		"add":
-			code_lines.append("# Add to linear velocity")
-			code_lines.append("linear_velocity += %s" % vec)
-		
-		"average":
-			code_lines.append("# Average with current linear velocity")
-			code_lines.append("linear_velocity = (linear_velocity + %s) / 2.0" % vec)
-	
-	return {"actuator_code": "\n".join(code_lines)}

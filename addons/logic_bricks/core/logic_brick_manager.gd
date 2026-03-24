@@ -195,12 +195,39 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	
 	# First pass: collect any member variables from all sensors AND actuators across all chains.
 	# These need to live at script scope (above the functions) because they persist across frames.
+	# Also collect per-chain member vars so we can reset them on state entry.
 	var member_vars: Array[String] = []
+	var chain_member_vars: Dictionary = {}  # chain_name -> Array[String] of reset lines
 	var ready_code: Array[String] = []
 	var pre_process_code: Array[String] = []
 	var post_process_code: Array[String] = []
 	var extra_methods: Array[String] = []
+	
+	# Check if any actuator has an instance name — if so, we need the flags dict
+	# and must clear it at the start of every frame so stale values don't linger.
+	var has_named_actuators = false
 	for chain in chains:
+		for actuator_data in chain.get("actuators", []):
+			if not actuator_data.get("instance_name", "").is_empty():
+				has_named_actuators = true
+				break
+		if has_named_actuators:
+			break
+	if has_named_actuators:
+		member_vars.append("var _actuator_active_flags: Dictionary = {}  # Actuator Sensor: tracks which actuators fired this frame")
+		pre_process_code.append("_actuator_active_flags.clear()")
+	for chain in chains:
+		var this_chain_resets: Array[String] = []
+		
+		# Check if this chain is an all-states chain — if so, its member vars
+		# should NOT be reset on state entry (they need to persist across states)
+		var is_all_states_chain = false
+		var controllers = chain.get("controllers", [])
+		if controllers.size() > 0:
+			var ctrl_brick = _instantiate_brick(controllers[0])
+			if ctrl_brick and ctrl_brick.properties.get("all_states", false):
+				is_all_states_chain = true
+		
 		# Collect from sensors
 		for sensor_data in chain.get("sensors", []):
 			var sensor_brick = _instantiate_brick(sensor_data)
@@ -210,6 +237,11 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 					for mv in generated["member_vars"]:
 						if mv not in member_vars:
 							member_vars.append(mv)
+						# Only collect resets for state-specific chains
+						if not is_all_states_chain:
+							var reset = _member_var_to_reset(mv)
+							if not reset.is_empty() and reset not in this_chain_resets:
+								this_chain_resets.append(reset)
 				if generated.has("ready_code"):
 					for rc in generated["ready_code"]:
 						ready_code.append(rc)
@@ -235,6 +267,11 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 					for mv in generated["member_vars"]:
 						if mv not in member_vars:
 							member_vars.append(mv)
+						# Only collect resets for state-specific chains
+						if not is_all_states_chain:
+							var reset = _member_var_to_reset(mv)
+							if not reset.is_empty() and reset not in this_chain_resets:
+								this_chain_resets.append(reset)
 				if generated.has("ready_code"):
 					for rc in generated["ready_code"]:
 						ready_code.append(rc)
@@ -250,6 +287,9 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 					for method in generated["methods"]:
 						if method not in extra_methods:
 							extra_methods.append(method)
+		
+		if this_chain_resets.size() > 0:
+			chain_member_vars[chain["name"]] = this_chain_resets
 	
 	if member_vars.size() > 0:
 		for mv in member_vars:
@@ -285,15 +325,19 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			code_lines.append("\t" + rc)
 		code_lines.append("")
 	
-	# Add state variable
+	# Add state variable and previous-state tracker for reset-on-enter
 	code_lines.append("# Logic brick state (1-30)")
 	code_lines.append("var _logic_brick_state: int = 1")
+	code_lines.append("var _logic_brick_prev_state: int = -1  # Used to detect state transitions")
 	code_lines.append("")
 	
 	# Group chains by state
+	# Chains with all_states=true are stored in all_state_chains and run in every state
 	var chains_by_state: Dictionary = {}
+	var all_state_chains: Array = []  # Chains that run in every state
 	for chain in chains:
 		var state = 1  # Default state
+		var is_all_states = false
 		
 		# Get state from controller
 		var controllers = chain.get("controllers", [])
@@ -301,42 +345,62 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			var controller_data = controllers[0]
 			var controller_brick = _instantiate_brick(controller_data)
 			if controller_brick:
-				#print("Chain '%s' - Controller class: %s" % [chain["name"], controller_data.get("class_name", "Unknown")])
-				if controller_brick.properties.has("state"):
-					state = controller_brick.properties.get("state", 1)
-					#print("  -> State property found: %d" % state)
-				else:
-					pass  #print("  -> No state property found, using default state 1")
-			else:
-				pass  #print("Chain '%s' - Failed to instantiate controller" % chain["name"])
-		else:
-			pass  #print("Chain '%s' - No controller, using default state 1" % chain["name"])
+				if controller_brick.properties.get("all_states", false):
+					is_all_states = true
+				elif controller_brick.properties.has("state"):
+					state = int(controller_brick.properties.get("state", 1))
 		
-		if not chains_by_state.has(state):
-			chains_by_state[state] = []
-		chains_by_state[state].append(chain)
-		#print("Chain '%s' assigned to state %d" % [chain["name"], state])
+		if is_all_states:
+			all_state_chains.append(chain)
+		else:
+			if not chains_by_state.has(state):
+				chains_by_state[state] = []
+			chains_by_state[state].append(chain)
 	
+	# Pre-generate all chain functions — this is the single source of truth for
+	# whether a chain produces valid output. Calls are only emitted if the function
+	# is non-empty, preventing mismatches between call sites and definitions.
+	var generated_chain_functions: Dictionary = {}  # chain_name -> code string
+	for chain in chains:
+		var chain_code = _generate_chain_function(node, chain)
+		if not chain_code.is_empty():
+			generated_chain_functions[chain["name"]] = chain_code
+
 	# Determine if we need process or physics process
 	var has_process = false
 	var has_physics_process = false
 	
 	for chain in chains:
+		if not generated_chain_functions.has(chain["name"]):
+			continue
 		var needs_physics = _chain_needs_physics_process(chain)
-		
 		if needs_physics:
 			has_physics_process = true
 		else:
 			has_process = true
-	
+
 	# Generate process functions with state matching
 	if has_process:
 		code_lines.append("func _process(delta: float) -> void:")
+		
+		# State transition detection — reset sensor vars for chains in the newly entered state
+		code_lines.append("\tif _logic_brick_state != _logic_brick_prev_state:")
+		code_lines.append("\t\t_on_logic_brick_state_enter(_logic_brick_state)")
+		code_lines.append("\t\t_logic_brick_prev_state = _logic_brick_state")
+		code_lines.append("\t")
 		
 		# Pre-process code runs before any chains (e.g., reset horizontal velocity)
 		if pre_process_code.size() > 0:
 			for pc in pre_process_code:
 				code_lines.append("\t" + pc)
+			code_lines.append("\t")
+		
+		# All-state chains run unconditionally, before the state match
+		if all_state_chains.size() > 0:
+			code_lines.append("\t# All-state chains (run in every state)")
+			for chain in all_state_chains:
+				if generated_chain_functions.has(chain["name"]) and not _chain_needs_physics_process(chain):
+					code_lines.append("\t_logic_brick_%s(delta)" % chain["name"])
 			code_lines.append("\t")
 		
 		code_lines.append("\tmatch _logic_brick_state:")
@@ -350,14 +414,14 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			
 			# Check if this state has any _process chains
 			for chain in state_chains:
-				if not _chain_needs_physics_process(chain):
+				if generated_chain_functions.has(chain["name"]) and not _chain_needs_physics_process(chain):
 					has_process_chain = true
 					break
 			
 			if has_process_chain:
 				code_lines.append("\t\t%d:" % state)
 				for chain in state_chains:
-					if not _chain_needs_physics_process(chain):
+					if generated_chain_functions.has(chain["name"]) and not _chain_needs_physics_process(chain):
 						code_lines.append("\t\t\t_logic_brick_%s(delta)" % chain["name"])
 		
 		# Post-process code runs after all chains (e.g., move_and_slide)
@@ -371,10 +435,24 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	if has_physics_process:
 		code_lines.append("func _physics_process(delta: float) -> void:")
 		
+		# State transition detection — reset sensor vars for chains in the newly entered state
+		code_lines.append("\tif _logic_brick_state != _logic_brick_prev_state:")
+		code_lines.append("\t\t_on_logic_brick_state_enter(_logic_brick_state)")
+		code_lines.append("\t\t_logic_brick_prev_state = _logic_brick_state")
+		code_lines.append("\t")
+		
 		# Pre-process code for physics
 		if pre_process_code.size() > 0:
 			for pc in pre_process_code:
 				code_lines.append("\t" + pc)
+			code_lines.append("\t")
+		
+		# All-state chains run unconditionally, before the state match
+		if all_state_chains.size() > 0:
+			code_lines.append("\t# All-state chains (run in every state)")
+			for chain in all_state_chains:
+				if generated_chain_functions.has(chain["name"]) and _chain_needs_physics_process(chain):
+					code_lines.append("\t_logic_brick_%s(delta)" % chain["name"])
 			code_lines.append("\t")
 		
 		code_lines.append("\tmatch _logic_brick_state:")
@@ -388,14 +466,14 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			
 			# Check if this state has any _physics_process chains
 			for chain in state_chains:
-				if _chain_needs_physics_process(chain):
+				if generated_chain_functions.has(chain["name"]) and _chain_needs_physics_process(chain):
 					has_physics_chain = true
 					break
 			
 			if has_physics_chain:
 				code_lines.append("\t\t%d:" % state)
 				for chain in state_chains:
-					if _chain_needs_physics_process(chain):
+					if generated_chain_functions.has(chain["name"]) and _chain_needs_physics_process(chain):
 						code_lines.append("\t\t\t_logic_brick_%s(delta)" % chain["name"])
 		
 		# Post-process code for physics
@@ -406,11 +484,48 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		
 		code_lines.append("")
 	
-	# Generate individual chain functions
+	# Append pre-generated chain functions
 	for chain in chains:
-		var chain_code = _generate_chain_function(node, chain)
-		code_lines.append(chain_code)
-		code_lines.append("")
+		if generated_chain_functions.has(chain["name"]):
+			code_lines.append(generated_chain_functions[chain["name"]])
+			code_lines.append("")
+	
+	# Generate _on_logic_brick_state_enter — resets sensor/actuator state vars for chains
+	# in the newly entered state so they behave as if running for the first time.
+	# Always emitted since _process always calls it; body is empty if nothing needs resetting.
+	code_lines.append("func _on_logic_brick_state_enter(state: int) -> void:")
+	
+	var has_any_resets = false
+	for chain_name in chain_member_vars:
+		if chain_member_vars[chain_name].size() > 0:
+			has_any_resets = true
+			break
+	
+	if has_any_resets:
+		code_lines.append("\tmatch state:")
+		
+		# Emit a case for each state that has resettable chains
+		var all_states_seen: Array = []
+		for state in chains_by_state.keys():
+			var reset_lines: Array[String] = []
+			for chain in chains_by_state[state]:
+				var cname = chain["name"]
+				if chain_member_vars.has(cname):
+					for rl in chain_member_vars[cname]:
+						reset_lines.append(rl)
+			if reset_lines.size() > 0:
+				code_lines.append("\t\t%d:" % int(state))
+				for rl in reset_lines:
+					code_lines.append("\t\t\t" + rl)
+				all_states_seen.append(state)
+		
+		if all_states_seen.is_empty():
+			code_lines.append("\t\t_:")
+			code_lines.append("\t\t\tpass")
+	else:
+		code_lines.append("\tpass")
+	
+	code_lines.append("")
 	
 	# Append extra methods (e.g. message handlers)
 	for method in extra_methods:
@@ -436,9 +551,8 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 	var lines: Array[String] = []
 	lines.append("func _logic_brick_%s(_delta: float) -> void:" % chain_name)
 	
-	if sensors.is_empty() or actuators.is_empty():
-		lines.append("\tpass")
-		return "\n".join(lines)
+	if sensors.is_empty() or actuators.is_empty() or not controller_data:
+		return ""  # Incomplete chain — skip entirely, generate nothing
 	
 	# Generate sensor code for ALL sensors
 	lines.append("\t# Sensor evaluation")
@@ -524,26 +638,59 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 	lines.append("\tif controller_active:")
 	
 	if actuators.is_empty():
-		lines.append("\t\tpass")
+		return ""  # No actuators — incomplete chain
 	else:
+		var actuator_lines_written = 0
 		for actuator_data in actuators:
 			var actuator_brick = _instantiate_brick(actuator_data)
 			if actuator_brick:
 				var generated = actuator_brick.generate_code(node, chain_name)
 				if generated.has("actuator_code"):
 					var actuator_code = generated["actuator_code"]
-					# Handle multi-line actuator code properly
 					var code_lines_array = actuator_code.split("\n")
 					for code_line in code_lines_array:
 						if code_line.strip_edges() != "":
 							lines.append("\t\t" + code_line)
+							actuator_lines_written += 1
 					
-					# Add debug print if enabled
 					var debug_code = actuator_brick.get_debug_code()
 					if not debug_code.is_empty():
 						lines.append("\t\t" + debug_code)
+						actuator_lines_written += 1
+		
+		# If all actuators produced empty code, treat as incomplete — skip entirely
+		if actuator_lines_written == 0:
+			return ""
+	
+	# Write active flags for any named actuators so the Actuator Sensor can read them.
+	# Flags are written both when active (true) and when not (false) so the sensor
+	# always has an up-to-date value regardless of which branch ran.
+	lines.append("\t")
+	lines.append("\t# Actuator Sensor flags")
+	for actuator_data in actuators:
+		var inst_name = actuator_data.get("instance_name", "")
+		if not inst_name.is_empty():
+			lines.append("\tif controller_active:")
+			lines.append("\t\t_actuator_active_flags[\"%s\"] = true" % inst_name)
+			lines.append("\telse:")
+			lines.append("\t\t_actuator_active_flags[\"%s\"] = false" % inst_name)
 	
 	return "\n".join(lines)
+
+
+## Check if a chain is complete enough to generate code for
+## Requires at least one sensor, one controller, and one actuator
+func _chain_is_complete(chain: Dictionary) -> bool:
+	if chain.get("sensors", []).is_empty():
+		return false
+	if chain.get("actuators", []).is_empty():
+		return false
+	var controllers = chain.get("controllers", [])
+	if controllers.is_empty():
+		# Legacy: try singular key
+		if not chain.has("controller") or chain.get("controller") == null:
+			return false
+	return true
 
 
 ## Check if a chain needs physics process (has force/torque actuators)
@@ -551,11 +698,8 @@ func _chain_needs_physics_process(chain: Dictionary) -> bool:
 	var actuators = chain.get("actuators", [])
 	for actuator_data in actuators:
 		var brick_type = actuator_data.get("type", "")
-		if brick_type == "MotionActuator":
-			var props = actuator_data.get("properties", {})
-			var motion_type = props.get("motion_type", "location")
-			if motion_type in ["force", "torque"]:
-				return true
+		if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator"]:
+			return true
 	return false
 
 
@@ -581,6 +725,8 @@ func _instantiate_brick(brick_data: Dictionary) -> LogicBrick:
 ## Get the script path for a brick type
 func _get_brick_script_path(brick_type: String) -> String:
 	match brick_type:
+		"ActuatorSensor":
+			return "res://addons/logic_bricks/bricks/sensors/3d/actuator_sensor.gd"
 		"AlwaysSensor":
 			return "res://addons/logic_bricks/bricks/sensors/3d/always_sensor.gd"
 		"AnimationTreeSensor":
@@ -643,6 +789,10 @@ func _get_brick_script_path(brick_type: String) -> String:
 			return "res://addons/logic_bricks/bricks/actuators/3d/message_actuator.gd"
 		"LookAtMovementActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/look_at_movement_actuator.gd"
+		"RotateTowardsActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/rotate_towards_actuator.gd"
+		"WaypointPathActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/waypoint_path_actuator.gd"
 		"VariableActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/variable_actuator.gd"
 		"RandomActuator":
@@ -858,3 +1008,45 @@ func _mark_scene_modified(node: Node) -> void:
 	# Mark the currently edited scene as unsaved
 	# This is the correct way to tell Godot the scene needs saving
 	editor_interface.mark_scene_as_unsaved()
+
+
+## Parse a member variable declaration into a reset statement.
+## e.g. "var _delay_elapsed__27: float = 0.0"  ->  "_delay_elapsed__27 = 0.0"
+## e.g. "var _on_ground: bool = false"          ->  "_on_ground = false"
+## Returns empty string for @export vars or declarations without a default value.
+func _member_var_to_reset(member_var_line: String) -> String:
+	# Skip exported vars — those are set by the user in the inspector, not reset on state entry
+	if member_var_line.begins_with("@export"):
+		return ""
+	
+	# Must start with "var "
+	if not member_var_line.begins_with("var "):
+		return ""
+	
+	# Check there's a "=" to split on
+	var eq_pos = member_var_line.find("=")
+	if eq_pos == -1:
+		return ""
+	
+	# Extract default value (trim trailing comments)
+	var default_val = member_var_line.substr(eq_pos + 1).strip_edges()
+	var comment_pos = default_val.find("  #")
+	if comment_pos == -1:
+		comment_pos = default_val.find("\t#")
+	if comment_pos != -1:
+		default_val = default_val.substr(0, comment_pos).strip_edges()
+	
+	# Extract variable name: "var _foo: float = ..." or "var _foo = ..."
+	var after_var = member_var_line.substr(4)  # strip "var "
+	var colon_pos = after_var.find(":")
+	var var_name = ""
+	if colon_pos != -1:
+		var_name = after_var.substr(0, colon_pos).strip_edges()
+	else:
+		var space_pos = after_var.find(" ")
+		var_name = after_var.substr(0, space_pos if space_pos != -1 else after_var.length()).strip_edges()
+	
+	if var_name.is_empty() or default_val.is_empty():
+		return ""
+	
+	return "%s = %s" % [var_name, default_val]

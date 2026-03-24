@@ -171,10 +171,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	ready_lines.append("\tpush_warning(\"3rd Person Camera: Camera pivot not assigned — drag a Node3D into the '%s' slot in the Inspector\")" % pivot_var)
 	ready_lines.append("else:")
 	if rotate_character:
-		ready_lines.append("\t%s = rotation_degrees.y" % yaw_var)
+		ready_lines.append("\t%s = global_rotation_degrees.y" % yaw_var)
 	else:
-		ready_lines.append("\t%s = %s.rotation_degrees.y" % [yaw_var, pivot_var])
-	ready_lines.append("\t%s = %s.rotation_degrees.x" % [pitch_var, pivot_var])
+		ready_lines.append("\t%s = %s.global_rotation_degrees.y" % [yaw_var, pivot_var])
+	ready_lines.append("\t%s = %s.global_rotation_degrees.x" % [pitch_var, pivot_var])
 	if use_mouse:
 		ready_lines.append("Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)")
 
@@ -207,13 +207,16 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# Clamp pitch
 	code_lines.append("\t%s = clampf(%s, %.2f, %.2f)" % [pitch_var, pitch_var, pitch_min, pitch_max])
 
-	# Apply yaw — to character or pivot depending on mode
+	# Apply yaw and pitch using global rotation so the pivot ignores parent rotation.
+	# Also sync position explicitly so it works regardless of scene hierarchy.
 	if rotate_character:
-		code_lines.append("\trotation_degrees.y = %s  # Yaw rotates the character" % yaw_var)
-		code_lines.append("\t%s.rotation_degrees.x = %s" % [pivot_var, pitch_var])
+		code_lines.append("\tglobal_rotation_degrees.y = %s  # Yaw rotates the character in world space" % yaw_var)
+		code_lines.append("\t%s.global_position = global_position  # Keep pivot at character position" % pivot_var)
+		code_lines.append("\t%s.global_rotation_degrees.x = %s  # Pitch in world space, ignores character rotation" % [pivot_var, pitch_var])
 	else:
-		code_lines.append("\t%s.rotation_degrees.y = %s  # Yaw rotates pivot only, character is independent" % [pivot_var, yaw_var])
-		code_lines.append("\t%s.rotation_degrees.x = %s" % [pivot_var, pitch_var])
+		code_lines.append("\t%s.global_position = global_position  # Keep pivot at character position" % pivot_var)
+		code_lines.append("\t%s.global_rotation_degrees.y = %s  # Yaw in world space, character unaffected" % [pivot_var, yaw_var])
+		code_lines.append("\t%s.global_rotation_degrees.x = %s" % [pivot_var, pitch_var])
 
 	return {
 		"actuator_code": "\n".join(code_lines),

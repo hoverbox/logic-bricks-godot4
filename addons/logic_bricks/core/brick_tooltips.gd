@@ -9,6 +9,12 @@ const TOOLTIPS = {
 	# =========================================================================
 	# SENSORS
 	# =========================================================================
+	"ActuatorSensor": {
+		"_description": "Fires TRUE when the named actuator on this node matches the chosen state.\nThe actuator must have an instance name set.",
+		"actuator_name": "The instance name of the actuator to watch.\nMust match the Name field on the actuator's graph node.",
+		"trigger_on": "Active: fires TRUE while the actuator is running.\nInactive: fires TRUE while the actuator is NOT running.",
+	},
+	
 	"AlwaysSensor": {
 		"_description": "Always active sensor. Fires every frame.\nUseful for continuous actions like gravity or idle animations.",
 	},
@@ -177,6 +183,28 @@ const TOOLTIPS = {
 		"speed": "Rotation speed. Higher = faster turning. 0 = instant.",
 	},
 	
+	"RotateTowardsActuator": {
+		"_description": "Rotates this node to face a target found by name or group.\nUseful for turrets, enemies tracking a player, or any look-at behaviour.",
+		"target_mode": "How to find the target:\n• Node Name: find a node anywhere in the scene tree by name\n• Group: find the nearest node in the specified group",
+		"target_name": "The node name or group name to search for.",
+		"axes": "Which axes to rotate on:\n• Y Only: horizontal turning only (typical for turret bases)\n• X Only: vertical pitch only (typical for turret barrels)\n• Both: full 3D look-at rotation",
+		"forward_axis": "Which direction your mesh faces.\n• Positive Z (+Z): mesh faces +Z (Godot default for most imported models)\n• Negative Z (-Z): mesh faces -Z (cameras, some exporters)",
+		"speed": "Rotation speed in degrees per second.\n0 = snap instantly to face the target.",
+		"clamp_x": "Clamp the vertical (pitch) rotation to a min/max range.\nUseful for turret barrels that shouldn't flip upside-down.",
+		"clamp_x_min": "Minimum pitch angle in degrees (e.g. -45 = 45 degrees down).",
+		"clamp_x_max": "Maximum pitch angle in degrees (e.g. 45 = 45 degrees up).",
+	},
+	
+	"WaypointPathActuator": {
+		"_description": "Moves this node through a series of waypoints.\nPlace and drag waypoint handles directly in the 3D viewport.",
+		"waypoints": "List of waypoint positions.\nAdd with + then drag the sphere handles in the viewport to place them.",
+		"space": "World: waypoint positions are absolute scene coordinates.\nLocal: positions are relative to the node's position at game start.",
+		"loop_mode": "Loop: repeat from the first waypoint after the last.\nPing Pong: reverse direction at each end.\nOnce: stop at the last waypoint.",
+		"speed": "Movement speed in units per second.",
+		"arrival_distance": "How close the node must get to count as having reached a waypoint.",
+		"face_direction": "Rotate the node to face the direction of movement.",
+	},
+	
 	"MessageActuator": {
 		"_description": "Sends a message to all nodes in a target group.\nReceivers need a Message Sensor listening for the same subject.",
 		"target_group": "Group name to send the message to. Receiving nodes must be in this group.",
@@ -185,10 +213,9 @@ const TOOLTIPS = {
 	},
 	
 	"MotionActuator": {
-		"_description": "Moves or rotates the node. Supports translation, velocity, position,\nrotation, force, torque, and linear velocity modes.",
-		"motion_type": "Type of motion:\n• Location: move by offset or set position\n• Rotation: rotate by degrees\n• Force/Torque: physics forces (RigidBody3D only)\n• Linear Velocity: set velocity directly (RigidBody3D only)",
-		"movement_method": "How to apply location:\n• Translate: move by offset each frame\n• Velocity: set velocity on active axes (CharacterBody3D)\n• Position: set absolute position",
-		"velocity_mode": "How to apply velocity: Set (replace), Add (accumulate), or Average.",
+		"_description": "Moves or rotates the node.\nFor physics forces/torque, use the Physics actuators in the Physics submenu.",
+		"motion_type": "Type of motion:\n• Location: move by offset, set character velocity, or set position\n• Rotation: rotate by degrees each frame",
+		"movement_method": "How to apply location:\n• Character Velocity: set velocity on active axes (CharacterBody3D)\n• Translate: move by offset each frame\n• Position: set absolute position",
 		"x": "Value for X axis. Enter a number (e.g. 5.0) or a variable name (e.g. speed).",
 		"y": "Value for Y axis. Enter a number or variable name.",
 		"z": "Value for Z axis. Enter a number or variable name.",
@@ -210,12 +237,19 @@ const TOOLTIPS = {
 	},
 	
 	"MoveTowardsActuator": {
-		"_description": "Moves toward a target node using seek, flee, or path following.\nCan use NavigationAgent3D for pathfinding.",
-		"behavior": "Movement type: Seek (approach), Flee (move away), or Path Follow (navigation).",
-		"target_path": "Path to the target node to move toward or away from.",
-		"speed": "Movement speed in units per second.",
-		"arrive_distance": "Distance at which the node is considered 'arrived' and stops.",
-		"nav_agent_name": "Name of the NavigationAgent3D child (for Path Follow mode).",
+		"_description": "Moves toward or away from a target node.\nFind target by group (nearest member) or by node name (scene-wide search).\nCan use NavigationAgent3D for pathfinding.",
+		"behavior": "Seek: move directly toward the target.\nFlee: move directly away from the target.\nPath Follow: use NavigationAgent3D to navigate around obstacles.",
+		"target_mode": "How to find the target:\nGroup: find the nearest node in the named group.\nNode Name: find a node anywhere in the scene tree by name.",
+		"target_name": "Group name or node name to target.\nFor Group: the nearest node in this group is used.\nFor Node Name: searches the entire scene tree.",
+		"arrival_distance": "Distance at which the target is considered reached.",
+		"velocity": "Movement speed in units per second.",
+		"acceleration": "Acceleration rate. 0 = instant full speed.",
+		"turn_speed": "Rotation speed in degrees/sec when facing target. 0 = instant.",
+		"face_target": "Rotate the node to face the target while moving.",
+		"facing_axis": "Which local axis points toward the target.",
+		"use_navmesh_normal": "Align to navmesh surface normal (Path Follow only).",
+		"self_terminate": "Stop executing when the target is reached.",
+		"lock_y_velocity": "Lock vertical (Y) velocity to zero (useful for flat movement).",
 	},
 	
 	"ParentActuator": {
@@ -228,6 +262,31 @@ const TOOLTIPS = {
 		"_description": "Modifies physics properties at runtime.\nChange gravity scale, mass, friction, or bounce.",
 		"property": "Which physics property to modify.",
 		"value": "New value for the property.",
+	},
+	
+	"ForceActuator": {
+		"_description": "Applies a continuous force to a RigidBody3D each physics frame.\nRequires a RigidBody3D node.",
+		"x": "Force on the X axis.",
+		"y": "Force on the Y axis.",
+		"z": "Force on the Z axis.",
+		"space": "Local: force is relative to the node's rotation.\nGlobal: force is in world-space axes.",
+	},
+	
+	"TorqueActuator": {
+		"_description": "Applies a rotational force (torque) to a RigidBody3D each physics frame.\nRequires a RigidBody3D node.",
+		"x": "Torque around the X axis.",
+		"y": "Torque around the Y axis.",
+		"z": "Torque around the Z axis.",
+		"space": "Local: torque is relative to the node's rotation.\nGlobal: torque is in world-space axes.",
+	},
+	
+	"LinearVelocityActuator": {
+		"_description": "Sets, adds to, or averages the linear_velocity of a RigidBody3D.\nRequires a RigidBody3D node.",
+		"mode": "Set: replace current velocity.\nAdd: add to current velocity.\nAverage: blend with current velocity.",
+		"velocity_x": "Velocity on the X axis.",
+		"velocity_y": "Velocity on the Y axis.",
+		"velocity_z": "Velocity on the Z axis.",
+		"local": "If true, velocity is relative to the node's rotation.\nIf false, velocity is in world-space axes.",
 	},
 	
 	"PropertyActuator": {

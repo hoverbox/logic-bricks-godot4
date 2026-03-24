@@ -181,53 +181,57 @@ func _create_add_menu() -> void:
     add_menu.id_pressed.connect(_on_main_menu_id_pressed)
     
     # Populate Sensors submenu (alphabetical order)
+    sensors_menu.add_item("Actuator", 112)
+    sensors_menu.set_item_metadata(0, {"type": "sensor", "class": "ActuatorSensor"})
+    sensors_menu.set_item_tooltip(0, "Fires TRUE when a named actuator on this node is running.\nThe actuator must have an instance name set.")
+    
     sensors_menu.add_item("Always", 100)
-    sensors_menu.set_item_metadata(0, {"type": "sensor", "class": "AlwaysSensor"})
-    sensors_menu.set_item_tooltip(0, "Always active. Fires every frame.\nUse for continuous actions like gravity or idle animations.")
+    sensors_menu.set_item_metadata(1, {"type": "sensor", "class": "AlwaysSensor"})
+    sensors_menu.set_item_tooltip(1, "Always active. Fires every frame.\nUse for continuous actions like gravity or idle animations.")
     
     sensors_menu.add_item("Animation Tree", 101)
-    sensors_menu.set_item_metadata(1, {"type": "sensor", "class": "AnimationTreeSensor"})
-    sensors_menu.set_item_tooltip(1, "Detects animation tree state changes and conditions.")
+    sensors_menu.set_item_metadata(2, {"type": "sensor", "class": "AnimationTreeSensor"})
+    sensors_menu.set_item_tooltip(2, "Detects animation tree state changes and conditions.")
     
     sensors_menu.add_item("Collision", 102)
-    sensors_menu.set_item_metadata(2, {"type": "sensor", "class": "CollisionSensor"})
-    sensors_menu.set_item_tooltip(2, "Detects collisions using an Area3D node.\nRequires an Area3D child or reference.\n⚠ Adds @export in Inspector — assign your Area3D.")
+    sensors_menu.set_item_metadata(3, {"type": "sensor", "class": "CollisionSensor"})
+    sensors_menu.set_item_tooltip(3, "Detects collisions using an Area3D node.\nRequires an Area3D child or reference.\n⚠ Adds @export in Inspector — assign your Area3D.")
     
     sensors_menu.add_item("Compare Variable", 103)
-    sensors_menu.set_item_metadata(3, {"type": "sensor", "class": "VariableSensor"})
-    sensors_menu.set_item_tooltip(3, "Compares a logic brick variable against a value.\nTriggers when the comparison is true.")
+    sensors_menu.set_item_metadata(4, {"type": "sensor", "class": "VariableSensor"})
+    sensors_menu.set_item_tooltip(4, "Compares a logic brick variable against a value.\nTriggers when the comparison is true.")
     
     sensors_menu.add_item("Delay", 104)
-    sensors_menu.set_item_metadata(4, {"type": "sensor", "class": "DelaySensor"})
-    sensors_menu.set_item_tooltip(4, "Adds a delay before activating.\nStays active for a set duration, can repeat.")
+    sensors_menu.set_item_metadata(5, {"type": "sensor", "class": "DelaySensor"})
+    sensors_menu.set_item_tooltip(5, "Adds a delay before activating.\nStays active for a set duration, can repeat.")
     
     sensors_menu.add_item("InputMap", 105)
-    sensors_menu.set_item_metadata(5, {"type": "sensor", "class": "InputMapSensor"})
-    sensors_menu.set_item_tooltip(5, "Detects input actions from Project > Input Map.\nWorks with keyboard, gamepad, etc.")
+    sensors_menu.set_item_metadata(6, {"type": "sensor", "class": "InputMapSensor"})
+    sensors_menu.set_item_tooltip(6, "Detects input actions from Project > Input Map.\nWorks with keyboard, gamepad, etc.")
     
     sensors_menu.add_item("Message", 106)
-    sensors_menu.set_item_metadata(6, {"type": "sensor", "class": "MessageSensor"})
-    sensors_menu.set_item_tooltip(6, "Listens for messages sent by a Message Actuator.\nFilters by subject.")
+    sensors_menu.set_item_metadata(7, {"type": "sensor", "class": "MessageSensor"})
+    sensors_menu.set_item_tooltip(7, "Listens for messages sent by a Message Actuator.\nFilters by subject.")
     
     sensors_menu.add_item("Mouse", 107)
-    sensors_menu.set_item_metadata(7, {"type": "sensor", "class": "MouseSensor"})
-    sensors_menu.set_item_tooltip(7, "Detects mouse button presses and releases.")
+    sensors_menu.set_item_metadata(8, {"type": "sensor", "class": "MouseSensor"})
+    sensors_menu.set_item_tooltip(8, "Detects mouse button presses and releases.")
     
     sensors_menu.add_item("Movement", 108)
-    sensors_menu.set_item_metadata(8, {"type": "sensor", "class": "MovementSensor"})
-    sensors_menu.set_item_tooltip(8, "Detects if the node is moving or stationary.")
+    sensors_menu.set_item_metadata(9, {"type": "sensor", "class": "MovementSensor"})
+    sensors_menu.set_item_tooltip(9, "Detects if the node is moving or stationary.")
     
     sensors_menu.add_item("Proximity", 109)
-    sensors_menu.set_item_metadata(9, {"type": "sensor", "class": "ProximitySensor"})
-    sensors_menu.set_item_tooltip(9, "Detects nodes within a certain distance.\nChecks against nodes in a specified group.")
+    sensors_menu.set_item_metadata(10, {"type": "sensor", "class": "ProximitySensor"})
+    sensors_menu.set_item_tooltip(10, "Detects nodes within a certain distance.\nChecks against nodes in a specified group.")
     
     sensors_menu.add_item("Random", 110)
-    sensors_menu.set_item_metadata(10, {"type": "sensor", "class": "RandomSensor"})
-    sensors_menu.set_item_tooltip(10, "Activates randomly based on a probability.\nUseful for random behaviors or AI variation.")
+    sensors_menu.set_item_metadata(11, {"type": "sensor", "class": "RandomSensor"})
+    sensors_menu.set_item_tooltip(11, "Activates randomly based on a probability.\nUseful for random behaviors or AI variation.")
     
     sensors_menu.add_item("Raycast", 111)
-    sensors_menu.set_item_metadata(11, {"type": "sensor", "class": "RaycastSensor"})
-    sensors_menu.set_item_tooltip(11, "Casts a ray to detect objects in a direction.\nUseful for line-of-sight or ground detection.")
+    sensors_menu.set_item_metadata(12, {"type": "sensor", "class": "RaycastSensor"})
+    sensors_menu.set_item_tooltip(12, "Casts a ray to detect objects in a direction.\nUseful for line-of-sight or ground detection.")
     
     
     # Populate Controllers submenu
@@ -247,9 +251,11 @@ func _create_add_menu() -> void:
         {
             "label": "Movement",
             "items": [
-                ["Motion", 309, "MotionActuator", "Move or rotate: translation, velocity, force, torque."],
+                ["Motion", 309, "MotionActuator", "Move or rotate a node.\\nCharacter Velocity, Translate, or Position modes."],
                 ["Character", 303, "CharacterActuator", "All-in-one: gravity, jumping, and ground detection."],
                 ["Look At Movement", 306, "LookAtMovementActuator", "Rotates a node to face the direction of movement.\n⚠ Adds @export in Inspector — assign the mesh/Node3D to rotate."],
+                ["Rotate Towards", 342, "RotateTowardsActuator", "Rotates to face a target node found by name or group.\nUseful for turrets and enemies tracking the player."],
+                ["Waypoint Path", 343, "WaypointPathActuator", "Moves a node through a series of waypoints placed in the 3D viewport.\nDrag the handles to position each point. Supports Loop, Ping Pong, and Once."],
                 ["Move Towards", 311, "MoveTowardsActuator", "Seek, flee, or path-follow toward a target node.\n⚠ Path Follow adds @export in Inspector — assign your NavigationAgent3D."],
                 ["Teleport", 320, "TeleportActuator", "Instantly move to a target node or coordinates.\n⚠ Target Node mode adds @export in Inspector — assign the destination."],
                 ["Mouse", 310, "MouseActuator", "Mouse-based camera rotation with sensitivity and clamping."],
@@ -259,6 +265,9 @@ func _create_add_menu() -> void:
             "label": "Physics",
             "items": [
                 ["Physics", 313, "PhysicsActuator", "Modify physics properties: gravity scale, mass, friction."],
+                ["Force", 339, "ForceActuator", "Apply a continuous force to a RigidBody3D.\nUse for gravity-like effects or constant pushes."],
+                ["Torque", 340, "TorqueActuator", "Apply a rotational force to a RigidBody3D.\nUse for spinning or angular acceleration."],
+                ["Linear Velocity", 341, "LinearVelocityActuator", "Set, add, or average the linear velocity of a RigidBody3D."],
                 ["Impulse", 329, "ImpulseActuator", "Apply a one-shot impulse to a RigidBody3D."],
                 ["Collision", 322, "CollisionActuator", "Modify collision properties: enable/disable shapes, layers, masks."],
             ]
@@ -750,6 +759,45 @@ func _load_graph_from_metadata() -> void:
     next_node_id = graph_data.get("next_id", 0)
 
 
+## Take a deep copy of the current graph metadata for undo/redo snapshots
+func _take_graph_snapshot() -> Dictionary:
+    if not current_node or not current_node.has_meta("logic_bricks_graph"):
+        return {}
+    return current_node.get_meta("logic_bricks_graph").duplicate(true)
+
+
+## Restore a graph snapshot: write it back to metadata and rebuild the visual graph.
+## The metadata write is synchronous; the visual rebuild is deferred one frame.
+func _restore_graph_snapshot(snapshot: Dictionary) -> void:
+    if not current_node:
+        return
+    if snapshot.is_empty():
+        if current_node.has_meta("logic_bricks_graph"):
+            current_node.remove_meta("logic_bricks_graph")
+    else:
+        current_node.set_meta("logic_bricks_graph", snapshot.duplicate(true))
+    _mark_scene_modified()
+    # Defer the visual rebuild so the undo manager call returns cleanly
+    _reload_graph_deferred.call_deferred()
+
+
+## Called deferred after a snapshot restore so the visual graph rebuilds cleanly
+func _reload_graph_deferred() -> void:
+    await _load_graph_from_metadata()
+
+
+## Record an undoable graph action.
+## Call BEFORE making changes (before_snapshot) and AFTER (after_snapshot).
+func _record_undo(action_name: String, before_snapshot: Dictionary, after_snapshot: Dictionary) -> void:
+    if not plugin:
+        return
+    var ur = plugin.get_undo_redo()
+    ur.create_action(action_name)
+    ur.add_do_method(self, "_restore_graph_snapshot", after_snapshot)
+    ur.add_undo_method(self, "_restore_graph_snapshot", before_snapshot)
+    ur.commit_action(false)  # false = don't execute do_method immediately (we already applied it)
+
+
 func _save_graph_to_metadata() -> void:
     if not current_node:
         return
@@ -873,7 +921,9 @@ func _on_add_menu_item_selected(id: int) -> void:
     if metadata:
         var brick_type = metadata["type"]
         var brick_class = metadata["class"]
+        var before_snapshot = _take_graph_snapshot()
         _create_graph_node(brick_type, brick_class, last_mouse_position)
+        _record_undo("Add Logic Brick", before_snapshot, _take_graph_snapshot())
 
 
 func _create_graph_node(brick_type: String, brick_class: String, position: Vector2) -> void:
@@ -974,6 +1024,12 @@ func _create_graph_node_from_data(node_data: Dictionary) -> void:
     for prop_name in properties:
         brick_instance.set_property(prop_name, properties[prop_name])
     
+    # If this is a WaypointPathActuator, restore pos_# Node3D children
+    if brick_class == "WaypointPathActuator" and current_node is Node3D:
+        var WaypointPathActuator = load("res://addons/logic_bricks/bricks/actuators/3d/waypoint_path_actuator.gd")
+        if WaypointPathActuator:
+            WaypointPathActuator.sync_waypoint_nodes(current_node, brick_instance)
+    
     # Create GraphNode
     var graph_node = BrickGraphNode.new()
     graph_node.name = node_data["id"]
@@ -1019,6 +1075,8 @@ func _create_brick_instance(brick_class: String):
     var script_path = ""
     
     match brick_class:
+        "ActuatorSensor":
+            script_path = "res://addons/logic_bricks/bricks/sensors/3d/actuator_sensor.gd"
         "AlwaysSensor":
             script_path = "res://addons/logic_bricks/bricks/sensors/3d/always_sensor.gd"
         "AnimationTreeSensor":
@@ -1067,6 +1125,10 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/message_actuator.gd"
         "LookAtMovementActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/look_at_movement_actuator.gd"
+        "RotateTowardsActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/rotate_towards_actuator.gd"
+        "WaypointPathActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/waypoint_path_actuator.gd"
         "VariableActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/variable_actuator.gd"
         "RandomActuator":
@@ -1109,6 +1171,12 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/tween_actuator.gd"
         "ImpulseActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/impulse_actuator.gd"
+        "ForceActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/force_actuator.gd"
+        "TorqueActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/torque_actuator.gd"
+        "LinearVelocityActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/linear_velocity_actuator.gd"
         "MusicActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/music_actuator.gd"
         "ScreenShakeActuator":
@@ -1375,7 +1443,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
                 spinbox.min_value = -10000
                 spinbox.max_value = 10000
                 spinbox.value = float(str(property_value))
-                spinbox.value_changed.connect(_on_property_changed.bind(graph_node, property_name))
+                spinbox.value_changed.connect(func(val: float): _on_property_changed(int(val), graph_node, property_name))
                 hbox.add_child(spinbox)
                 ui_element = hbox
             
@@ -1502,7 +1570,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
                     var upd_arr: Array = brick_instance.get_property(property_name)
                     if typeof(upd_arr) != TYPE_ARRAY:
                         upd_arr = []
-                    upd_arr.append("")
+                    upd_arr.append("0.000,0.000,0.000")
                     brick_instance.set_property(property_name, upd_arr)
                     # If this array has a linked array, append its default value too
                     var linked = prop_def.get("linked_array", "")
@@ -1513,6 +1581,11 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
                             linked_arr = []
                         linked_arr.append(linked_default)
                         brick_instance.set_property(linked, linked_arr)
+                    # Sync waypoint Node3D children if this is a WaypointPathActuator
+                    if property_name == "waypoints" and current_node is Node3D:
+                        var WaypointPathActuator = load("res://addons/logic_bricks/bricks/actuators/3d/waypoint_path_actuator.gd")
+                        if WaypointPathActuator:
+                            WaypointPathActuator.sync_waypoint_nodes(current_node, brick_instance)
                     _save_graph_to_metadata()
                     _build_array_property_list(
                         list_vbox, graph_node, brick_instance,
@@ -1785,6 +1858,11 @@ func _build_array_property_list(
                 if capture_idx_rm < linked_upd.size():
                     linked_upd.remove_at(capture_idx_rm)
                     brick_instance.set_property(linked_array, linked_upd)
+            # Sync waypoint Node3D children if this is a WaypointPathActuator
+            if property_name == "waypoints" and current_node is Node3D:
+                var WaypointPathActuator = load("res://addons/logic_bricks/bricks/actuators/3d/waypoint_path_actuator.gd")
+                if WaypointPathActuator:
+                    WaypointPathActuator.sync_waypoint_nodes(current_node, brick_instance)
             _save_graph_to_metadata()
             _build_array_property_list(
                 list_vbox, graph_node, brick_instance,
@@ -1913,7 +1991,6 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
         
         "move_towards_actuator":  # Move Towards Actuator
             var behavior = properties.get("behavior", "seek")
-            # Normalize to lowercase
             if typeof(behavior) == TYPE_STRING:
                 behavior = behavior.to_lower().replace(" ", "_")
             
@@ -2009,22 +2086,28 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
         
         "motion_actuator":  # Motion Actuator
             var motion_type = properties.get("motion_type", "location")
+            var movement_method = properties.get("movement_method", "character_velocity")
             
             # Normalize
             if typeof(motion_type) == TYPE_STRING:
                 motion_type = motion_type.to_lower().replace(" ", "_")
+            if typeof(movement_method) == TYPE_STRING:
+                movement_method = movement_method.to_lower().replace(" ", "_")
             
-            # Show/hide fields based on motion type
+            var is_location = (motion_type == "location")
+            var is_character_velocity = (movement_method == "character_velocity")
+            
+            # Show/hide fields based on motion type and movement method
             for child in graph_node.get_children():
                 if child.has_meta("property_name"):
                     var prop_name = child.get_meta("property_name")
                     match prop_name:
                         "movement_method":
-                            # Only show for location type
-                            child.visible = (motion_type == "location")
-                        "velocity_mode":
-                            # Only show for linear_velocity type
-                            child.visible = (motion_type == "linear_velocity")
+                            # Only shown for location type
+                            child.visible = is_location
+                        "call_move_and_slide":
+                            # Only relevant when using character velocity
+                            child.visible = is_location and is_character_velocity
         
         "physics_actuator":  # Physics Actuator
             var physics_action = properties.get("physics_action", "suspend")
@@ -2478,6 +2561,32 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
                         "screenshot_path":
                             child.visible = (action == "screenshot")
         
+        "controller":  # Controller
+            var all_states = properties.get("all_states", false)
+            
+            # Hide the state spinbox when "All States" is checked
+            for child in graph_node.get_children():
+                if child.has_meta("property_name"):
+                    var prop_name = child.get_meta("property_name")
+                    if prop_name == "state":
+                        child.visible = not all_states
+        
+        "rotate_towards_actuator":  # Rotate Towards Actuator
+            var axes = properties.get("axes", "y_only")
+            if typeof(axes) == TYPE_STRING:
+                axes = axes.to_lower().split("(")[0].strip_edges().replace(" ", "_")
+            var clamp_x = properties.get("clamp_x", false)
+            var show_clamp = (axes in ["x_only", "both"])
+            
+            for child in graph_node.get_children():
+                if child.has_meta("property_name"):
+                    var prop_name = child.get_meta("property_name")
+                    match prop_name:
+                        "clamp_x":
+                            child.visible = show_clamp
+                        "clamp_x_min", "clamp_x_max":
+                            child.visible = show_clamp and clamp_x
+        
         "input_map_sensor":  # Input Map Sensor
             var input_mode = properties.get("input_mode", "pressed")
             
@@ -2665,8 +2774,11 @@ func _on_graph_node_context_menu(id: int, graph_node: GraphNode) -> void:
         0:  # Duplicate
             await _duplicate_graph_node(graph_node)
         1:  # Delete
+            var before_snapshot = _take_graph_snapshot()
             graph_node.queue_free()
+            await get_tree().process_frame  # Wait for queue_free to complete
             _save_graph_to_metadata()
+            _record_undo("Delete Logic Brick", before_snapshot, _take_graph_snapshot())
 
 
 func _duplicate_graph_node(original_node: GraphNode) -> GraphNode:
@@ -2769,6 +2881,8 @@ func _generate_unique_brick_name(base_name: String) -> String:
 
 
 func _on_connection_request(from_node: String, from_port: int, to_node: String, to_port: int) -> void:
+    var before_snapshot = _take_graph_snapshot()
+    
     # Check if this is a sensor → actuator direct connection
     var from_graph_node = graph_edit.get_node_or_null(NodePath(from_node))
     var to_graph_node = graph_edit.get_node_or_null(NodePath(to_node))
@@ -2797,11 +2911,13 @@ func _on_connection_request(from_node: String, from_port: int, to_node: String, 
                     graph_edit.connect_node(from_node, from_port, controller_node.name, 0)
                     graph_edit.connect_node(controller_node.name, 0, to_node, to_port)
                     _save_graph_to_metadata()
+                    _record_undo("Connect Logic Bricks", before_snapshot, _take_graph_snapshot())
                 return
     
     # Normal connection (sensor→controller or controller→actuator)
     graph_edit.connect_node(from_node, from_port, to_node, to_port)
     _save_graph_to_metadata()
+    _record_undo("Connect Logic Bricks", before_snapshot, _take_graph_snapshot())
 
 
 func _on_graph_edit_input(event: InputEvent) -> void:
@@ -2877,13 +2993,15 @@ func _duplicate_selected_nodes() -> void:
 
 
 func _on_disconnection_request(from_node: String, from_port: int, to_node: String, to_port: int) -> void:
-    pass  #print("Logic Bricks: Disconnection request: %s:%d -> %s:%d" % [from_node, from_port, to_node, to_port])
+    var before_snapshot = _take_graph_snapshot()
     graph_edit.disconnect_node(from_node, from_port, to_node, to_port)
     _save_graph_to_metadata()
+    _record_undo("Disconnect Logic Bricks", before_snapshot, _take_graph_snapshot())
 
 
 func _on_delete_nodes_request(nodes: Array) -> void:
-    pass  #print("Logic Bricks: Delete nodes request: ", nodes)
+    var before_snapshot = _take_graph_snapshot()
+    
     for node_name in nodes:
         var node = graph_edit.get_node(NodePath(node_name))
         if node:
@@ -2903,6 +3021,8 @@ func _on_delete_nodes_request(nodes: Array) -> void:
     _update_frames_list()
     _save_graph_to_metadata()
     _save_frames_to_metadata()
+    
+    _record_undo("Delete Logic Brick(s)", before_snapshot, _take_graph_snapshot())
 
 
 func _on_property_changed(value, graph_node: GraphNode, property_name: String) -> void:
@@ -3100,18 +3220,17 @@ func _on_apply_code_pressed() -> void:
     # Apply the reloaded script to the node
     current_node.set_script(reloaded_script)
     
-    # HACK: To force script editor to refresh, we'll:
-    # 1. Switch to another editor temporarily
-    # 2. Then switch back and open the script
-    # This forces the script editor to re-read the file
+    # Force Godot to refresh the inspector by briefly minimizing and restoring.
+    # No frame wait between the two calls — just fire both OS messages back to back.
+    var prev_window_mode = DisplayServer.window_get_mode()
+    DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)
+    DisplayServer.window_set_mode(prev_window_mode)
     
-    editor_interface.set_main_screen_editor("2D")  # Switch away
+    # Save so the new @export slots are committed to the .tscn
     await get_tree().process_frame
+    editor_interface.save_scene()
     
-    editor_interface.set_main_screen_editor("Script")  # Switch to script editor
-    await get_tree().process_frame
-    
-    # Now open the reloaded script
+    # Open the script in the script editor
     editor_interface.edit_script(reloaded_script, 1)
     
     #print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")

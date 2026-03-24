@@ -19,7 +19,8 @@ func _init() -> void:
 func _initialize_properties() -> void:
 	properties = {
 		"logic_mode": "and",  # and, or, nand, nor, xor
-		"state": 1  # Which state this chain belongs to (1-30)
+		"all_states": false,  # If true, this chain runs in every state
+		"state": 1  # Which state this chain belongs to (1-30), ignored when all_states is true
 	}
 
 
@@ -31,6 +32,11 @@ func get_property_definitions() -> Array:
 			"hint": PROPERTY_HINT_ENUM,
 			"hint_string": "AND,OR,NAND,NOR,XOR",
 			"default": "and"
+		},
+		{
+			"name": "all_states",
+			"type": TYPE_BOOL,
+			"default": false
 		},
 		{
 			"name": "state",
