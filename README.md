@@ -41,7 +41,8 @@ Sensor  →  Controller  →  Actuator
 4. Open the **Logic Bricks** panel at the bottom of the editor
 5. Right-click the graph → add an **InputMap Sensor**, a **Controller**, and a **Motion Actuator**
 6. Connect them left to right
-7. Press Play — your character moves
+7. Click Apply **Code**
+8. Press Play — your character moves
 
 ### Example: Joystick Character Movement
 
