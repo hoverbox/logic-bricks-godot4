@@ -45,7 +45,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if typeof(mode) == TYPE_STRING:
 		mode = mode.to_lower().replace(" ", "_")
 	
-	print("Scene Actuator Debug - mode: %s, scene_path: '%s'" % [mode, scene_path])
 	
 	var code_lines: Array[String] = []
 	

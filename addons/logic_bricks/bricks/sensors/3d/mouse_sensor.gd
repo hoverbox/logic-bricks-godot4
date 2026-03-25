@@ -87,6 +87,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	
 	var code_lines: Array[String] = []
 	var member_vars: Array[String] = []
+	var extra_methods: Array[String] = []
 	
 	match detection_type:
 		"button":
@@ -125,27 +126,25 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					code_lines.append("var sensor_active = Input.is_mouse_button_pressed(%s)" % button_code)
 		
 		"wheel":
-			# Wheel needs input event handling - use member variable to track
-			var wheel_var = "_mouse_wheel_%s_%s" % [wheel_direction, chain_name]
+			# Each wheel sensor contributes handler lines to "input_handlers".
+			# The manager assembles them all into one func _input() so multiple
+			# wheel sensors on the same node never produce duplicate func declarations.
+			var wheel_var    = "_ms_wheel_%s_%s" % [wheel_direction, chain_name]
+			var button_const = "MOUSE_BUTTON_WHEEL_UP" if wheel_direction == "up" else "MOUSE_BUTTON_WHEEL_DOWN"
 			member_vars.append("var %s: bool = false" % wheel_var)
 			
-			code_lines.append("# Mouse wheel detection happens in _input()")
+			# Sensor body: read the flag then clear it (true for one frame only)
 			code_lines.append("var sensor_active = %s" % wheel_var)
-			code_lines.append("%s = false  # Reset after check" % wheel_var)
+			code_lines.append("%s = false" % wheel_var)
 			
-			# Add input function
-			var input_func = []
-			input_func.append("")
-			input_func.append("func _input(event):")
-			input_func.append("\tif event is InputEventMouseButton:")
-			if wheel_direction == "up":
-				input_func.append("\t\tif event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:")
-			else:
-				input_func.append("\t\tif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:")
-			input_func.append("\t\t\t%s = true" % wheel_var)
+			# Contribute body lines to the shared _input function.
+			# Indented with one tab — the manager wraps them in func _input().
+			var handler_lines: Array[String] = []
+			handler_lines.append("\tif event is InputEventMouseButton and event.pressed:")
+			handler_lines.append("\t\tif event.button_index == %s:" % button_const)
+			handler_lines.append("\t\t\t%s = true" % wheel_var)
+			extra_methods.append("input_handler::" + "\n".join(handler_lines))
 			
-			code_lines.append("\n".join(input_func))
-		
 		"movement":
 			var movement_var = "_mouse_moved_%s" % chain_name
 			var last_pos_var = "_mouse_last_pos_%s" % chain_name
@@ -200,5 +199,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	
 	if member_vars.size() > 0:
 		result["member_vars"] = member_vars
+	if extra_methods.size() > 0:
+		result["methods"] = extra_methods
 	
 	return result

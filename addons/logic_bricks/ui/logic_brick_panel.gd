@@ -292,10 +292,12 @@ func _create_add_menu() -> void:
         {
             "label": "Camera",
             "items": [
-                ["Camera", 302, "CameraActuator", "Camera follow, orbit, or positioning with smooth movement.\n⚠ Adds @export in Inspector — assign your Camera3D."],
+                ["Set Camera", 302, "SetCameraActuator", "Makes the assigned Camera3D the active camera for the viewport.\n⚠ Adds @export in Inspector — assign your Camera3D."],
+                ["Smooth Follow Camera", 345, "SmoothFollowCameraActuator", "Camera smoothly follows this node, maintaining its initial offset.\nSupports per-axis position/rotation follow, dead zones, and independent speeds.\n⚠ Adds @export in Inspector — assign your Camera3D."],
                 ["Camera Zoom", 332, "CameraZoomActuator", "Change camera FOV (3D) or zoom (2D) with optional lerp.\n⚠ Adds @export in Inspector — assign your camera."],
                 ["Screen Shake", 333, "ScreenShakeActuator", "Trauma-based camera shake. Attach to your Camera3D node."],
                 ["3rd Person Camera", 338, "ThirdPersonCameraActuator", "Mouse and/or joystick orbit camera for third-person games.\nAssign a SpringArm3D or pivot node as the camera mount."],
+                ["Split Screen", 344, "SplitScreenActuator", "Positions SubViewportContainers for 2-4 player split screen.\n⚠ Adds @export slots in Inspector — assign your SubViewportContainers."],
             ]
         },
         {
@@ -1147,8 +1149,10 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/scene_actuator.gd"
         "SaveGameActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/save_game_actuator.gd"
-        "CameraActuator":
-            script_path = "res://addons/logic_bricks/bricks/actuators/3d/camera_actuator.gd"
+        "SetCameraActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/set_camera_actuator.gd"
+        "SmoothFollowCameraActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/smooth_follow_camera_actuator.gd"
         "CollisionActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/collision_actuator.gd"
         "ParentActuator":
@@ -1191,6 +1195,8 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/light_actuator.gd"
         "ThirdPersonCameraActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/third_person_camera_actuator.gd"
+        "SplitScreenActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/split_screen_actuator.gd"
         "CameraZoomActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/camera_zoom_actuator.gd"
         "ObjectPoolActuator":
@@ -2196,23 +2202,6 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
                     if prop_name == "scene_path":
                         child.visible = (mode == "set_scene")
         
-        "camera_actuator":  # Camera Actuator
-            var mode = properties.get("mode", "set_active")
-            
-            # Normalize mode
-            if typeof(mode) == TYPE_STRING:
-                mode = mode.to_lower().replace(" ", "_")
-            
-            # Show/hide fields based on mode
-            for child in graph_node.get_children():
-                if child.has_meta("property_name"):
-                    var prop_name = child.get_meta("property_name")
-                    match prop_name:
-                        "camera_node":
-                            child.visible = (mode == "set_active")
-                        "target_node", "follow_speed", "follow_pos_x", "follow_pos_y", "follow_pos_z", "follow_rot_x", "follow_rot_y", "follow_rot_z":
-                            child.visible = (mode == "smooth_follow")
-        
         "parent_actuator":  # Parent Actuator
             var mode = properties.get("mode", "set_parent")
             
@@ -3193,6 +3182,9 @@ func _on_apply_code_pressed() -> void:
     manager.save_chains(current_node, chains)
     manager.regenerate_script(current_node, variables_code)
     
+    # Post-apply: build/update any scene nodes required by special actuators
+    _apply_scene_setup(current_node, chains)
+    
     # Get script path if we didn't have one
     if script_path.is_empty() and current_node.get_script():
         script_path = current_node.get_script().resource_path
@@ -3207,8 +3199,17 @@ func _on_apply_code_pressed() -> void:
     var filesystem = editor_interface.get_resource_filesystem()
     filesystem.update_file(script_path)
     
+    # Snapshot current_node before awaiting — the user may click away during the
+    # yield, setting current_node to null or a different node.
+    var _apply_node = current_node
+    
     # Wait a frame
     await get_tree().process_frame
+    
+    # Guard: node must still be valid after the yield
+    if not is_instance_valid(_apply_node):
+        push_error("Logic Bricks: Node was freed during Apply Code — try again.")
+        return
     
     # Reload the script with cache bypass
     var reloaded_script = ResourceLoader.load(script_path, "", ResourceLoader.CACHE_MODE_IGNORE)
@@ -3218,7 +3219,7 @@ func _on_apply_code_pressed() -> void:
         return
     
     # Apply the reloaded script to the node
-    current_node.set_script(reloaded_script)
+    _apply_node.set_script(reloaded_script)
     
     # Force Godot to refresh the inspector by briefly minimizing and restoring.
     # No frame wait between the two calls — just fire both OS messages back to back.
@@ -3228,7 +3229,8 @@ func _on_apply_code_pressed() -> void:
     
     # Save so the new @export slots are committed to the .tscn
     await get_tree().process_frame
-    editor_interface.save_scene()
+    if is_instance_valid(_apply_node):
+        editor_interface.save_scene()
     
     # Open the script in the script editor
     editor_interface.edit_script(reloaded_script, 1)
@@ -4301,3 +4303,140 @@ func _mark_scene_modified() -> void:
     # Mark the currently edited scene as unsaved
     # This is the correct way to tell Godot the scene needs saving
     editor_interface.mark_scene_as_unsaved()
+
+
+## Build, update, or remove scene nodes required by special actuators.
+## Called after Apply Code so nodes exist in the scene before the script runs.
+func _apply_scene_setup(node: Node, chains: Array) -> void:
+    # --- Split Screen ---
+    var split_actuators: Array = []
+    for chain in chains:
+        for actuator_data in chain.get("actuators", []):
+            if actuator_data.get("type", "") == "SplitScreenActuator":
+                var data_with_chain = actuator_data.duplicate()
+                data_with_chain["chain_name"] = chain.get("name", "split")
+                split_actuators.append(data_with_chain)
+
+    # Remove existing split screen nodes before rebuilding.
+    # Collect first, then free — freeing while iterating get_children() causes
+    # 'freed instance' errors because the array shifts under the iterator.
+    var scene_root = node.get_tree().edited_scene_root
+    var _to_free: Array = []
+    for child in scene_root.get_children():
+        if child.has_meta("logic_bricks_split_screen"):
+            _to_free.append(child)
+    for child in node.get_children():
+        if child.has_meta("logic_bricks_split_screen"):
+            _to_free.append(child)
+    for child in _to_free:
+        if is_instance_valid(child):
+            child.free()
+
+    if split_actuators.is_empty():
+        return
+
+    print("Logic Bricks: Setting up split screen nodes for %d actuator(s)" % split_actuators.size())
+
+    for actuator_data in split_actuators:
+        var props       = actuator_data.get("properties", {})
+        # player_count may be a literal string ("2") or a variable name — always fall back to 2
+        var _pc_raw     = str(props.get("player_count", "2")).strip_edges()
+        var default_count = int(_pc_raw) if _pc_raw.is_valid_int() else 2
+        default_count   = clampi(default_count, 1, 4)
+        var inst        = actuator_data.get("instance_name", "")
+        var stable_name = inst.to_lower().replace(" ", "_") if not inst.is_empty() else "ss"
+
+        # Always build all 4 slots regardless of default_count.
+        # Slots beyond the default are hidden; the runtime actuator shows/hides
+        # by reading split_screen_players each frame — no rebuild needed.
+        var TOTAL_SLOTS = 4
+        print("Logic Bricks: Creating %d SubViewportContainers (name: '%s')" % [TOTAL_SLOTS, stable_name])
+
+        var canvas_name = "_ss_canvas_%s" % stable_name
+        var canvas = CanvasLayer.new()
+        canvas.name = canvas_name
+        canvas.set_meta("logic_bricks_split_screen", true)
+        canvas.layer = 0  # layer -1 renders behind the scene background
+        scene_root.add_child(canvas)
+        canvas.owner = scene_root
+
+        var screen_size = DisplayServer.window_get_size()
+        var sw = max(1, screen_size.x)
+        var sh = max(1, screen_size.y)
+
+        # Collect Camera3D nodes named Camera3D_P1..P4 to adopt into SubViewports
+        var scene_cameras: Dictionary = {}
+        for p_idx in range(TOTAL_SLOTS):
+            scene_cameras[p_idx] = _find_camera_by_name(scene_root, "Camera3D_P%d" % (p_idx + 1))
+
+        for i in range(TOTAL_SLOTS):
+            var container_name = "_ss_svc_%s_%d" % [stable_name, i + 1]
+            var vp_name        = "_ss_vp_%s_%d"  % [stable_name, i + 1]
+            # Safe half-screen default — fits any layout without division
+            var initial_size   = Vector2i(max(1, sw / 2), max(1, sh / 2))
+
+            # SubViewportContainer — all anchors 0 so runtime position/size is not
+            # overridden by Godot's anchor layout engine each frame
+            var svc = SubViewportContainer.new()
+            svc.name = container_name
+            svc.set_meta("logic_bricks_split_screen", true)
+            svc.stretch  = false  # stretch=true blocks manual SubViewport sizing
+            svc.set_anchor(SIDE_LEFT,   0.0)
+            svc.set_anchor(SIDE_TOP,    0.0)
+            svc.set_anchor(SIDE_RIGHT,  0.0)
+            svc.set_anchor(SIDE_BOTTOM, 0.0)
+            svc.position = Vector2.ZERO
+            svc.size     = Vector2(initial_size)
+            svc.visible  = (i < default_count)
+            canvas.add_child(svc)
+            svc.owner = scene_root
+
+            # SubViewport — rendering disabled until first _process frame confirms sizes,
+            # preventing "named_texture is null" GPU errors on startup
+            var sv = SubViewport.new()
+            sv.name = vp_name
+            sv.size = initial_size
+            sv.render_target_update_mode = SubViewport.UPDATE_DISABLED
+            svc.add_child(sv)
+            sv.owner = scene_root
+
+            # Camera adoption: prefer existing Camera3D_P<n> from scene,
+            # fall back to a blank placeholder
+            var cam_node = scene_cameras.get(i, null)
+            if cam_node and is_instance_valid(cam_node):
+                var old_parent = cam_node.get_parent()
+                if old_parent:
+                    old_parent.remove_child(cam_node)
+                sv.add_child(cam_node)
+                cam_node.owner = scene_root
+                print("Logic Bricks: Adopted existing Camera3D '%s' into SubViewport %d" % [cam_node.name, i + 1])
+            else:
+                var cam = Camera3D.new()
+                cam.name = "Camera3D_P%d" % (i + 1)
+                sv.add_child(cam)
+                cam.owner = scene_root
+                print("Logic Bricks: Created placeholder Camera3D_P%d in SubViewport %d" % [i + 1, i + 1])
+
+    editor_interface.mark_scene_as_unsaved()
+    print("Logic Bricks: Split screen setup complete")
+
+
+## Find the first Camera3D in the tree (not inside a SubViewport) with a given name
+func _find_camera_by_name(root: Node, cam_name: String) -> Camera3D:
+    for child in root.get_children():
+        if child is Camera3D and child.name == cam_name:
+            return child
+        elif not child is SubViewport:
+            var found = _find_camera_by_name(child, cam_name)
+            if found:
+                return found
+    return null
+
+
+## Recursively collect all Camera3D nodes under a root node
+func _collect_cameras(root: Node, result: Array) -> void:
+    for child in root.get_children():
+        if child is Camera3D:
+            result.append(child)
+        elif not child is SubViewport:
+            _collect_cameras(child, result)

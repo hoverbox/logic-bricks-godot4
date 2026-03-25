@@ -202,6 +202,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	var pre_process_code: Array[String] = []
 	var post_process_code: Array[String] = []
 	var extra_methods: Array[String] = []
+	var input_handler_bodies: Array[String] = []  # Body lines for shared _input()
 	
 	# Check if any actuator has an instance name — if so, we need the flags dict
 	# and must clear it at the start of every frame so stale values don't linger.
@@ -255,7 +256,11 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 							post_process_code.append(pc)
 				if generated.has("methods"):
 					for method in generated["methods"]:
-						if method not in extra_methods:
+						if method.begins_with("input_handler::"):
+							var _body = method.substr(len("input_handler::"))
+							if _body not in input_handler_bodies:
+								input_handler_bodies.append(_body)
+						elif method not in extra_methods:
 							extra_methods.append(method)
 		
 		# Collect from actuators (they can also have member vars like RNG instances)
@@ -285,7 +290,11 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 							post_process_code.append(pc)
 				if generated.has("methods"):
 					for method in generated["methods"]:
-						if method not in extra_methods:
+						if method.begins_with("input_handler::"):
+							var _body = method.substr(len("input_handler::"))
+							if _body not in input_handler_bodies:
+								input_handler_bodies.append(_body)
+						elif method not in extra_methods:
 							extra_methods.append(method)
 		
 		if this_chain_resets.size() > 0:
@@ -526,6 +535,14 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		code_lines.append("\tpass")
 	
 	code_lines.append("")
+	
+	# Emit assembled _input() if any sensors contributed handler bodies
+	if input_handler_bodies.size() > 0:
+		code_lines.append("func _input(event: InputEvent) -> void:")
+		for _body_block in input_handler_bodies:
+			for _body_line in _body_block.split("\n"):
+				code_lines.append(_body_line)
+		code_lines.append("")
 	
 	# Append extra methods (e.g. message handlers)
 	for method in extra_methods:
@@ -853,6 +870,8 @@ func _get_brick_script_path(brick_type: String) -> String:
 			return "res://addons/logic_bricks/bricks/actuators/3d/light_actuator.gd"
 		"ThirdPersonCameraActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/third_person_camera_actuator.gd"
+		"SplitScreenActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/split_screen_actuator.gd"
 		"CameraZoomActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/camera_zoom_actuator.gd"
 		"ObjectPoolActuator":

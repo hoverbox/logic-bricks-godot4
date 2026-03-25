@@ -107,6 +107,16 @@ func _create_property_editor(prop_def: Dictionary) -> void:
 				option_button.selected = selected_idx
 				option_button.item_selected.connect(func(idx): _on_property_changed(prop_name, option_button.get_item_id(idx)))
 				hbox.add_child(option_button)
+			elif prop_def.get("hint") == PROPERTY_HINT_RANGE:
+				# hint_string format: "min,max" e.g. "1,4"
+				var spin_box = SpinBox.new()
+				spin_box.value = current_value
+				spin_box.step = 1
+				var range_parts = prop_def.get("hint_string", "").split(",")
+				spin_box.min_value = int(range_parts[0]) if range_parts.size() >= 1 else -999999
+				spin_box.max_value = int(range_parts[1]) if range_parts.size() >= 2 else  999999
+				spin_box.value_changed.connect(func(value): _on_property_changed(prop_name, int(value)))
+				hbox.add_child(spin_box)
 			else:
 				var spin_box = SpinBox.new()
 				spin_box.value = current_value
@@ -138,6 +148,8 @@ func _create_property_editor(prop_def: Dictionary) -> void:
 			else:
 				var line_edit = LineEdit.new()
 				line_edit.text = str(current_value)
+				if prop_def.has("placeholder"):
+					line_edit.placeholder_text = prop_def["placeholder"]
 				line_edit.text_changed.connect(func(text): _on_property_changed(prop_name, text))
 				hbox.add_child(line_edit)
 

@@ -50,8 +50,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if typeof(action) == TYPE_STRING:
 		action = action.to_lower()
 	
-	print("Game Actuator Debug - action: %s" % action)
-	
 	var code_lines: Array[String] = []
 	
 	match action:

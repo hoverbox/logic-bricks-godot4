@@ -146,6 +146,12 @@ const TOOLTIPS = {
 		"smooth_speed": "How quickly the camera catches up (higher = faster, 0 = instant).",
 	},
 	
+	"SplitScreenActuator": {
+		"_description": "Positions SubViewportContainers for 2-4 player split screen.\nAssign your SubViewportContainers via @export in the Inspector.\nLayout is applied every frame so it adapts to window resizes.",
+		"player_count": "How many players (2, 3, or 4).\nDetermines how many SubViewportContainer @export slots are created.",
+		"layout": "Vertical: players side by side (left/right).\nHorizontal: players stacked (top/bottom).\n2x2 Grid: 4-player grid (2 rows, 2 columns).\nTop Wide: P1 gets full top half, remaining share bottom.\nBottom Wide: remaining share top, last player gets full bottom.",
+	},
+	
 	"CharacterActuator": {
 		"_description": "All-in-one character controller: gravity, jumping, and ground detection.\nDesigned for CharacterBody3D nodes.",
 		"gravity_strength": "Downward force applied per second. Default 9.8 matches Earth gravity.",
