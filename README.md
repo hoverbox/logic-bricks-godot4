@@ -21,18 +21,17 @@ Sensor  →  Controller  →  Actuator
 
 - **Visual Node Graph Editor** in Godot's bottom panel — right-click to add bricks, drag to connect
 - **Auto-generated GDScript** — readable code that students can learn from
-- **13 Sensors** — input (keyboard, gamepad, joystick axis), collision, raycast, proximity, movement, timers, variables, messages, and more
+- **14 Sensors** — input (keyboard, gamepad, joystick axis), collision, raycast, proximity, movement, mouse (buttons, wheel, hover), timers, variables, messages, and more
 - **5 Controller Modes** — AND, OR, NAND, NOR, XOR logic gates
-- **30+ Actuators** — organised into categorised submenus: Animation, Movement, Physics, Object, Environment, Camera, Audio, Game Feel, UI, Logic, and Game
-- **Variables Panel** — declare typed variables, export to the inspector, or mark as global (shared across scenes via autoload)
+- **25 Actuators** — motion, animation, camera, sound, physics, scene management, save/load, text display, split screen, and more
+- **Variables Panel** — declare typed variables with optional min/max clamps, export to the inspector as a range slider, or mark as global (shared across scenes via autoload)
 - **Expression Support** — type `speed * 2` or `horizontal * move_speed` directly in Motion and Animation fields
 - **Joystick Axis Input** — analog stick support with configurable deadzone and variable storage
-- **Collapsible Property Groups** — brick properties organised into labelled, collapsible sections
+- **Split Screen** — 1–4 player split screen with per-count independent layouts, runtime player count switching, and automatic camera adoption
 - **Frames** — visually group and label brick chains
 - **Tooltips** — every field has built-in documentation
 - **State System** — up to 30 states per node for complex behaviors (idle, walking, attacking, etc.)
-- **Message System** — inter-node communication without code, with optional response delay
-- **Instanced Scene Support** — choose to open the original scene or edit the instance directly
+- **Message System** — inter-node communication without code
 
 ## Quick Start
 
@@ -66,71 +65,75 @@ Compare Variable [coin == 5]
 
 The `coin` variable marked as Global persists across scenes — display it on your win screen with a Text Actuator.
 
-### Example: Third-Person Character Controller
+### Example: 2–4 Player Split Screen
 
 ```
-Always Sensor → Controller [AND] → Character Actuator [gravity + jump]
-
-InputMap [Axis | negative: move_forward, positive: move_back, Store In: vertical]
-  → Controller [AND] → Motion [Z: vertical * speed, Method: Velocity]
-
-Always Sensor → Controller [AND] → 3rd Person Camera
-  [Pivot: CameraPivot, Input: Mouse, Rotate Character: On]
+Always Sensor → Controller [AND] → Split Screen [player_count: num_players, layout_2: Vertical, layout_4: 2x2 Grid]
 ```
+
+Apply Code once — all 4 SubViewportContainers are created and cameras are adopted automatically. At runtime, set `split_screen_players = 1` for single-player fullscreen, `2` for split, `3` or `4` for multi-player. Each player count uses its own independent layout.
 
 ## Brick Reference
 
 ### Sensors
-Always, Animation Tree, Collision, Compare Variable, Delay, InputMap (button + axis), Message, Mouse, Movement, Proximity, Random, Raycast
+Always, Animation Tree, Collision, Compare Variable, Delay, InputMap (button + axis), Message, Mouse (button, wheel, movement, hover), Movement, Proximity, Random, Raycast, Timer
 
 ### Controllers
 AND, OR, NAND, NOR, XOR
 
 ### Actuators
+Animation, Animation Tree, Set Camera, Smooth Follow Camera, Camera Zoom, Character (gravity + jump), Collision, Edit Object, Game, Look At Movement, Message, Modify Variable, Motion, Mouse, Move Towards, Parent, Physics, Property, Random, Save Game, Scene, Sound, Split Screen, State, Teleport, Text
 
-| Category | Actuators |
-|---|---|
-| **Animation** | Animation, Animation Tree |
-| **Movement** | Motion, Character (gravity + jump), Look At Movement, Move Towards (seek/flee/pathfind with obstacle avoidance), Teleport, Mouse |
-| **Physics** | Physics, Impulse, Collision |
-| **Object** | Edit Object, Object Pool, Parent, Property, Visibility |
-| **Environment** | Environment, Light (with FX presets: Flicker, Strobe, Pulse, Fade) |
-| **Camera** | Camera, Camera Zoom, Screen Shake, 3rd Person Camera |
-| **Audio** | Audio 3D, Audio 2D, Music |
-| **Game Feel** | Screen Flash, Rumble |
-| **UI** | Text, Modulate, Progress Bar, Tween |
-| **Logic** | State, Random, Message, Modify Variable |
-| **Game** | Game, Scene, Save Game |
+## Variables Panel
 
-## What's New
+Variables can be declared with optional **min and max clamps**:
 
-### Actuator Menu Reorganised
-Actuators are now grouped into categorised submenus rather than a single flat list, making it much faster to find the right brick.
+- Check **Min** to set a lower bound — the variable will never go below it
+- Check **Max** to set an upper bound — the variable will never go above it
+- Enable both for a fully clamped range
 
-### New Actuators
-- **Light** — control `OmniLight3D`, `SpotLight3D`, and `DirectionalLight3D` properties with animated FX presets: Flicker (with configurable idle time and burst duration), Strobe, Pulse, and Fade In/Out
-- **3rd Person Camera** — orbit camera for third-person games driven by mouse and/or joystick. Supports configurable sensitivity, invert axes, pitch clamping, and a `Rotate Character` toggle for third-person shooter vs. isometric-style control. Sensitivity and invert values can be exported to the Inspector for use in a settings menu
+For `int` and `float` variables that are also **exported**, Logic Bricks generates `@export_range(min, max)` so the Inspector shows a slider. For non-exported clamped variables, a GDScript property with a setter is generated automatically.
 
-### Sensor Improvements
-- **Delay Sensor** — duration is now fully implemented. The sensor waits for the delay, stays active for the duration, then either repeats the full cycle or stops. Uses a phase state machine (`waiting → active → done`)
-- **Message Sensor** — added a **Response Delay** field. Set to `0` for immediate activation (default), or a value in seconds to wait before the sensor fires after receiving a message
-- **Collision Sensor** — fixed: overlapping mode no longer emits an unused class-scope member variable, resolving `UNUSED_PRIVATE_CLASS_VARIABLE` and `SHADOWED_VARIABLE` editor warnings
+## Split Screen
 
-### Actuator Improvements
-- **Motion Actuator** — local-space velocity mode now only sets `velocity.x` and `velocity.z`, preserving `velocity.y` so the Character Actuator's gravity and jump are not cancelled out during horizontal movement
-- **Move Towards (Path Follow)** — added obstacle avoidance via forward raycast. When the path ahead is blocked by something that isn't the target, the agent picks a lateral offset and reroutes around it. The offset is held until the agent reaches the detour point, then clears automatically, preventing enemies from stacking on the same nav path
+The Split Screen actuator supports **1–4 players** with fully independent layouts per player count:
 
-### UI Improvements
-- **Collapsible property groups** — brick properties can be organised into labelled sections that expand and collapse, keeping graph nodes compact
-- **Color picker support** — `TYPE_COLOR` properties now render a `ColorPickerButton`
-- **Dynamic array lists** — `TYPE_ARRAY` properties render an add/remove list with optional file picker support per item
-- **Float spinboxes** now respect `PROPERTY_HINT_RANGE` hint strings for min, max, and step values
-- **Animation dropdown** — scans the entire scene subtree for all `AnimationPlayer` nodes automatically, with a **↻ Refresh** button to rescan on demand
-- **Instanced scene panel** — selecting an instanced node now shows a panel with options to open the original scene or edit the instance directly, replacing the previous static warning message
+| Players | Default Layout | Configurable |
+|---------|---------------|--------------|
+| 1       | Fullscreen (no split) | — |
+| 2       | Vertical | Yes |
+| 3       | Top Wide | Yes |
+| 4       | 2×2 Grid | Yes |
 
-### Bug Fixes
-- `variable_sensor.gd` — fixed parse error caused by `else:` blocks indented one level too deep inside a `match` statement
-- Export var null-checks in `_ready()` now skip primitive types (`float`, `int`, `bool`, `String`, `Vector2`, `Vector3`, `Color`) that can never be null, eliminating false inspector warnings
+**Setup:**
+1. Name your cameras `Camera3D_P1`, `Camera3D_P2`, `Camera3D_P3`, `Camera3D_P4` in the scene
+2. Apply Code — cameras are moved into their SubViewports automatically
+3. Set `split_screen_players` at runtime to switch between counts
+
+The `player_count` field accepts either a literal number (`2`) or a variable name (`num_players`) so the count can be driven by game logic.
+
+**Available layouts:** Vertical, Horizontal, 2×2 Grid, Top Wide, Bottom Wide
+
+## Camera Actuators
+
+The original Camera actuator has been split into two focused bricks:
+
+**Set Camera** — makes the assigned Camera3D the active camera. Use with a one-shot sensor (Delay, state transition) rather than Always to avoid calling `make_current()` every frame.
+
+**Smooth Follow Camera** — camera smoothly follows the node while maintaining its initial offset. Supports:
+- Per-axis position follow (X, Y, Z independently)
+- Per-axis rotation follow (orbits the camera around the target)
+- Dead zones per axis — camera only moves once the target exceeds the threshold
+- Independent position and rotation interpolation speeds
+
+## Mouse Sensor
+
+The Mouse sensor supports four detection modes:
+
+- **Button** — left, right, or middle click; detect pressed (single frame), released (single frame), or held
+- **Wheel** — scroll up or scroll down, fires for one frame per scroll tick. Multiple wheel sensors on the same node work correctly — they share a single `_input` handler generated automatically
+- **Movement** — triggers when the mouse moves beyond a configurable threshold
+- **Hover Object / Hover Any** — raycasts from the camera to detect mouse-over on 3D objects
 
 ## Installation
 
