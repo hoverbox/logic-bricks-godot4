@@ -312,7 +312,7 @@ func _create_add_menu() -> void:
             "label": "Game Feel",
             "items": [
                 ["Screen Flash", 335, "ScreenFlashActuator", "Flash a color over the screen.\n⚠ Adds @export in Inspector — assign a full-screen ColorRect."],
-                ["Rumble", 336, "RumbleActuator", "Trigger controller haptic vibration."],
+                ["Rumble", 336, "RumbleActuator", "Trigger controller haptic vibration with presets.\nPatterns: Single Pulse, Double Pulse, Sustained, Ramp Up, Ramp Down, Heartbeat."],
             ]
         },
         {
@@ -322,6 +322,7 @@ func _create_add_menu() -> void:
                 ["Modulate", 325, "ModulateActuator", "Set or smoothly transition the color/alpha of this node.\nUseful for fades, flashes, and tints."],
                 ["Progress Bar", 326, "ProgressBarActuator", "Set the value, min, or max of a ProgressBar, HSlider, or VSlider.\n⚠ Adds @export in Inspector — assign your Range node."],
                 ["Tween", 327, "TweenActuator", "Animate any property on a node using Godot's Tween system."],
+                ["UI Focus", 346, "UIFocusActuator", "Grab, release, or move UI focus for gamepad/keyboard menu navigation.\n⚠ Adds @export in Inspector — assign your Control node."],
             ]
         },
         {
@@ -1189,6 +1190,8 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/screen_flash_actuator.gd"
         "RumbleActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/rumble_actuator.gd"
+        "UIFocusActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/ui_focus_actuator.gd"
         "ShaderParamActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/shader_param_actuator.gd"
         "LightActuator":
@@ -2455,15 +2458,15 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
             pass
         
         "rumble_actuator":  # Rumble Actuator
-            var action = properties.get("action", "vibrate")
-            if typeof(action) == TYPE_STRING:
-                action = action.to_lower()
+            var action = properties.get("action", "pattern").to_lower().replace(" ", "_")
             for child in graph_node.get_children():
                 if child.has_meta("property_name"):
                     var prop_name = child.get_meta("property_name")
                     match prop_name:
                         "weak_motor", "strong_motor", "duration":
                             child.visible = (action == "vibrate")
+                        "pattern", "intensity":
+                            child.visible = (action == "pattern")
         
         "shader_param_actuator":  # Shader Parameter Actuator (legacy — removed from menu)
             pass

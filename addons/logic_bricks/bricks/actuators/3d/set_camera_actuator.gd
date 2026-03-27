@@ -28,7 +28,8 @@ func get_tooltip_definitions() -> Dictionary:
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var camera_var = "_camera_%s" % chain_name
+	# instance_name IS the variable name — falls back to "set_camera" when unnamed.
+	var camera_var = instance_name.to_lower().replace(" ", "_") if not instance_name.is_empty() else "set_camera"
 	var member_vars: Array[String] = []
 	var code_lines: Array[String] = []
 

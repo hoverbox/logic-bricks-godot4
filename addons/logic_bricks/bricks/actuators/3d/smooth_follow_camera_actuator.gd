@@ -128,10 +128,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var has_rotation = follow_rot_x or follow_rot_y or follow_rot_z
 	var has_dead_zone = dead_zone_x > 0.0 or dead_zone_y > 0.0 or dead_zone_z > 0.0
 
-	var camera_var     = "_sfc_camera_%s"      % chain_name
-	var offset_var     = "_sfc_offset_%s"      % chain_name
-	var rot_offset_var = "_sfc_rot_offset_%s"  % chain_name
-	var init_flag_var  = "_sfc_init_%s"        % chain_name
+	# instance_name IS the variable name when set (e.g. "player_cam" -> @export var player_cam).
+	# Falls back to a descriptive default when unnamed.
+	var _base = instance_name.to_lower().replace(" ", "_") if not instance_name.is_empty() else "smooth_follow"
+	var camera_var     = _base
+	var offset_var     = "_%s_offset"   % _base
+	var rot_offset_var = "_%s_rot"      % _base
+	var init_flag_var  = "_%s_ready"    % _base
 
 	var member_vars: Array[String] = []
 	member_vars.append("@export var %s: Camera3D" % camera_var)

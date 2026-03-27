@@ -830,6 +830,10 @@ func _get_brick_script_path(brick_type: String) -> String:
 			return "res://addons/logic_bricks/bricks/actuators/3d/save_game_actuator.gd"
 		"CameraActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/camera_actuator.gd"
+		"SetCameraActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/set_camera_actuator.gd"
+		"SmoothFollowCameraActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/smooth_follow_camera_actuator.gd"
 		"CollisionActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/collision_actuator.gd"
 		"ParentActuator":
@@ -864,6 +868,8 @@ func _get_brick_script_path(brick_type: String) -> String:
 			return "res://addons/logic_bricks/bricks/actuators/3d/screen_flash_actuator.gd"
 		"RumbleActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/rumble_actuator.gd"
+		"UIFocusActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/ui_focus_actuator.gd"
 		"ShaderParamActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/shader_param_actuator.gd"
 		"LightActuator":
