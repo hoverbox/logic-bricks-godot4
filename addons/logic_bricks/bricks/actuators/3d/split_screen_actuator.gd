@@ -28,6 +28,10 @@ func _initialize_properties() -> void:
 		"layout_2": "vertical",
 		"layout_3": "top_wide",
 		"layout_4": "grid_2x2",
+		"camera_1": "",
+		"camera_2": "",
+		"camera_3": "",
+		"camera_4": "",
 	}
 
 
@@ -61,6 +65,30 @@ func get_property_definitions() -> Array:
 			"hint_string": layouts,
 			"default": "grid_2x2"
 		},
+		{
+			"name": "camera_1",
+			"type": TYPE_STRING,
+			"default": "",
+			"placeholder": "NodePath to Camera3D for Player 1"
+		},
+		{
+			"name": "camera_2",
+			"type": TYPE_STRING,
+			"default": "",
+			"placeholder": "NodePath to Camera3D for Player 2"
+		},
+		{
+			"name": "camera_3",
+			"type": TYPE_STRING,
+			"default": "",
+			"placeholder": "NodePath to Camera3D for Player 3"
+		},
+		{
+			"name": "camera_4",
+			"type": TYPE_STRING,
+			"default": "",
+			"placeholder": "NodePath to Camera3D for Player 4"
+		},
 	]
 
 
@@ -71,6 +99,10 @@ func get_tooltip_definitions() -> Dictionary:
 		"layout_2": "Layout used when exactly 2 players are active.",
 		"layout_3": "Layout used when exactly 3 players are active.",
 		"layout_4": "Layout used when exactly 4 players are active.",
+		"camera_1": "NodePath to the Camera3D for Player 1.\nPlace your camera in the scene and enter its path here.\nIt will be reparented into the SubViewport at runtime.",
+		"camera_2": "NodePath to the Camera3D for Player 2.",
+		"camera_3": "NodePath to the Camera3D for Player 3.",
+		"camera_4": "NodePath to the Camera3D for Player 4.",
 	}
 
 
@@ -96,6 +128,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var stable_name = instance_name.to_lower().replace(" ", "_") if not instance_name.is_empty() else "ss"
 	var canvas_name = "_ss_canvas_%s" % stable_name
 
+	# Camera node paths — one per player slot
+	var cam_paths: Array = []
+	for i in range(4):
+		cam_paths.append(str(properties.get("camera_%d" % (i + 1), "")).strip_edges())
+
 	# --- Member vars ---
 	var member_vars: Array[String] = []
 	var containers_var = "_%s_containers" % cn
@@ -105,37 +142,60 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	member_vars.append("var %s: Array"  % viewports_var)
 	member_vars.append("var %s: CanvasLayer" % canvas_var)
 	member_vars.append("@export_range(1, 4) var split_screen_players: int = %d" % default_player_count)
+	for i in range(4):
+		member_vars.append("@export var camera_%d: Camera3D" % (i + 1))
 	if not _pc_is_literal:
 		member_vars.append("# split_screen_players is driven by: %s" % _pc_raw)
 
-	# --- _ready ---
+	# --- _ready: create SubViewports at runtime, never in the editor scene ---
+	# SubViewports created by Apply Code and saved into .tscn cause Godot to
+	# emit "common_parent is null" on every scene save — a known engine issue
+	# with SubViewport serialization. Creating them in _ready() means they
+	# never exist in the .tscn file, so the serializer never touches them.
 	var ready_lines: Array[String] = []
-	ready_lines.append("# Split Screen: locate all 4 SubViewportContainers built by Apply Code")
+	ready_lines.append("# Split Screen: create SubViewports at runtime (not stored in .tscn)")
 	ready_lines.append("%s.clear()" % containers_var)
 	ready_lines.append("%s.clear()"  % viewports_var)
-	ready_lines.append("var _ss_scene_root = get_tree().current_scene if get_tree().current_scene else get_tree().root")
-	ready_lines.append("var _ss_canvas = _ss_scene_root.get_node_or_null(\"%s\")" % canvas_name)
-	ready_lines.append("if not _ss_canvas:")
-	ready_lines.append("\tpush_warning(\"Split Screen: CanvasLayer '%s' not found -- re-apply code\")" % canvas_name)
-	ready_lines.append("else:")
-	ready_lines.append("\t%s = _ss_canvas" % canvas_var)
+	ready_lines.append("if %s:" % canvas_var)
+	ready_lines.append("\t%s.queue_free()" % canvas_var)
+	ready_lines.append("\t%s = null" % canvas_var)
+	ready_lines.append("var _ss_root = get_tree().current_scene if get_tree().current_scene else get_tree().root")
+	ready_lines.append("var _ss_sw = DisplayServer.window_get_size().x")
+	ready_lines.append("var _ss_sh = DisplayServer.window_get_size().y")
+	ready_lines.append("var _ss_cl = CanvasLayer.new()")
+	ready_lines.append("_ss_cl.name = \"%s\"" % canvas_name)
+	ready_lines.append("_ss_cl.layer = 0")
+	ready_lines.append("_ss_root.add_child(_ss_cl)")
+	ready_lines.append("%s = _ss_cl" % canvas_var)
 	for i in range(4):
 		var svc_name = "_ss_svc_%s_%d" % [stable_name, i + 1]
 		var vp_name  = "_ss_vp_%s_%d"  % [stable_name, i + 1]
-		ready_lines.append("\tvar _svc_%d = _ss_canvas.get_node_or_null(\"%s\")" % [i, svc_name])
-		ready_lines.append("\tif _svc_%d:" % i)
-		ready_lines.append("\t\t%s.append(_svc_%d)" % [containers_var, i])
-		ready_lines.append("\t\tvar _svp_%d = _svc_%d.get_node_or_null(\"%s\")" % [i, i, vp_name])
-		ready_lines.append("\t\tif _svp_%d:" % i)
-		ready_lines.append("\t\t\t%s.append(_svp_%d)" % [viewports_var, i])
+		var is_visible = str(i < default_player_count).to_lower()
+		ready_lines.append("var _ss_svc_%d = SubViewportContainer.new()" % i)
+		ready_lines.append("_ss_svc_%d.name = \"%s\"" % [i, svc_name])
+		ready_lines.append("_ss_svc_%d.stretch = false" % i)
+		ready_lines.append("_ss_svc_%d.set_anchor(SIDE_LEFT,   0.0)" % i)
+		ready_lines.append("_ss_svc_%d.set_anchor(SIDE_TOP,    0.0)" % i)
+		ready_lines.append("_ss_svc_%d.set_anchor(SIDE_RIGHT,  0.0)" % i)
+		ready_lines.append("_ss_svc_%d.set_anchor(SIDE_BOTTOM, 0.0)" % i)
+		ready_lines.append("_ss_svc_%d.visible = %s" % [i, is_visible])
+		ready_lines.append("_ss_cl.add_child(_ss_svc_%d)" % i)
+		ready_lines.append("%s.append(_ss_svc_%d)" % [containers_var, i])
+		ready_lines.append("var _ss_svp_%d = SubViewport.new()" % i)
+		ready_lines.append("_ss_svp_%d.name = \"%s\"" % [i, vp_name])
+		ready_lines.append("_ss_svp_%d.size = Vector2i(max(1, _ss_sw / 2), max(1, _ss_sh / 2))" % i)
+		ready_lines.append("_ss_svp_%d.render_target_update_mode = SubViewport.UPDATE_DISABLED" % i)
+		ready_lines.append("_ss_svc_%d.add_child(_ss_svp_%d)" % [i, i])
+		ready_lines.append("%s.append(_ss_svp_%d)" % [viewports_var, i])
+		# Reparent user-assigned camera into this SubViewport
+		ready_lines.append("if camera_%d:" % (i + 1))
+		ready_lines.append("\tvar _ss_cam_parent_%d = camera_%d.get_parent()" % [i, i + 1])
+		ready_lines.append("\tif _ss_cam_parent_%d:" % i)
+		ready_lines.append("\t\t_ss_cam_parent_%d.remove_child(camera_%d)" % [i, i + 1])
+		ready_lines.append("\t_ss_svp_%d.add_child(camera_%d)" % [i, i + 1])
 	ready_lines.append("await get_tree().process_frame")
-	ready_lines.append("for _svp_idx in %s.size():" % viewports_var)
-	ready_lines.append("\tvar _svp = %s[_svp_idx]" % viewports_var)
-	ready_lines.append("\t_svp.render_target_update_mode = SubViewport.UPDATE_ALWAYS")
-	ready_lines.append("\tfor _c in _svp.get_children():")
-	ready_lines.append("\t\tif _c is Camera3D:")
-	ready_lines.append("\t\t\t_c.make_current()")
-	ready_lines.append("\t\t\tbreak")
+	ready_lines.append("for _ss_vp in %s:" % viewports_var)
+	ready_lines.append("\t_ss_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS")
 
 	# --- Actuator code (runs every frame) ---
 	var code_lines: Array[String] = []

@@ -169,13 +169,35 @@ func _get_variables_code_from_metadata(node: Node) -> String:
 		if var_name.is_empty():
 			continue
 		
+		var use_min   = var_data.get("use_min", false)
+		var min_val   = var_data.get("min_val", "0")
+		var use_max   = var_data.get("use_max", false)
+		var max_val   = var_data.get("max_val", "100")
+		var has_range = (var_type in ["int", "float"]) and (use_min or use_max)
+		
 		if is_global:
-			# Global variable: property that proxies to GlobalVars autoload
 			lines.append("var %s: %s:" % [var_name, var_type])
 			lines.append("\tget: return GlobalVars.%s" % var_name)
-			lines.append("\tset(val): GlobalVars.%s = val" % var_name)
+			if has_range:
+				var clamp_fn = "clampi" if var_type == "int" else "clampf"
+				var lo = min_val if use_min else ("-9999999" if var_type == "int" else "-9999999.0")
+				var hi = max_val if use_max else ("9999999"  if var_type == "int" else "9999999.0")
+				lines.append("\tset(val): GlobalVars.%s = %s(val, %s, %s)" % [var_name, clamp_fn, lo, hi])
+			else:
+				lines.append("\tset(val): GlobalVars.%s = val" % var_name)
+		elif has_range and exported:
+			var lo = min_val if use_min else ("-9999999" if var_type == "int" else "-9999999.0")
+			var hi = max_val if use_max else ("9999999"  if var_type == "int" else "9999999.0")
+			lines.append("@export_range(%s, %s) var %s: %s = %s" % [lo, hi, var_name, var_type, var_value])
+		elif has_range and not exported:
+			var clamp_fn = "clampi" if var_type == "int" else "clampf"
+			var lo = min_val if use_min else ("-9999999" if var_type == "int" else "-9999999.0")
+			var hi = max_val if use_max else ("9999999"  if var_type == "int" else "9999999.0")
+			lines.append("var _%s_raw: %s = %s" % [var_name, var_type, var_value])
+			lines.append("var %s: %s:" % [var_name, var_type])
+			lines.append("\tget: return _%s_raw" % var_name)
+			lines.append("\tset(val): _%s_raw = %s(val, %s, %s)" % [var_name, clamp_fn, lo, hi])
 		else:
-			# Local variable
 			var declaration = ""
 			if exported:
 				declaration += "@export "
@@ -326,10 +348,20 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	
 	if ready_code.size() > 0 or export_checks.size() > 0:
 		code_lines.append("func _ready() -> void:")
-		# Export validation first
-		for ec in export_checks:
-			code_lines.append("\t" + ec)
-		# Then other ready code
+		# Defer export validation by one frame so all nodes are in the scene tree.
+		# Accessing @export node references before the tree is ready triggers
+		# "Cannot get path of node as it is not in a scene tree" errors.
+		if export_checks.size() > 0:
+			code_lines.append("\tawait get_tree().process_frame")
+			for ec in export_checks:
+				# Use is_instance_valid instead of plain truthiness —
+				# a plain "if not node:" can also trigger the path error.
+				var safe_ec = ec.replace("if not ", "if not is_instance_valid(").replace(":", "):")
+				if "is_instance_valid" in safe_ec:
+					code_lines.append("\t" + safe_ec)
+				else:
+					code_lines.append("\t" + ec)
+		# Other ready code runs immediately (not deferred)
 		for rc in ready_code:
 			code_lines.append("\t" + rc)
 		code_lines.append("")
@@ -570,6 +602,32 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 	
 	if sensors.is_empty() or actuators.is_empty() or not controller_data:
 		return ""  # Incomplete chain — skip entirely, generate nothing
+	
+	# Collect @export var node names from this chain's bricks so we can
+	# guard against freed instances (e.g. object pool recycling nodes).
+	var _chain_export_vars: Array[String] = []
+	for _sd in sensors:
+		var _sb = _instantiate_brick(_sd)
+		if _sb:
+			var _sg = _sb.generate_code(node, chain_name)
+			for _mv in _sg.get("member_vars", []):
+				if _mv.begins_with("@export var "):
+					var _vname = _mv.replace("@export var ", "").split(":")[0].strip_edges()
+					if _vname not in _chain_export_vars:
+						_chain_export_vars.append(_vname)
+	for _ad in actuators:
+		var _ab = _instantiate_brick(_ad)
+		if _ab:
+			var _ag = _ab.generate_code(node, chain_name)
+			for _mv in _ag.get("member_vars", []):
+				if _mv.begins_with("@export var "):
+					var _vname = _mv.replace("@export var ", "").split(":")[0].strip_edges()
+					if _vname not in _chain_export_vars:
+						_chain_export_vars.append(_vname)
+	if _chain_export_vars.size() > 0:
+		lines.append("\t# Guard: skip if any assigned node has been freed (e.g. by object pool)")
+		for _ev in _chain_export_vars:
+			lines.append("\tif %s != null and not is_instance_valid(%s): return" % [_ev, _ev])
 	
 	# Generate sensor code for ALL sensors
 	lines.append("\t# Sensor evaluation")
@@ -1048,6 +1106,18 @@ func _member_var_to_reset(member_var_line: String) -> String:
 	if not member_var_line.begins_with("var "):
 		return ""
 	
+	# Skip object pool vars — pools are built once in _ready() and must survive
+	# state transitions. Resetting them would empty the pool on the first frame.
+	# _pools_*       — the Array-of-Arrays holding live instances
+	# _pool_scene_*  — the preloaded PackedScene resources
+	var after_var = member_var_line.substr(4)  # strip "var "
+	if after_var.begins_with("_pools_") or after_var.begins_with("_pool_scene_"):
+		return ""
+	
+	# Skip any var typed as PackedScene — these are preloaded resources, not runtime state
+	if ": PackedScene" in member_var_line:
+		return ""
+	
 	# Check there's a "=" to split on
 	var eq_pos = member_var_line.find("=")
 	if eq_pos == -1:
@@ -1062,7 +1132,6 @@ func _member_var_to_reset(member_var_line: String) -> String:
 		default_val = default_val.substr(0, comment_pos).strip_edges()
 	
 	# Extract variable name: "var _foo: float = ..." or "var _foo = ..."
-	var after_var = member_var_line.substr(4)  # strip "var "
 	var colon_pos = after_var.find(":")
 	var var_name = ""
 	if colon_pos != -1:

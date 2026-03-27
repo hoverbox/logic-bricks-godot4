@@ -46,13 +46,6 @@ func get_property_definitions() -> Array:
 			"linked_default": "10"
 		},
 		{
-			"name": "pool_sizes",
-			"type": TYPE_ARRAY,
-			"default": [],
-			"item_hint": PROPERTY_HINT_NONE,
-			"item_label": "Pool Size"
-		},
-		{
 			"name": "spawn_mode",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
@@ -123,8 +116,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			var sz = "10"
 			if i < pool_sizes.size():
 				var raw = str(pool_sizes[i]).strip_edges()
-				if raw.is_valid_int() and int(raw) > 0:
-					sz = raw
+				if not raw.is_empty():
+					sz = raw  # Accept integers OR variable/expression names
 			valid_sizes.append(sz)
 
 	if valid_scenes.is_empty():
@@ -166,7 +159,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		var pv   = "_pool_%s_%d" % [_export_label, i]
 		member_vars.append("var %s: PackedScene = preload(\"%s\")" % [sv, path])
 		ready_code.append("var %s: Array = []" % pv)
-		ready_code.append("for _i_%d in %s:" % [i, sz])
+		ready_code.append("for _i_%d in range(%s):" % [i, sz])
 		ready_code.append("\tvar _inst_%s_%d = %s.instantiate()" % [_export_label, i, sv])
 		ready_code.append("\tget_parent().add_child(_inst_%s_%d)" % [_export_label, i])
 		ready_code.append("\t_inst_%s_%d.visible = false" % [_export_label, i])

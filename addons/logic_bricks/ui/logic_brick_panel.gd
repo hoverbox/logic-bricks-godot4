@@ -244,7 +244,7 @@ func _create_add_menu() -> void:
         {
             "label": "Animation",
             "items": [
-                ["Animation", 300, "AnimationActuator", "Plays, stops, or queues animations via AnimationPlayer.\n⚠ Adds @export in Inspector — assign your AnimationPlayer."],
+                ["Animation", 300, "AnimationActuator", "Play, stop, pause, queue, ping-pong, or flipper animations.\nAutomatically finds the AnimationPlayer that owns the animation.\n⚠ No @export needed — AnimationPlayer is found automatically."],
                 ["Animation Tree", 301, "AnimationTreeActuator", "Controls AnimationTree: travel states, set parameters/conditions.\n⚠ Adds @export in Inspector — assign your AnimationTree."],
             ]
         },
@@ -312,7 +312,7 @@ func _create_add_menu() -> void:
             "label": "Game Feel",
             "items": [
                 ["Screen Flash", 335, "ScreenFlashActuator", "Flash a color over the screen.\n⚠ Adds @export in Inspector — assign a full-screen ColorRect."],
-                ["Rumble", 336, "RumbleActuator", "Trigger controller haptic vibration with presets.\nPatterns: Single Pulse, Double Pulse, Sustained, Ramp Up, Ramp Down, Heartbeat."],
+                ["Rumble", 336, "RumbleActuator", "Trigger controller haptic vibration."],
             ]
         },
         {
@@ -322,7 +322,6 @@ func _create_add_menu() -> void:
                 ["Modulate", 325, "ModulateActuator", "Set or smoothly transition the color/alpha of this node.\nUseful for fades, flashes, and tints."],
                 ["Progress Bar", 326, "ProgressBarActuator", "Set the value, min, or max of a ProgressBar, HSlider, or VSlider.\n⚠ Adds @export in Inspector — assign your Range node."],
                 ["Tween", 327, "TweenActuator", "Animate any property on a node using Godot's Tween system."],
-                ["UI Focus", 346, "UIFocusActuator", "Grab, release, or move UI focus for gamepad/keyboard menu navigation.\n⚠ Adds @export in Inspector — assign your Control node."],
             ]
         },
         {
@@ -712,7 +711,7 @@ func _on_edit_instance_pressed() -> void:
 
 
 func _is_part_of_instance(node: Node) -> bool:
-    """Check if the node is part of an instanced scene (not the root scene)"""
+    # Check if the node is part of an instanced scene (not the root scene)
     if not editor_interface:
         return false
     
@@ -1190,8 +1189,6 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/screen_flash_actuator.gd"
         "RumbleActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/rumble_actuator.gd"
-        "UIFocusActuator":
-            script_path = "res://addons/logic_bricks/bricks/actuators/3d/ui_focus_actuator.gd"
         "ShaderParamActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/shader_param_actuator.gd"
         "LightActuator":
@@ -1575,11 +1572,12 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
                 )
                 
                 # Add button handler
+                var capture_item_default = prop_def.get("item_default", "")
                 add_btn.pressed.connect(func():
                     var upd_arr: Array = brick_instance.get_property(property_name)
                     if typeof(upd_arr) != TYPE_ARRAY:
                         upd_arr = []
-                    upd_arr.append("0.000,0.000,0.000")
+                    upd_arr.append(capture_item_default)
                     brick_instance.set_property(property_name, upd_arr)
                     # If this array has a linked array, append its default value too
                     var linked = prop_def.get("linked_array", "")
@@ -1822,33 +1820,56 @@ func _build_array_property_list(
                     dialog.add_filter(f.strip_edges())
                 add_child(dialog)
                 dialog.popup_centered(Vector2(900, 700))
+                var capture_linked2      = linked_array
+                var capture_linked_def2  = linked_default
                 dialog.file_selected.connect(func(path: String):
+                    # Update the scenes array
                     var upd: Array = brick_instance.get_property(property_name)
                     if typeof(upd) != TYPE_ARRAY: upd = []
                     while upd.size() <= capture_idx: upd.append("")
                     upd[capture_idx] = path
                     brick_instance.set_property(property_name, upd)
-                    capture_le.text = path
-                    capture_le.tooltip_text = path
+                    # Ensure the linked array (pool_sizes) has a matching entry
+                    if not capture_linked2.is_empty():
+                        var linked_upd: Array = brick_instance.get_property(capture_linked2)
+                        if typeof(linked_upd) != TYPE_ARRAY: linked_upd = []
+                        while linked_upd.size() <= capture_idx:
+                            linked_upd.append(capture_linked_def2)
+                        brick_instance.set_property(capture_linked2, linked_upd)
                     _save_graph_to_metadata()
                     dialog.queue_free()
+                    # Rebuild the list so the LineEdit shows the new path cleanly
+                    _build_array_property_list(
+                        list_vbox, graph_node, brick_instance,
+                        property_name, item_hint, item_hint_string, item_label_text,
+                        capture_linked2, capture_linked_def2
+                    )
+                    graph_node.reset_size()
                 )
             )
             row.add_child(pick_btn)
-        else:
-            var le = LineEdit.new()
-            le.text = str(current_arr[idx])
-            le.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-            var capture_idx = idx
-            le.text_changed.connect(func(val: String):
-                var upd: Array = brick_instance.get_property(property_name)
-                if typeof(upd) != TYPE_ARRAY: upd = []
-                while upd.size() <= capture_idx: upd.append("")
-                upd[capture_idx] = val
-                brick_instance.set_property(property_name, upd)
-                _save_graph_to_metadata()
-            )
-            row.add_child(le)
+            
+            # If this array has a linked value (e.g. pool_sizes), show an editable
+            # field for it inline on the same row, right after the file picker.
+            if not linked_array.is_empty():
+                var linked_arr: Array = brick_instance.get_property(linked_array)
+                if typeof(linked_arr) != TYPE_ARRAY: linked_arr = []
+                var linked_val = linked_arr[idx] if idx < linked_arr.size() else linked_default
+                var linked_le = LineEdit.new()
+                linked_le.text = str(linked_val)
+                linked_le.placeholder_text = linked_default
+                linked_le.custom_minimum_size = Vector2(64, 0)
+                linked_le.tooltip_text = "Pool size (integer or variable name)"
+                var capture_linked_idx = idx
+                linked_le.text_changed.connect(func(val: String):
+                    var lupd: Array = brick_instance.get_property(linked_array)
+                    if typeof(lupd) != TYPE_ARRAY: lupd = []
+                    while lupd.size() <= capture_linked_idx: lupd.append(linked_default)
+                    lupd[capture_linked_idx] = val
+                    brick_instance.set_property(linked_array, lupd)
+                    _save_graph_to_metadata()
+                )
+                row.add_child(linked_le)
         
         # Remove button
         var rm_btn = Button.new()
@@ -2092,6 +2113,19 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
                         "axis", "direction":
                             # Only show for specific_axis mode
                             child.visible = (detection_mode == "specific_axis")
+        
+        "animation_actuator":  # Animation Actuator
+            var anim_mode = properties.get("mode", "play").to_lower().replace(" ", "_")
+            for child in graph_node.get_children():
+                if child.has_meta("property_name"):
+                    var prop_name = child.get_meta("property_name")
+                    match prop_name:
+                        "play_backwards", "from_end":
+                            child.visible = (anim_mode == "play")
+                        "blend_time":
+                            child.visible = (anim_mode in ["play", "ping_pong", "flipper"])
+                        "speed":
+                            child.visible = (anim_mode != "stop" and anim_mode != "pause")
         
         "motion_actuator":  # Motion Actuator
             var motion_type = properties.get("motion_type", "location")
@@ -2458,15 +2492,15 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
             pass
         
         "rumble_actuator":  # Rumble Actuator
-            var action = properties.get("action", "pattern").to_lower().replace(" ", "_")
+            var action = properties.get("action", "vibrate")
+            if typeof(action) == TYPE_STRING:
+                action = action.to_lower()
             for child in graph_node.get_children():
                 if child.has_meta("property_name"):
                     var prop_name = child.get_meta("property_name")
                     match prop_name:
                         "weak_motor", "strong_motor", "duration":
                             child.visible = (action == "vibrate")
-                        "pattern", "intensity":
-                            child.visible = (action == "pattern")
         
         "shader_param_actuator":  # Shader Parameter Actuator (legacy — removed from menu)
             pass
@@ -2531,7 +2565,9 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
                 if child.has_meta("property_name"):
                     var prop_name = child.get_meta("property_name")
                     match prop_name:
-                        "scenes", "pool_sizes", "spawn_mode", "spawn_delay", "spawn_at_self", "inherit_rotation":
+                        "pool_sizes":
+                            child.visible = false  # managed automatically by the scenes array
+                        "scenes", "spawn_mode", "spawn_delay", "spawn_at_self", "inherit_rotation":
                             child.visible = is_spawn
                         "spawn_node":
                             child.visible = is_spawn and not spawn_at_self
@@ -3198,6 +3234,13 @@ func _on_apply_code_pressed() -> void:
     
     #print("Logic Bricks: Script written to: " + script_path)
     
+    # Save the scene FIRST so all current NodePaths (including any @export vars
+    # pointing into SubViewports) are committed to disk before the script
+    # hot-reload tries to resolve them. Without this, Godot resolves stale
+    # NodePaths from undo history against the new scene tree and hits
+    # "common_parent is null" in get_path_to().
+    editor_interface.save_scene()
+    
     # Force filesystem to update
     var filesystem = editor_interface.get_resource_filesystem()
     filesystem.update_file(script_path)
@@ -3366,7 +3409,11 @@ func _on_add_variable_pressed() -> void:
         "type": "int",
         "value": "0",
         "exported": false,
-        "global": false
+        "global": false,
+        "use_min": false,
+        "min_val": "0",
+        "use_max": false,
+        "max_val": "100"
     }
     variables_data.append(var_data)
     _refresh_variables_ui()
@@ -3502,6 +3549,48 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
     global_check.toggled.connect(_on_variable_global_changed.bind(index))
     row5.add_child(global_check)
     
+    # Row 6 & 7: Min / Max (only visible for int and float)
+    var is_numeric = var_data["type"] in ["int", "float"]
+
+    var row_min = HBoxContainer.new()
+    row_min.name = "RowMin"
+    row_min.visible = is_numeric
+    details.add_child(row_min)
+
+    var min_check = CheckBox.new()
+    min_check.text = "Min"
+    min_check.button_pressed = var_data.get("use_min", false)
+    row_min.add_child(min_check)
+
+    var min_edit = LineEdit.new()
+    min_edit.text = str(var_data.get("min_val", "0"))
+    min_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    min_edit.editable = var_data.get("use_min", false)
+    min_edit.modulate.a = 1.0 if var_data.get("use_min", false) else 0.4
+    row_min.add_child(min_edit)
+
+    var row_max = HBoxContainer.new()
+    row_max.name = "RowMax"
+    row_max.visible = is_numeric
+    details.add_child(row_max)
+
+    var max_check = CheckBox.new()
+    max_check.text = "Max"
+    max_check.button_pressed = var_data.get("use_max", false)
+    row_max.add_child(max_check)
+
+    var max_edit = LineEdit.new()
+    max_edit.text = str(var_data.get("max_val", "100"))
+    max_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    max_edit.editable = var_data.get("use_max", false)
+    max_edit.modulate.a = 1.0 if var_data.get("use_max", false) else 0.4
+    row_max.add_child(max_edit)
+
+    min_check.toggled.connect(_on_variable_min_toggled.bind(index, min_edit))
+    min_edit.text_changed.connect(_on_variable_min_val_changed.bind(index))
+    max_check.toggled.connect(_on_variable_max_toggled.bind(index, max_edit))
+    max_edit.text_changed.connect(_on_variable_max_val_changed.bind(index))
+
     # Connect collapse button
     collapse_btn.pressed.connect(_on_variable_collapse_toggled.bind(collapse_btn, details))
 
@@ -3523,6 +3612,8 @@ func _on_variable_type_changed(type_index: int, index: int, name_display: Label)
         # Update the display label
         name_display.text = "%s: %s" % [variables_data[index]["name"], type_names[type_index]]
         _save_variables_to_metadata()
+        # Refresh so min/max rows show/hide correctly for the new type
+        _refresh_variables_ui()
 
 
 func _on_variable_value_changed(new_value: String, index: int) -> void:
@@ -3549,6 +3640,34 @@ func _on_variable_global_changed(is_global: bool, index: int) -> void:
             _refresh_variables_ui()
         _save_variables_to_metadata()
         _update_global_vars_script()
+
+
+func _on_variable_min_toggled(enabled: bool, index: int, min_edit: LineEdit) -> void:
+    min_edit.editable = enabled
+    min_edit.modulate.a = 1.0 if enabled else 0.4
+    if index < variables_data.size():
+        variables_data[index]["use_min"] = enabled
+        _save_variables_to_metadata()
+
+
+func _on_variable_min_val_changed(new_val: String, index: int) -> void:
+    if index < variables_data.size():
+        variables_data[index]["min_val"] = new_val
+        _save_variables_to_metadata()
+
+
+func _on_variable_max_toggled(enabled: bool, index: int, max_edit: LineEdit) -> void:
+    max_edit.editable = enabled
+    max_edit.modulate.a = 1.0 if enabled else 0.4
+    if index < variables_data.size():
+        variables_data[index]["use_max"] = enabled
+        _save_variables_to_metadata()
+
+
+func _on_variable_max_val_changed(new_val: String, index: int) -> void:
+    if index < variables_data.size():
+        variables_data[index]["max_val"] = new_val
+        _save_variables_to_metadata()
 
 
 func _on_variable_collapse_toggled(collapse_btn: Button, details: VBoxContainer) -> void:
@@ -3731,6 +3850,19 @@ func _load_variables_from_metadata() -> void:
     _refresh_variables_ui()
 
 
+func _build_export_range_str(var_type: String, use_min: bool, min_val: String, use_max: bool, max_val: String) -> String:
+    var lo = min_val if use_min else ("-9999999" if var_type == "int" else "-9999999.0")
+    var hi = max_val if use_max else ("9999999"  if var_type == "int" else "9999999.0")
+    return "%s, %s" % [lo, hi]
+
+
+func _build_clamp_expr(val_var: String, var_type: String, use_min: bool, min_val: String, use_max: bool, max_val: String) -> String:
+    var fn = "clampi" if var_type == "int" else "clampf"
+    var lo = min_val if use_min else ("-9999999" if var_type == "int" else "-9999999.0")
+    var hi = max_val if use_max else ("9999999"  if var_type == "int" else "9999999.0")
+    return "%s(%s, %s, %s)" % [fn, val_var, lo, hi]
+
+
 func get_variables_code() -> String:
     # Generate variable declarations code
     if variables_data.is_empty():
@@ -3746,13 +3878,31 @@ func get_variables_code() -> String:
         var exported = var_data["exported"]
         var is_global = var_data.get("global", false)
         
+        var use_min  = var_data.get("use_min", false)
+        var min_val  = var_data.get("min_val", "0")
+        var use_max  = var_data.get("use_max", false)
+        var max_val  = var_data.get("max_val", "100")
+        var has_range = (var_type in ["int", "float"]) and (use_min or use_max)
+
         if is_global:
-            # Global variable: create a property that proxies to the GlobalVars autoload
+            # Global variable: proxy to GlobalVars autoload, clamp in setter if needed
             lines.append("var %s: %s:" % [var_name, var_type])
             lines.append("\tget: return GlobalVars.%s" % var_name)
-            lines.append("\tset(val): GlobalVars.%s = val" % var_name)
+            if has_range:
+                var clamp_expr = _build_clamp_expr("val", var_type, use_min, min_val, use_max, max_val)
+                lines.append("\tset(val): GlobalVars.%s = %s" % [var_name, clamp_expr])
+            else:
+                lines.append("\tset(val): GlobalVars.%s = val" % var_name)
+        elif has_range and exported:
+            var range_str = _build_export_range_str(var_type, use_min, min_val, use_max, max_val)
+            lines.append("@export_range(%s) var %s: %s = %s" % [range_str, var_name, var_type, var_value])
+        elif has_range and not exported:
+            var clamp_expr = _build_clamp_expr("val", var_type, use_min, min_val, use_max, max_val)
+            lines.append("var _%s_raw: %s = %s" % [var_name, var_type, var_value])
+            lines.append("var %s: %s:" % [var_name, var_type])
+            lines.append("\tget: return _%s_raw" % var_name)
+            lines.append("\tset(val): _%s_raw = %s" % [var_name, clamp_expr])
         else:
-            # Local variable: declare normally
             var declaration = ""
             if exported:
                 declaration += "@export "
@@ -4311,122 +4461,38 @@ func _mark_scene_modified() -> void:
 ## Build, update, or remove scene nodes required by special actuators.
 ## Called after Apply Code so nodes exist in the scene before the script runs.
 func _apply_scene_setup(node: Node, chains: Array) -> void:
-    # --- Split Screen ---
-    var split_actuators: Array = []
+    # Check whether any SplitScreenActuator is present in the current chains.
+    # If there is one, leave any _ss_canvas_* CanvasLayers alone — _ready() will
+    # manage them at runtime. If there isn't one, free any stale nodes left behind
+    # by a previously applied SplitScreenActuator so the serializer doesn't hit
+    # "common_parent is null" when saving.
+    var has_split_screen := false
     for chain in chains:
-        for actuator_data in chain.get("actuators", []):
-            if actuator_data.get("type", "") == "SplitScreenActuator":
-                var data_with_chain = actuator_data.duplicate()
-                data_with_chain["chain_name"] = chain.get("name", "split")
-                split_actuators.append(data_with_chain)
+        for actuator in chain.get("actuators", []):
+            if actuator.get("type", "") == "SplitScreenActuator":
+                has_split_screen = true
+                break
+        if has_split_screen:
+            break
 
-    # Remove existing split screen nodes before rebuilding.
-    # Collect first, then free — freeing while iterating get_children() causes
-    # 'freed instance' errors because the array shifts under the iterator.
-    var scene_root = node.get_tree().edited_scene_root
-    var _to_free: Array = []
-    for child in scene_root.get_children():
-        if child.has_meta("logic_bricks_split_screen"):
-            _to_free.append(child)
-    for child in node.get_children():
-        if child.has_meta("logic_bricks_split_screen"):
-            _to_free.append(child)
-    for child in _to_free:
-        if is_instance_valid(child):
-            child.free()
+    if has_split_screen:
+        return  # Active actuator — leave the runtime nodes alone.
 
-    if split_actuators.is_empty():
+    var scene_root = node.get_tree().edited_scene_root if node.get_tree() else null
+    if not scene_root:
         return
 
-    print("Logic Bricks: Setting up split screen nodes for %d actuator(s)" % split_actuators.size())
+    var stale: Array = []
+    for child in scene_root.get_children():
+        if child is CanvasLayer and child.name.begins_with("_ss_canvas_"):
+            stale.append(child)
+    for cl in stale:
+        cl.free()
 
-    for actuator_data in split_actuators:
-        var props       = actuator_data.get("properties", {})
-        # player_count may be a literal string ("2") or a variable name — always fall back to 2
-        var _pc_raw     = str(props.get("player_count", "2")).strip_edges()
-        var default_count = int(_pc_raw) if _pc_raw.is_valid_int() else 2
-        default_count   = clampi(default_count, 1, 4)
-        var inst        = actuator_data.get("instance_name", "")
-        var stable_name = inst.to_lower().replace(" ", "_") if not inst.is_empty() else "ss"
-
-        # Always build all 4 slots regardless of default_count.
-        # Slots beyond the default are hidden; the runtime actuator shows/hides
-        # by reading split_screen_players each frame — no rebuild needed.
-        var TOTAL_SLOTS = 4
-        print("Logic Bricks: Creating %d SubViewportContainers (name: '%s')" % [TOTAL_SLOTS, stable_name])
-
-        var canvas_name = "_ss_canvas_%s" % stable_name
-        var canvas = CanvasLayer.new()
-        canvas.name = canvas_name
-        canvas.set_meta("logic_bricks_split_screen", true)
-        canvas.layer = 0  # layer -1 renders behind the scene background
-        scene_root.add_child(canvas)
-        canvas.owner = scene_root
-
-        var screen_size = DisplayServer.window_get_size()
-        var sw = max(1, screen_size.x)
-        var sh = max(1, screen_size.y)
-
-        # Collect Camera3D nodes named Camera3D_P1..P4 to adopt into SubViewports
-        var scene_cameras: Dictionary = {}
-        for p_idx in range(TOTAL_SLOTS):
-            scene_cameras[p_idx] = _find_camera_by_name(scene_root, "Camera3D_P%d" % (p_idx + 1))
-
-        for i in range(TOTAL_SLOTS):
-            var container_name = "_ss_svc_%s_%d" % [stable_name, i + 1]
-            var vp_name        = "_ss_vp_%s_%d"  % [stable_name, i + 1]
-            # Safe half-screen default — fits any layout without division
-            var initial_size   = Vector2i(max(1, sw / 2), max(1, sh / 2))
-
-            # SubViewportContainer — all anchors 0 so runtime position/size is not
-            # overridden by Godot's anchor layout engine each frame
-            var svc = SubViewportContainer.new()
-            svc.name = container_name
-            svc.set_meta("logic_bricks_split_screen", true)
-            svc.stretch  = false  # stretch=true blocks manual SubViewport sizing
-            svc.set_anchor(SIDE_LEFT,   0.0)
-            svc.set_anchor(SIDE_TOP,    0.0)
-            svc.set_anchor(SIDE_RIGHT,  0.0)
-            svc.set_anchor(SIDE_BOTTOM, 0.0)
-            svc.position = Vector2.ZERO
-            svc.size     = Vector2(initial_size)
-            svc.visible  = (i < default_count)
-            canvas.add_child(svc)
-            svc.owner = scene_root
-
-            # SubViewport — rendering disabled until first _process frame confirms sizes,
-            # preventing "named_texture is null" GPU errors on startup
-            var sv = SubViewport.new()
-            sv.name = vp_name
-            sv.size = initial_size
-            sv.render_target_update_mode = SubViewport.UPDATE_DISABLED
-            svc.add_child(sv)
-            sv.owner = scene_root
-
-            # Camera adoption: prefer existing Camera3D_P<n> from scene,
-            # fall back to a blank placeholder
-            var cam_node = scene_cameras.get(i, null)
-            if cam_node and is_instance_valid(cam_node):
-                var old_parent = cam_node.get_parent()
-                if old_parent:
-                    old_parent.remove_child(cam_node)
-                sv.add_child(cam_node)
-                cam_node.owner = scene_root
-                print("Logic Bricks: Adopted existing Camera3D '%s' into SubViewport %d" % [cam_node.name, i + 1])
-            else:
-                var cam = Camera3D.new()
-                cam.name = "Camera3D_P%d" % (i + 1)
-                sv.add_child(cam)
-                cam.owner = scene_root
-                print("Logic Bricks: Created placeholder Camera3D_P%d in SubViewport %d" % [i + 1, i + 1])
-
-    editor_interface.mark_scene_as_unsaved()
-    print("Logic Bricks: Split screen setup complete")
-
-
-## Find the first Camera3D in the tree (not inside a SubViewport) with a given name
 func _find_camera_by_name(root: Node, cam_name: String) -> Camera3D:
+    if not is_instance_valid(root): return null
     for child in root.get_children():
+        if not is_instance_valid(child): continue
         if child is Camera3D and child.name == cam_name:
             return child
         elif not child is SubViewport:

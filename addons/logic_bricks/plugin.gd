@@ -33,6 +33,21 @@ func _enter_tree() -> void:
 	print("Logic Bricks Plugin: Enabled")
 
 
+## Called by Godot just before the scene is saved.
+## Purges any CanvasLayer nodes left behind by SplitScreenActuator's _ready()
+## so the serializer never encounters SubViewport nodes with a null common_parent.
+func _save_external_data() -> void:
+	var edited_root = get_editor_interface().get_edited_scene_root()
+	if not edited_root:
+		return
+	var stale: Array = []
+	for child in edited_root.get_children():
+		if child is CanvasLayer and child.name.begins_with("_ss_canvas_"):
+			stale.append(child)
+	for cl in stale:
+		cl.free()
+
+
 func _exit_tree() -> void:
 	if get_editor_interface().get_selection().selection_changed.is_connected(_on_selection_changed):
 		get_editor_interface().get_selection().selection_changed.disconnect(_on_selection_changed)
