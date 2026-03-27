@@ -37,10 +37,12 @@ Sensor  →  Controller  →  Actuator
 
 1. Install the plugin and enable it in Project Settings → Plugins
 2. Select a **CharacterBody3D**, **RigidBody3D**, or **Node3D** in your scene
-3. Open the **Logic Bricks** panel at the bottom of the editor
-4. Right-click the graph → add an **InputMap Sensor**, a **Controller**, and a **Motion Actuator**
-5. Connect them left to right
-6. Press Play — your character moves
+3. Add a script
+4. Open the **Logic Bricks** panel at the bottom of the editor
+5. Right-click the graph → add an **InputMap Sensor**, a **Controller**, and a **Motion Actuator**
+6. Connect them left to right
+7. Click Apply **Code**
+8. Press Play — your character moves
 
 ### Example: Joystick Character Movement
 
