@@ -449,6 +449,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		# Generate case for each state
 		var states = chains_by_state.keys()
 		states.sort()
+		var has_any_process_arm = false
 		for state in states:
 			var state_chains = chains_by_state[state]
 			var has_process_chain = false
@@ -460,10 +461,16 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 					break
 			
 			if has_process_chain:
+				has_any_process_arm = true
 				code_lines.append("\t\t%d:" % state)
 				for chain in state_chains:
 					if generated_chain_functions.has(chain["name"]) and not _chain_needs_physics_process(chain):
 						code_lines.append("\t\t\t_logic_brick_%s(delta)" % chain["name"])
+		
+		# Ensure the match block is never empty (GDScript requires at least one arm)
+		if not has_any_process_arm:
+			code_lines.append("\t\t_:")
+			code_lines.append("\t\t\tpass")
 		
 		# Post-process code runs after all chains (e.g., move_and_slide)
 		if post_process_code.size() > 0:
@@ -501,6 +508,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		# Generate case for each state
 		var states = chains_by_state.keys()
 		states.sort()
+		var has_any_physics_arm = false
 		for state in states:
 			var state_chains = chains_by_state[state]
 			var has_physics_chain = false
@@ -512,10 +520,16 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 					break
 			
 			if has_physics_chain:
+				has_any_physics_arm = true
 				code_lines.append("\t\t%d:" % state)
 				for chain in state_chains:
 					if generated_chain_functions.has(chain["name"]) and _chain_needs_physics_process(chain):
 						code_lines.append("\t\t\t_logic_brick_%s(delta)" % chain["name"])
+		
+		# Ensure the match block is never empty (GDScript requires at least one arm)
+		if not has_any_physics_arm:
+			code_lines.append("\t\t_:")
+			code_lines.append("\t\t\tpass")
 		
 		# Post-process code for physics
 		if post_process_code.size() > 0:

@@ -21,6 +21,12 @@ var node_info_label: Label
 var lock_button: Button
 var _copy_button: Button
 var _paste_button: Button
+var _popout_button: Button         # Toggles floating window
+var _popout_window: Window = null  # The detached floating window (null when docked)
+var _main_hsplit: HSplitContainer  # The bottom-panel hsplit (kept as member for re-docking)
+var _toolbar_separator: HSeparator  # Separator above the toolbar (moved with toolbar)
+var _toolbar: HBoxContainer         # Bottom toolbar with Add Frame / Apply Code (moved on popout)
+var _instructions_label: Label      # "Select a node" label (moved with graph area)
 var graph_edit: GraphEdit
 var add_menu: PopupMenu
 var sensors_menu: PopupMenu
@@ -36,6 +42,7 @@ var variables_panel: VBoxContainer
 var variables_list: VBoxContainer
 var variables_data: Array[Dictionary] = []  # Local variables for this node
 var global_vars_data: Array[Dictionary] = []  # Global variables (scene-wide, stored on scene root)
+var global_vars_panel: VBoxContainer  # Tab panel for global variables
 var global_vars_list: VBoxContainer  # UI container for the globals section
 var frames_panel: VBoxContainer
 var frames_list: ItemList
@@ -83,15 +90,21 @@ func _init() -> void:
     _paste_button.pressed.connect(_on_paste_bricks_pressed)
     header_hbox.add_child(_paste_button)
     
+    _popout_button = Button.new()
+    _popout_button.text = "⧉"
+    _popout_button.tooltip_text = "Pop out into a floating window (useful for 2nd screen)"
+    _popout_button.pressed.connect(_on_popout_pressed)
+    header_hbox.add_child(_popout_button)
+    
     # Separator
     var separator1 = HSeparator.new()
     add_child(separator1)
     
     # Create horizontal split: graph on left, variables on right
-    var hsplit = HSplitContainer.new()
-    hsplit.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    hsplit.split_offset = -300  # Variables panel takes 300px from the right
-    add_child(hsplit)
+    _main_hsplit = HSplitContainer.new()
+    _main_hsplit.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    _main_hsplit.split_offset = -300  # Variables panel takes 300px from the right
+    add_child(_main_hsplit)
     
     # GraphEdit for visual node connections (LEFT SIDE)
     graph_edit = GraphEdit.new()
@@ -111,46 +124,46 @@ func _init() -> void:
     graph_edit.popup_request.connect(_on_popup_request)
     graph_edit.gui_input.connect(_on_graph_edit_input)
     graph_edit.visible = false  # Hidden until node selected
-    hsplit.add_child(graph_edit)
+    _main_hsplit.add_child(graph_edit)
     
-    # Side Panel (RIGHT SIDE) - Tabbed: Variables, Frames
+    # Side Panel (RIGHT SIDE) - Tabbed: Variables, Globals, Frames
     _create_side_panel()
-    hsplit.add_child(side_panel)
+    _main_hsplit.add_child(side_panel)
     
     # Create add node menu
     _create_add_menu()
     
     # Instructions label (shown when graph is hidden)
-    var instructions_label = Label.new()
-    instructions_label.name = "InstructionsLabel"
-    instructions_label.text = "👆 Select a 3D node in your scene tree to start creating logic bricks"
-    instructions_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    instructions_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-    instructions_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    instructions_label.add_theme_font_size_override("font_size", 16)
-    add_child(instructions_label)
+    _instructions_label = Label.new()
+    _instructions_label.name = "InstructionsLabel"
+    _instructions_label.text = "👆 Select a 3D node in your scene tree to start creating logic bricks"
+    _instructions_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    _instructions_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    _instructions_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    _instructions_label.add_theme_font_size_override("font_size", 16)
+    add_child(_instructions_label)
     
     # Toolbar
-    var separator2 = HSeparator.new()
-    add_child(separator2)
+    _toolbar_separator = HSeparator.new()
+    add_child(_toolbar_separator)
     
-    var toolbar = HBoxContainer.new()
-    add_child(toolbar)
+    _toolbar = HBoxContainer.new()
+    add_child(_toolbar)
     
     var help_label = Label.new()
     help_label.text = "  Right-click: Add nodes | Drag nodes: Move | Middle-click drag: Pan | Scroll: Zoom | Select + Delete: Remove"
     help_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    toolbar.add_child(help_label)
+    _toolbar.add_child(help_label)
     
     var add_frame_button = Button.new()
     add_frame_button.text = "Add Frame"
     add_frame_button.pressed.connect(_on_add_frame_pressed)
-    toolbar.add_child(add_frame_button)
+    _toolbar.add_child(add_frame_button)
     
     var apply_code_button = Button.new()
     apply_code_button.text = "Apply Code"
     apply_code_button.pressed.connect(_on_apply_code_pressed)
-    toolbar.add_child(apply_code_button)
+    _toolbar.add_child(apply_code_button)
 
 
 func _create_add_menu() -> void:
@@ -376,15 +389,19 @@ func _create_add_menu() -> void:
 
 
 func _create_side_panel() -> void:
-    # Create the tabbed side panel with Variables and Frames tabs
+    # Create the tabbed side panel with Variables, Global Variables, and Frames tabs
     side_panel = TabContainer.new()
     side_panel.custom_minimum_size = Vector2(300, 0)
     side_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
     side_panel.visible = false  # Hidden until node selected
     
-    # Variables Tab
+    # Variables Tab (local, per-node)
     _create_variables_tab()
     side_panel.add_child(variables_panel)
+    
+    # Global Variables Tab (scene-wide)
+    _create_global_variables_tab()
+    side_panel.add_child(global_vars_panel)
     
     # Frames Tab
     _create_frames_tab()
@@ -426,37 +443,42 @@ func _create_variables_tab() -> void:
     variables_list = VBoxContainer.new()
     variables_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     scroll.add_child(variables_list)
+
+
+func _create_global_variables_tab() -> void:
+    # Create the global variables management tab (scene-wide, stored on scene root)
+    global_vars_panel = VBoxContainer.new()
+    global_vars_panel.name = "Globals"
+    global_vars_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
     
-    # ── Global Variables section ──
-    var global_sep = HSeparator.new()
-    variables_panel.add_child(global_sep)
+    var header = HBoxContainer.new()
+    global_vars_panel.add_child(header)
     
-    var global_header = HBoxContainer.new()
-    variables_panel.add_child(global_header)
-    
-    var global_title = Label.new()
-    global_title.text = "Global Variables"
-    global_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    var global_font = global_title.get_theme_font("bold", "EditorFonts")
-    if global_font:
-        global_title.add_theme_font_override("font", global_font)
-    global_header.add_child(global_title)
-    
-    var global_hint = Label.new()
-    global_hint.text = "Shared across all scenes"
-    global_hint.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-    global_hint.add_theme_font_size_override("font_size", 10)
-    global_header.add_child(global_hint)
+    var title = Label.new()
+    title.text = "Global Variables"
+    title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    var title_font = title.get_theme_font("bold", "EditorFonts")
+    if title_font:
+        title.add_theme_font_override("font", title_font)
+    header.add_child(title)
     
     var add_global_button = Button.new()
     add_global_button.text = "+ Add"
     add_global_button.pressed.connect(_on_add_global_variable_pressed)
-    global_header.add_child(add_global_button)
+    header.add_child(add_global_button)
+    
+    var sep = HSeparator.new()
+    global_vars_panel.add_child(sep)
+    
+    var hint = Label.new()
+    hint.text = "Shared across all nodes in the scene"
+    hint.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+    hint.add_theme_font_size_override("font_size", 10)
+    global_vars_panel.add_child(hint)
     
     var global_scroll = ScrollContainer.new()
-    global_scroll.custom_minimum_size = Vector2(0, 80)
     global_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-    variables_panel.add_child(global_scroll)
+    global_vars_panel.add_child(global_scroll)
     
     global_vars_list = VBoxContainer.new()
     global_vars_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -612,14 +634,12 @@ func set_selected_node(node: Node) -> void:
 
 
 func _update_ui() -> void:
-    var instructions_label = get_node_or_null("InstructionsLabel")
-    
     if not current_node:
         node_info_label.text = "No node selected - Select a 3D node in the scene tree"
         graph_edit.visible = false
         side_panel.visible = false
-        if instructions_label:
-            instructions_label.visible = true
+        if _instructions_label:
+            _instructions_label.visible = true
         return
     
     # Check if node is supported
@@ -627,8 +647,8 @@ func _update_ui() -> void:
         node_info_label.text = "Unsupported node type: %s - Use Node3D, CharacterBody3D, or RigidBody3D" % current_node.get_class()
         graph_edit.visible = false
         side_panel.visible = false
-        if instructions_label:
-            instructions_label.visible = true
+        if _instructions_label:
+            _instructions_label.visible = true
         return
     
     # Check if node is part of an instanced scene
@@ -637,8 +657,8 @@ func _update_ui() -> void:
         node_info_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.0))
         graph_edit.visible = false
         side_panel.visible = false
-        if instructions_label:
-            instructions_label.visible = false
+        if _instructions_label:
+            _instructions_label.visible = false
         _show_instance_panel()
         return
     
@@ -652,8 +672,8 @@ func _update_ui() -> void:
     node_info_label.text = "✓ Node: %s (%s) - Right-click to add bricks" % [current_node.name, current_node.get_class()]
     graph_edit.visible = true
     side_panel.visible = true
-    if instructions_label:
-        instructions_label.visible = false
+    if _instructions_label:
+        _instructions_label.visible = false
     
     # Load graph, frames, and variables from metadata
     await _load_graph_from_metadata()
@@ -663,6 +683,120 @@ func _update_ui() -> void:
 
 func _is_supported_node(node: Node) -> bool:
     return node is Node3D or node is CharacterBody3D or node is RigidBody3D
+
+
+
+## ── Pop-out / dock ────────────────────────────────────────────────────────────
+
+func _on_popout_pressed() -> void:
+    if _popout_window:
+        _dock_window()
+    else:
+        _popout_window_open()
+
+
+func _popout_window_open() -> void:
+    # Create the floating window
+    _popout_window = Window.new()
+    _popout_window.title = "Logic Bricks"
+    _popout_window.size = Vector2i(1280, 720)
+    _popout_window.wrap_controls = true
+    _popout_window.min_size = Vector2i(640, 400)
+    _popout_window.close_requested.connect(_dock_window)
+    
+    # Root container inside the window (mirrors the bottom panel VBox structure)
+    var win_root = VBoxContainer.new()
+    win_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    _popout_window.add_child(win_root)
+    
+    # Move instructions label into the window root
+    remove_child(_instructions_label)
+    win_root.add_child(_instructions_label)
+    
+    # Re-create the hsplit inside the window
+    var win_hsplit = HSplitContainer.new()
+    win_hsplit.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    win_hsplit.split_offset = _main_hsplit.split_offset
+    win_root.add_child(win_hsplit)
+    
+    # Move graph_edit and side_panel into the window hsplit
+    _main_hsplit.remove_child(graph_edit)
+    _main_hsplit.remove_child(side_panel)
+    win_hsplit.add_child(graph_edit)
+    win_hsplit.add_child(side_panel)
+    
+    # Move toolbar separator and toolbar into the window root
+    remove_child(_toolbar_separator)
+    remove_child(_toolbar)
+    win_root.add_child(_toolbar_separator)
+    win_root.add_child(_toolbar)
+    
+    # Re-parent add_menu into the floating window so right-click popups
+    # appear on the correct monitor (popups always follow their owner window)
+    remove_child(add_menu)
+    _popout_window.add_child(add_menu)
+    
+    # Hide the now-empty bottom panel hsplit
+    _main_hsplit.visible = false
+    
+    # Update button
+    _popout_button.text = "⬅"
+    _popout_button.tooltip_text = "Dock back into the bottom panel"
+    
+    # Add the window to the editor
+    get_tree().root.add_child(_popout_window)
+    _popout_window.popup_centered()
+
+
+func _dock_window() -> void:
+    if not _popout_window:
+        return
+    
+    # Retrieve the window's hsplit so we can restore split_offset
+    var win_root = _popout_window.get_child(0) if _popout_window.get_child_count() > 0 else null
+    var win_hsplit: HSplitContainer = null
+    if win_root:
+        for child in win_root.get_children():
+            if child is HSplitContainer:
+                win_hsplit = child
+                break
+    
+    # Restore split offset from window if available
+    if win_hsplit:
+        _main_hsplit.split_offset = win_hsplit.split_offset
+        win_hsplit.remove_child(graph_edit)
+        win_hsplit.remove_child(side_panel)
+    
+    # Move instructions label back
+    if win_root:
+        win_root.remove_child(_instructions_label)
+    add_child(_instructions_label)
+    move_child(_instructions_label, get_child_count() - 1)
+    
+    # Re-parent back into the bottom panel hsplit
+    _main_hsplit.add_child(graph_edit)
+    _main_hsplit.add_child(side_panel)
+    _main_hsplit.visible = true
+    
+    # Move toolbar separator and toolbar back
+    if win_root:
+        win_root.remove_child(_toolbar_separator)
+        win_root.remove_child(_toolbar)
+    add_child(_toolbar_separator)
+    add_child(_toolbar)
+    
+    # Move add_menu back to the main panel
+    _popout_window.remove_child(add_menu)
+    add_child(add_menu)
+    
+    # Close and free the window
+    _popout_window.close_requested.disconnect(_dock_window)
+    _popout_window.queue_free()
+    _popout_window = null
+    
+    # Restore button
+    _popout_button.text = "⧉"
+    _popout_button.tooltip_text = "Pop out into a floating window (useful for 2nd screen)"
 
 
 func _show_instance_panel() -> void:
@@ -3441,16 +3575,28 @@ func _on_apply_code_pressed() -> void:
     # Apply the reloaded script to the node
     _apply_node.set_script(reloaded_script)
     
-    # Force Godot to refresh the inspector by briefly minimizing and restoring.
-    # No frame wait between the two calls — just fire both OS messages back to back.
-    var prev_window_mode = DisplayServer.window_get_mode()
-    DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)
-    DisplayServer.window_set_mode(prev_window_mode)
-    
-    # Save so the new @export slots are committed to the .tscn
+    # Save FIRST so inspector-assigned @export values are committed to .tscn
+    # before the minimize/restore triggers a window re-init.
     await get_tree().process_frame
     if is_instance_valid(_apply_node):
         editor_interface.save_scene()
+    
+    # Minimize/restore is the only reliable way to force Godot to rebuild
+    # the inspector's @export slots after a script reload.
+    # If the pop-out window is open, hide it first — its presence as a Window
+    # node in the tree prevents the OS-level focus loss that makes this work.
+    var was_popout_open = _popout_window != null
+    if was_popout_open:
+        _popout_window.hide()
+    
+    var prev_window_mode = DisplayServer.window_get_mode()
+    DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)
+    await get_tree().process_frame
+    DisplayServer.window_set_mode(prev_window_mode)
+    await get_tree().process_frame
+    
+    if was_popout_open and _popout_window:
+        _popout_window.show()
     
     # Open the script in the script editor
     editor_interface.edit_script(reloaded_script, 1)
@@ -4638,7 +4784,7 @@ func _select_frame_in_side_panel(frame: GraphFrame) -> void:
         return
     
     # Switch to Frames tab
-    side_panel.current_tab = 1  # Frames is tab index 1
+    side_panel.current_tab = 2  # Frames is tab index 2 (Variables=0, Globals=1, Frames=2)
     
     # Find and select the frame in the list
     for i in range(frames_list.get_item_count()):

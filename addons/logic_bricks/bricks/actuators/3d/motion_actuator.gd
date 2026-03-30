@@ -163,9 +163,9 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 		"character_velocity":
 			code_lines.append("# Set CharacterBody3D velocity on active axes")
 			if space == "local":
-				code_lines.append("var _motion_vel = global_transform.basis * %s" % vec)
-				code_lines.append("velocity.x = _motion_vel.x")
-				code_lines.append("velocity.z = _motion_vel.z")
+				code_lines.append("var _motion_dir = global_transform.basis * %s" % vec)
+				code_lines.append("velocity.x += _motion_dir.x")
+				code_lines.append("velocity.z += _motion_dir.z")
 				code_lines.append("# velocity.y intentionally preserved (gravity/jump from Character Actuator)")
 			else:
 				if not _is_zero(x):
