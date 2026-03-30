@@ -563,9 +563,6 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		if all_states_seen.is_empty():
 			code_lines.append("\t\t_:")
 			code_lines.append("\t\t\tpass")
-		else:
-			code_lines.append("\t\t_:")
-			code_lines.append("\t\t\tpass")
 	else:
 		code_lines.append("\tpass")
 	
@@ -815,8 +812,6 @@ func _get_brick_script_path(brick_type: String) -> String:
 			return "res://addons/logic_bricks/bricks/sensors/3d/keyboard_sensor.gd"  # Legacy
 		"InputMapSensor":
 			return "res://addons/logic_bricks/bricks/sensors/3d/input_map_sensor.gd"
-		"JoystickSensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/joystick_sensor.gd"
 		"MessageSensor":
 			return "res://addons/logic_bricks/bricks/sensors/3d/message_sensor.gd"
 		"VariableSensor":
@@ -883,6 +878,8 @@ func _get_brick_script_path(brick_type: String) -> String:
 			return "res://addons/logic_bricks/bricks/actuators/3d/property_actuator.gd"
 		"TextActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/text_actuator.gd"
+		"SoundActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/sound_actuator.gd"
 		"SceneActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/scene_actuator.gd"
 		"SaveGameActuator":
@@ -1042,11 +1039,6 @@ func _create_new_script(node: Node) -> String:
 	var file = FileAccess.open(script_path, FileAccess.WRITE)
 	file.store_string(basic_script)
 	file.close()
-	
-	# Attach the new script to the node so it is visible in the inspector immediately
-	var new_script = load(script_path)
-	if new_script:
-		node.set_script(new_script)
 	
 	return script_path
 

@@ -155,11 +155,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("%s = 1.0 if sensor_active else 0.0" % store_var)
 
 		"value":
-			# Roll inside a reasonable range centred on the target so matching is possible
-			# but not trivial. Range is [0, target_value * 2] with a minimum span of 100.
-			var span    = max(target_value * 2, 100)
-			var roll_lo = 0
-			var roll_hi = span
+			# Roll range: span at least 100 wide, always containing the target.
+			# Handles zero and negative targets by anchoring the range around the target
+			# rather than assuming target >= 0.
+			var half_span = max(abs(target_value), 50)
+			var roll_lo   = target_value - half_span
+			var roll_hi   = target_value + half_span
 			code_lines.append("# Value mode: roll integer in [%d, %d], fire when == %d" % [roll_lo, roll_hi, target_value])
 			code_lines.append("var _rand_roll = %s.randi_range(%d, %d)" % [rng_var, roll_lo, roll_hi])
 			if not store_var.is_empty():

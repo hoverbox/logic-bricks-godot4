@@ -10,8 +10,9 @@ var manager = null
 var editor_interface = null
 var plugin = null  # Reference to the EditorPlugin (for autoload registration)
 var current_node: Node = null
-var _clipboard_graph: Dictionary = {}  # Stored graph data for copy/paste
-var _clipboard_vars: Array = []  # Stored variables for copy/paste
+var _clipboard_graph: Dictionary = {}  # Stored graph data for copy/paste (whole node)
+var _clipboard_vars: Array = []  # Stored variables for copy/paste (whole node)
+var _selection_clipboard: Dictionary = {}  # Selected bricks only — survives node switching
 var is_locked: bool = false  # Lock to prevent losing current_node on selection change
 var _instance_override: bool = false  # Allow editing instanced nodes when true
 var _instance_panel: PanelContainer = null  # The instance warning/choice panel
@@ -29,15 +30,13 @@ var actuator_submenus: Dictionary = {}  # name -> PopupMenu, for sub-submenu ID 
 var next_node_id: int = 0
 var last_mouse_position: Vector2 = Vector2.ZERO
 
-# Frame tracking: maps frame node names to arrays of member node names / display titles
-var frame_node_mapping: Dictionary = {}  # {"frame_name": ["node1", "node2", ...]}
-var frame_titles: Dictionary = {}        # {"frame_name": "Custom Title"}
-
 # Side panel (tabbed: Variables, Frames)
 var side_panel: TabContainer
 var variables_panel: VBoxContainer
 var variables_list: VBoxContainer
-var variables_data: Array[Dictionary] = []  # Store variable definitions
+var variables_data: Array[Dictionary] = []  # Local variables for this node
+var global_vars_data: Array[Dictionary] = []  # Global variables (scene-wide, stored on scene root)
+var global_vars_list: VBoxContainer  # UI container for the globals section
 var frames_panel: VBoxContainer
 var frames_list: ItemList
 var frame_settings_container: VBoxContainer
@@ -74,13 +73,13 @@ func _init() -> void:
     
     _copy_button = Button.new()
     _copy_button.text = "C"
-    _copy_button.tooltip_text = "Copy all logic bricks and variables from this node"
+    _copy_button.tooltip_text = "Copy selected bricks (Ctrl+C)\nIf nothing is selected, copies the entire node setup."
     _copy_button.pressed.connect(_on_copy_bricks_pressed)
     header_hbox.add_child(_copy_button)
     
     _paste_button = Button.new()
     _paste_button.text = "P"
-    _paste_button.tooltip_text = "Paste copied logic bricks and variables to this node"
+    _paste_button.tooltip_text = "Paste copied bricks into this node (Ctrl+V)\nIf bricks were copied, pastes those. Otherwise pastes the whole node setup."
     _paste_button.pressed.connect(_on_paste_bricks_pressed)
     header_hbox.add_child(_paste_button)
     
@@ -398,12 +397,12 @@ func _create_variables_tab() -> void:
     variables_panel.name = "Variables"
     variables_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
     
-    # Header
+    # ── Local Variables header ──
     var header = HBoxContainer.new()
     variables_panel.add_child(header)
     
     var title = Label.new()
-    title.text = "Variables"
+    title.text = "Node Variables"
     title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     var title_font = title.get_theme_font("bold", "EditorFonts")
     if title_font:
@@ -416,11 +415,10 @@ func _create_variables_tab() -> void:
     add_var_button.pressed.connect(_on_add_variable_pressed)
     header.add_child(add_var_button)
     
-    # Separator
     var sep = HSeparator.new()
     variables_panel.add_child(sep)
     
-    # Scrollable list of variables
+    # Scrollable list of local variables
     var scroll = ScrollContainer.new()
     scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
     variables_panel.add_child(scroll)
@@ -428,6 +426,41 @@ func _create_variables_tab() -> void:
     variables_list = VBoxContainer.new()
     variables_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     scroll.add_child(variables_list)
+    
+    # ── Global Variables section ──
+    var global_sep = HSeparator.new()
+    variables_panel.add_child(global_sep)
+    
+    var global_header = HBoxContainer.new()
+    variables_panel.add_child(global_header)
+    
+    var global_title = Label.new()
+    global_title.text = "Global Variables"
+    global_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    var global_font = global_title.get_theme_font("bold", "EditorFonts")
+    if global_font:
+        global_title.add_theme_font_override("font", global_font)
+    global_header.add_child(global_title)
+    
+    var global_hint = Label.new()
+    global_hint.text = "Shared across all scenes"
+    global_hint.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+    global_hint.add_theme_font_size_override("font_size", 10)
+    global_header.add_child(global_hint)
+    
+    var add_global_button = Button.new()
+    add_global_button.text = "+ Add"
+    add_global_button.pressed.connect(_on_add_global_variable_pressed)
+    global_header.add_child(add_global_button)
+    
+    var global_scroll = ScrollContainer.new()
+    global_scroll.custom_minimum_size = Vector2(0, 80)
+    global_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    variables_panel.add_child(global_scroll)
+    
+    global_vars_list = VBoxContainer.new()
+    global_vars_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    global_scroll.add_child(global_vars_list)
 
 
 func _create_frames_tab() -> void:
@@ -579,8 +612,6 @@ func set_selected_node(node: Node) -> void:
 
 
 func _update_ui() -> void:
-    # NOTE: This function contains an internal `await` (_load_graph_from_metadata).
-    # Callers that need the graph fully loaded before reading state should await this call.
     var instructions_label = get_node_or_null("InstructionsLabel")
     
     if not current_node:
@@ -631,8 +662,7 @@ func _update_ui() -> void:
 
 
 func _is_supported_node(node: Node) -> bool:
-    # CharacterBody3D and RigidBody3D are subclasses of Node3D, so Node3D covers all 3D nodes.
-    return node is Node3D
+    return node is Node3D or node is CharacterBody3D or node is RigidBody3D
 
 
 func _show_instance_panel() -> void:
@@ -970,6 +1000,7 @@ func _create_graph_node(brick_type: String, brick_class: String, position: Vecto
     
     # Add "View Code" button to controller nodes
     if brick_type == "controller":
+        _update_controller_title(graph_node, brick_instance)
         var view_code_btn = Button.new()
         view_code_btn.text = "View Code"
         view_code_btn.tooltip_text = "Open the generated script and jump to this chain's code"
@@ -988,7 +1019,7 @@ func _create_graph_node(brick_type: String, brick_class: String, position: Vecto
     #print("Logic Bricks: Created graph node '%s' at %s" % [graph_node.name, position])
 
 
-func _create_graph_node_from_data(node_data: Dictionary) -> void:
+func _create_graph_node_from_data(node_data: Dictionary) -> GraphNode:
     # Handle reroute nodes
     if node_data.get("is_reroute", false):
         var graph_node = GraphNode.new()
@@ -1006,7 +1037,7 @@ func _create_graph_node_from_data(node_data: Dictionary) -> void:
         graph_node.set_meta("is_reroute", true)
         graph_node.dragged.connect(_on_reroute_dragged.bind(graph_node))
         graph_edit.add_child(graph_node)
-        return
+        return graph_node
     
     var brick_type = node_data["brick_type"]
     var brick_class = node_data["brick_class"]
@@ -1019,7 +1050,7 @@ func _create_graph_node_from_data(node_data: Dictionary) -> void:
     # Create brick instance
     var brick_instance = _create_brick_instance(brick_class)
     if not brick_instance:
-        return
+        return null
     
     # Restore instance name
     if not instance_name.is_empty():
@@ -1065,6 +1096,7 @@ func _create_graph_node_from_data(node_data: Dictionary) -> void:
     
     # Add "View Code" button to controller nodes
     if brick_type == "controller":
+        _update_controller_title(graph_node, brick_instance)
         var view_code_btn = Button.new()
         view_code_btn.text = "View Code"
         view_code_btn.tooltip_text = "Open the generated script and jump to this chain's code"
@@ -1078,6 +1110,7 @@ func _create_graph_node_from_data(node_data: Dictionary) -> void:
     graph_node.dragged.connect(_on_brick_node_dragged.bind(graph_node))
     
     graph_edit.add_child(graph_node)
+    return graph_node
 
 
 func _create_brick_instance(brick_class: String):
@@ -1114,18 +1147,8 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/sensors/3d/collision_sensor.gd"
         "ANDController", "Controller":
             script_path = "res://addons/logic_bricks/bricks/controllers/controller.gd"
-        "MotionActuator":
+        "MotionActuator", "LocationActuator", "LinearVelocityActuator", "RotationActuator", "ForceActuator", "TorqueActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/motion_actuator.gd"
-        "LocationActuator":
-            script_path = "res://addons/logic_bricks/bricks/actuators/3d/location_actuator.gd"
-        "LinearVelocityActuator":
-            script_path = "res://addons/logic_bricks/bricks/actuators/3d/linear_velocity_actuator.gd"
-        "RotationActuator":
-            script_path = "res://addons/logic_bricks/bricks/actuators/3d/rotation_actuator.gd"
-        "ForceActuator":
-            script_path = "res://addons/logic_bricks/bricks/actuators/3d/force_actuator.gd"
-        "TorqueActuator":
-            script_path = "res://addons/logic_bricks/bricks/actuators/3d/torque_actuator.gd"
         "EditObjectActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/edit_object_actuator.gd"
         "CharacterActuator":
@@ -1160,6 +1183,8 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/property_actuator.gd"
         "TextActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/text_actuator.gd"
+        "SoundActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/sound_actuator.gd"
         "SceneActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/scene_actuator.gd"
         "SaveGameActuator":
@@ -1974,8 +1999,8 @@ func _rebuild_dependent_property(graph_node: GraphNode, property_name: String) -
     var option_button: OptionButton = property_control
     option_button.clear()
     
-    # Get the animation list by scanning the scene
-    var animation_list: Array[String] = _get_all_animations_in_scene()
+    # Get the animation list (legacy path kept for other bricks that may use it)
+    var animation_list: Array[String] = []
     
     var current_value = properties.get(property_name, "")
     var selected_index = 0
@@ -2710,8 +2735,12 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
     
     brick_instance.set_property(property_name, value)
     
-    # When a screen shake preset is selected, populate the value fields
+    # Update controller title to reflect state changes
     var brick_class = brick_data.get("brick_class", "")
+    if brick_data.get("brick_type", "") == "controller" and property_name in ["state", "all_states", "logic_mode"]:
+        _update_controller_title(graph_node, brick_instance)
+    
+    # When a screen shake preset is selected, populate the value fields
     if brick_class == "ScreenShakeActuator" and property_name == "preset":
         if brick_instance.has_method("get_preset_values"):
             var preset_vals = brick_instance.get_preset_values(str(value))
@@ -2818,8 +2847,8 @@ func _on_graph_node_context_menu(id: int, graph_node: GraphNode) -> void:
             await _duplicate_graph_node(graph_node)
         1:  # Delete
             var before_snapshot = _take_graph_snapshot()
-            graph_edit.remove_child(graph_node)
-            graph_node.free()
+            graph_node.queue_free()
+            await get_tree().process_frame  # Wait for queue_free to complete
             _save_graph_to_metadata()
             _record_undo("Delete Logic Brick", before_snapshot, _take_graph_snapshot())
 
@@ -2842,11 +2871,10 @@ func _duplicate_graph_node(original_node: GraphNode) -> GraphNode:
     
     # Create new graph node at offset position
     var new_position = original_node.position_offset + Vector2(50, 50)
-    var expected_id = next_node_id  # _create_graph_node will use this and increment it
     _create_graph_node(brick_data["brick_type"], brick_data["brick_class"], new_position)
     
-    # Look up the newly created node by its predictable name instead of assuming last child
-    var new_node = graph_edit.get_node_or_null(NodePath("brick_node_%d" % expected_id))
+    # Get the newly created node (it's the last child)
+    var new_node = graph_edit.get_child(graph_edit.get_child_count() - 1)
     if new_node and new_node.has_meta("brick_data"):
         var new_brick_data = new_node.get_meta("brick_data")
         var new_brick_instance = new_brick_data["brick_instance"]
@@ -2940,11 +2968,15 @@ func _on_connection_request(from_node: String, from_port: int, to_node: String, 
                 # Auto-insert a controller between them
                 var mid_x = (from_graph_node.position_offset.x + to_graph_node.position_offset.x) / 2.0
                 var mid_y = (from_graph_node.position_offset.y + to_graph_node.position_offset.y) / 2.0
-                var expected_id = next_node_id  # captured before _create_graph_node increments it
                 _create_graph_node("controller", "Controller", Vector2(mid_x, mid_y))
                 
-                # Find the controller we just created by its predictable name
-                var controller_node: GraphNode = graph_edit.get_node_or_null(NodePath("brick_node_%d" % expected_id))
+                # Find the controller we just created (it's the last child added)
+                var controller_node: GraphNode = null
+                for child in graph_edit.get_children():
+                    if child is GraphNode and child.has_meta("brick_data"):
+                        var data = child.get_meta("brick_data")
+                        if data["brick_type"] == "controller":
+                            controller_node = child
                 
                 if controller_node:
                     # Connect sensor → controller → actuator
@@ -2961,11 +2993,18 @@ func _on_connection_request(from_node: String, from_port: int, to_node: String, 
 
 
 func _on_graph_edit_input(event: InputEvent) -> void:
-    # Handle keyboard shortcuts in the graph editor
     if event is InputEventKey and event.pressed and not event.echo:
         # Ctrl+D to duplicate selected nodes
         if event.keycode == KEY_D and event.ctrl_pressed:
             _duplicate_selected_nodes()
+            graph_edit.accept_event()
+        # Ctrl+C — copy selected bricks, or whole node if nothing selected
+        elif event.keycode == KEY_C and event.ctrl_pressed:
+            _on_copy_bricks_pressed()
+            graph_edit.accept_event()
+        # Ctrl+V — paste selection clipboard if available, else whole-node clipboard
+        elif event.keycode == KEY_V and event.ctrl_pressed:
+            _on_paste_bricks_pressed()
             graph_edit.accept_event()
 
 
@@ -3071,7 +3110,20 @@ func _on_property_changed(value, graph_node: GraphNode, property_name: String) -
         var brick_instance = brick_data["brick_instance"]
         brick_instance.set_property(property_name, value)
         
+        if brick_data.get("brick_type", "") == "controller" and property_name in ["state", "all_states"]:
+            _update_controller_title(graph_node, brick_instance)
+        
         _save_graph_to_metadata()
+
+
+func _update_controller_title(graph_node: GraphNode, brick_instance) -> void:
+    var props     = brick_instance.properties
+    var all_states = props.get("all_states", false)
+    var state      = props.get("state", 1)
+    if all_states:
+        graph_node.title = "Controller [ALL]"
+    else:
+        graph_node.title = "Controller [S%d]" % int(state)
 
 
 func _on_instance_name_changed(new_name: String, graph_node: GraphNode, brick_instance) -> void:
@@ -3105,22 +3157,73 @@ func _on_copy_bricks_pressed() -> void:
         push_warning("Logic Bricks: No node selected to copy from.")
         return
     
+    # Gather selected graph nodes
+    var selected_nodes: Array = []
+    for child in graph_edit.get_children():
+        if child is GraphNode and child.selected:
+            selected_nodes.append(child)
+    
+    # ── Selection copy ─────────────────────────────────────────
+    if not selected_nodes.is_empty():
+        _selection_clipboard = _capture_selection(selected_nodes)
+        # Clear whole-node clipboard so paste knows which to use
+        _clipboard_graph = {}
+        return
+    
+    # ── Whole-node copy (nothing selected) ────────────────────
     if not current_node.has_meta("logic_bricks_graph"):
         push_warning("Logic Bricks: No logic bricks on this node to copy.")
         return
     
-    # Deep copy graph data
-    var graph_data = current_node.get_meta("logic_bricks_graph")
-    _clipboard_graph = graph_data.duplicate(true)
+    _clipboard_graph = current_node.get_meta("logic_bricks_graph").duplicate(true)
     
-    # Deep copy variables if they exist
     if current_node.has_meta("logic_bricks_variables"):
-        var vars_data = current_node.get_meta("logic_bricks_variables")
-        _clipboard_vars = vars_data.duplicate(true)
+        _clipboard_vars = current_node.get_meta("logic_bricks_variables").duplicate(true)
     else:
         _clipboard_vars = []
     
-    print("Logic Bricks: Copied %d bricks and %d variables from '%s'" % [_clipboard_graph.get("nodes", []).size(), _clipboard_vars.size(), current_node.name])
+    var clipboard_globals: Array = []
+    if editor_interface:
+        var scene_root = editor_interface.get_edited_scene_root()
+        if scene_root and scene_root.has_meta("logic_bricks_global_vars"):
+            clipboard_globals = scene_root.get_meta("logic_bricks_global_vars").duplicate(true)
+    _clipboard_graph["_global_vars"] = clipboard_globals
+    
+    # Clear selection clipboard so paste uses the whole-node one
+    _selection_clipboard = {}
+
+
+## Capture selected graph nodes and their internal connections
+## into a portable dictionary that can be pasted onto any node.
+func _capture_selection(selected_nodes: Array) -> Dictionary:
+    var selected_names: Dictionary = {}
+    for node in selected_nodes:
+        selected_names[node.name] = true
+    
+    var node_data_list: Array = []
+    for node in selected_nodes:
+        if not node.has_meta("brick_data"):
+            continue
+        var bd = node.get_meta("brick_data")
+        var bi = bd["brick_instance"]
+        node_data_list.append({
+            "id":           node.name,
+            "position":     node.position_offset,
+            "brick_type":   bd["brick_type"],
+            "brick_class":  bd["brick_class"],
+            "instance_name": bi.get_instance_name(),
+            "debug_enabled": bi.debug_enabled,
+            "debug_message": bi.debug_message,
+            "properties":   bi.get_properties().duplicate(true)
+        })
+    
+    # Only keep connections where both endpoints are in the selection
+    var internal_conns: Array = []
+    for conn in graph_edit.get_connection_list():
+        if conn["from_node"] in selected_names and conn["to_node"] in selected_names:
+            internal_conns.append(conn.duplicate())
+    
+    return {"nodes": node_data_list, "connections": internal_conns}
 
 
 func _on_paste_bricks_pressed() -> void:
@@ -3128,35 +3231,94 @@ func _on_paste_bricks_pressed() -> void:
         push_warning("Logic Bricks: No node selected to paste to.")
         return
     
-    if _clipboard_graph.is_empty():
-        push_warning("Logic Bricks: Nothing to paste. Copy bricks from a node first.")
-        return
-    
-    # Never paste to instanced nodes
     if _is_part_of_instance(current_node):
         push_warning("Logic Bricks: Cannot paste to an instanced node.")
         return
     
-    # Set the metadata on the target node
-    current_node.set_meta("logic_bricks_graph", _clipboard_graph.duplicate(true))
+    # ── Selection paste ─────────────────────────────────────────
+    if not _selection_clipboard.is_empty():
+        await _paste_selection(_selection_clipboard)
+        return
+    
+    # ── Whole-node paste ────────────────────────────────────────
+    if _clipboard_graph.is_empty():
+        push_warning("Logic Bricks: Nothing to paste. Copy bricks from a node first.")
+        return
+    
+    var paste_graph = _clipboard_graph.duplicate(true)
+    var pasted_globals: Array = paste_graph.get("_global_vars", [])
+    paste_graph.erase("_global_vars")
+    
+    current_node.set_meta("logic_bricks_graph", paste_graph)
     
     if _clipboard_vars.size() > 0:
         current_node.set_meta("logic_bricks_variables", _clipboard_vars.duplicate(true))
     
-    # Mark scene as modified
+    if pasted_globals.size() > 0 and editor_interface:
+        var scene_root = editor_interface.get_edited_scene_root()
+        if scene_root:
+            var existing: Array = []
+            if scene_root.has_meta("logic_bricks_global_vars"):
+                existing = scene_root.get_meta("logic_bricks_global_vars").duplicate(true)
+            var existing_names: Dictionary = {}
+            for v in existing:
+                existing_names[v.get("name", "")] = true
+            for v in pasted_globals:
+                if not existing_names.get(v.get("name", ""), false):
+                    existing.append(v.duplicate())
+            scene_root.set_meta("logic_bricks_global_vars", existing)
+    
     _mark_scene_modified()
-    
-    # Reload the graph to show the pasted bricks
     await _load_graph_from_metadata()
+    _load_variables_from_metadata()
+
+
+## Paste the selection clipboard into the current graph.
+## Pasted nodes are offset slightly so they don't land on top of existing bricks.
+## Internal connections are recreated. The clipboard is not cleared so the user
+## can paste the same set multiple times or switch nodes and paste again.
+func _paste_selection(clipboard: Dictionary) -> void:
+    var node_list: Array = clipboard.get("nodes", [])
+    if node_list.is_empty():
+        return
     
-    # Reload variables
-    if current_node.has_meta("logic_bricks_variables"):
-        variables_data = current_node.get_meta("logic_bricks_variables").duplicate(true)
-    else:
-        variables_data = []
-    _refresh_variables_ui()
+    # Deselect everything currently in the graph
+    for child in graph_edit.get_children():
+        if child is GraphNode:
+            child.selected = false
     
-    print("Logic Bricks: Pasted %d bricks and %d variables to '%s'" % [_clipboard_graph.get("nodes", []).size(), _clipboard_vars.size(), current_node.name])
+    var paste_offset = Vector2(40, 40)
+    
+    # Map old node ID -> new GraphNode instance (captured directly from add_child)
+    var node_map: Dictionary = {}
+    
+    for node_data in node_list:
+        var new_id = "brick_node_%d" % next_node_id
+        next_node_id += 1
+        
+        var new_data = node_data.duplicate(true)
+        new_data["id"] = new_id
+        new_data["position"] = Vector2(node_data["position"]) + paste_offset
+        
+        var new_node = _create_graph_node_from_data(new_data)
+        if new_node:
+            node_map[node_data["id"]] = new_node
+    
+    # Wait a frame so all nodes are fully initialised before wiring
+    await get_tree().process_frame
+    
+    # Select pasted nodes and recreate internal connections using actual node names
+    for new_node in node_map.values():
+        if is_instance_valid(new_node):
+            new_node.selected = true
+    
+    for conn in clipboard.get("connections", []):
+        var from_node = node_map.get(conn["from_node"])
+        var to_node   = node_map.get(conn["to_node"])
+        if from_node and to_node and is_instance_valid(from_node) and is_instance_valid(to_node):
+            graph_edit.connect_node(from_node.name, conn["from_port"], to_node.name, conn["to_port"])
+    
+    _save_graph_to_metadata()
 
 
 func _on_view_chain_code(controller_node: GraphNode) -> void:
@@ -3171,7 +3333,7 @@ func _on_view_chain_code(controller_node: GraphNode) -> void:
     
     # Get chain name from controller node
     var chain_name = _get_chain_name_for_controller(controller_node)
-    var func_name = "_logic_brick_%s" % chain_name
+    var func_name = "_logic_brick__%s" % chain_name.split("_")[-1]
     
     # Read the script to find the line number
     var script_path = script.resource_path
@@ -3279,9 +3441,11 @@ func _on_apply_code_pressed() -> void:
     # Apply the reloaded script to the node
     _apply_node.set_script(reloaded_script)
     
-    # Force Godot to refresh the inspector using the proper editor API.
-    editor_interface.inspect_object(null)
-    editor_interface.inspect_object(_apply_node)
+    # Force Godot to refresh the inspector by briefly minimizing and restoring.
+    # No frame wait between the two calls — just fire both OS messages back to back.
+    var prev_window_mode = DisplayServer.window_get_mode()
+    DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)
+    DisplayServer.window_set_mode(prev_window_mode)
     
     # Save so the new @export slots are committed to the .tscn
     await get_tree().process_frame
@@ -3413,13 +3577,11 @@ func _get_chain_name_for_controller(controller_node: GraphNode) -> String:
 ## ============================================================================
 
 func _on_add_variable_pressed() -> void:
-    # Add a new variable to the list
     var var_data = {
         "name": "new_variable",
         "type": "int",
         "value": "0",
         "exported": false,
-        "global": false,
         "use_min": false,
         "min_val": "0",
         "use_max": false,
@@ -3430,64 +3592,75 @@ func _on_add_variable_pressed() -> void:
     _save_variables_to_metadata()
 
 
+func _on_add_global_variable_pressed() -> void:
+    var var_data = {
+        "name": "new_global",
+        "type": "int",
+        "value": "0",
+        "use_min": false,
+        "min_val": "0",
+        "use_max": false,
+        "max_val": "100"
+    }
+    global_vars_data.append(var_data)
+    _refresh_global_vars_ui()
+    _save_global_vars_to_metadata()
+
+
 func _refresh_variables_ui() -> void:
-    # Rebuild the variables list UI
-    # Clear existing UI
     for child in variables_list.get_children():
         child.queue_free()
-    
-    # Create UI for each variable
     for i in range(variables_data.size()):
-        var var_data = variables_data[i]
-        _create_variable_ui(i, var_data)
+        _create_variable_ui(i, variables_data[i])
+
+
+func _refresh_global_vars_ui() -> void:
+    if not global_vars_list:
+        return
+    for child in global_vars_list.get_children():
+        child.queue_free()
+    for i in range(global_vars_data.size()):
+        _create_global_variable_ui(i, global_vars_data[i])
 
 
 func _create_variable_ui(index: int, var_data: Dictionary) -> void:
-    # Create UI for a single variable (collapsible)
     var panel = PanelContainer.new()
     variables_list.add_child(panel)
     
     var vbox = VBoxContainer.new()
     panel.add_child(vbox)
     
-    # Header row: Collapse button, Name display, Delete button
     var header = HBoxContainer.new()
     vbox.add_child(header)
     
-    # Collapse/Expand button
     var collapse_btn = Button.new()
-    collapse_btn.text = "▼"  # Down arrow = expanded
+    collapse_btn.text = "▼"
     collapse_btn.custom_minimum_size = Vector2(24, 0)
     collapse_btn.name = "CollapseBtn"
     header.add_child(collapse_btn)
     
-    # Variable name display (when collapsed)
     var name_display = Label.new()
     name_display.text = "%s: %s" % [var_data["name"], var_data["type"]]
     name_display.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     name_display.name = "NameDisplay"
     header.add_child(name_display)
     
-    # Delete button
     var delete_btn = Button.new()
     delete_btn.text = "×"
     delete_btn.custom_minimum_size = Vector2(24, 0)
     delete_btn.pressed.connect(_on_delete_variable_pressed.bind(index))
     header.add_child(delete_btn)
     
-    # Details container (collapsible)
     var details = VBoxContainer.new()
     details.name = "Details"
     vbox.add_child(details)
     
-    # Row 1: Name editor
+    # Name
     var row1 = HBoxContainer.new()
     details.add_child(row1)
-    
     var name_label = Label.new()
     name_label.text = "Name:"
     row1.add_child(name_label)
-    
     var name_edit = LineEdit.new()
     name_edit.name = "NameEdit"
     name_edit.text = var_data["name"]
@@ -3495,14 +3668,12 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
     name_edit.text_changed.connect(_on_variable_name_changed.bind(index, name_display))
     row1.add_child(name_edit)
     
-    # Row 2: Type dropdown
+    # Type
     var row2 = HBoxContainer.new()
     details.add_child(row2)
-    
     var type_label = Label.new()
     type_label.text = "Type:"
     row2.add_child(type_label)
-    
     var type_option = OptionButton.new()
     type_option.name = "TypeOption"
     type_option.add_item("bool", 0)
@@ -3511,12 +3682,10 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
     type_option.add_item("String", 3)
     type_option.add_item("Vector2", 4)
     type_option.add_item("Vector3", 5)
-    
-    # Set selected type
-    var type_index = 1  # default to int
+    var type_index = 1
     match var_data["type"]:
         "bool": type_index = 0
-        "int": type_index = 1
+        "int":  type_index = 1
         "float": type_index = 2
         "String": type_index = 3
         "Vector2": type_index = 4
@@ -3525,83 +3694,64 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
     type_option.item_selected.connect(_on_variable_type_changed.bind(index, name_display))
     row2.add_child(type_option)
     
-    # Row 3: Initial value
+    # Value
     var row3 = HBoxContainer.new()
     details.add_child(row3)
-    
     var value_label = Label.new()
     value_label.text = "Value:"
     row3.add_child(value_label)
-    
     var value_edit = LineEdit.new()
     value_edit.text = var_data["value"]
     value_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     value_edit.text_changed.connect(_on_variable_value_changed.bind(index))
     row3.add_child(value_edit)
     
-    # Row 4: Export checkbox
+    # Export
     var row4 = HBoxContainer.new()
     details.add_child(row4)
-    
     var export_check = CheckBox.new()
     export_check.text = "Export (visible in Inspector)"
-    export_check.button_pressed = var_data["exported"]
+    export_check.button_pressed = var_data.get("exported", false)
     export_check.toggled.connect(_on_variable_exported_changed.bind(index))
     row4.add_child(export_check)
     
-    # Row 5: Global checkbox
-    var row5 = HBoxContainer.new()
-    details.add_child(row5)
-    
-    var global_check = CheckBox.new()
-    global_check.text = "Global (shared across all scenes)"
-    global_check.button_pressed = var_data.get("global", false)
-    global_check.toggled.connect(_on_variable_global_changed.bind(index))
-    row5.add_child(global_check)
-    
-    # Row 6 & 7: Min / Max (only visible for int and float)
+    # Min / Max (numeric types only)
     var is_numeric = var_data["type"] in ["int", "float"]
-
+    
     var row_min = HBoxContainer.new()
     row_min.name = "RowMin"
     row_min.visible = is_numeric
     details.add_child(row_min)
-
     var min_check = CheckBox.new()
     min_check.text = "Min"
     min_check.button_pressed = var_data.get("use_min", false)
     row_min.add_child(min_check)
-
     var min_edit = LineEdit.new()
-    min_edit.text = str(var_data.get("min_val", "0"))
-    min_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    min_edit.text = var_data.get("min_val", "0")
+    min_edit.custom_minimum_size = Vector2(60, 0)
     min_edit.editable = var_data.get("use_min", false)
     min_edit.modulate.a = 1.0 if var_data.get("use_min", false) else 0.4
+    min_edit.text_changed.connect(_on_variable_min_val_changed.bind(index))
     row_min.add_child(min_edit)
-
+    min_check.toggled.connect(_on_variable_min_toggled.bind(index, min_edit))
+    
     var row_max = HBoxContainer.new()
     row_max.name = "RowMax"
     row_max.visible = is_numeric
     details.add_child(row_max)
-
     var max_check = CheckBox.new()
     max_check.text = "Max"
     max_check.button_pressed = var_data.get("use_max", false)
     row_max.add_child(max_check)
-
     var max_edit = LineEdit.new()
-    max_edit.text = str(var_data.get("max_val", "100"))
-    max_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    max_edit.text = var_data.get("max_val", "100")
+    max_edit.custom_minimum_size = Vector2(60, 0)
     max_edit.editable = var_data.get("use_max", false)
     max_edit.modulate.a = 1.0 if var_data.get("use_max", false) else 0.4
-    row_max.add_child(max_edit)
-
-    min_check.toggled.connect(_on_variable_min_toggled.bind(index, min_edit))
-    min_edit.text_changed.connect(_on_variable_min_val_changed.bind(index))
-    max_check.toggled.connect(_on_variable_max_toggled.bind(index, max_edit))
     max_edit.text_changed.connect(_on_variable_max_val_changed.bind(index))
-
-    # Connect collapse button
+    row_max.add_child(max_edit)
+    max_check.toggled.connect(_on_variable_max_toggled.bind(index, max_edit))
+    
     collapse_btn.pressed.connect(_on_variable_collapse_toggled.bind(collapse_btn, details))
 
 
@@ -3640,16 +3790,178 @@ func _on_variable_exported_changed(exported: bool, index: int) -> void:
         _save_variables_to_metadata()
 
 
-func _on_variable_global_changed(is_global: bool, index: int) -> void:
-    # Handle global checkbox change
-    if index < variables_data.size():
-        variables_data[index]["global"] = is_global
-        # Global variables cannot also be exported on the node (they live in the autoload)
-        if is_global:
-            variables_data[index]["exported"] = false
-            _refresh_variables_ui()
-        _save_variables_to_metadata()
-        _update_global_vars_script()
+func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
+    var panel = PanelContainer.new()
+    global_vars_list.add_child(panel)
+    
+    var vbox = VBoxContainer.new()
+    panel.add_child(vbox)
+    
+    var header = HBoxContainer.new()
+    vbox.add_child(header)
+    
+    var collapse_btn = Button.new()
+    collapse_btn.text = "▼"
+    collapse_btn.custom_minimum_size = Vector2(24, 0)
+    header.add_child(collapse_btn)
+    
+    var name_display = Label.new()
+    name_display.text = "%s: %s" % [var_data.get("name", ""), var_data.get("type", "int")]
+    name_display.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    header.add_child(name_display)
+    
+    var delete_btn = Button.new()
+    delete_btn.text = "×"
+    delete_btn.custom_minimum_size = Vector2(24, 0)
+    delete_btn.pressed.connect(_on_delete_global_variable_pressed.bind(index))
+    header.add_child(delete_btn)
+    
+    var details = VBoxContainer.new()
+    details.name = "Details"
+    vbox.add_child(details)
+    
+    # Name
+    var row1 = HBoxContainer.new()
+    details.add_child(row1)
+    var name_label = Label.new()
+    name_label.text = "Name:"
+    row1.add_child(name_label)
+    var name_edit = LineEdit.new()
+    name_edit.text = var_data.get("name", "")
+    name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    name_edit.text_changed.connect(_on_global_variable_name_changed.bind(index, name_display))
+    row1.add_child(name_edit)
+    
+    # Type
+    var row2 = HBoxContainer.new()
+    details.add_child(row2)
+    var type_label = Label.new()
+    type_label.text = "Type:"
+    row2.add_child(type_label)
+    var type_option = OptionButton.new()
+    type_option.add_item("bool", 0)
+    type_option.add_item("int", 1)
+    type_option.add_item("float", 2)
+    type_option.add_item("String", 3)
+    type_option.add_item("Vector2", 4)
+    type_option.add_item("Vector3", 5)
+    var type_index = 1
+    match var_data.get("type", "int"):
+        "bool":   type_index = 0
+        "int":    type_index = 1
+        "float":  type_index = 2
+        "String": type_index = 3
+        "Vector2": type_index = 4
+        "Vector3": type_index = 5
+    type_option.selected = type_index
+    type_option.item_selected.connect(_on_global_variable_type_changed.bind(index, name_display))
+    row2.add_child(type_option)
+    
+    # Value
+    var row3 = HBoxContainer.new()
+    details.add_child(row3)
+    var value_label = Label.new()
+    value_label.text = "Value:"
+    row3.add_child(value_label)
+    var value_edit = LineEdit.new()
+    value_edit.text = var_data.get("value", "0")
+    value_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    value_edit.text_changed.connect(_on_global_variable_value_changed.bind(index))
+    row3.add_child(value_edit)
+    
+    # Min / Max (numeric types only)
+    var is_numeric = var_data.get("type", "int") in ["int", "float"]
+    
+    var row_min = HBoxContainer.new()
+    row_min.visible = is_numeric
+    details.add_child(row_min)
+    var min_check = CheckBox.new()
+    min_check.text = "Min"
+    min_check.button_pressed = var_data.get("use_min", false)
+    row_min.add_child(min_check)
+    var min_edit = LineEdit.new()
+    min_edit.text = var_data.get("min_val", "0")
+    min_edit.custom_minimum_size = Vector2(60, 0)
+    min_edit.editable = var_data.get("use_min", false)
+    min_edit.modulate.a = 1.0 if var_data.get("use_min", false) else 0.4
+    min_edit.text_changed.connect(_on_global_variable_min_val_changed.bind(index))
+    row_min.add_child(min_edit)
+    min_check.toggled.connect(_on_global_variable_min_toggled.bind(index, min_edit))
+    
+    var row_max = HBoxContainer.new()
+    row_max.visible = is_numeric
+    details.add_child(row_max)
+    var max_check = CheckBox.new()
+    max_check.text = "Max"
+    max_check.button_pressed = var_data.get("use_max", false)
+    row_max.add_child(max_check)
+    var max_edit = LineEdit.new()
+    max_edit.text = var_data.get("max_val", "100")
+    max_edit.custom_minimum_size = Vector2(60, 0)
+    max_edit.editable = var_data.get("use_max", false)
+    max_edit.modulate.a = 1.0 if var_data.get("use_max", false) else 0.4
+    max_edit.text_changed.connect(_on_global_variable_max_val_changed.bind(index))
+    row_max.add_child(max_edit)
+    max_check.toggled.connect(_on_global_variable_max_toggled.bind(index, max_edit))
+    
+    collapse_btn.pressed.connect(_on_variable_collapse_toggled.bind(collapse_btn, details))
+
+
+func _on_global_variable_name_changed(new_name: String, index: int, name_display: Label) -> void:
+    if index < global_vars_data.size():
+        global_vars_data[index]["name"] = new_name
+        name_display.text = "%s: %s" % [new_name, global_vars_data[index].get("type", "int")]
+        _save_global_vars_to_metadata()
+
+
+func _on_global_variable_type_changed(type_index: int, index: int, name_display: Label) -> void:
+    if index < global_vars_data.size():
+        var type_names = ["bool", "int", "float", "String", "Vector2", "Vector3"]
+        global_vars_data[index]["type"] = type_names[type_index]
+        name_display.text = "%s: %s" % [global_vars_data[index].get("name", ""), type_names[type_index]]
+        _save_global_vars_to_metadata()
+        _refresh_global_vars_ui()
+
+
+func _on_global_variable_value_changed(new_value: String, index: int) -> void:
+    if index < global_vars_data.size():
+        global_vars_data[index]["value"] = new_value
+        _save_global_vars_to_metadata()
+
+
+func _on_global_variable_min_toggled(enabled: bool, index: int, min_edit: LineEdit) -> void:
+    min_edit.editable = enabled
+    min_edit.modulate.a = 1.0 if enabled else 0.4
+    if index < global_vars_data.size():
+        global_vars_data[index]["use_min"] = enabled
+        _save_global_vars_to_metadata()
+
+
+func _on_global_variable_min_val_changed(new_val: String, index: int) -> void:
+    if index < global_vars_data.size():
+        global_vars_data[index]["min_val"] = new_val
+        _save_global_vars_to_metadata()
+
+
+func _on_global_variable_max_toggled(enabled: bool, index: int, max_edit: LineEdit) -> void:
+    max_edit.editable = enabled
+    max_edit.modulate.a = 1.0 if enabled else 0.4
+    if index < global_vars_data.size():
+        global_vars_data[index]["use_max"] = enabled
+        _save_global_vars_to_metadata()
+
+
+func _on_global_variable_max_val_changed(new_val: String, index: int) -> void:
+    if index < global_vars_data.size():
+        global_vars_data[index]["max_val"] = new_val
+        _save_global_vars_to_metadata()
+
+
+func _on_delete_global_variable_pressed(index: int) -> void:
+    if index < global_vars_data.size():
+        global_vars_data.remove_at(index)
+        _refresh_global_vars_ui()
+        _save_global_vars_to_metadata()
 
 
 func _on_variable_min_toggled(enabled: bool, index: int, min_edit: LineEdit) -> void:
@@ -3698,50 +4010,35 @@ func _on_delete_variable_pressed(index: int) -> void:
 
 
 func _save_variables_to_metadata() -> void:
-    # Save ALL variables from this node to metadata
-    # (includes both local and global variables defined here)
-    
     if not current_node:
         return
-    
-    # Never save to instanced nodes (unless user explicitly chose to edit the instance)
     if _is_part_of_instance(current_node) and not _instance_override:
         return
     
-    # Save all variables (both local and global defined on this node)
+    # Save only local (non-global) variables on this node
     current_node.set_meta("logic_bricks_variables", variables_data.duplicate())
-    
-    # Mark the scene as modified so changes are saved
     _mark_scene_modified()
+    _update_global_vars_script()
+
+
+func _save_global_vars_to_metadata() -> void:
+    if not editor_interface:
+        return
     
-    # Update global vars script if any globals exist
+    # Global variables live on the scene root — single source of truth, no duplication
+    var scene_root = editor_interface.get_edited_scene_root()
+    if not scene_root:
+        return
+    
+    scene_root.set_meta("logic_bricks_global_vars", global_vars_data.duplicate())
+    _mark_scene_modified()
     _update_global_vars_script()
 
 
 func _update_global_vars_script() -> void:
-    # Collect ALL global variables across ALL nodes in the scene
-    # This ensures the global_vars.gd stays in sync
-    var global_vars: Array[Dictionary] = []
-    var seen_names: Dictionary = {}
-    
-    # Collect from current node's variables
-    for var_data in variables_data:
-        if var_data.get("global", false):
-            var var_name = var_data["name"]
-            if var_name not in seen_names:
-                seen_names[var_name] = true
-                global_vars.append(var_data.duplicate())
-    
-    # Also scan other nodes in the scene for global vars
-    if editor_interface:
-        var edited_scene = editor_interface.get_edited_scene_root()
-        if edited_scene:
-            _collect_global_vars_recursive(edited_scene, global_vars, seen_names)
-    
     var script_path = "res://addons/logic_bricks/global_vars.gd"
     
-    if global_vars.is_empty():
-        # No globals — write an empty script to clean up old variables
+    if global_vars_data.is_empty():
         var empty_lines: Array[String] = []
         empty_lines.append("extends Node")
         empty_lines.append("")
@@ -3752,15 +4049,14 @@ func _update_global_vars_script() -> void:
         empty_lines.append("# (no global variables)")
         empty_lines.append("# === LOGIC BRICKS GLOBALS END ===")
         empty_lines.append("")
-        var file = FileAccess.open(script_path, FileAccess.WRITE)
-        if file:
-            file.store_string("\n".join(empty_lines))
-            file.close()
+        var empty_file = FileAccess.open(script_path, FileAccess.WRITE)
+        if empty_file:
+            empty_file.store_string("\n".join(empty_lines))
+            empty_file.close()
             if editor_interface:
                 editor_interface.get_resource_filesystem().scan()
         return
     
-    # Generate the global vars script
     var lines: Array[String] = []
     lines.append("extends Node")
     lines.append("")
@@ -3770,16 +4066,16 @@ func _update_global_vars_script() -> void:
     lines.append("")
     lines.append("# === LOGIC BRICKS GLOBALS START ===")
     
-    for var_data in global_vars:
-        var var_name = var_data["name"]
-        var var_type = var_data.get("type", "float")
+    for var_data in global_vars_data:
+        var var_name  = var_data.get("name", "")
+        var var_type  = var_data.get("type", "float")
         var var_value = var_data.get("value", "0")
-        lines.append("var %s: %s = %s" % [var_name, var_type, var_value])
+        if not var_name.is_empty():
+            lines.append("var %s: %s = %s" % [var_name, var_type, var_value])
     
     lines.append("# === LOGIC BRICKS GLOBALS END ===")
     lines.append("")
     
-    # Write the file
     var file = FileAccess.open(script_path, FileAccess.WRITE)
     if file:
         file.store_string("\n".join(lines))
@@ -3788,28 +4084,10 @@ func _update_global_vars_script() -> void:
         push_error("Logic Bricks: Could not write global vars script at: " + script_path)
         return
     
-    # Tell the editor to scan for the new file
     if editor_interface:
         editor_interface.get_resource_filesystem().scan()
     
-    # Register autoload if not already registered
     _ensure_global_vars_autoload(script_path)
-
-
-func _collect_global_vars_recursive(node: Node, global_vars: Array[Dictionary], seen_names: Dictionary) -> void:
-    # Skip the current_node (already collected above)
-    if node != current_node and node.has_meta("logic_bricks_variables"):
-        var node_vars = node.get_meta("logic_bricks_variables")
-        if node_vars is Array:
-            for var_data in node_vars:
-                if var_data.get("global", false):
-                    var var_name = var_data.get("name", "")
-                    if not var_name.is_empty() and var_name not in seen_names:
-                        seen_names[var_name] = true
-                        global_vars.append(var_data.duplicate())
-    
-    for child in node.get_children():
-        _collect_global_vars_recursive(child, global_vars, seen_names)
 
 
 func _ensure_global_vars_autoload(script_path: String) -> void:
@@ -3825,39 +4103,31 @@ func _ensure_global_vars_autoload(script_path: String) -> void:
 
 
 func _load_variables_from_metadata() -> void:
-    # Load variables from node metadata
-    # This loads both:
-    # 1. Local variables for this node
-    # 2. Global variables from ALL nodes in the scene (shared)
-    
     variables_data.clear()
+    global_vars_data.clear()
     
     if not current_node:
         return
     
-    # Step 1: Load local variables from current node
+    # Load local variables from this node's metadata (non-global only)
     if current_node.has_meta("logic_bricks_variables"):
         var saved_vars = current_node.get_meta("logic_bricks_variables")
         if saved_vars is Array:
-            # Only add non-global variables (local to this node)
             for var_data in saved_vars:
                 if not var_data.get("global", false):
                     variables_data.append(var_data.duplicate())
     
-    # Step 2: Collect all global variables from ALL nodes in the scene
-    var global_vars: Array[Dictionary] = []
-    var seen_names: Dictionary = {}
-    
+    # Load global variables from the scene root's metadata (single source of truth)
     if editor_interface:
-        var edited_scene = editor_interface.get_edited_scene_root()
-        if edited_scene:
-            _collect_global_vars_recursive(edited_scene, global_vars, seen_names)
-    
-    # Step 3: Add global variables to the list
-    for global_var in global_vars:
-        variables_data.append(global_var)
+        var scene_root = editor_interface.get_edited_scene_root()
+        if scene_root and scene_root.has_meta("logic_bricks_global_vars"):
+            var saved_globals = scene_root.get_meta("logic_bricks_global_vars")
+            if saved_globals is Array:
+                for var_data in saved_globals:
+                    global_vars_data.append(var_data.duplicate())
     
     _refresh_variables_ui()
+    _refresh_global_vars_ui()
 
 
 func _build_export_range_str(var_type: String, use_min: bool, min_val: String, use_max: bool, max_val: String) -> String:
@@ -3874,36 +4144,24 @@ func _build_clamp_expr(val_var: String, var_type: String, use_min: bool, min_val
 
 
 func get_variables_code() -> String:
-    # Generate variable declarations code
-    if variables_data.is_empty():
-        return ""
-    
     var lines: Array[String] = []
-    lines.append("# Variables")
     
+    if not variables_data.is_empty() or not global_vars_data.is_empty():
+        lines.append("# Variables")
+    
+    # Local variables
     for var_data in variables_data:
-        var var_name = var_data["name"]
-        var var_type = var_data["type"]
-        var var_value = var_data["value"]
-        var exported = var_data["exported"]
-        var is_global = var_data.get("global", false)
-        
-        var use_min  = var_data.get("use_min", false)
-        var min_val  = var_data.get("min_val", "0")
-        var use_max  = var_data.get("use_max", false)
-        var max_val  = var_data.get("max_val", "100")
+        var var_name  = var_data.get("name", "")
+        var var_type  = var_data.get("type", "int")
+        var var_value = var_data.get("value", "0")
+        var exported  = var_data.get("exported", false)
+        var use_min   = var_data.get("use_min", false)
+        var min_val   = var_data.get("min_val", "0")
+        var use_max   = var_data.get("use_max", false)
+        var max_val   = var_data.get("max_val", "100")
         var has_range = (var_type in ["int", "float"]) and (use_min or use_max)
-
-        if is_global:
-            # Global variable: proxy to GlobalVars autoload, clamp in setter if needed
-            lines.append("var %s: %s:" % [var_name, var_type])
-            lines.append("\tget: return GlobalVars.%s" % var_name)
-            if has_range:
-                var clamp_expr = _build_clamp_expr("val", var_type, use_min, min_val, use_max, max_val)
-                lines.append("\tset(val): GlobalVars.%s = %s" % [var_name, clamp_expr])
-            else:
-                lines.append("\tset(val): GlobalVars.%s = val" % var_name)
-        elif has_range and exported:
+        
+        if has_range and exported:
             var range_str = _build_export_range_str(var_type, use_min, min_val, use_max, max_val)
             lines.append("@export_range(%s) var %s: %s = %s" % [range_str, var_name, var_type, var_value])
         elif has_range and not exported:
@@ -3919,8 +4177,36 @@ func get_variables_code() -> String:
             declaration += "var %s: %s = %s" % [var_name, var_type, var_value]
             lines.append(declaration)
     
-    lines.append("")  # Empty line after variables
+    # Global variables — proxy properties that read/write through GlobalVars autoload
+    for var_data in global_vars_data:
+        var var_name  = var_data.get("name", "")
+        var var_type  = var_data.get("type", "int")
+        var use_min   = var_data.get("use_min", false)
+        var min_val   = var_data.get("min_val", "0")
+        var use_max   = var_data.get("use_max", false)
+        var max_val   = var_data.get("max_val", "100")
+        var has_range = (var_type in ["int", "float"]) and (use_min or use_max)
+        if var_name.is_empty():
+            continue
+        lines.append("var %s: %s:" % [var_name, var_type])
+        lines.append("\tget: return GlobalVars.%s" % var_name)
+        if has_range:
+            var clamp_expr = _build_clamp_expr("val", var_type, use_min, min_val, use_max, max_val)
+            lines.append("\tset(val): GlobalVars.%s = %s" % [var_name, clamp_expr])
+        else:
+            lines.append("\tset(val): GlobalVars.%s = val" % var_name)
+    
+    if lines.is_empty():
+        return ""
+    lines.append("")
     return "\n".join(lines)
+
+
+## Add a new frame to the graph
+
+## Frame tracking: maps frame names to arrays of node names
+var frame_node_mapping: Dictionary = {}  # {"frame_name": ["node1", "node2", ...]}
+var frame_titles: Dictionary = {}  # {"frame_name": "Custom Title"}
 
 
 ## Add a new frame to the graph
