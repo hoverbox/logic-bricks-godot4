@@ -30,6 +30,9 @@ func _enter_tree() -> void:
 	add_control_to_bottom_panel(panel, "Logic Bricks")
 	get_editor_interface().get_selection().selection_changed.connect(_on_selection_changed)
 	
+	# Ensure the GlobalVars autoload is registered so generated code can reference it
+	ensure_global_vars_autoload("res://addons/logic_bricks/global_vars.gd")
+	
 	print("Logic Bricks Plugin: Enabled")
 
 

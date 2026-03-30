@@ -2,206 +2,183 @@
 
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Radar Sensor - Detect objects within range and angle
-## Combination of UPBGE's Near and Radar sensors
-## Uses groups to filter detected objects
+## Random Sensor - Activates randomly based on probability or a value comparison
+##
+## Trigger Modes:
+##   Chance:  fires TRUE with a given probability each frame it is evaluated.
+##   Value:   generates a random integer and fires TRUE when it equals a target.
+##   Range:   generates a random integer and fires TRUE when it falls in [min, max].
+##
+## Use Seed to get reproducible results (same sequence every run).
+## Pair with a Delay Sensor to control how often the roll is evaluated.
+
 
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.SENSOR
-	brick_name = "Radar"
+	brick_name = "Random"
 
 
 func _initialize_properties() -> void:
 	properties = {
-		"target_group": "",          # Group to detect (empty = detect all)
-		"distance": 10.0,            # Detection distance in meters
-		"angle": 360.0,              # Detection angle in degrees (0-360, 360 = full circle like Near)
-		"axis": "forward",           # Axis to measure angle from: forward (-Z), up (Y), right (X)
-		"detection_mode": "any",     # any = detect any object, all = detect all objects, none = detect no objects
-		"inverse": false,            # Invert the result (triggers when NOT in range)
-		"store_object": false,       # If true, stores the first detected object in a variable
-		"object_variable": ""        # Variable name to store detected object (only if store_object is true)
+		"trigger_mode":   "chance",  # chance, value, range
+		"chance_percent": 10.0,      # Probability (0-100%) for chance mode
+		"target_value":   0,         # Integer to match for value mode
+		"target_min":     0,         # Inclusive minimum for range mode
+		"target_max":     100,       # Inclusive maximum for range mode
+		"use_seed":       false,     # Use a fixed seed for reproducible results
+		"seed_value":     0,         # Seed (only when use_seed is true)
+		"store_value":    false,     # Store the generated number in a variable
+		"value_variable": "",        # Variable name to receive the result
 	}
 
 
 func get_property_definitions() -> Array:
 	return [
 		{
-			"name": "target_group",
+			"name": "trigger_mode",
 			"type": TYPE_STRING,
-			"default": ""
+			"hint": PROPERTY_HINT_ENUM,
+			"hint_string": "Chance,Value,Range",
+			"default": "chance"
 		},
+		# Chance mode
 		{
-			"name": "distance",
+			"name": "chance_percent",
 			"type": TYPE_FLOAT,
+			"hint": PROPERTY_HINT_RANGE,
+			"hint_string": "0.0,100.0,0.1",
 			"default": 10.0
 		},
+		# Value mode
 		{
-			"name": "angle",
-			"type": TYPE_FLOAT,
-			"default": 360.0
+			"name": "target_value",
+			"type": TYPE_INT,
+			"default": 0
+		},
+		# Range mode
+		{
+			"name": "target_min",
+			"type": TYPE_INT,
+			"default": 0
 		},
 		{
-			"name": "axis",
-			"type": TYPE_STRING,
-			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Forward,Up,Right",
-			"default": "forward"
+			"name": "target_max",
+			"type": TYPE_INT,
+			"default": 100
 		},
+		# Shared options
 		{
-			"name": "detection_mode",
-			"type": TYPE_STRING,
-			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Any,All,None",
-			"default": "any"
-		},
-		{
-			"name": "inverse",
+			"name": "use_seed",
 			"type": TYPE_BOOL,
 			"default": false
 		},
 		{
-			"name": "store_object",
+			"name": "seed_value",
+			"type": TYPE_INT,
+			"default": 0
+		},
+		{
+			"name": "store_value",
 			"type": TYPE_BOOL,
 			"default": false
 		},
 		{
-			"name": "object_variable",
+			"name": "value_variable",
 			"type": TYPE_STRING,
 			"default": ""
-		}
+		},
 	]
 
 
-func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var target_group = properties.get("target_group", "")
-	var distance = properties.get("distance", 10.0)
-	var angle = properties.get("angle", 360.0)
-	var axis = properties.get("axis", "forward")
-	var detection_mode = properties.get("detection_mode", "any")
-	var inverse = properties.get("inverse", false)
-	var store_object = properties.get("store_object", false)
-	var object_var = properties.get("object_variable", "")
-	
-	# Normalize axis
-	if typeof(axis) == TYPE_STRING:
-		axis = axis.to_lower()
-	
-	# Normalize detection_mode
-	if typeof(detection_mode) == TYPE_STRING:
-		detection_mode = detection_mode.to_lower()
-	
-	print("Radar Sensor Debug - group: '%s', distance: %.2f, angle: %.2f, axis: %s, inverse: %s" % [target_group, distance, angle, axis, inverse])
-	
-	var code_lines: Array[String] = []
-	
-	# Start the sensor function
-	code_lines.append("var sensor_active = (func():")
-	
-	# Get all nodes in the scene tree or in a specific group
-	if target_group.is_empty():
-		code_lines.append("\tvar _potential_targets = get_tree().get_nodes_in_group(\"\")")
-		code_lines.append("\tif _potential_targets.is_empty():")
-		code_lines.append("\t\t# No group specified, scan all Node3D objects in scene")
-		code_lines.append("\t\t_potential_targets = []")
-		code_lines.append("\t\tfor child in get_tree().root.get_children():")
-		code_lines.append("\t\t\t_potential_targets.append_array(_get_all_node3d_recursive(child))")
-	else:
-		code_lines.append("\tvar _potential_targets = get_tree().get_nodes_in_group(\"%s\")" % target_group)
-	
-	code_lines.append("\t")
-	code_lines.append("\tvar _detected_objects = []")
-	code_lines.append("\t")
-	
-	# Determine the forward vector based on axis
-	var forward_vector = "Vector3.FORWARD"
-	match axis:
-		"forward":
-			forward_vector = "Vector3.FORWARD"  # -Z axis (Godot's forward)
-		"up":
-			forward_vector = "Vector3.UP"
-		"right":
-			forward_vector = "Vector3.RIGHT"
-	
-	# Detection loop
-	code_lines.append("\tfor target in _potential_targets:")
-	code_lines.append("\t\tif target == self or not target is Node3D:")
-	code_lines.append("\t\t\tcontinue")
-	code_lines.append("\t\t")
-	code_lines.append("\t\tvar target_pos = target.global_position")
-	code_lines.append("\t\tvar self_pos = global_position")
-	code_lines.append("\t\tvar to_target = target_pos - self_pos")
-	code_lines.append("\t\tvar dist = to_target.length()")
-	code_lines.append("\t\t")
-	code_lines.append("\t\t# Check distance")
-	code_lines.append("\t\tif dist > %.2f or dist < 0.01:" % distance)
-	code_lines.append("\t\t\tcontinue")
-	code_lines.append("\t\t")
-	
-	# Only check angle if not 360 degrees
-	if angle < 360.0:
-		code_lines.append("\t\t# Check angle (only if not 360 degrees)")
-		code_lines.append("\t\tvar forward = global_transform.basis * %s" % forward_vector)
-		code_lines.append("\t\tvar direction = to_target.normalized()")
-		code_lines.append("\t\tvar angle_to_target = rad_to_deg(forward.angle_to(direction))")
-		code_lines.append("\t\t")
-		code_lines.append("\t\tif angle_to_target > %.2f:" % (angle / 2.0))
-		code_lines.append("\t\t\tcontinue")
-		code_lines.append("\t\t")
-	
-	code_lines.append("\t\t_detected_objects.append(target)")
-	code_lines.append("\t")
-	
-	# Store detected object if requested
-	if store_object and not object_var.is_empty():
-		# Sanitize variable name
-		var sanitized_var = object_var.strip_edges().to_lower().replace(" ", "_")
-		var regex = RegEx.new()
-		regex.compile("[^a-z0-9_]")
-		sanitized_var = regex.sub(sanitized_var, "", true)
-		
-		code_lines.append("\t# Store first detected object")
-		code_lines.append("\tif _detected_objects.size() > 0:")
-		code_lines.append("\t\tself.%s = _detected_objects[0]" % sanitized_var)
-		code_lines.append("\telse:")
-		code_lines.append("\t\tself.%s = null" % sanitized_var)
-		code_lines.append("\t")
-	
-	# Return based on detection mode
-	match detection_mode:
-		"any":
-			code_lines.append("\tvar _result = _detected_objects.size() > 0")
-		"all":
-			if target_group.is_empty():
-				code_lines.append("\tvar _result = false # Cannot use 'all' mode without a target group")
-			else:
-				code_lines.append("\tvar _total_in_group = get_tree().get_nodes_in_group(\"%s\").size()" % target_group)
-				code_lines.append("\tvar _result = _detected_objects.size() == _total_in_group and _total_in_group > 0")
-		"none":
-			code_lines.append("\tvar _result = _detected_objects.size() == 0")
-	
-	# Apply inverse if enabled
-	if inverse:
-		code_lines.append("\treturn not _result  # Inverse enabled")
-	else:
-		code_lines.append("\treturn _result")
-	
-	code_lines.append(").call()")
-	
-	# Add helper function for recursive Node3D search (only if no group specified)
-	var member_vars = []
-	if target_group.is_empty():
-		code_lines.append("")
-		code_lines.append("# Helper function for radar sensor")
-		code_lines.append("func _get_all_node3d_recursive(node: Node) -> Array:")
-		code_lines.append("\tvar result = []")
-		code_lines.append("\tif node is Node3D and node != self:")
-		code_lines.append("\t\tresult.append(node)")
-		code_lines.append("\tfor child in node.get_children():")
-		code_lines.append("\t\tresult.append_array(_get_all_node3d_recursive(child))")
-		code_lines.append("\treturn result")
-	
+func get_tooltip_definitions() -> Dictionary:
 	return {
-		"sensor_code": "\n".join(code_lines)
+		"_description": "Activates randomly each time it is evaluated.\\nPair with a Delay Sensor to control how often it rolls.\\nUseful for random behaviors, AI variation, and loot rolls.",
+		"trigger_mode":   "Chance: rolls TRUE with a given probability each evaluation.\\nValue: rolls an integer and fires TRUE when it matches the target.\\nRange: rolls an integer and fires TRUE when it falls within [min, max].",
+		"chance_percent": "Probability of firing TRUE (0–100%).\\n10 = 10% chance per evaluation.\\n100 = always fires.",
+		"target_value":   "The integer the roll must equal to fire TRUE (Value mode).\\nThe roll range is [0, target_value * 2] so the target sits in the middle.",
+		"target_min":     "Inclusive lower bound of the roll range (Range mode).",
+		"target_max":     "Inclusive upper bound of the roll range (Range mode).",
+		"use_seed":       "Use a fixed seed for reproducible random sequences.\\nSame seed always produces the same sequence of results.",
+		"seed_value":     "The seed value to use when Use Seed is enabled.",
+		"store_value":    "Store the generated random number in a variable each evaluation.\\nChance mode stores 1.0 when fired, 0.0 otherwise.",
+		"value_variable": "Variable name to store the generated value in.\\nCreate it in the Variables tab first.",
+	}
+
+
+func generate_code(node: Node, chain_name: String) -> Dictionary:
+	var trigger_mode   = properties.get("trigger_mode",   "chance")
+	var chance_percent = float(properties.get("chance_percent", 10.0))
+	var target_value   = int(properties.get("target_value",   0))
+	var target_min     = int(properties.get("target_min",     0))
+	var target_max     = int(properties.get("target_max",     100))
+	var use_seed       = properties.get("use_seed",       false)
+	var seed_value     = int(properties.get("seed_value",     0))
+	var store_value    = properties.get("store_value",    false)
+	var value_variable = str(properties.get("value_variable", "")).strip_edges()
+
+	if typeof(trigger_mode) == TYPE_STRING:
+		trigger_mode = trigger_mode.to_lower().replace(" ", "_")
+
+	# Sanitize the store-to variable name
+	var store_var = ""
+	if store_value and not value_variable.is_empty():
+		var regex = RegEx.new()
+		regex.compile("[^a-zA-Z0-9_]")
+		store_var = regex.sub(value_variable.strip_edges().replace(" ", "_"), "", true)
+
+	# Per-chain RNG — seeded once on first evaluation
+	var rng_var      = "_rng_%s" % chain_name
+	var rng_init_var = "_rng_ready_%s" % chain_name
+
+	var member_vars: Array[String] = []
+	var code_lines:  Array[String] = []
+
+	member_vars.append("var %s: RandomNumberGenerator = RandomNumberGenerator.new()" % rng_var)
+	member_vars.append("var %s: bool = false" % rng_init_var)
+
+	# Seed once on the very first evaluation frame
+	code_lines.append("# Random Sensor: initialise RNG on first use")
+	code_lines.append("if not %s:" % rng_init_var)
+	if use_seed:
+		code_lines.append("\t%s.seed = %d" % [rng_var, seed_value])
+	else:
+		code_lines.append("\t%s.randomize()" % rng_var)
+	code_lines.append("\t%s = true" % rng_init_var)
+	code_lines.append("")
+
+	match trigger_mode:
+		"chance":
+			code_lines.append("# Chance mode: %.2f%% probability per evaluation" % chance_percent)
+			code_lines.append("var sensor_active = %s.randf() * 100.0 < %.4f" % [rng_var, chance_percent])
+			if not store_var.is_empty():
+				code_lines.append("%s = 1.0 if sensor_active else 0.0" % store_var)
+
+		"value":
+			# Roll inside a reasonable range centred on the target so matching is possible
+			# but not trivial. Range is [0, target_value * 2] with a minimum span of 100.
+			var span    = max(target_value * 2, 100)
+			var roll_lo = 0
+			var roll_hi = span
+			code_lines.append("# Value mode: roll integer in [%d, %d], fire when == %d" % [roll_lo, roll_hi, target_value])
+			code_lines.append("var _rand_roll = %s.randi_range(%d, %d)" % [rng_var, roll_lo, roll_hi])
+			if not store_var.is_empty():
+				code_lines.append("%s = _rand_roll" % store_var)
+			code_lines.append("var sensor_active = _rand_roll == %d" % target_value)
+
+		"range":
+			var lo = min(target_min, target_max)
+			var hi = max(target_min, target_max)
+			code_lines.append("# Range mode: fire when roll is inside [%d, %d]" % [lo, hi])
+			code_lines.append("var _rand_roll = %s.randi_range(%d, %d)" % [rng_var, lo, hi])
+			if not store_var.is_empty():
+				code_lines.append("%s = _rand_roll" % store_var)
+			code_lines.append("var sensor_active = (_rand_roll >= %d and _rand_roll <= %d)" % [lo, hi])
+
+		_:
+			code_lines.append("var sensor_active = false  # Unknown trigger mode")
+
+	return {
+		"sensor_code": "\n".join(code_lines),
+		"member_vars": member_vars
 	}

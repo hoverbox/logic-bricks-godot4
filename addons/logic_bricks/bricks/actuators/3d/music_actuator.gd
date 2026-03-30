@@ -143,6 +143,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var fading_var   = "_music_crossfading"
 	var group_name   = "_logic_bricks_music"
 
+	# Shared member vars — always emitted so Set/Control bricks can reference them
+	# even when no Tracks brick is present in the same script.
+	member_vars.append("var %s: Array[AudioStreamPlayer] = []" % arr_var)
+	member_vars.append("var %s: int = 0" % cur_var)
+	member_vars.append("var %s: bool = false" % fading_var)
+	member_vars.append("var _music_initialized: bool = false")
+
 	match music_mode:
 		"tracks":
 			var tracks     = properties.get("tracks", [])
@@ -153,11 +160,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 			if tracks.is_empty():
 				return {"actuator_code": "push_warning(\"Music Actuator (Tracks): No tracks added — open the brick and add at least one music file\")"}
-
-			member_vars.append("var %s: Array[AudioStreamPlayer] = []" % arr_var)
-			member_vars.append("var %s: int = 0" % cur_var)
-			member_vars.append("var %s: bool = false" % fading_var)
-			member_vars.append("var _music_initialized: bool = false")
 
 			ready_lines.append("# Music Actuator: check if players already exist (persist mode)")
 			if persist:

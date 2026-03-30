@@ -85,7 +85,7 @@ func get_property_definitions() -> Array:
 			"name": "end_mode",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Queue Free (Safe),Free (Immediate)",
+			"hint_string": "Queue Free,Free Immediate",
 			"default": "queue_free",
 			"visible_if": {"edit_type": "end_object"}
 		},
@@ -123,7 +123,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if typeof(edit_type) == TYPE_STRING:
 		edit_type = edit_type.to_lower().replace(" ", "_")
 	if typeof(end_mode) == TYPE_STRING:
-		end_mode = end_mode.to_lower()
+		end_mode = end_mode.to_lower().replace(" ", "_").replace("_immediate", "")
 	
 	# Convert NodePath to string for code generation
 	var spawn_point_str = ""

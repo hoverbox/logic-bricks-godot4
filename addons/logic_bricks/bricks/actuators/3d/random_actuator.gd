@@ -254,9 +254,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("self.%s = -log(1.0 - _uniform) / %.3f" % [sanitized_name, lambda_exp])
 			if not debug_code.is_empty():
 				code_lines.append("print(\"%s - Set %s = %%0.3f\" %% self.%s)" % [debug_msg, sanitized_name, sanitized_name])
-			code_lines.append("# Negative exponential distribution")
-			code_lines.append("var _uniform = %s.randf()" % rng_var)
-			code_lines.append("self.%s = -log(1.0 - _uniform) / %.3f" % [sanitized_name, lambda_exp])
 		
 		_:
 			code_lines.append("pass # Unknown distribution type")

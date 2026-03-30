@@ -54,12 +54,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("_logic_brick_state = %d" % state)
 		
 		"add":
-			code_lines.append("# Add state %d (bitwise OR for multiple active states)" % state)
-			code_lines.append("_logic_brick_state |= (1 << (%d - 1))" % state)
+			code_lines.append("# Increment state by %d (clamped to 1-30)" % state)
+			code_lines.append("_logic_brick_state = clampi(_logic_brick_state + %d, 1, 30)" % state)
 		
 		"remove":
-			code_lines.append("# Remove state %d (bitwise AND NOT)" % state)
-			code_lines.append("_logic_brick_state &= ~(1 << (%d - 1))" % state)
+			code_lines.append("# Decrement state by %d (clamped to 1-30)" % state)
+			code_lines.append("_logic_brick_state = clampi(_logic_brick_state - %d, 1, 30)" % state)
 	
 	return {
 		"actuator_code": "\n".join(code_lines)

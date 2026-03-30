@@ -83,7 +83,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if typeof(wheel_direction) == TYPE_STRING:
 		wheel_direction = wheel_direction.to_lower()
 	
-	print("Mouse Sensor Debug - type: %s, button: %s, state: %s" % [detection_type, mouse_button, button_state])
 	
 	var code_lines: Array[String] = []
 	var member_vars: Array[String] = []

@@ -84,12 +84,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		
 		"set_layer_bit":
 			# Layer bits are 0-indexed internally but 1-indexed for users
-			var bit_index = clamp(layer_value - 1, 0, 31)
 			code_lines.append("\tif %s is CollisionObject3D or %s is CollisionObject2D:" % [temp_var, temp_var])
 			code_lines.append("\t\t%s.set_collision_layer_value(%d, %s)" % [temp_var, layer_value, "true" if bit_enabled else "false"])
 		
 		"set_mask_bit":
-			var bit_index = clamp(layer_value - 1, 0, 31)
 			code_lines.append("\tif %s is CollisionObject3D or %s is CollisionObject2D:" % [temp_var, temp_var])
 			code_lines.append("\t\t%s.set_collision_mask_value(%d, %s)" % [temp_var, layer_value, "true" if bit_enabled else "false"])
 		

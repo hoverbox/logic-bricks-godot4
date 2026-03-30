@@ -55,8 +55,6 @@ func set_instance_name(name: String) -> void:
 
 ## Get the instance name (used in code generation)
 func get_instance_name() -> String:
-	if instance_name.is_empty():
-		return ""
 	return instance_name
 
 
@@ -90,6 +88,12 @@ func serialize() -> Dictionary:
 		# Special handling for acronyms
 		if part == "and":
 			class_name_str += "AND"
+		elif part == "or":
+			class_name_str += "OR"
+		elif part == "nor":
+			class_name_str += "NOR"
+		elif part == "xor":
+			class_name_str += "XOR"
 		elif part == "2d":
 			class_name_str += "2D"
 		elif part == "3d":

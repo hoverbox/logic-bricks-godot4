@@ -29,6 +29,10 @@ var actuator_submenus: Dictionary = {}  # name -> PopupMenu, for sub-submenu ID 
 var next_node_id: int = 0
 var last_mouse_position: Vector2 = Vector2.ZERO
 
+# Frame tracking: maps frame node names to arrays of member node names / display titles
+var frame_node_mapping: Dictionary = {}  # {"frame_name": ["node1", "node2", ...]}
+var frame_titles: Dictionary = {}        # {"frame_name": "Custom Title"}
+
 # Side panel (tabbed: Variables, Frames)
 var side_panel: TabContainer
 var variables_panel: VBoxContainer
@@ -575,6 +579,8 @@ func set_selected_node(node: Node) -> void:
 
 
 func _update_ui() -> void:
+    # NOTE: This function contains an internal `await` (_load_graph_from_metadata).
+    # Callers that need the graph fully loaded before reading state should await this call.
     var instructions_label = get_node_or_null("InstructionsLabel")
     
     if not current_node:
@@ -625,7 +631,8 @@ func _update_ui() -> void:
 
 
 func _is_supported_node(node: Node) -> bool:
-    return node is Node3D or node is CharacterBody3D or node is RigidBody3D
+    # CharacterBody3D and RigidBody3D are subclasses of Node3D, so Node3D covers all 3D nodes.
+    return node is Node3D
 
 
 func _show_instance_panel() -> void:
@@ -1107,8 +1114,18 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/sensors/3d/collision_sensor.gd"
         "ANDController", "Controller":
             script_path = "res://addons/logic_bricks/bricks/controllers/controller.gd"
-        "MotionActuator", "LocationActuator", "LinearVelocityActuator", "RotationActuator", "ForceActuator", "TorqueActuator":
+        "MotionActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/motion_actuator.gd"
+        "LocationActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/location_actuator.gd"
+        "LinearVelocityActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/linear_velocity_actuator.gd"
+        "RotationActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/rotation_actuator.gd"
+        "ForceActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/force_actuator.gd"
+        "TorqueActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/torque_actuator.gd"
         "EditObjectActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/edit_object_actuator.gd"
         "CharacterActuator":
@@ -1143,8 +1160,6 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/property_actuator.gd"
         "TextActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/text_actuator.gd"
-        "SoundActuator":
-            script_path = "res://addons/logic_bricks/bricks/actuators/3d/sound_actuator.gd"
         "SceneActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/scene_actuator.gd"
         "SaveGameActuator":
@@ -1959,8 +1974,8 @@ func _rebuild_dependent_property(graph_node: GraphNode, property_name: String) -
     var option_button: OptionButton = property_control
     option_button.clear()
     
-    # Get the animation list (legacy path kept for other bricks that may use it)
-    var animation_list: Array[String] = []
+    # Get the animation list by scanning the scene
+    var animation_list: Array[String] = _get_all_animations_in_scene()
     
     var current_value = properties.get(property_name, "")
     var selected_index = 0
@@ -2803,8 +2818,8 @@ func _on_graph_node_context_menu(id: int, graph_node: GraphNode) -> void:
             await _duplicate_graph_node(graph_node)
         1:  # Delete
             var before_snapshot = _take_graph_snapshot()
-            graph_node.queue_free()
-            await get_tree().process_frame  # Wait for queue_free to complete
+            graph_edit.remove_child(graph_node)
+            graph_node.free()
             _save_graph_to_metadata()
             _record_undo("Delete Logic Brick", before_snapshot, _take_graph_snapshot())
 
@@ -2827,10 +2842,11 @@ func _duplicate_graph_node(original_node: GraphNode) -> GraphNode:
     
     # Create new graph node at offset position
     var new_position = original_node.position_offset + Vector2(50, 50)
+    var expected_id = next_node_id  # _create_graph_node will use this and increment it
     _create_graph_node(brick_data["brick_type"], brick_data["brick_class"], new_position)
     
-    # Get the newly created node (it's the last child)
-    var new_node = graph_edit.get_child(graph_edit.get_child_count() - 1)
+    # Look up the newly created node by its predictable name instead of assuming last child
+    var new_node = graph_edit.get_node_or_null(NodePath("brick_node_%d" % expected_id))
     if new_node and new_node.has_meta("brick_data"):
         var new_brick_data = new_node.get_meta("brick_data")
         var new_brick_instance = new_brick_data["brick_instance"]
@@ -2924,15 +2940,11 @@ func _on_connection_request(from_node: String, from_port: int, to_node: String, 
                 # Auto-insert a controller between them
                 var mid_x = (from_graph_node.position_offset.x + to_graph_node.position_offset.x) / 2.0
                 var mid_y = (from_graph_node.position_offset.y + to_graph_node.position_offset.y) / 2.0
+                var expected_id = next_node_id  # captured before _create_graph_node increments it
                 _create_graph_node("controller", "Controller", Vector2(mid_x, mid_y))
                 
-                # Find the controller we just created (it's the last child added)
-                var controller_node: GraphNode = null
-                for child in graph_edit.get_children():
-                    if child is GraphNode and child.has_meta("brick_data"):
-                        var data = child.get_meta("brick_data")
-                        if data["brick_type"] == "controller":
-                            controller_node = child
+                # Find the controller we just created by its predictable name
+                var controller_node: GraphNode = graph_edit.get_node_or_null(NodePath("brick_node_%d" % expected_id))
                 
                 if controller_node:
                     # Connect sensor → controller → actuator
@@ -3159,7 +3171,7 @@ func _on_view_chain_code(controller_node: GraphNode) -> void:
     
     # Get chain name from controller node
     var chain_name = _get_chain_name_for_controller(controller_node)
-    var func_name = "_logic_brick__%s" % chain_name.split("_")[-1]
+    var func_name = "_logic_brick_%s" % chain_name
     
     # Read the script to find the line number
     var script_path = script.resource_path
@@ -3267,11 +3279,9 @@ func _on_apply_code_pressed() -> void:
     # Apply the reloaded script to the node
     _apply_node.set_script(reloaded_script)
     
-    # Force Godot to refresh the inspector by briefly minimizing and restoring.
-    # No frame wait between the two calls — just fire both OS messages back to back.
-    var prev_window_mode = DisplayServer.window_get_mode()
-    DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)
-    DisplayServer.window_set_mode(prev_window_mode)
+    # Force Godot to refresh the inspector using the proper editor API.
+    editor_interface.inspect_object(null)
+    editor_interface.inspect_object(_apply_node)
     
     # Save so the new @export slots are committed to the .tscn
     await get_tree().process_frame
@@ -3911,13 +3921,6 @@ func get_variables_code() -> String:
     
     lines.append("")  # Empty line after variables
     return "\n".join(lines)
-
-
-## Add a new frame to the graph
-
-## Frame tracking: maps frame names to arrays of node names
-var frame_node_mapping: Dictionary = {}  # {"frame_name": ["node1", "node2", ...]}
-var frame_titles: Dictionary = {}  # {"frame_name": "Custom Title"}
 
 
 ## Add a new frame to the graph

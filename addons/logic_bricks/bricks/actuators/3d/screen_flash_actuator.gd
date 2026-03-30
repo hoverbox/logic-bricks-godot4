@@ -84,8 +84,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\t%s.visible = true" % flash_var)
 	code_lines.append("\t_flash_tw_%s.tween_property(%s, \"color\", %s, %s)" % [chain_name, flash_var, color_str, fade_in])
 	code_lines.append("\t_flash_tw_%s.tween_property(%s, \"color\", %s, %s - %s)" % [chain_name, flash_var, clear_str, duration, fade_in])
-	code_lines.append("\tawait _flash_tw_%s.finished" % chain_name)
-	code_lines.append("\t%s.visible = false" % flash_var)
+	code_lines.append("\t_flash_tw_%s.finished.connect(func(): %s.visible = false)" % [chain_name, flash_var])
 	code_lines.append("else:")
 	code_lines.append("\tpush_warning(\"Screen Flash Actuator: No ColorRect assigned to '%s' — drag one into the inspector\")" % flash_var)
 
