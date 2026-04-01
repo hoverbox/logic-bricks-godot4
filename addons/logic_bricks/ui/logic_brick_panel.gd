@@ -1281,7 +1281,7 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/sensors/3d/collision_sensor.gd"
         "ANDController", "Controller":
             script_path = "res://addons/logic_bricks/bricks/controllers/controller.gd"
-        "MotionActuator", "LocationActuator", "LinearVelocityActuator", "RotationActuator", "ForceActuator", "TorqueActuator":
+        "MotionActuator", "LocationActuator", "RotationActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/motion_actuator.gd"
         "EditObjectActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/edit_object_actuator.gd"
@@ -1382,11 +1382,24 @@ func _create_brick_instance(brick_class: String):
     
     if script_path.is_empty():
         return null
-    
+
+    # Ensure the base class is resident in the resource cache before loading
+    # the brick script. Scripts that use extends "res://..." fail to instantiate
+    # with .new() if their base class hasn't been loaded yet.
+    var _base = load("res://addons/logic_bricks/core/logic_brick.gd")
+    if not _base:
+        push_error("Logic Bricks: could not load base class logic_brick.gd")
+        return null
+
     var brick_script = load(script_path)
     if not brick_script:
+        push_error("Logic Bricks: Failed to load script: " + script_path)
         return null
-    
+
+    if not brick_script.can_instantiate():
+        push_error("Logic Bricks: Script cannot be instantiated (check for parse errors): " + script_path)
+        return null
+
     return brick_script.new()
 
 
@@ -2557,7 +2570,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
                 if child.has_meta("property_name"):
                     var prop_name = child.get_meta("property_name")
                     match prop_name:
-                        "spawn_object", "spawn_point", "velocity_x", "velocity_y", "velocity_z", "lifespan":
+                        "spawn_object", "spawn_point", "velocity_x", "velocity_y", "velocity_z", "velocity_local", "lifespan":
                             child.visible = (edit_type == "add_object")
                         "end_mode":
                             child.visible = (edit_type == "end_object")
@@ -2662,8 +2675,14 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
         "screen_flash_actuator":  # Screen Flash Actuator — no conditional fields
             pass
         
-        "screen_shake_actuator":  # Screen Shake Actuator — all fields always visible
-            pass
+        "screen_shake_actuator":  # Screen Shake Actuator — hide tune fields when export_params is on
+            var export_params = properties.get("export_params", false)
+            for child in graph_node.get_children():
+                if child.has_meta("property_name"):
+                    var prop_name = child.get_meta("property_name")
+                    match prop_name:
+                        "trauma", "max_offset", "decay", "noise_speed":
+                            child.visible = not export_params
         
         "rumble_actuator":  # Rumble Actuator
             var action = properties.get("action", "vibrate")
@@ -2708,7 +2727,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
             for node in _find_prop_nodes(graph_node):
                 var prop_name = node.get_meta("property_name")
                 match prop_name:
-                    "joy_group", "joystick_device", "joy_axis_x", "joy_axis_y", "joy_deadzone", "joy_sensitivity":
+                    "joy_group", "joystick_device", "joy_stick", "joy_deadzone", "joy_sensitivity":
                         node.visible = use_joy
                     "capture_mouse":
                         node.visible = input_mode in ["mouse", "both"]
@@ -2741,7 +2760,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
                     match prop_name:
                         "pool_sizes":
                             child.visible = false  # managed automatically by the scenes array
-                        "scenes", "spawn_mode", "spawn_delay", "spawn_at_self", "inherit_rotation":
+                        "scenes", "spawn_mode", "spawn_delay", "spawn_at_self", "inherit_rotation", "lifespan":
                             child.visible = is_spawn
                         "spawn_node":
                             child.visible = is_spawn and not spawn_at_self
@@ -2863,7 +2882,9 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
         
         # Convert to correct type
         if property_type == TYPE_INT:
-            value = int(value)
+            # Use the raw index directly — converting the enum label string to int
+            # (e.g. int("enable_monitoring")) always returns 0, which is wrong.
+            value = index
         else:
             value = str(value)
     
@@ -2878,8 +2899,8 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
     if brick_class == "ScreenShakeActuator" and property_name == "preset":
         if brick_instance.has_method("get_preset_values"):
             var preset_vals = brick_instance.get_preset_values(str(value))
-            if preset_vals.size() == 5:
-                var field_names = ["trauma", "max_offset", "max_rotation", "decay", "noise_speed"]
+            if preset_vals.size() == 4:
+                var field_names = ["trauma", "max_offset", "decay", "noise_speed"]
                 for i in field_names.size():
                     var fname = field_names[i]
                     var fval = preset_vals[i]
@@ -3247,6 +3268,7 @@ func _on_property_changed(value, graph_node: GraphNode, property_name: String) -
         if brick_data.get("brick_type", "") == "controller" and property_name in ["state", "all_states"]:
             _update_controller_title(graph_node, brick_instance)
         
+        _update_conditional_visibility(graph_node, brick_instance)
         _save_graph_to_metadata()
 
 

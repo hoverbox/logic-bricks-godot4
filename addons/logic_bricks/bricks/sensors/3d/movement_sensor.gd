@@ -14,6 +14,7 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
+		"all_axis": false,          # All axes (any movement)
 		"pos_x": false,         # +X (right)
 		"neg_x": false,         # -X (left)
 		"pos_y": false,         # +Y (up)
@@ -28,6 +29,11 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
+		{
+			"name": "all_axis",
+			"type": TYPE_BOOL,
+			"default": false
+		},
 		{
 			"name": "pos_x",
 			"type": TYPE_BOOL,
@@ -79,6 +85,7 @@ func get_property_definitions() -> Array:
 func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Detects if the node is moving in specific directions.\nCheck which directions to monitor.\nActive when any checked direction moves past the threshold.",
+		"all_axis": "Any axis (detects movement in any direction).",
 		"pos_x": "+X direction (right).",
 		"neg_x": "-X direction (left).",
 		"pos_y": "+Y direction (up).",
@@ -95,6 +102,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var threshold = properties.get("threshold", 0.1)
 	var use_local = properties.get("use_local_axes", false)
 	var invert = properties.get("invert", false)
+	var all_axis = properties.get("all_axis", false)
 	
 	if typeof(threshold) == TYPE_STRING:
 		threshold = float(threshold) if str(threshold).is_valid_float() else 0.1
@@ -116,18 +124,28 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	
 	# Build conditions from checked directions
 	var conditions: Array[String] = []
-	if properties.get("pos_x", false):
+
+	if all_axis:
+		# Any movement on any axis past the threshold
 		conditions.append("_ms_vel.x > %.3f" % threshold)
-	if properties.get("neg_x", false):
 		conditions.append("_ms_vel.x < -%.3f" % threshold)
-	if properties.get("pos_y", false):
 		conditions.append("_ms_vel.y > %.3f" % threshold)
-	if properties.get("neg_y", false):
 		conditions.append("_ms_vel.y < -%.3f" % threshold)
-	if properties.get("pos_z", false):
 		conditions.append("_ms_vel.z > %.3f" % threshold)
-	if properties.get("neg_z", false):
 		conditions.append("_ms_vel.z < -%.3f" % threshold)
+	else:
+		if properties.get("pos_x", false):
+			conditions.append("_ms_vel.x > %.3f" % threshold)
+		if properties.get("neg_x", false):
+			conditions.append("_ms_vel.x < -%.3f" % threshold)
+		if properties.get("pos_y", false):
+			conditions.append("_ms_vel.y > %.3f" % threshold)
+		if properties.get("neg_y", false):
+			conditions.append("_ms_vel.y < -%.3f" % threshold)
+		if properties.get("pos_z", false):
+			conditions.append("_ms_vel.z > %.3f" % threshold)
+		if properties.get("neg_z", false):
+			conditions.append("_ms_vel.z < -%.3f" % threshold)
 	
 	if conditions.is_empty():
 		code_lines.append("var sensor_active = %s  # No directions checked" % ("true" if invert else "false"))

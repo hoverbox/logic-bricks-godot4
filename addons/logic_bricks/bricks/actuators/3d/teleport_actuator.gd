@@ -95,7 +95,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("\tglobal_rotation = %s.global_rotation" % teleport_target_var)
 			# Reset velocity to prevent carrying momentum through teleport
 			code_lines.append("\tif 'velocity' in self:")
-			code_lines.append("\t\tvelocity = Vector3.ZERO")
+			code_lines.append("\t\tset('velocity', Vector3.ZERO)")
 			code_lines.append("else:")
 			code_lines.append("\tpush_warning(\"Teleport Actuator: No target node assigned to '%s'\")" % teleport_target_var)
 
@@ -104,7 +104,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("global_position = Vector3(%.3f, %.3f, %.3f)" % [x, y, z])
 			# Reset velocity
 			code_lines.append("if 'velocity' in self:")
-			code_lines.append("\tvelocity = Vector3.ZERO")
+			code_lines.append("\tset('velocity', Vector3.ZERO)")
 
 		_:
 			code_lines.append("pass  # Unknown teleport mode")

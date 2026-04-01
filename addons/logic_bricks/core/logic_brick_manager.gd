@@ -619,6 +619,9 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 	
 	# Collect @export var node names from this chain's bricks so we can
 	# guard against freed instances (e.g. object pool recycling nodes).
+	# Primitive types (float, int, bool, etc.) are skipped — is_instance_valid
+	# always returns false for them, which would incorrectly kill the function.
+	var _guard_primitive_types = ["float", "int", "bool", "String", "Vector2", "Vector3", "Color", "Basis", "Transform3D"]
 	var _chain_export_vars: Array[String] = []
 	for _sd in sensors:
 		var _sb = _instantiate_brick(_sd)
@@ -626,7 +629,11 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 			var _sg = _sb.generate_code(node, chain_name)
 			for _mv in _sg.get("member_vars", []):
 				if _mv.begins_with("@export var "):
-					var _vname = _mv.replace("@export var ", "").split(":")[0].strip_edges()
+					var _parts = _mv.replace("@export var ", "").split(":")
+					var _vname = _parts[0].strip_edges()
+					var _vtype = _parts[1].strip_edges().split(" ")[0] if _parts.size() > 1 else ""
+					if _vtype in _guard_primitive_types:
+						continue
 					if _vname not in _chain_export_vars:
 						_chain_export_vars.append(_vname)
 	for _ad in actuators:
@@ -635,7 +642,11 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 			var _ag = _ab.generate_code(node, chain_name)
 			for _mv in _ag.get("member_vars", []):
 				if _mv.begins_with("@export var "):
-					var _vname = _mv.replace("@export var ", "").split(":")[0].strip_edges()
+					var _parts = _mv.replace("@export var ", "").split(":")
+					var _vname = _parts[0].strip_edges()
+					var _vtype = _parts[1].strip_edges().split(" ")[0] if _parts.size() > 1 else ""
+					if _vtype in _guard_primitive_types:
+						continue
 					if _vname not in _chain_export_vars:
 						_chain_export_vars.append(_vname)
 	if _chain_export_vars.size() > 0:
@@ -1120,10 +1131,14 @@ func _member_var_to_reset(member_var_line: String) -> String:
 	
 	# Skip object pool vars — pools are built once in _ready() and must survive
 	# state transitions. Resetting them would empty the pool on the first frame.
-	# _pools_*       — the Array-of-Arrays holding live instances
-	# _pool_scene_*  — the preloaded PackedScene resources
+	# _pools_*        — the Array-of-Arrays holding live instances
+	# _pool_scene_*   — the preloaded PackedScene resources (singular, e.g. _pool_scene_foo_0)
+	# _pool_scenes_*  — the PackedScene registry array used by _pool_grow_*
+	# _pool_cap_*     — per-sub-pool capacity tracker used by _pool_grow_*
 	var after_var = member_var_line.substr(4)  # strip "var "
-	if after_var.begins_with("_pools_") or after_var.begins_with("_pool_scene_"):
+	if after_var.begins_with("_pools_") or after_var.begins_with("_pool_scene_") \
+			or after_var.begins_with("_pool_scenes_") or after_var.begins_with("_pool_cap_") \
+			or after_var.begins_with("_pool_timers_"):
 		return ""
 	
 	# Skip any var typed as PackedScene — these are preloaded resources, not runtime state

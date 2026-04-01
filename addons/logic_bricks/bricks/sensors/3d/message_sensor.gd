@@ -95,10 +95,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("\t\t%s = false" % msg_pending_var)
 		code_lines.append("\t\t%s = 0.0" % msg_timer_var)
 	else:
-		# Immediate path: fire on the same frame the message arrives
+		# Immediate path: latch true once message received, stays true each frame
 		code_lines.append("var sensor_active = %s" % msg_received_var)
-		code_lines.append("# Reset flag after checking (one-shot)")
-		code_lines.append("%s = false" % msg_received_var)
 
 	# Generate the message handler method
 	var handler_code: Array[String] = []

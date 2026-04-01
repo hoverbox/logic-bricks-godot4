@@ -16,7 +16,7 @@ func _init() -> void:
 func _initialize_properties() -> void:
 	properties = {
 		"node_type":    "node_3d",
-		"target_node":  "self",  # "self" or a node path like "Sprite3D" or "Body/Sprite3D"
+		"target_node":  "self",  # "self" or a node name to search for in the scene tree
 
 		# --- NODE 3D ---
 		"n3d_visible":    "true",
@@ -243,7 +243,7 @@ func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Sets properties on a target node.\nChoose the node type to see its available properties.\nLeave a field empty to skip setting that property.\n⚠ Adds @export in Inspector — assign the target node.",
 		"node_type":    "The type of node you are targeting.",
-		"target_node":  "Which node to affect.\n\"self\" = this node.\nOr type a node path relative to this node:\n  Sprite3D\n  Body/Sprite3D\n  ../SiblingNode",
+		"target_node":  "Which node to affect.\n\"self\" = this node.\nOr type a node name to search for anywhere in the scene tree:\n  Sprite3D\n  PlayerMesh\n  HUD",
 		"n3d_visible":      "true / false, or a variable name.",
 		"n3d_pos_x":        "Position X. Leave empty to skip.",
 		"n3d_pos_y":        "Position Y. Leave empty to skip.",
@@ -437,11 +437,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			return {"actuator_code": "push_warning(\"Property Actuator: Custom property or value not set — open the brick and fill in both fields\")"}
 		code_lines.append("# Property Actuator (custom): %s" % gdprop)
 		if not use_self:
-			code_lines.append("var %s = get_node_or_null(\"%s\")" % [target_ref, target_node])
+			code_lines.append("# Search for node by name: %s" % target_node)
+			code_lines.append("var %s = get_tree().root.find_child(\"%s\", true, false)" % [target_ref, target_node])
 			code_lines.append("if %s:" % target_ref)
 			code_lines.append("\t%s.set_indexed(\"%s\", %s)" % [target_ref, gdprop, val])
 			code_lines.append("else:")
-			code_lines.append("\tpush_warning(\"Property Actuator: Node not found at path '%s'\")" % target_node)
+			code_lines.append("\tpush_warning(\"Property Actuator: Node named '%s' not found\")" % target_node)
 		else:
 			code_lines.append("set_indexed(\"%s\", %s)" % [gdprop, val])
 		return {"actuator_code": "\n".join(code_lines)}
@@ -482,11 +483,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	code_lines.append("# Property Actuator (%s)" % node_type)
 	if not use_self:
-		code_lines.append("var %s = get_node_or_null(\"%s\")" % [target_ref, target_node])
+		code_lines.append("# Search for node by name: %s" % target_node)
+		code_lines.append("var %s = get_tree().root.find_child(\"%s\", true, false)" % [target_ref, target_node])
 		code_lines.append("if %s:" % target_ref)
 		code_lines.append_array(assignments)
 		code_lines.append("else:")
-		code_lines.append("\tpush_warning(\"Property Actuator: Node not found at path '%s'\")" % target_node)
+		code_lines.append("\tpush_warning(\"Property Actuator: Node named '%s' not found\")" % target_node)
 	else:
 		code_lines.append_array(assignments)
 

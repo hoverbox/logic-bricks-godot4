@@ -185,11 +185,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# Movement
 	lines.append("var _wp_dist = global_position.distance_to(_wp_target)")
 	lines.append("var _wp_dir = (_wp_target - global_position).normalized()")
+	lines.append("var _wp_self: Variant = self")
 	lines.append("if _wp_dist > %.3f:" % arrival_dist)
-	lines.append("\tif self is CharacterBody3D:")
-	lines.append("\t\tvelocity.x = _wp_dir.x * %.3f" % speed)
-	lines.append("\t\tvelocity.z = _wp_dir.z * %.3f" % speed)
-	lines.append("\t\tmove_and_slide()")
+	lines.append("\tif _wp_self is CharacterBody3D:")
+	lines.append("\t\t(_wp_self as CharacterBody3D).velocity.x = _wp_dir.x * %.3f" % speed)
+	lines.append("\t\t(_wp_self as CharacterBody3D).velocity.z = _wp_dir.z * %.3f" % speed)
+	lines.append("\t\t(_wp_self as CharacterBody3D).move_and_slide()")
 	lines.append("\telse:")
 	lines.append("\t\tglobal_position += _wp_dir * %.3f * _delta" % speed)
 

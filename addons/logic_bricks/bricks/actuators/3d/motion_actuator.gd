@@ -24,6 +24,8 @@ func _initialize_properties() -> void:
 		"y": "0.0",
 		"z": "0.0",
 		"space": "local",  # local or global
+		"camera_relative": false,  # true = movement direction based on camera pivot yaw
+		"camera_name": "",         # Name of the Camera3D node to use (e.g. "Camera3D")
 		"call_move_and_slide": false  # Set true if no other actuator calls move_and_slide
 	}
 
@@ -67,6 +69,18 @@ func get_property_definitions() -> Array:
 			"default": "local"
 		},
 		{
+			"name": "camera_relative",
+			"type": TYPE_BOOL,
+			"default": false
+		},
+		{
+			"name": "camera_name",
+			"type": TYPE_STRING,
+			"default": "",
+			"placeholder": "e.g. Camera3D",
+			"condition": {"property": "camera_relative", "value": true}
+		},
+		{
 			"name": "call_move_and_slide",
 			"type": TYPE_BOOL,
 			"default": false
@@ -83,6 +97,8 @@ func get_tooltip_definitions() -> Dictionary:
 		"y": "Y axis value. Accepts:\n• A number: 5.0\n• A variable: speed\n• An expression: input_y * speed",
 		"z": "Z axis value. Accepts:\n• A number: 5.0\n• A variable: speed\n• An expression: input_z * speed",
 		"space": "Local: relative to node's rotation\nGlobal: world axes",
+		"camera_relative": "On: movement direction is based on a camera's yaw instead of the node's own rotation.\nOverrides the Space setting for horizontal movement.",
+		"camera_name": "The name of the Camera3D node to use (just the node name, not a path).\nSearches the whole scene — perfect for split-screen where each player has their own camera.\nLeave empty to use get_viewport().get_camera_3d() (single-screen only).",
 		"call_move_and_slide": "Call move_and_slide() after setting velocity.\nEnable if no other actuator does this.",
 	}
 
@@ -137,6 +153,8 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 	var z = properties.get("z", 0.0)
 	var space = properties.get("space", "local")
 	var movement_method = properties.get("movement_method", "character_velocity")
+	var camera_relative = properties.get("camera_relative", false)
+	var camera_name = str(properties.get("camera_name", "")).strip_edges()
 	
 	# Normalize
 	if typeof(space) == TYPE_STRING:
@@ -151,9 +169,27 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 	var vz = _to_expr(z)
 	var vec = "Vector3(%s, %s, %s)" % [vx, vy, vz]
 	
+	# Camera-relative: find the named camera node at runtime and use its yaw.
+	# find_child() searches the whole scene tree recursively, so just the node
+	# name is enough — no path needed. Works in split-screen because each player
+	# has their own camera node with its own name.
+	# If no name is given, falls back to get_viewport().get_camera_3d().
+	if camera_relative:
+		if not camera_name.is_empty():
+			code_lines.append("# Camera-relative movement — finding camera node '%s'" % camera_name)
+			code_lines.append("var _cam = get_tree().root.find_child(\"%s\", true, false)" % camera_name)
+		else:
+			code_lines.append("# Camera-relative movement — using active viewport camera")
+			code_lines.append("var _cam = get_viewport().get_camera_3d()")
+		code_lines.append("var _cam_yaw = _cam.global_rotation.y if _cam else 0.0")
+		code_lines.append("var _cam_basis = Basis(Vector3.UP, _cam_yaw)")
+		code_lines.append("var _motion_dir = _cam_basis * %s" % vec)
+	
 	match movement_method:
 		"translate":
-			if space == "local":
+			if camera_relative:
+				code_lines.append("global_position += _motion_dir")
+			elif space == "local":
 				code_lines.append("# Move in local space")
 				code_lines.append("translate(%s)" % vec)
 			else:
@@ -162,7 +198,11 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 		
 		"character_velocity":
 			code_lines.append("# Set CharacterBody3D velocity on active axes")
-			if space == "local":
+			if camera_relative:
+				code_lines.append("velocity.x += _motion_dir.x")
+				code_lines.append("velocity.z += _motion_dir.z")
+				code_lines.append("# velocity.y intentionally preserved (gravity/jump from Character Actuator)")
+			elif space == "local":
 				code_lines.append("var _motion_dir = global_transform.basis * %s" % vec)
 				code_lines.append("velocity.x += _motion_dir.x")
 				code_lines.append("velocity.z += _motion_dir.z")
@@ -178,7 +218,10 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("move_and_slide()")
 		
 		"position":
-			if space == "local":
+			if camera_relative:
+				code_lines.append("# Camera-relative position not supported — applying as global")
+				code_lines.append("global_position = _motion_dir")
+			elif space == "local":
 				code_lines.append("# Set local position")
 				code_lines.append("position = %s" % vec)
 			else:

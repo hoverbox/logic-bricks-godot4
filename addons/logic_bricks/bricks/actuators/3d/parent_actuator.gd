@@ -14,7 +14,7 @@ func _init() -> void:
 func _initialize_properties() -> void:
 	properties = {
 		"mode": "set_parent",       # set_parent, remove_parent
-		"parent_node": "",          # Node path to new parent
+		"parent_node": "",          # Node name to search for as new parent
 		"keep_transform": true      # Keep global transform when reparenting
 	}
 
@@ -58,8 +58,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if parent_node.is_empty():
 				code_lines.append("push_warning(\"Parent Actuator: No parent node specified\")")
 			else:
-				code_lines.append("# Set parent to: %s" % parent_node)
-				code_lines.append("var _new_parent = get_node_or_null(\"%s\")" % parent_node)
+				code_lines.append("# Search for node by name: %s" % parent_node)
+				code_lines.append("var _new_parent = get_tree().root.find_child(\"%s\", true, false)" % parent_node)
 				code_lines.append("if _new_parent:")
 				code_lines.append("\tvar _old_parent = get_parent()")
 				code_lines.append("\tif _old_parent:")
@@ -67,7 +67,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					code_lines.append("\t\t# Store global transform")
 					code_lines.append("\t\tvar _global_pos = global_position")
 					code_lines.append("\t\tvar _global_rot = global_rotation")
-					code_lines.append("\t\tvar _global_scale = scale")
+					code_lines.append("\t\tvar _global_scale = global_transform.basis.get_scale()")
 					code_lines.append("\t\t")
 					code_lines.append("\t\t# Reparent")
 					code_lines.append("\t\t_old_parent.remove_child(self)")
@@ -76,13 +76,15 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					code_lines.append("\t\t# Restore global transform")
 					code_lines.append("\t\tglobal_position = _global_pos")
 					code_lines.append("\t\tglobal_rotation = _global_rot")
-					code_lines.append("\t\tscale = _global_scale")
+					code_lines.append("\t\t# Compute local scale to match original global scale under the new parent")
+					code_lines.append("\t\tvar _parent_scale = _new_parent.global_transform.basis.get_scale()")
+					code_lines.append("\t\tscale = Vector3(_global_scale.x / _parent_scale.x, _global_scale.y / _parent_scale.y, _global_scale.z / _parent_scale.z)")
 				else:
 					code_lines.append("\t\t# Reparent without preserving transform")
 					code_lines.append("\t\t_old_parent.remove_child(self)")
 					code_lines.append("\t\t_new_parent.add_child(self)")
 				code_lines.append("else:")
-				code_lines.append("\tpush_warning(\"Parent Actuator: Parent node '%s' not found\")" % parent_node)
+				code_lines.append("\tpush_warning(\"Parent Actuator: Node named '%s' not found\")" % parent_node)
 		
 		"remove_parent":
 			code_lines.append("# Remove parent (reparent to scene root)")
@@ -94,7 +96,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("\t# Store global transform")
 				code_lines.append("\tvar _global_pos = global_position")
 				code_lines.append("\tvar _global_rot = global_rotation")
-				code_lines.append("\tvar _global_scale = scale")
+				code_lines.append("\tvar _global_scale = global_transform.basis.get_scale()")
 				code_lines.append("\t")
 				code_lines.append("\t# Reparent to root")
 				code_lines.append("\t_current_parent.remove_child(self)")
@@ -103,6 +105,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("\t# Restore global transform")
 				code_lines.append("\tglobal_position = _global_pos")
 				code_lines.append("\tglobal_rotation = _global_rot")
+				code_lines.append("\t# Scene root scale is always (1,1,1) so saved global scale becomes local scale")
 				code_lines.append("\tscale = _global_scale")
 			else:
 				code_lines.append("\t# Reparent to root without preserving transform")

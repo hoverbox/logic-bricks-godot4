@@ -65,7 +65,16 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"-x":
 			y_offset = "PI / 2.0"    # 90 degrees
 
-	var target_var = "_look_at_target_%s" % chain_name
+	# Use instance name if set, otherwise use brick name, sanitized for use as a variable
+	var _export_label = instance_name if not instance_name.is_empty() else brick_name
+	_export_label = _export_label.to_lower().replace(" ", "_")
+	var _regex = RegEx.new()
+	_regex.compile("[^a-z0-9_]")
+	_export_label = _regex.sub(_export_label, "", true)
+	if _export_label.is_empty():
+		_export_label = chain_name
+
+	var target_var = "_%s" % _export_label
 	var last_pos_var = "_look_at_last_pos_%s" % chain_name
 
 	var member_vars: Array[String] = []

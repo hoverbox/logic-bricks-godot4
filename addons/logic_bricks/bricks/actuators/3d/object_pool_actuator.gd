@@ -19,10 +19,12 @@ func _initialize_properties() -> void:
 		"scenes":           [],        # Array of scene file paths
 		"pool_sizes":       [],        # Array of pool sizes (parallel to scenes)
 		"spawn_mode":       "random",  # random, all
+		"spawn_amount":     "1",       # How many to spawn per trigger (number or variable)
 		"spawn_delay":      0.0,       # Minimum seconds between spawns
 		"spawn_at_self":    true,
 		"spawn_node":       "",
 		"inherit_rotation": true,
+		"lifespan":         0.0,       # Seconds before auto-despawn. 0 = no limit.
 	}
 
 
@@ -53,6 +55,11 @@ func get_property_definitions() -> Array:
 			"default": "random"
 		},
 		{
+			"name": "spawn_amount",
+			"type": TYPE_STRING,
+			"default": "1"
+		},
+		{
 			"name": "spawn_delay",
 			"type": TYPE_FLOAT,
 			"hint": PROPERTY_HINT_RANGE,
@@ -74,6 +81,13 @@ func get_property_definitions() -> Array:
 			"type": TYPE_BOOL,
 			"default": true
 		},
+		{
+			"name": "lifespan",
+			"type": TYPE_FLOAT,
+			"hint": PROPERTY_HINT_RANGE,
+			"hint_string": "0.0,600.0,0.1",
+			"default": 0.0
+		},
 	]
 
 
@@ -84,10 +98,12 @@ func get_tooltip_definitions() -> Dictionary:
 		"scenes":           "Scene files to pool. Add one per type.",
 		"pool_sizes":       "Pool size for each scene. Must match the Scenes list order.\nLeave a value empty to default to 10.",
 		"spawn_mode":       "Random: pick a random scene type each spawn.\nAll: spawn one of each type simultaneously.",
+		"spawn_amount":     "How many objects to spawn per trigger.\nAccepts:\n• A number: 3\n• A variable: wave_size\n• An expression: level * 2",
 		"spawn_delay":      "Minimum seconds between spawns.\n0 = no limit. Use this to control spawn rate with a repeating sensor.",
 		"spawn_at_self":    "Spawn at this node's position.\nDisable to use a custom spawn point node.",
 		"spawn_node":       "Node path to spawn point (if Spawn At Self is disabled).",
 		"inherit_rotation": "Copy this node's rotation when spawning.",
+		"lifespan":         "Seconds before a spawned object is automatically returned to the pool.\n0 = no limit — objects stay active until despawned manually.",
 	}
 
 
@@ -96,10 +112,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var scenes          = properties.get("scenes", [])
 	var pool_sizes      = properties.get("pool_sizes", [])
 	var spawn_mode      = properties.get("spawn_mode", "random")
+	var spawn_amount    = properties.get("spawn_amount", "1")
 	var spawn_delay     = float(properties.get("spawn_delay", 0.0))
 	var spawn_at_self   = properties.get("spawn_at_self", true)
 	var spawn_node_path = str(properties.get("spawn_node", "")).strip_edges()
 	var inherit_rot     = properties.get("inherit_rotation", true)
+	var lifespan        = float(properties.get("lifespan", 0.0))
 
 	if typeof(action) == TYPE_STRING:
 		action = action.to_lower().replace(" ", "_")
@@ -148,6 +166,41 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	member_vars.append("\t\tif child is CollisionShape3D or child is CollisionShape2D:")
 	member_vars.append("\t\t\tchild.set_deferred(\"disabled\", not enabled)")
 	member_vars.append("\t\t_pool_set_collision(child, enabled)")
+	member_vars.append("")
+	# Pool grow helper — grows a sub-pool by adding new instances up to the requested total
+	var scenes_array_var = "_pool_scenes_%s" % _export_label
+	member_vars.append("var %s: Array = []  # PackedScenes parallel to %s" % [scenes_array_var, pools_var])
+	member_vars.append("")
+	member_vars.append("func _pool_grow_%s(sub_pool_index: int, new_total: int) -> void:" % _export_label)
+	member_vars.append("\tif sub_pool_index >= %s.size(): return" % pools_var)
+	member_vars.append("\tvar _sub = %s[sub_pool_index]" % pools_var)
+	member_vars.append("\tvar _scene = %s[sub_pool_index]" % scenes_array_var)
+	member_vars.append("\tfor _gi in range(_sub.size(), new_total):")
+	member_vars.append("\t\tvar _new_inst = _scene.instantiate()")
+	member_vars.append("\t\tget_parent().add_child(_new_inst)")
+	member_vars.append("\t\t_new_inst.visible = false")
+	member_vars.append("\t\t_pool_set_collision(_new_inst, false)")
+	member_vars.append("\t\t_sub.append(_new_inst)")
+
+	# Lifespan: per-object spawn-time tracking
+	var timers_var = "_pool_timers_%s" % _export_label
+	var pre_process_code: Array[String] = []
+	if lifespan > 0.0:
+		member_vars.append("")
+		member_vars.append("var %s: Dictionary = {}  # instance_id -> spawn time (msec)" % timers_var)
+		# pre_process tick: check all visible objects and despawn expired ones
+		pre_process_code.append("# Object Pool lifespan tick for %s" % _export_label)
+		pre_process_code.append("if not %s.is_empty():" % timers_var)
+		pre_process_code.append("\tvar _now_ms_%s = Time.get_ticks_msec()" % _export_label)
+		pre_process_code.append("\tfor _sub_pool_%s in %s:" % [_export_label, pools_var])
+		pre_process_code.append("\t\tfor _lobj_%s in _sub_pool_%s:" % [_export_label, _export_label])
+		pre_process_code.append("\t\t\tif _lobj_%s.visible:" % _export_label)
+		pre_process_code.append("\t\t\t\tvar _lid_%s = _lobj_%s.get_instance_id()" % [_export_label, _export_label])
+		pre_process_code.append("\t\t\t\tif %s.has(_lid_%s):" % [timers_var, _export_label])
+		pre_process_code.append("\t\t\t\t\tif _now_ms_%s - %s[_lid_%s] >= %.1f:" % [_export_label, timers_var, _export_label, lifespan * 1000.0])
+		pre_process_code.append("\t\t\t\t\t\t%s.erase(_lid_%s)" % [timers_var, _export_label])
+		pre_process_code.append("\t\t\t\t\t\t_pool_set_collision(_lobj_%s, false)" % _export_label)
+		pre_process_code.append("\t\t\t\t\t\t_lobj_%s.visible = false" % _export_label)
 
 	# _ready: create one sub-pool per scene type
 	ready_code.append("# Object Pool: pre-allocate pools")
@@ -157,6 +210,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		var sz   = valid_sizes[i]
 		var sv   = "_pool_scene_%s_%d" % [_export_label, i]
 		var pv   = "_pool_%s_%d" % [_export_label, i]
+		var cap_var = "_pool_cap_%s_%d" % [_export_label, i]
 		member_vars.append("var %s: PackedScene = preload(\"%s\")" % [sv, path])
 		ready_code.append("var %s: Array = []" % pv)
 		ready_code.append("for _i_%d in range(%s):" % [i, sz])
@@ -166,6 +220,15 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		ready_code.append("\t_pool_set_collision(_inst_%s_%d, false)" % [_export_label, i])
 		ready_code.append("\t%s.append(_inst_%s_%d)" % [pv, _export_label, i])
 		ready_code.append("%s.append(%s)" % [pools_var, pv])
+		ready_code.append("%s.append(%s)" % [scenes_array_var, sv])
+		# If pool size is a variable, track last-known capacity and grow on increase
+		if _is_variable(sz):
+			member_vars.append("var %s: int = 0" % cap_var)
+			ready_code.append("%s = %s" % [cap_var, sz])
+			code_lines.append("# Auto-grow pool %d when %s increases" % [i, sz])
+			code_lines.append("if %s > %s:" % [sz, cap_var])
+			code_lines.append("\t_pool_grow_%s(%d, %s)" % [_export_label, i, sz])
+			code_lines.append("\t%s = %s" % [cap_var, sz])
 
 	# Position/rotation helper lines (reused in spawn code)
 	var pos_lines: Array[String] = []
@@ -196,34 +259,47 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("if _now_%s - %s >= %.3f:" % [chain_name, delay_var, spawn_delay])
 				code_lines.append("\t%s = _now_%s" % [delay_var, chain_name])
 				ind = "\t"
+			# Spawn-amount loop
+			var amount_expr = _to_expr(spawn_amount)
+			var amount_is_var = _is_variable(spawn_amount)
+			var ind2 = ind + "\t"
+			if amount_is_var:
+				code_lines.append("%sif %s > 0:" % [ind, amount_expr])
+				code_lines.append("%s\t%s -= 1" % [ind, amount_expr])
+			else:
+				code_lines.append("%sfor _spawn_i in range(%s):" % [ind, amount_expr])
 			match spawn_mode:
 				"random":
-					code_lines.append("%sif not %s.is_empty():" % [ind, pools_var])
-					code_lines.append("%s\tvar _pick = %s[randi() %% %s.size()]" % [ind, pools_var, pools_var])
-					code_lines.append("%s\tvar _spawned = false" % ind)
-					code_lines.append("%s\tfor _spawn_obj in _pick:" % ind)
-					code_lines.append("%s\t\tif not _spawn_obj.visible:" % ind)
+					code_lines.append("%sif not %s.is_empty():" % [ind2, pools_var])
+					code_lines.append("%s\tvar _pick = %s[randi() %% %s.size()]" % [ind2, pools_var, pools_var])
+					code_lines.append("%s\tvar _spawned = false" % ind2)
+					code_lines.append("%s\tfor _spawn_obj in _pick:" % ind2)
+					code_lines.append("%s\t\tif not _spawn_obj.visible:" % ind2)
 					for l in pos_lines:
-						code_lines.append(ind + "\t" + l)
-					code_lines.append("%s\t\t\t_pool_set_collision(_spawn_obj, true)" % ind)
-					code_lines.append("%s\t\t\t_spawn_obj.visible = true" % ind)
-					code_lines.append("%s\t\t\t_spawned = true" % ind)
-					code_lines.append("%s\t\t\tbreak" % ind)
-					code_lines.append("%s\tif not _spawned:" % ind)
-					code_lines.append("%s\t\tpush_warning(\"Object Pool: Pool exhausted for random pick — increase pool size\")" % ind)
+						code_lines.append(ind2 + "\t" + l)
+					code_lines.append("%s\t\t\t_pool_set_collision(_spawn_obj, true)" % ind2)
+					code_lines.append("%s\t\t\t_spawn_obj.visible = true" % ind2)
+					if lifespan > 0.0:
+						code_lines.append("%s\t\t\t%s[_spawn_obj.get_instance_id()] = Time.get_ticks_msec()" % [ind2, timers_var])
+					code_lines.append("%s\t\t\t_spawned = true" % ind2)
+					code_lines.append("%s\t\t\tbreak" % ind2)
+					code_lines.append("%s\tif not _spawned:" % ind2)
+					code_lines.append("%s\t\tpush_warning(\"Object Pool: Pool exhausted for random pick — increase pool size\")" % ind2)
 				"all":
-					code_lines.append("%sfor _sub_pool in %s:" % [ind, pools_var])
-					code_lines.append("%s\tvar _spawned = false" % ind)
-					code_lines.append("%s\tfor _spawn_obj in _sub_pool:" % ind)
-					code_lines.append("%s\t\tif not _spawn_obj.visible:" % ind)
+					code_lines.append("%sfor _sub_pool in %s:" % [ind2, pools_var])
+					code_lines.append("%s\tvar _spawned = false" % ind2)
+					code_lines.append("%s\tfor _spawn_obj in _sub_pool:" % ind2)
+					code_lines.append("%s\t\tif not _spawn_obj.visible:" % ind2)
 					for l in pos_lines:
-						code_lines.append(ind + "\t" + l)
-					code_lines.append("%s\t\t\t_pool_set_collision(_spawn_obj, true)" % ind)
-					code_lines.append("%s\t\t\t_spawn_obj.visible = true" % ind)
-					code_lines.append("%s\t\t\t_spawned = true" % ind)
-					code_lines.append("%s\t\t\tbreak" % ind)
-					code_lines.append("%s\tif not _spawned:" % ind)
-					code_lines.append("%s\t\tpush_warning(\"Object Pool: A sub-pool is exhausted — increase pool size\")" % ind)
+						code_lines.append(ind2 + "\t" + l)
+					code_lines.append("%s\t\t\t_pool_set_collision(_spawn_obj, true)" % ind2)
+					code_lines.append("%s\t\t\t_spawn_obj.visible = true" % ind2)
+					if lifespan > 0.0:
+						code_lines.append("%s\t\t\t%s[_spawn_obj.get_instance_id()] = Time.get_ticks_msec()" % [ind2, timers_var])
+					code_lines.append("%s\t\t\t_spawned = true" % ind2)
+					code_lines.append("%s\t\t\tbreak" % ind2)
+					code_lines.append("%s\tif not _spawned:" % ind2)
+					code_lines.append("%s\t\tpush_warning(\"Object Pool: A sub-pool is exhausted — increase pool size\")" % ind2)
 
 		"despawn_all":
 			code_lines.append("for _sub_pool in %s:" % pools_var)
@@ -232,14 +308,26 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("\t\t_spawn_obj.visible = false")
 
 	return {
-		"actuator_code": "\n".join(code_lines),
-		"member_vars":   member_vars,
-		"ready_code":    ready_code
+		"actuator_code":    "\n".join(code_lines),
+		"member_vars":      member_vars,
+		"ready_code":       ready_code,
+		"pre_process_code": pre_process_code,
 	}
 
 
 func _to_expr(val) -> String:
+	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
+		return str(val)
 	var s = str(val).strip_edges()
-	if s.is_empty(): return "0"
+	if s.is_empty(): return "1"
 	if s.is_valid_float() or s.is_valid_int(): return s
 	return s
+
+
+## Returns true if val is a variable/expression name rather than a plain number literal.
+func _is_variable(val) -> bool:
+	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
+		return false
+	var s = str(val).strip_edges()
+	if s.is_empty(): return false
+	return not (s.is_valid_float() or s.is_valid_int())

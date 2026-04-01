@@ -98,10 +98,17 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var store_object = properties.get("store_object", false)
 	var object_var = properties.get("object_variable", "")
 	
-	# Normalize
-	if typeof(axis) == TYPE_STRING:
+	# Normalize — PROPERTY_HINT_ENUM stores an integer index at runtime
+	var axis_names = ["all", "+x", "-x", "+y", "-y", "+z", "-z"]
+	if typeof(axis) == TYPE_INT:
+		axis = axis_names[axis] if axis < axis_names.size() else "all"
+	elif typeof(axis) == TYPE_STRING:
 		axis = axis.to_lower()
-	if typeof(detection_mode) == TYPE_STRING:
+
+	var detection_mode_names = ["any", "all", "none"]
+	if typeof(detection_mode) == TYPE_INT:
+		detection_mode = detection_mode_names[detection_mode] if detection_mode < detection_mode_names.size() else "any"
+	elif typeof(detection_mode) == TYPE_STRING:
 		detection_mode = detection_mode.to_lower()
 	
 	var code_lines: Array[String] = []
@@ -123,15 +130,17 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("")
 	
 	# Determine forward vector for angle check
-	var forward_vector = "Vector3.FORWARD"
-	var skip_angle_check = (axis == "all" or angle >= 360.0)
+	# Use a local-space basis vector that gets transformed to world space at runtime
+	var local_axis_vector = "Vector3.ZERO"
+	var skip_angle_check = angle >= 360.0
 	match axis:
-		"+x": forward_vector = "Vector3.RIGHT"
-		"-x": forward_vector = "Vector3.LEFT"
-		"+y": forward_vector = "Vector3.UP"
-		"-y": forward_vector = "Vector3.DOWN"
-		"+z": forward_vector = "Vector3.BACK"
-		"-z": forward_vector = "Vector3.FORWARD"
+		"+x": local_axis_vector = "Vector3.RIGHT"
+		"-x": local_axis_vector = "Vector3.LEFT"
+		"+y": local_axis_vector = "Vector3.UP"
+		"-y": local_axis_vector = "Vector3.DOWN"
+		"+z": local_axis_vector = "Vector3.BACK"   # Godot's -Z is local forward, +Z is back
+		"-z": local_axis_vector = "Vector3.FORWARD"
+		"all": skip_angle_check = true
 	
 	# Detection loop
 	code_lines.append("for _pt in _prox_targets:")
@@ -143,8 +152,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\t\tcontinue")
 	
 	# Angle check (only if not full circle and not "all" axis)
+	# Transform the local axis into world space using global_basis so the
+	# cone rotates with the object instead of staying fixed in world space.
 	if not skip_angle_check:
-		code_lines.append("\tvar _forward = global_transform.basis * %s" % forward_vector)
+		code_lines.append("\tvar _forward = global_basis * %s" % local_axis_vector)
 		code_lines.append("\tvar _angle_to = rad_to_deg(_forward.angle_to(_to_target.normalized()))")
 		code_lines.append("\tif _angle_to > %.2f:" % (angle / 2.0))
 		code_lines.append("\t\tcontinue")

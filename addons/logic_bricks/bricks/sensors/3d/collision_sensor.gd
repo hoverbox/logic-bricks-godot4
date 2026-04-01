@@ -3,7 +3,7 @@
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Collision Sensor - Detects collisions via an Area3D node
-## The Area3D is located by node path (relative to this node)
+## The Area3D is assigned via @export (drag and drop in inspector)
 ## Supports body_entered, body_exited, and continuous overlap detection
 
 
@@ -15,7 +15,6 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"area_node":      "Area3D",    # Node path relative to this node
 		"detection_mode": "entered",
 		"detect_bodies":  true,
 		"detect_areas":   false,
@@ -27,11 +26,6 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
-		{
-			"name": "area_node",
-			"type": TYPE_STRING,
-			"default": "Area3D"
-		},
 		{
 			"name": "detection_mode",
 			"type": TYPE_STRING,
@@ -71,8 +65,7 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Detects collisions via an Area3D node.\nType the node path relative to this node.",
-		"area_node":      "Path to the Area3D node, relative to this node.\nExamples: Area3D  HitBox/Area3D  ../Area3D",
+		"_description": "Detects collisions via an Area3D node.\n\n⚠ Adds an @export in the Inspector — assign the Area3D node there.",
 		"detection_mode": "Entered: fires once when something enters.\nExited: fires once when something leaves.\nOverlapping: active every frame while overlapping.",
 		"detect_bodies":  "Detect physics bodies (CharacterBody3D, RigidBody3D, etc.).",
 		"detect_areas":   "Detect other Area3D nodes.",
@@ -83,7 +76,6 @@ func get_tooltip_definitions() -> Dictionary:
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var area_path    = str(properties.get("area_node", "Area3D")).strip_edges()
 	var detection_mode = properties.get("detection_mode", "entered")
 	var detect_bodies  = properties.get("detect_bodies", true)
 	var detect_areas   = properties.get("detect_areas", false)
@@ -91,17 +83,22 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var filter_value   = properties.get("filter_value", "")
 	var invert         = properties.get("invert", false)
 
-	if area_path.is_empty():
-		area_path = "Area3D"
-
 	# Normalize
 	if typeof(detection_mode) == TYPE_STRING:
 		detection_mode = detection_mode.to_lower()
 	if typeof(filter_type) == TYPE_STRING:
 		filter_type = filter_type.to_lower()
 
-	# Unique variable names per chain
-	var area_var     = "_collision_area_%s" % chain_name
+	# Build a sanitized export label from the instance/brick name (same pattern as teleport actuator)
+	var _export_label = instance_name if not instance_name.is_empty() else brick_name
+	_export_label = _export_label.to_lower().replace(" ", "_")
+	var _regex = RegEx.new()
+	_regex.compile("[^a-z0-9_]")
+	_export_label = _regex.sub(_export_label, "", true)
+	if _export_label.is_empty():
+		_export_label = chain_name
+
+	var area_var     = "_%s" % _export_label
 	var flag_var     = "_collision_%s_%s" % [detection_mode, chain_name]
 	var collided_var = "_collided_with_%s" % chain_name
 
@@ -109,12 +106,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var member_vars: Array[String] = []
 	var ready_lines: Array[String] = []
 
+	# Exported Area3D reference — assigned via the Inspector
+	member_vars.append("@export var %s: Area3D" % area_var)
+
 	match detection_mode:
 		"entered", "exited":
-			# Signal mode needs a persistent Area3D reference at class scope
-			member_vars.append("var %s: Area3D = null" % area_var)
 			var result = _generate_signal_code(
-				detection_mode, area_var, area_path, flag_var, collided_var,
+				detection_mode, area_var, flag_var, collided_var,
 				detect_bodies, detect_areas, filter_type, filter_value, chain_name, invert
 			)
 			member_vars.append_array(result["member_vars"])
@@ -122,10 +120,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append_array(result["sensor_lines"])
 
 		"overlapping":
-			# Overlapping resolves the node per-frame inside a lambda — no member var needed
 			code_lines.append_array(
 				_generate_overlapping_code(
-					area_path, detect_bodies, detect_areas, filter_type, filter_value, invert
+					area_var, detect_bodies, detect_areas, filter_type, filter_value, invert
 				)
 			)
 
@@ -141,7 +138,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 
 ## Generate signal-based detection code (entered / exited)
-func _generate_signal_code(detection_mode: String, area_var: String, area_path: String,
+func _generate_signal_code(detection_mode: String, area_var: String,
 							flag_var: String, collided_var: String,
 							detect_bodies: bool, detect_areas: bool,
 							filter_type: String, filter_value: String, chain_name: String,
@@ -150,8 +147,8 @@ func _generate_signal_code(detection_mode: String, area_var: String, area_path: 
 	var ready_lines: Array[String] = []
 	var sensor_lines: Array[String] = []
 
-	var body_signal  = "body_entered" if detection_mode == "entered" else "body_exited"
-	var area_signal  = "area_entered" if detection_mode == "entered" else "area_exited"
+	var body_signal   = "body_entered" if detection_mode == "entered" else "body_exited"
+	var area_signal   = "area_entered" if detection_mode == "entered" else "area_exited"
 	var body_callback = "_on_collision_%s_%s_body" % [chain_name, detection_mode]
 	var area_callback = "_on_collision_%s_%s_area" % [chain_name, detection_mode]
 
@@ -172,9 +169,8 @@ func _generate_signal_code(detection_mode: String, area_var: String, area_path: 
 		member_vars.append("\t%s = true" % flag_var)
 		member_vars.append("\t%s = area" % collided_var)
 
-	# _ready(): resolve node by path and connect signals
-	ready_lines.append("# Collision Sensor: resolve Area3D by path")
-	ready_lines.append("%s = get_node_or_null(\"%s\") as Area3D" % [area_var, area_path])
+	# _ready(): connect signals on the exported Area3D reference
+	ready_lines.append("# Collision Sensor: connect signals on exported Area3D")
 	ready_lines.append("if %s:" % area_var)
 	if detect_bodies:
 		ready_lines.append("\tif not %s.%s.is_connected(%s):" % [area_var, body_signal, body_callback])
@@ -183,7 +179,7 @@ func _generate_signal_code(detection_mode: String, area_var: String, area_path: 
 		ready_lines.append("\tif not %s.%s.is_connected(%s):" % [area_var, area_signal, area_callback])
 		ready_lines.append("\t\t%s.%s.connect(%s)" % [area_var, area_signal, area_callback])
 	ready_lines.append("else:")
-	ready_lines.append("\tpush_warning(\"Collision Sensor: No Area3D found at path '%s'\")" % area_path)
+	ready_lines.append("\tpush_warning(\"Collision Sensor: No Area3D assigned to '%s'\")" % area_var)
 
 	# Sensor evaluation code (runs each frame)
 	sensor_lines.append("var sensor_active = (func():")
@@ -214,23 +210,22 @@ func _generate_signal_code(detection_mode: String, area_var: String, area_path: 
 
 
 ## Generate overlap/polling detection code
-func _generate_overlapping_code(area_path: String,
+func _generate_overlapping_code(area_var: String,
 								detect_bodies: bool, detect_areas: bool,
 								filter_type: String, filter_value: String,
 								invert: bool = false) -> Array[String]:
 	var lines: Array[String] = []
 
 	lines.append("var sensor_active = (func():")
-	lines.append("\tvar _area = get_node_or_null(\"%s\") as Area3D" % area_path)
-	lines.append("\tif not _area:")
-	lines.append("\t\tpush_warning(\"Collision Sensor: No Area3D found at path '%s'\")" % area_path)
+	lines.append("\tif not %s:" % area_var)
+	lines.append("\t\tpush_warning(\"Collision Sensor: No Area3D assigned to '%s'\")" % area_var)
 	lines.append("\t\treturn false")
 	lines.append("\tvar _detected = []")
 
 	if detect_bodies:
-		lines.append("\t_detected.append_array(_area.get_overlapping_bodies())")
+		lines.append("\t_detected.append_array(%s.get_overlapping_bodies())" % area_var)
 	if detect_areas:
-		lines.append("\t_detected.append_array(_area.get_overlapping_areas())")
+		lines.append("\t_detected.append_array(%s.get_overlapping_areas())" % area_var)
 
 	lines.append("\t")
 	_add_filter_code(lines, filter_type, filter_value, invert)

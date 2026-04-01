@@ -28,10 +28,6 @@ func _initialize_properties() -> void:
 		"layout_2": "vertical",
 		"layout_3": "top_wide",
 		"layout_4": "grid_2x2",
-		"camera_1": "",
-		"camera_2": "",
-		"camera_3": "",
-		"camera_4": "",
 	}
 
 
@@ -65,30 +61,6 @@ func get_property_definitions() -> Array:
 			"hint_string": layouts,
 			"default": "grid_2x2"
 		},
-		{
-			"name": "camera_1",
-			"type": TYPE_STRING,
-			"default": "",
-			"placeholder": "NodePath to Camera3D for Player 1"
-		},
-		{
-			"name": "camera_2",
-			"type": TYPE_STRING,
-			"default": "",
-			"placeholder": "NodePath to Camera3D for Player 2"
-		},
-		{
-			"name": "camera_3",
-			"type": TYPE_STRING,
-			"default": "",
-			"placeholder": "NodePath to Camera3D for Player 3"
-		},
-		{
-			"name": "camera_4",
-			"type": TYPE_STRING,
-			"default": "",
-			"placeholder": "NodePath to Camera3D for Player 4"
-		},
 	]
 
 
@@ -99,10 +71,6 @@ func get_tooltip_definitions() -> Dictionary:
 		"layout_2": "Layout used when exactly 2 players are active.",
 		"layout_3": "Layout used when exactly 3 players are active.",
 		"layout_4": "Layout used when exactly 4 players are active.",
-		"camera_1": "NodePath to the Camera3D for Player 1.\nPlace your camera in the scene and enter its path here.\nIt will be reparented into the SubViewport at runtime.",
-		"camera_2": "NodePath to the Camera3D for Player 2.",
-		"camera_3": "NodePath to the Camera3D for Player 3.",
-		"camera_4": "NodePath to the Camera3D for Player 4.",
 	}
 
 
@@ -128,11 +96,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var stable_name = instance_name.to_lower().replace(" ", "_") if not instance_name.is_empty() else "ss"
 	var canvas_name = "_ss_canvas_%s" % stable_name
 
-	# Camera node paths — one per player slot
-	var cam_paths: Array = []
-	for i in range(4):
-		cam_paths.append(str(properties.get("camera_%d" % (i + 1), "")).strip_edges())
-
 	# --- Member vars ---
 	var member_vars: Array[String] = []
 	var containers_var = "_%s_containers" % cn
@@ -141,7 +104,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	member_vars.append("var %s: Array" % containers_var)
 	member_vars.append("var %s: Array"  % viewports_var)
 	member_vars.append("var %s: CanvasLayer" % canvas_var)
-	member_vars.append("@export_range(1, 4) var split_screen_players: int = %d" % default_player_count)
+	member_vars.append("var split_screen_players: int = %d" % default_player_count)
 	for i in range(4):
 		member_vars.append("@export var camera_%d: Camera3D" % (i + 1))
 	if not _pc_is_literal:

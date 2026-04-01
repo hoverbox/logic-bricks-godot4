@@ -14,7 +14,7 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"edit_type": "end_object",         # "add_object", "end_object", "replace_mesh"
+		"edit_type": "End Object",          # "Add Object", "End Object", "Replace Mesh"
 		"spawn_object": "",                # Scene file to spawn (Add mode)
 		"spawn_point": NodePath(""),       # Node to spawn at (Add mode)
 		"velocity_x": 0.0,                 # Initial velocity X (Add mode)
@@ -35,7 +35,7 @@ func get_property_definitions() -> Array:
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
 			"hint_string": "Add Object,End Object,Replace Mesh",
-			"default": "end_object"
+			"default": "End Object"
 		},
 		{
 			"name": "spawn_object",
@@ -43,43 +43,43 @@ func get_property_definitions() -> Array:
 			"hint": PROPERTY_HINT_FILE,
 			"hint_string": "*.tscn,*.scn",
 			"default": "",
-			"visible_if": {"edit_type": "add_object"}
+			"visible_if": {"edit_type": "Add Object"}
 		},
 		{
 			"name": "spawn_point",
 			"type": TYPE_NODE_PATH,
 			"default": NodePath(""),
-			"visible_if": {"edit_type": "add_object"}
+			"visible_if": {"edit_type": "Add Object"}
 		},
 		{
 			"name": "velocity_x",
 			"type": TYPE_FLOAT,
 			"default": 0.0,
-			"visible_if": {"edit_type": "add_object"}
+			"visible_if": {"edit_type": "Add Object"}
 		},
 		{
 			"name": "velocity_y",
 			"type": TYPE_FLOAT,
 			"default": 0.0,
-			"visible_if": {"edit_type": "add_object"}
+			"visible_if": {"edit_type": "Add Object"}
 		},
 		{
 			"name": "velocity_z",
 			"type": TYPE_FLOAT,
 			"default": 0.0,
-			"visible_if": {"edit_type": "add_object"}
+			"visible_if": {"edit_type": "Add Object"}
 		},
 		{
 			"name": "velocity_local",
 			"type": TYPE_BOOL,
 			"default": false,
-			"visible_if": {"edit_type": "add_object"}
+			"visible_if": {"edit_type": "Add Object"}
 		},
 		{
 			"name": "lifespan",
 			"type": TYPE_FLOAT,
 			"default": 0.0,
-			"visible_if": {"edit_type": "add_object"}
+			"visible_if": {"edit_type": "Add Object"}
 		},
 		{
 			"name": "end_mode",
@@ -87,13 +87,13 @@ func get_property_definitions() -> Array:
 			"hint": PROPERTY_HINT_ENUM,
 			"hint_string": "Queue Free,Free Immediate",
 			"default": "queue_free",
-			"visible_if": {"edit_type": "end_object"}
+			"visible_if": {"edit_type": "End Object"}
 		},
 		{
 			"name": "end_delay",
 			"type": TYPE_FLOAT,
 			"default": 0.1,
-			"visible_if": {"edit_type": "end_object"}
+			"visible_if": {"edit_type": "End Object"}
 		},
 		{
 			"name": "mesh_path",
@@ -101,7 +101,7 @@ func get_property_definitions() -> Array:
 			"hint": PROPERTY_HINT_FILE,
 			"hint_string": "*.mesh,*.obj",
 			"default": "",
-			"visible_if": {"edit_type": "replace_mesh"}
+			"visible_if": {"edit_type": "Replace Mesh"}
 		}
 	]
 

@@ -2,7 +2,7 @@
 
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Force Actuator - Apply force to RigidBody3D
+## Force Actuator - Apply continuous force to RigidBody3D
 ## NOTE: Only works with RigidBody3D, not CharacterBody3D
 
 
@@ -14,10 +14,11 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"x": 0.0,
-		"y": 0.0,
-		"z": 0.0,
-		"space": "local"  # "local" or "global"
+		"x": "0.0",
+		"y": "0.0",
+		"z": "0.0",
+		"max_force": "0.0",  # Maximum force magnitude (0 = unlimited)
+		"space": "local"     # "local" or "global"
 	}
 
 
@@ -25,18 +26,23 @@ func get_property_definitions() -> Array:
 	return [
 		{
 			"name": "x",
-			"type": TYPE_FLOAT,
-			"default": 0.0
+			"type": TYPE_STRING,
+			"default": "0.0"
 		},
 		{
 			"name": "y",
-			"type": TYPE_FLOAT,
-			"default": 0.0
+			"type": TYPE_STRING,
+			"default": "0.0"
 		},
 		{
 			"name": "z",
-			"type": TYPE_FLOAT,
-			"default": 0.0
+			"type": TYPE_STRING,
+			"default": "0.0"
+		},
+		{
+			"name": "max_force",
+			"type": TYPE_STRING,
+			"default": "0.0"
 		},
 		{
 			"name": "space",
@@ -48,38 +54,78 @@ func get_property_definitions() -> Array:
 	]
 
 
+## Convert a value to a code expression.
+## If it's a number (or string of a number), returns the float literal.
+## Otherwise returns it as-is (a variable name or expression).
+func _to_expr(val) -> String:
+	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
+		return "%.3f" % val
+	var s = str(val).strip_edges()
+	if s.is_empty():
+		return "0.0"
+	if s.is_valid_float() or s.is_valid_int():
+		return "%.3f" % float(s)
+	return s
+
+
+## Check if a value is a literal zero
+func _is_zero(val) -> bool:
+	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
+		return val == 0.0
+	var s = str(val).strip_edges()
+	if s.is_empty():
+		return true
+	if s.is_valid_float() or s.is_valid_int():
+		return float(s) == 0.0
+	# It's a variable name — not zero
+	return false
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var x = properties.get("x", 0.0)
-	var y = properties.get("y", 0.0)
-	var z = properties.get("z", 0.0)
+	var x = properties.get("x", "0.0")
+	var y = properties.get("y", "0.0")
+	var z = properties.get("z", "0.0")
+	var max_force = properties.get("max_force", "0.0")
 	var space = properties.get("space", "local")
-	
+
 	# Normalize space (enum values come as lowercase with underscores)
 	if typeof(space) == TYPE_STRING:
 		space = space.to_lower().replace(" ", "_")
-	
+
+	var vx = _to_expr(x)
+	var vy = _to_expr(y)
+	var vz = _to_expr(z)
+	var vmax = _to_expr(max_force)
+
 	var code_lines: Array[String] = []
-	
+
 	# Check if node is compatible (only RigidBody3D supports forces)
 	if not (node is RigidBody3D):
-		# Generate a warning for incompatible node types
 		code_lines.append("# WARNING: Force actuator only works with RigidBody3D!")
 		code_lines.append("# Current node type: %s" % node.get_class())
 		code_lines.append("push_warning(\"Force actuator requires RigidBody3D, but node '%s' is %s\")" % [node.name, node.get_class()])
 		code_lines.append("# Force NOT applied")
-		
 		return {"actuator_code": "\n".join(code_lines)}
-	
-	# Generate force application code for RigidBody3D
-	if space == "local":
-		# Apply force in local space (relative to object's rotation)
-		code_lines.append("# Apply force in local space")
-		code_lines.append("apply_central_force(global_transform.basis * Vector3(%.3f, %.3f, %.3f))" % [x, y, z])
+
+	# Build force vector, optionally clamped
+	if not _is_zero(max_force):
+		code_lines.append("# Build and clamp force vector")
+		if space == "local":
+			code_lines.append("var _force = global_transform.basis * Vector3(%s, %s, %s)" % [vx, vy, vz])
+		else:
+			code_lines.append("var _force = Vector3(%s, %s, %s)" % [vx, vy, vz])
+		code_lines.append("if _force.length() > %s:" % vmax)
+		code_lines.append("\t_force = _force.normalized() * %s" % vmax)
+		code_lines.append("apply_central_force(_force)")
 	else:
-		# Apply force in global space (world coordinates)
-		code_lines.append("# Apply force in global space")
-		code_lines.append("apply_central_force(Vector3(%.3f, %.3f, %.3f))" % [x, y, z])
-	
+		# Generate force application code for RigidBody3D
+		if space == "local":
+			code_lines.append("# Apply force in local space")
+			code_lines.append("apply_central_force(global_transform.basis * Vector3(%s, %s, %s))" % [vx, vy, vz])
+		else:
+			code_lines.append("# Apply force in global space")
+			code_lines.append("apply_central_force(Vector3(%s, %s, %s))" % [vx, vy, vz])
+
 	return {
 		"actuator_code": "\n".join(code_lines)
 	}

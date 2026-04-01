@@ -222,8 +222,9 @@ func _generate_direct_movement(behavior: String, target_mode: String, target_nam
 	if accel > 0.0:
 		lines.append("%svar _target_vel = _move_dir * %.2f" % [indent, vel])
 		lines.append("%svar _current_vel = Vector3.ZERO" % indent)
-		lines.append("%sif self is CharacterBody3D:" % indent)
-		lines.append("%s\t_current_vel = velocity" % indent)
+		lines.append("%svar _cb3d = (self as Node) as CharacterBody3D" % indent)
+		lines.append("%sif _cb3d:" % indent)
+		lines.append("%s\t_current_vel = _cb3d.velocity" % indent)
 		lines.append("%svar _new_vel = _current_vel.move_toward(_target_vel, %.2f * _delta)" % [indent, accel])
 	else:
 		lines.append("%svar _new_vel = _move_dir * %.2f" % [indent, vel])
@@ -236,9 +237,10 @@ func _generate_direct_movement(behavior: String, target_mode: String, target_nam
 			lines.append(indent + line)
 	
 	# Apply movement
-	lines.append("%sif self is CharacterBody3D:" % indent)
-	lines.append("%s\tvelocity.x = _new_vel.x" % indent)
-	lines.append("%s\tvelocity.z = _new_vel.z" % indent)
+	lines.append("%svar _cb3d = (self as Node) as CharacterBody3D" % indent)
+	lines.append("%sif _cb3d:" % indent)
+	lines.append("%s\t_cb3d.velocity.x = _new_vel.x" % indent)
+	lines.append("%s\t_cb3d.velocity.z = _new_vel.z" % indent)
 	lines.append("%selse:" % indent)
 	lines.append("%s\tglobal_position += _new_vel * _delta" % indent)
 	
@@ -292,8 +294,9 @@ func _generate_pathfinding_movement(target_mode: String, target_name: String, na
 	if accel > 0.0:
 		lines.append("%s\tvar _target_vel = _move_dir * %.2f" % [indent, vel])
 		lines.append("%s\tvar _current_vel = Vector3.ZERO" % indent)
-		lines.append("%s\tif self is CharacterBody3D:" % indent)
-		lines.append("%s\t\t_current_vel = velocity" % indent)
+		lines.append("%s\tvar _cb3d = (self as Node) as CharacterBody3D" % indent)
+		lines.append("%s\tif _cb3d:" % indent)
+		lines.append("%s\t\t_current_vel = _cb3d.velocity" % indent)
 		lines.append("%s\tvar _new_vel = _current_vel.move_toward(_target_vel, %.2f * _delta)" % [indent, accel])
 	else:
 		lines.append("%s\tvar _new_vel = _move_dir * %.2f" % [indent, vel])
@@ -303,9 +306,10 @@ func _generate_pathfinding_movement(target_mode: String, target_name: String, na
 		for line in face_code.split("\n"):
 			lines.append("%s\t%s" % [indent, line])
 
-	lines.append("%s\tif self is CharacterBody3D:" % indent)
-	lines.append("%s\t\tvelocity.x = _new_vel.x" % indent)
-	lines.append("%s\t\tvelocity.z = _new_vel.z" % indent)
+	lines.append("%s\tvar _cb3d = (self as Node) as CharacterBody3D" % indent)
+	lines.append("%s\tif _cb3d:" % indent)
+	lines.append("%s\t\t_cb3d.velocity.x = _new_vel.x" % indent)
+	lines.append("%s\t\t_cb3d.velocity.z = _new_vel.z" % indent)
 	lines.append("%s\telse:" % indent)
 	lines.append("%s\t\tglobal_position += _new_vel * _delta" % indent)
 
