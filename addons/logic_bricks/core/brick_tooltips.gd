@@ -311,13 +311,16 @@ const TOOLTIPS = {
 		"integer_only": "If true, only generate whole numbers.",
 	},
 	
-	"SaveGameActuator": {
-		"_description": "Saves or loads game data to/from a JSON file.\nCan save position, rotation, and logic brick variables.",
-		"action": "Save: write data to file. Load: read data from file.",
-		"save_path": "File path for the save file (e.g. 'user://savegame.json').",
-		"save_position": "Include the node's position in the save data.",
-		"save_rotation": "Include the node's rotation in the save data.",
-		"save_variables": "Include logic brick variables in the save data.",
+	"SaveLoadActuator": {
+		"_description": "Saves or loads game state to/from a JSON file.\nThree scopes — no custom save()/load() methods needed on any node.\n• This Node: saves the node this brick is on\n• Target Node: saves a specific node found by name\n• Group: saves every node in a named group",
+		"mode": "Save: write data to file. Load: read data from file.",
+		"scope": "This Node: save/load the node this brick is on.\nTarget Node: save/load a specific node by name.\nGroup: save/load every node in a named group automatically.",
+		"target": "For Target Node: the name of the node to save/load.\nFor Group: the group name (defaults to 'save' if left empty).\nNot used for This Node scope.",
+		"slot": "Named save slot. Used as the filename when Save Path is empty (e.g. 'slot1' → user://saves/slot1.json).",
+		"save_path": "Custom file path, e.g. 'user://saves/my_save.json'. Leave empty to use the Slot name instead.",
+		"save_position": "Include the node's global position in the save data.",
+		"save_rotation": "Include the node's global rotation in the save data.",
+		"save_variables": "Include non-private script variables in the save data.",
 	},
 	
 	"SceneActuator": {

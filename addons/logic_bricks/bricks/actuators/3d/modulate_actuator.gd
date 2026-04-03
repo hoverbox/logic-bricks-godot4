@@ -87,19 +87,42 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	member_vars.append("@export var %s: CanvasItem" % node_var)
 
-	code_lines.append("# Modulate Actuator")
-	code_lines.append("if %s:" % node_var)
 	if transition:
-		code_lines.append("\t%s.%s = %s.%s.lerp(%s, %s * _delta)" % [node_var, target, node_var, target, color_str, speed])
-	else:
-		code_lines.append("\t%s.%s = %s" % [node_var, target, color_str])
-	code_lines.append("else:")
-	code_lines.append("\tpush_warning(\"Modulate Actuator: No CanvasItem assigned to '%s' — drag one into the inspector\")" % node_var)
+		# Store the target color in a member var so the lerp persists across frames,
+		# even when the sensor fires for only a single frame (just_pressed, Delay, etc.).
+		var target_var = "_%s_target_color" % _export_label
+		member_vars.append("var %s: Color = Color(1.0000, 1.0000, 1.0000, 1.0000)" % target_var)
 
-	return {
-		"actuator_code": "\n".join(code_lines),
-		"member_vars": member_vars
-	}
+		# Actuator code: when the sensor fires, record the desired target color.
+		code_lines.append("# Modulate Actuator")
+		code_lines.append("if %s:" % node_var)
+		code_lines.append("\t%s = %s" % [target_var, color_str])
+		code_lines.append("else:")
+		code_lines.append("\tpush_warning(\"Modulate Actuator: No CanvasItem assigned to '%s' — drag one into the inspector\")" % node_var)
+
+		# Post-process code: lerp toward the stored target every frame regardless of sensor state.
+		# Uses "delta" (not "_delta") because post_process lines are emitted inside
+		# _process(delta) / _physics_process(delta), not inside a chain function.
+		var post_line = "if %s: %s.%s = %s.%s.lerp(%s, %s * delta)" % [
+			node_var, node_var, target, node_var, target, target_var, speed
+		]
+
+		return {
+			"actuator_code": "\n".join(code_lines),
+			"member_vars": member_vars,
+			"post_process_code": [post_line],
+		}
+	else:
+		code_lines.append("# Modulate Actuator")
+		code_lines.append("if %s:" % node_var)
+		code_lines.append("\t%s.%s = %s" % [node_var, target, color_str])
+		code_lines.append("else:")
+		code_lines.append("\tpush_warning(\"Modulate Actuator: No CanvasItem assigned to '%s' — drag one into the inspector\")" % node_var)
+
+		return {
+			"actuator_code": "\n".join(code_lines),
+			"member_vars": member_vars,
+		}
 
 
 func _to_expr(val) -> String:

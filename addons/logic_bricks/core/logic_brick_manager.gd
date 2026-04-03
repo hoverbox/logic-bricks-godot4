@@ -907,8 +907,8 @@ func _get_brick_script_path(brick_type: String) -> String:
 			return "res://addons/logic_bricks/bricks/actuators/3d/sound_actuator.gd"
 		"SceneActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/scene_actuator.gd"
-		"SaveGameActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/save_game_actuator.gd"
+		"SaveLoadActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/save_load_actuator.gd"
 		"CameraActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/camera_actuator.gd"
 		"SetCameraActuator":
@@ -1141,8 +1141,20 @@ func _member_var_to_reset(member_var_line: String) -> String:
 			or after_var.begins_with("_pool_timers_"):
 		return ""
 	
+	# Skip music shared state — players are built once in _ready() and must survive
+	# state transitions. Resetting them would empty the array on the first frame,
+	# silencing music before the Set brick gets a chance to play anything.
+	if after_var.begins_with("_music_players") or after_var.begins_with("_music_current") \
+			or after_var.begins_with("_music_crossfading") or after_var.begins_with("_music_initialized"):
+		return ""
+	
 	# Skip any var typed as PackedScene — these are preloaded resources, not runtime state
 	if ": PackedScene" in member_var_line:
+		return ""
+	
+	# Skip Modulate Actuator target color vars — these persist the lerp destination
+	# across frames and must not be reset on state entry or the transition never completes.
+	if after_var.contains("_target_color"):
 		return ""
 	
 	# Check there's a "=" to split on

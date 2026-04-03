@@ -13,7 +13,7 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"delay": 1.0,      # Time in seconds before activating
+		"delay": 0.0,      # Time in seconds before activating
 		"duration": 0.0,   # How long to stay active (0 = one frame)
 		"repeat": false    # Keep repeating the delay + duration cycle
 	}
@@ -24,7 +24,7 @@ func get_property_definitions() -> Array:
 		{
 			"name": "delay",
 			"type": TYPE_FLOAT,
-			"default": 1.0
+			"default": 0.0
 		},
 		{
 			"name": "duration",
@@ -49,7 +49,7 @@ func get_tooltip_definitions() -> Dictionary:
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var delay    = float(properties.get("delay", 1.0))
+	var delay    = float(properties.get("delay", 0.0))
 	var duration = float(properties.get("duration", 0.0))
 	var repeat   = properties.get("repeat", false)
 

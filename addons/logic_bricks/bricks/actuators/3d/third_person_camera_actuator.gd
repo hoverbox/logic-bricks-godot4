@@ -84,7 +84,7 @@ func get_property_definitions() -> Array:
 		{"name": "pitch_max", "type": TYPE_FLOAT, "hint": PROPERTY_HINT_RANGE, "hint_string": "0.0,90.0,1.0",   "default": 30.0},
 
 		# ── Joystick ──
-		{"name": "joy_group",       "type": TYPE_NIL,   "hint": 999, "hint_string": "Joystick", "collapsed": true},
+		{"name": "joy_group",       "type": TYPE_NIL,   "hint": 999, "hint_string": "Joystick"},
 		{
 			"name": "joystick_device",
 			"type": TYPE_INT,
@@ -211,10 +211,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	ready_lines.append("\t%s = %s.global_rotation_degrees.x" % [pitch_var, pivot_var])
 	ready_lines.append("\t%s = %s.global_position - global_position  # Character-to-pivot offset" % [offset_var, pivot_var])
 	ready_lines.append("\tif %s:" % camera_var)
-	ready_lines.append("\t\t# Camera's offset from pivot in pivot-local space — used to orbit correctly")
+	ready_lines.append("\t\t# Camera's offset from pivot in pivot-local space — captured before any reparenting")
 	ready_lines.append("\t\t%s = %s.global_basis.inverse() * (%s.global_position - %s.global_position)" % [cam_offset_var, pivot_var, camera_var, pivot_var])
 	if use_mouse:
 		ready_lines.append("Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)")
+	ready_lines.append("await get_tree().process_frame")
+	ready_lines.append("if %s:" % camera_var)
+	ready_lines.append("\t%s.make_current()" % camera_var)
 
 	# ── Actuator code (runs every frame) ──
 	code_lines.append("# 3rd Person Camera")

@@ -352,9 +352,9 @@ func _create_add_menu() -> void:
         {
             "label": "Game",
             "items": [
-                ["Game", 305, "GameActuator", "Game-level actions: quit, restart, pause/unpause."],
+                ["Game", 305, "GameActuator", "Game-level actions: quit, restart, screenshot."],
                 ["Scene", 317, "SceneActuator", "Change or reload scenes."],
-                ["Save Game", 316, "SaveGameActuator", "Save/load position, rotation, and variables to JSON."],
+                ["Save / Load", 316, "SaveLoadActuator", "Save/load game state to a file.\nThis Node: saves the node the brick is on.\nTarget Node: saves a specific node by name.\nGroup: saves every node in a named group automatically."],
             ]
         },
     ]
@@ -1321,8 +1321,8 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/sound_actuator.gd"
         "SceneActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/scene_actuator.gd"
-        "SaveGameActuator":
-            script_path = "res://addons/logic_bricks/bricks/actuators/3d/save_game_actuator.gd"
+        "SaveLoadActuator":
+            script_path = "res://addons/logic_bricks/bricks/actuators/3d/save_load_actuator.gd"
         "SetCameraActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/set_camera_actuator.gd"
         "SmoothFollowCameraActuator":
@@ -3551,8 +3551,10 @@ func _on_apply_code_pressed() -> void:
     manager.save_chains(current_node, chains)
     manager.regenerate_script(current_node, variables_code)
     
-    # Post-apply: build/update any scene nodes required by special actuators
-    _apply_scene_setup(current_node, chains)
+    # Phase 1: create any required scene nodes (CanvasLayer, ColorRect, etc.)
+    # @export var assignment happens in Phase 2 AFTER set_script() below,
+    # because set_script() resets all properties to their defaults.
+    _apply_scene_setup_create(current_node, chains)
     
     # Get script path if we didn't have one
     if script_path.is_empty() and current_node.get_script():
@@ -3562,14 +3564,20 @@ func _on_apply_code_pressed() -> void:
         push_error("Logic Bricks: No script path available!")
         return
     
-    #print("Logic Bricks: Script written to: " + script_path)
-    
-    # Save the scene FIRST so all current NodePaths (including any @export vars
-    # pointing into SubViewports) are committed to disk before the script
-    # hot-reload tries to resolve them. Without this, Godot resolves stale
-    # NodePaths from undo history against the new scene tree and hits
-    # "common_parent is null" in get_path_to().
-    editor_interface.save_scene()
+    # Save the scene before hot-reload only when ScreenFlashActuator is present,
+    # because it creates nodes that reference SubViewport NodePaths — Godot can
+    # hit "common_parent is null" in get_path_to() if those paths aren't on disk
+    # before the script reloads. All other actuator types are safe without a save.
+    var needs_pre_save := false
+    for chain in chains:
+        for actuator in chain.get("actuators", []):
+            if actuator.get("type", "") == "ScreenFlashActuator":
+                needs_pre_save = true
+                break
+        if needs_pre_save:
+            break
+    if needs_pre_save:
+        editor_interface.save_scene()
     
     # Force filesystem to update
     var filesystem = editor_interface.get_resource_filesystem()
@@ -3597,25 +3605,49 @@ func _on_apply_code_pressed() -> void:
     # Apply the reloaded script to the node
     _apply_node.set_script(reloaded_script)
     
-    # Save FIRST so inspector-assigned @export values are committed to .tscn
-    # before the minimize/restore triggers a window re-init.
+    # Phase 2: assign @export vars now that the new script is live.
+    # This MUST come after set_script() or the assignments get wiped.
     await get_tree().process_frame
     if is_instance_valid(_apply_node):
-        editor_interface.save_scene()
+        _apply_scene_setup_assign(_apply_node, chains)
     
     # Minimize/restore is the only reliable way to force Godot to rebuild
     # the inspector's @export slots after a script reload.
-    # If the pop-out window is open, hide it first — its presence as a Window
-    # node in the tree prevents the OS-level focus loss that makes this work.
+    # Hide all secondary Window nodes first — any visible child Window (including
+    # the addon pop-out or other editor sub-windows) can prevent the OS-level
+    # focus loss that makes the hack work, and can also steal the restore signal
+    # leaving the main window stuck minimized.
     var was_popout_open = _popout_window != null
     if was_popout_open:
         _popout_window.hide()
     
+    # Also hide any other top-level Windows that are currently visible.
+    var other_windows: Array[Window] = []
+    for child in get_tree().root.get_children():
+        if child is Window and child.visible and child != get_tree().root:
+            other_windows.append(child)
+            child.hide()
+    
+    # Capture the restore mode *before* minimizing.
+    # Always restore to WINDOWED or MAXIMIZED — never back to MINIMIZED — so
+    # that a pre-existing minimized state (e.g. caused by another window) does
+    # not leave us stuck.
     var prev_window_mode = DisplayServer.window_get_mode()
+    var restore_mode = DisplayServer.WINDOW_MODE_WINDOWED
+    if prev_window_mode == DisplayServer.WINDOW_MODE_MAXIMIZED or \
+       prev_window_mode == DisplayServer.WINDOW_MODE_FULLSCREEN or \
+       prev_window_mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN:
+        restore_mode = prev_window_mode
+    
     DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)
+    # A single process frame is enough for the OS to register the minimize.
     await get_tree().process_frame
-    DisplayServer.window_set_mode(prev_window_mode)
-    await get_tree().process_frame
+    DisplayServer.window_set_mode(restore_mode)
+    
+    # Restore all secondary windows that were hidden above.
+    for w in other_windows:
+        if is_instance_valid(w):
+            w.show()
     
     if was_popout_open and _popout_window:
         _popout_window.show()
@@ -4917,12 +4949,15 @@ func _mark_scene_modified() -> void:
 
 ## Build, update, or remove scene nodes required by special actuators.
 ## Called after Apply Code so nodes exist in the scene before the script runs.
-func _apply_scene_setup(node: Node, chains: Array) -> void:
-    # Check whether any SplitScreenActuator is present in the current chains.
-    # If there is one, leave any _ss_canvas_* CanvasLayers alone — _ready() will
-    # manage them at runtime. If there isn't one, free any stale nodes left behind
-    # by a previously applied SplitScreenActuator so the serializer doesn't hit
-    # "common_parent is null" when saving.
+func _apply_scene_setup_create(node: Node, chains: Array) -> void:
+    # Phase 1 of Apply Code scene setup: create scene nodes and clean up stale ones.
+    # @export var assignments are done separately in _apply_scene_setup_assign(),
+    # which must run AFTER set_script() so the assignments aren't wiped.
+    var scene_root = node.get_tree().edited_scene_root if node.get_tree() else null
+    if not scene_root:
+        return
+
+    # ── SplitScreen: free stale _ss_canvas_* nodes if the actuator was removed ──
     var has_split_screen := false
     for chain in chains:
         for actuator in chain.get("actuators", []):
@@ -4932,19 +4967,112 @@ func _apply_scene_setup(node: Node, chains: Array) -> void:
         if has_split_screen:
             break
 
-    if has_split_screen:
-        return  # Active actuator — leave the runtime nodes alone.
+    if not has_split_screen:
+        var stale_ss: Array = []
+        for child in scene_root.get_children():
+            if child is CanvasLayer and child.name.begins_with("_ss_canvas_"):
+                stale_ss.append(child)
+        for cl in stale_ss:
+            cl.free()
 
-    var scene_root = node.get_tree().edited_scene_root if node.get_tree() else null
-    if not scene_root:
-        return
+    # ── ScreenFlash: create/update CanvasLayer + ColorRect nodes ────────────
+    var active_flash_layers: Array = []
 
-    var stale: Array = []
+    for chain in chains:
+        for actuator_data in chain.get("actuators", []):
+            if actuator_data.get("type", "") != "ScreenFlashActuator":
+                continue
+
+            var brick_script = load("res://addons/logic_bricks/bricks/actuators/3d/screen_flash_actuator.gd")
+            if not brick_script:
+                push_warning("Logic Bricks: Could not load screen_flash_actuator.gd")
+                continue
+            var brick = brick_script.new()
+            brick.deserialize(actuator_data)
+            var gen = brick.generate_code(node, chain.get("name", "chain"))
+            var setup = gen.get("scene_setup", {})
+            if setup.get("type", "") != "ScreenFlash":
+                continue
+
+            var flash_var: String  = setup.get("flash_var", "")
+            var cam_name: String   = setup.get("camera_name", "").strip_edges()
+            if flash_var.is_empty():
+                continue
+
+            var layer_name := "__FlashLayer_%s" % flash_var
+            active_flash_layers.append(layer_name)
+
+            # Determine size to match the target camera's viewport
+            var flash_size := Vector2(
+                ProjectSettings.get_setting("display/window/size/viewport_width",  1280),
+                ProjectSettings.get_setting("display/window/size/viewport_height", 720)
+            )
+
+            if not cam_name.is_empty():
+                var cam := _find_camera_by_name(scene_root, cam_name)
+                if is_instance_valid(cam):
+                    var p := cam.get_parent()
+                    while is_instance_valid(p):
+                        if p is SubViewportContainer:
+                            flash_size = (p as SubViewportContainer).size
+                            break
+                        elif p is SubViewport:
+                            flash_size = Vector2((p as SubViewport).size)
+                            break
+                        p = p.get_parent()
+                else:
+                    push_warning("Screen Flash Actuator: Camera '%s' not found — using full window size" % cam_name)
+
+            # Find or create the CanvasLayer
+            var canvas_layer: CanvasLayer = null
+            for child in scene_root.get_children():
+                if child is CanvasLayer and child.name == layer_name:
+                    canvas_layer = child as CanvasLayer
+                    break
+            if not is_instance_valid(canvas_layer):
+                canvas_layer = CanvasLayer.new()
+                canvas_layer.name = layer_name
+                canvas_layer.layer = 128
+                scene_root.add_child(canvas_layer)
+                canvas_layer.owner = scene_root
+
+            # Find or create the ColorRect inside the CanvasLayer
+            var color_rect: ColorRect = canvas_layer.get_node_or_null("ColorRect") as ColorRect
+            if not is_instance_valid(color_rect):
+                color_rect = ColorRect.new()
+                color_rect.name = "ColorRect"
+                canvas_layer.add_child(color_rect)
+                color_rect.owner = scene_root
+
+            # Size it to match the camera viewport; use anchors=0 so size is literal
+            color_rect.anchor_left   = 0.0
+            color_rect.anchor_top    = 0.0
+            color_rect.anchor_right  = 0.0
+            color_rect.anchor_bottom = 0.0
+            color_rect.position      = Vector2.ZERO
+            color_rect.size          = flash_size
+            color_rect.color         = Color(0, 0, 0, 0)
+            color_rect.visible       = false
+            color_rect.mouse_filter  = Control.MOUSE_FILTER_IGNORE
+
+    # Free stale flash layers from removed ScreenFlashActuator bricks
+    var stale_flash: Array = []
     for child in scene_root.get_children():
-        if child is CanvasLayer and child.name.begins_with("_ss_canvas_"):
-            stale.append(child)
-    for cl in stale:
+        if child is CanvasLayer and child.name.begins_with("__FlashLayer_")                 and child.name not in active_flash_layers:
+            stale_flash.append(child)
+    for cl in stale_flash:
         cl.free()
+
+
+func _apply_scene_setup_assign(node: Node, chains: Array) -> void:
+    # Phase 2 of Apply Code scene setup: assign @export vars to the pre-created nodes.
+    # Must run AFTER set_script() — set_script() resets all properties, so any
+    # assignment done before it would be silently discarded.
+    #
+    # NOTE: ScreenFlash no longer uses @export vars. The generated actuator code
+    # resolves the ColorRect by node path at runtime via get_tree().root.get_node_or_null().
+    # No assignment is needed here for that actuator type.
+    pass
 
 func _find_camera_by_name(root: Node, cam_name: String) -> Camera3D:
     if not is_instance_valid(root): return null
