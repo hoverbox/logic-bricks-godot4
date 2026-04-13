@@ -113,6 +113,14 @@ const TOOLTIPS = {
 	# =========================================================================
 	# ACTUATORS
 	# =========================================================================
+	"SpriteFramesActuator": {
+		"_description": "Play, stop, or pause Sprite3D / AnimatedSprite3D frame animations.\nFinds the target by name anywhere in the scene tree.\nLeave Target Node empty to target self.",
+		"mode": "Play: start the animation\nStop: stop playback and reset to frame 0\nPause: freeze at the current frame",
+		"animation_name": "Name of the animation in the SpriteFrames resource to play.\nMust match exactly (case-sensitive). Leave empty to resume/play the default.",
+		"speed_scale": "Playback speed multiplier.\n• A number: 1.0 (normal), 2.0 (double speed), -1.0 (reverse)\n• A variable: my_speed\n• An expression: base_speed * 2",
+		"loop": "Whether the animation loops. Only applied when Mode is Play.",
+		"target_node": "Name of the Sprite3D or AnimatedSprite3D node to control.\nSearches the entire scene tree. Leave empty to target self.",
+	},
 	"AnimationActuator": {
 		"_description": "Plays, stops, or queues animations via AnimationPlayer.\nRequires an @export Node reference to the node containing the AnimationPlayer.",
 		"mode": "Action to perform: Play, Stop, Pause, or Queue an animation.",

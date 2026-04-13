@@ -879,6 +879,8 @@ func _get_brick_script_path(brick_type: String) -> String:
 			return "res://addons/logic_bricks/bricks/actuators/3d/move_towards_actuator.gd"
 		"AnimationActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/animation_actuator.gd"
+		"SpriteFramesActuator":
+			return "res://addons/logic_bricks/bricks/actuators/3d/sprite_frames_actuator.gd"
 		"AnimationTreeActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/animation_tree_actuator.gd"
 		"SoundActuator":
