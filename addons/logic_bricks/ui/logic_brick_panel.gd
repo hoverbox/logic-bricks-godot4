@@ -259,6 +259,10 @@ func _create_add_menu() -> void:
     controllers_menu.set_item_metadata(0, {"type": "controller", "class": "Controller"})
     controllers_menu.set_item_tooltip(0, "Logic gate that combines sensor inputs.\nAND, OR, NAND, NOR, XOR modes.")
     
+    controllers_menu.add_item("Script Controller", 201)
+    controllers_menu.set_item_metadata(1, {"type": "controller", "class": "ScriptController"})
+    controllers_menu.set_item_tooltip(1, "Run custom GDScript or C# code when sensors fire.\nWrite your code directly in the brick's Script Body property.")
+    
     # Populate Actuators submenu — grouped into categories
     var _actuator_groups = [
         {
@@ -1651,6 +1655,8 @@ func _create_brick_instance(brick_class: String):
             script_path = "res://addons/logic_bricks/bricks/sensors/3d/collision_sensor.gd"
         "ANDController", "Controller":
             script_path = "res://addons/logic_bricks/bricks/controllers/controller.gd"
+        "ScriptController":
+            script_path = "res://addons/logic_bricks/bricks/controllers/script_controller.gd"
         "MotionActuator", "LocationActuator", "RotationActuator":
             script_path = "res://addons/logic_bricks/bricks/actuators/3d/motion_actuator.gd"
         "EditObjectActuator":
@@ -4069,7 +4075,10 @@ func _extract_chains_from_graph() -> Array:
     # For each controller, find all sensors feeding into it and all actuators it feeds
     for controller_node in controller_nodes:
         var chain = _build_chain_from_controller(controller_node, connections)
-        if chain["sensors"].size() > 0 and chain["actuators"].size() > 0:
+        var is_script_controller = chain["controller"] != null and chain["controller"].get("type", "") == "ScriptController"
+        var has_sensors = chain["sensors"].size() > 0
+        var has_actuators = chain["actuators"].size() > 0
+        if has_sensors and (has_actuators or is_script_controller):
             # Generate chain name from controller
             var chain_name = _get_chain_name_for_controller(controller_node)
             chains.append({

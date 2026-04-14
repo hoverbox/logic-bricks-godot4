@@ -110,6 +110,13 @@ const TOOLTIPS = {
 		"state": "Which state this chain runs in (1-30). Use State Actuator to change states.",
 	},
 	
+	"ScriptController": {
+		"_description": "Calls a function in a custom .gd script when sensors fire.\nWorks like UPBGE's Python Controller (module mode):\nno actuator needed — the script is the action.",
+		"logic_mode": "Logic gate type:\n• AND: All connected sensors must be active\n• OR: At least one sensor must be active\n• NAND: NOT AND — active when not all sensors are active\n• NOR: NOT OR — active only when no sensors are active\n• XOR: Exclusive OR — active when exactly one sensor is active",
+		"script_path": "Path to the .gd script file to run.\nThe script must define: func run(node: Node) -> void:\n'node' is the scene object this brick is attached to.\nDo NOT add 'extends' to the script — it is called as a module.",
+		"state": "Which state this chain runs in (1-30). Use State Actuator to change states.",
+	},
+	
 	# =========================================================================
 	# ACTUATORS
 	# =========================================================================

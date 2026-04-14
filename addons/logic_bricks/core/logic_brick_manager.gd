@@ -614,8 +614,11 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 	var lines: Array[String] = []
 	lines.append("func _logic_brick_%s(_delta: float) -> void:" % chain_name)
 	
-	if sensors.is_empty() or actuators.is_empty() or not controller_data:
+	var is_script_controller = controller_data != null and controller_data.get("type", "") == "ScriptController"
+	if sensors.is_empty() or not controller_data:
 		return ""  # Incomplete chain — skip entirely, generate nothing
+	if not is_script_controller and actuators.is_empty():
+		return ""  # Standard chains need at least one actuator
 	
 	# Collect @export var node names from this chain's bricks so we can
 	# guard against freed instances (e.g. object pool recycling nodes).
@@ -695,6 +698,26 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 	if controller_data:
 		var controller_brick = _instantiate_brick(controller_data)
 		if controller_brick:
+			# ── Script Controller ───────────────────────────────────────────────
+			if controller_data["type"] == "ScriptController":
+				var condition = controller_brick.get_condition(sensor_vars)
+				lines.append("\tvar controller_active = " + condition)
+				lines.append("\t")
+				lines.append("\t# Script Controller — custom code")
+				lines.append("\tif controller_active:")
+				lines.append(controller_brick.get_script_body())
+				lines.append("\t")
+				lines.append("\t# Actuator Sensor flags")
+				for actuator_data in actuators:
+					var inst_name = actuator_data.get("instance_name", "")
+					if not inst_name.is_empty():
+						lines.append("\tif controller_active:")
+						lines.append("\t\t_actuator_active_flags[\"%s\"] = true" % inst_name)
+						lines.append("\telse:")
+						lines.append("\t\t_actuator_active_flags[\"%s\"] = false" % inst_name)
+				return "\n".join(lines)
+			
+			# ── Standard Controller ─────────────────────────────────────────────
 			# Determine logic mode from properties, fall back to class name for legacy bricks
 			var logic_mode = "and"
 			if controller_brick.properties.has("logic_mode"):
@@ -779,17 +802,26 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 
 
 ## Check if a chain is complete enough to generate code for
-## Requires at least one sensor, one controller, and one actuator
+## Requires at least one sensor and one controller.
+## ScriptController chains do not require actuators; all others do.
 func _chain_is_complete(chain: Dictionary) -> bool:
 	if chain.get("sensors", []).is_empty():
 		return false
-	if chain.get("actuators", []).is_empty():
-		return false
+
 	var controllers = chain.get("controllers", [])
+	# Legacy: try singular key
 	if controllers.is_empty():
-		# Legacy: try singular key
 		if not chain.has("controller") or chain.get("controller") == null:
 			return false
+
+	# ScriptController chains don't require actuators
+	var is_script_controller = false
+	if controllers.size() > 0:
+		is_script_controller = controllers[0].get("type", "") == "ScriptController"
+
+	if not is_script_controller and chain.get("actuators", []).is_empty():
+		return false
+
 	return true
 
 
@@ -855,6 +887,8 @@ func _get_brick_script_path(brick_type: String) -> String:
 			return "res://addons/logic_bricks/bricks/sensors/3d/collision_sensor.gd"
 		"ANDController", "Controller":
 			return "res://addons/logic_bricks/bricks/controllers/controller.gd"
+		"ScriptController":
+			return "res://addons/logic_bricks/bricks/controllers/script_controller.gd"
 		"MotionActuator":
 			return "res://addons/logic_bricks/bricks/actuators/3d/motion_actuator.gd"
 		"LocationActuator":
@@ -967,6 +1001,8 @@ func _get_brick_script_path(brick_type: String) -> String:
 			return "res://addons/logic_bricks/bricks/actuators/3d/object_pool_actuator.gd"
 		"ANDController", "Controller":
 			return "res://addons/logic_bricks/bricks/controllers/controller.gd"
+		"ScriptController":
+			return "res://addons/logic_bricks/bricks/controllers/script_controller.gd"
 	return ""
 
 
