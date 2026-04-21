@@ -95,14 +95,16 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("\t\t%s = false" % msg_pending_var)
 		code_lines.append("\t\t%s = 0.0" % msg_timer_var)
 	else:
-		# Immediate path: latch true once message received, stays true each frame
+		# Immediate path: fire for one frame then clear (pulse, not latch)
 		code_lines.append("var sensor_active = %s" % msg_received_var)
+		code_lines.append("%s = false" % msg_received_var)
 
-	# Generate the message handler method
+	# Generate the message handler method (name is chain-scoped to avoid duplicates)
+	var handler_name = "_on_message_received_%s" % chain_name
 	var handler_code: Array[String] = []
 	handler_code.append("")
 	handler_code.append("# Message handler method (called by Message Actuator)")
-	handler_code.append("func _on_message_received(subject: String, body: String, sender: Node) -> void:")
+	handler_code.append("func %s(subject: String, body: String, sender: Node) -> void:" % handler_name)
 
 	match match_mode:
 		"exact":
@@ -131,7 +133,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var result = {
 		"sensor_code": "\n".join(code_lines),
 		"methods": ["\n".join(handler_code)],
-		"ready_code": ready_code
+		"ready_code": ready_code,
+		# Contributes one call line to the shared _on_message_received dispatcher
+		# assembled by the manager. Using a dedicated key avoids the duplicate-
+		# function error that occurs when two chains each try to emit the full method.
+		"message_handler_calls": ["%s(subject, body, sender)" % handler_name]
 	}
 
 	if member_vars.size() > 0:

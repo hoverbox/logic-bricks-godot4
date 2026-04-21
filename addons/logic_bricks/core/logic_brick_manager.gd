@@ -225,6 +225,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	var post_process_code: Array[String] = []
 	var extra_methods: Array[String] = []
 	var input_handler_bodies: Array[String] = []  # Body lines for shared _input()
+	var message_handler_calls: Array[String] = []  # Call lines for shared _on_message_received()
 	
 	# Check if any actuator has an instance name — if so, we need the flags dict
 	# and must clear it at the start of every frame so stale values don't linger.
@@ -267,7 +268,8 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 								this_chain_resets.append(reset)
 				if generated.has("ready_code"):
 					for rc in generated["ready_code"]:
-						ready_code.append(rc)
+						if rc not in ready_code:
+							ready_code.append(rc)
 				if generated.has("pre_process_code"):
 					for pc in generated["pre_process_code"]:
 						if pc not in pre_process_code:
@@ -284,6 +286,10 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 								input_handler_bodies.append(_body)
 						elif method not in extra_methods:
 							extra_methods.append(method)
+				if generated.has("message_handler_calls"):
+					for call_line in generated["message_handler_calls"]:
+						if call_line not in message_handler_calls:
+							message_handler_calls.append(call_line)
 		
 		# Collect from actuators (they can also have member vars like RNG instances)
 		for actuator_data in chain.get("actuators", []):
@@ -301,7 +307,8 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 								this_chain_resets.append(reset)
 				if generated.has("ready_code"):
 					for rc in generated["ready_code"]:
-						ready_code.append(rc)
+						if rc not in ready_code:
+							ready_code.append(rc)
 				if generated.has("pre_process_code"):
 					for pc in generated["pre_process_code"]:
 						if pc not in pre_process_code:
@@ -588,6 +595,15 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		for _body_block in input_handler_bodies:
 			for _body_line in _body_block.split("\n"):
 				code_lines.append(_body_line)
+		code_lines.append("")
+	
+	# Emit single _on_message_received dispatcher that forwards to each chain's
+	# scoped handler. This avoids duplicate-function errors when multiple Message
+	# Sensors are present on the same node.
+	if message_handler_calls.size() > 0:
+		code_lines.append("func _on_message_received(subject: String, body: String, sender: Node) -> void:")
+		for call_line in message_handler_calls:
+			code_lines.append("\t" + call_line)
 		code_lines.append("")
 	
 	# Append extra methods (e.g. message handlers)
