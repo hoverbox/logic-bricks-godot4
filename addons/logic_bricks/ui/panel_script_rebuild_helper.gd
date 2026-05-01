@@ -25,6 +25,7 @@ const META_ACTUATOR_PREFIX := "# LB_META_ACTUATOR "
 const META_SENSOR_PREFIX_B64 := "# LB_META_SENSOR_B64 "
 const META_CONTROLLER_PREFIX_B64 := "# LB_META_CONTROLLER_B64 "
 const META_ACTUATOR_PREFIX_B64 := "# LB_META_ACTUATOR_B64 "
+const REBUILD_BLOB_PREFIX := "const _LOGIC_BRICKS_REBUILD_B64 := \"\"\""
 
 ## Column X positions for a clean Sensor | Controller | Actuator layout
 const COL_SENSOR     := 50.0
@@ -196,7 +197,12 @@ func rebuild_from_script() -> void:
 		return
 
 	# ── 3. Parse the block into chain descriptors ─────────────────────────────
-	var chain_descs: Array[Dictionary] = _parse_chains(block)
+	var rebuild_chains := _extract_rebuild_blob(block)
+	var chain_descs: Array[Dictionary] = []
+	if not rebuild_chains.is_empty():
+		chain_descs = _descs_from_exact_chains(rebuild_chains)
+	else:
+		chain_descs = _parse_chains(block)
 	if chain_descs.is_empty():
 		push_warning(
 			"Logic Bricks (ScriptRebuild): No _logic_brick_* functions found in the "
@@ -242,6 +248,59 @@ func _extract_generated_block(source: String) -> String:
 		return ""
 	var after_start := start_pos + CODE_START_MARKER.length()
 	return source.substr(after_start, end_pos - after_start)
+
+
+func _extract_rebuild_blob(block: String) -> Array:
+	var start := block.find(REBUILD_BLOB_PREFIX)
+	if start == -1:
+		return []
+	var payload_start := start + REBUILD_BLOB_PREFIX.length()
+	var end := block.find('"""', payload_start)
+	if end == -1:
+		return []
+	var payload := block.substr(payload_start, end - payload_start).strip_edges()
+	payload = payload.replace("\n", "").replace("\r", "").replace("\t", "").replace(" ", "")
+	if payload.is_empty():
+		return []
+	var bytes := Marshalls.base64_to_raw(payload)
+	if bytes.is_empty():
+		return []
+	var parsed = bytes_to_var(bytes)
+	return parsed if parsed is Array else []
+
+
+func _descs_from_exact_chains(chains: Array) -> Array[Dictionary]:
+	var descs: Array[Dictionary] = []
+	for chain_data in chains:
+		if not (chain_data is Dictionary):
+			continue
+		var sensors_info: Array = []
+		for sensor_data in chain_data.get("sensors", []):
+			if sensor_data is Dictionary:
+				sensors_info.append(_brick_info_from_meta(sensor_data, "AlwaysSensor"))
+		var controller_info: Dictionary = {}
+		var controllers = chain_data.get("controllers", [])
+		if controllers is Array and controllers.size() > 0 and controllers[0] is Dictionary:
+			controller_info = _brick_info_from_meta(controllers[0], "ANDController")
+		var actuator_infos: Array = []
+		for actuator_data in chain_data.get("actuators", []):
+			if actuator_data is Dictionary:
+				actuator_infos.append(_brick_info_from_meta(actuator_data, "MotionActuator"))
+		var ctrl_class := str(controller_info.get("class", ""))
+		var ctrl_props: Dictionary = controller_info.get("properties", {}) if controller_info.get("properties", {}) is Dictionary else {}
+		descs.append({
+			"name": str(chain_data.get("name", "")),
+			"is_script_ctrl": ctrl_class == "ScriptController",
+			"script_path": str(ctrl_props.get("script_path", "")),
+			"logic_mode": str(ctrl_props.get("logic_mode", "and")),
+			"sensor_count": sensors_info.size(),
+			"sensor_infos": sensors_info,
+			"all_states": bool(ctrl_props.get("all_states", false)),
+			"state_id": str(ctrl_props.get("state_id", "")),
+			"controller_meta": controller_info,
+			"actuator_classes": actuator_infos,
+		})
+	return descs
 
 
 ## Parse the generated block and return one descriptor per chain.

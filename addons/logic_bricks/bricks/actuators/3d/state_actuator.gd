@@ -37,7 +37,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("push_warning(\"State Actuator requires a state selection.\")")
 	else:
 		code_lines.append("# Set logic brick state")
-		code_lines.append("_logic_brick_state = %s" % _gdscript_string_literal(state_id))
+		code_lines.append("_logic_brick_set_state(%s)" % _gdscript_string_literal(state_id))
 
 	return {
 		"actuator_code": "\n".join(code_lines)

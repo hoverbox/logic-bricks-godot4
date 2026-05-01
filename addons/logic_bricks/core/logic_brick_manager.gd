@@ -495,6 +495,9 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		for mv in member_vars:
 			code_lines.append(mv)
 		code_lines.append("")
+
+	_append_rebuild_blob(code_lines, chains)
+	code_lines.append("")
 	
 	# Generate _ready() function
 	# Collect export validation checks from member vars
@@ -555,6 +558,30 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	code_lines.append("func _logic_brick_get_state_signature() -> String:")
 	code_lines.append("	return _logic_brick_state")
 	code_lines.append("")
+	code_lines.append("func _logic_brick_set_state(new_state: String) -> void:")
+	code_lines.append("\tif _logic_brick_state == new_state:")
+	code_lines.append("\t\treturn")
+	code_lines.append("\t_logic_brick_state = new_state")
+	code_lines.append("\t_on_logic_brick_state_enter(new_state)")
+	code_lines.append("")
+	code_lines.append("func _on_logic_brick_state_enter(state_id: String) -> void:")
+	var _has_state_body := false
+	for _chain_name in chain_member_vars:
+		var _resets: Array = chain_member_vars[_chain_name]
+		var _setups: Array = chain_setup_calls.get(_chain_name, [])
+		if _resets.is_empty() and _setups.is_empty():
+			continue
+		if not _has_state_body:
+			_has_state_body = true
+		code_lines.append("\tif state_id == %s:" % _gdscript_string_literal(_chain_name))
+		for _reset_line in _resets:
+			code_lines.append("\t\t" + _reset_line)
+		for _setup_call in _setups:
+			code_lines.append("\t\t" + _setup_call)
+	if not _has_state_body:
+		code_lines.append("\tpass")
+	code_lines.append("")
+
 
 	# Pre-generate all chain functions — this is the single source of truth for
 	# whether a chain produces valid output. Calls are only emitted if the function
@@ -595,7 +622,11 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			code_lines.append("	")
 		var has_any_process_chain = false
 		for chain in chains:
-			if generated_chain_functions.has(chain["name"]) and not _chain_needs_physics_process(chain):
+			if generated_chain_functions.has(chain["name"]) and not _chain_needs_physics_process(chain) and _chain_is_state_transition_only(chain):
+				code_lines.append("	_logic_brick_%s(delta)" % chain["name"])
+				has_any_process_chain = true
+		for chain in chains:
+			if generated_chain_functions.has(chain["name"]) and not _chain_needs_physics_process(chain) and not _chain_is_state_transition_only(chain):
 				code_lines.append("	_logic_brick_%s(delta)" % chain["name"])
 				has_any_process_chain = true
 		if not has_any_process_chain:
@@ -609,6 +640,10 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	if has_physics_process:
 		code_lines.append("func _physics_process(delta: float) -> void:")
 		var has_any_physics_chain = false
+		for chain in chains:
+			if generated_chain_functions.has(chain["name"]) and not _chain_needs_physics_process(chain) and _chain_is_state_transition_only(chain):
+				code_lines.append("	_logic_brick_%s(delta)" % chain["name"])
+				has_any_physics_chain = true
 		for chain in chains:
 			if generated_chain_functions.has(chain["name"]) and _chain_needs_physics_process(chain):
 				code_lines.append("	_logic_brick_%s(delta)" % chain["name"])
@@ -719,7 +754,6 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 		if sensor_brick:
 			var generated = sensor_brick.generate_code(node, chain_name)
 			if generated.has("sensor_code"):
-				lines.append("\t" + _rebuild_meta_comment("SENSOR", sensor_data))
 				var sensor_code = generated["sensor_code"]
 				# Use instance name if available, otherwise use index
 				var instance_name = sensor_data.get("instance_name", "")
@@ -759,9 +793,6 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 	# Generate controller code
 	lines.append("\t")
 	lines.append("\t# Controller logic")
-	if controller_data:
-		lines.append("\t" + _rebuild_meta_comment("CONTROLLER", controller_data))
-	
 	if controller_data:
 		var controller_brick = _instantiate_brick(controller_data)
 		if controller_brick:
@@ -812,16 +843,18 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 						condition = "(" + " + ".join(int_vars) + ") == 1"
 					_:  # "and" and default
 						condition = " and ".join(sensor_vars)
+				condition = state_condition + " and (" + condition + ")" if sensor_vars.size() > 0 else state_condition
 				lines.append("\tvar controller_active = " + condition)
 			else:
-				lines.append("\tvar controller_active = false")
+				lines.append("\tvar controller_active = " + state_condition)
 	else:
-		# No controller - default to AND logic
+		# No controller - default to AND logic plus state gating
 		if sensor_vars.size() > 0:
 			var condition = " and ".join(sensor_vars)
+			condition = state_condition + " and (" + condition + ")"
 			lines.append("\tvar controller_active = " + condition)
 		else:
-			lines.append("\tvar controller_active = false")
+			lines.append("\tvar controller_active = " + state_condition)
 	
 	# Generate actuator code for ALL actuators
 	lines.append("\t")
@@ -837,7 +870,6 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 			if actuator_brick:
 				var generated = actuator_brick.generate_code(node, chain_name)
 				if generated.has("actuator_code"):
-					lines.append("\t\t" + _rebuild_meta_comment("ACTUATOR", actuator_data))
 					var actuator_code = generated["actuator_code"]
 					var code_lines_array = actuator_code.split("\n")
 					for code_line in code_lines_array:
@@ -871,18 +903,22 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 
 
 
-func _rebuild_meta_comment(kind: String, brick_data: Dictionary) -> String:
-	# Store the exact brick payload next to the generated code. Encode it onto a
-	# single line so the injected metadata always remains a valid GDScript comment.
-	var payload := {
-		"type": str(brick_data.get("type", "")),
-		"instance_name": str(brick_data.get("instance_name", "")),
-		"debug_enabled": bool(brick_data.get("debug_enabled", false)),
-		"debug_message": str(brick_data.get("debug_message", "")),
-		"properties": brick_data.get("properties", {}).duplicate(true) if brick_data.get("properties", {}) is Dictionary else {}
-	}
+func _append_rebuild_blob(code_lines: Array[String], chains: Array) -> void:
+	# Keep rebuild metadata in one compact top-level blob instead of injecting long
+	# per-function comments throughout the generated code. This keeps the script
+	# readable while still allowing exact rebuild of every brick.
+	var payload: Array = []
+	for chain in chains:
+		payload.append(chain.duplicate(true))
 	var payload_b64 := Marshalls.raw_to_base64(var_to_bytes(payload))
-	return "# LB_META_%s_B64 %s" % [kind, payload_b64]
+	code_lines.append('const _LOGIC_BRICKS_REBUILD_B64 := """')
+	var chunk_size := 96
+	var i := 0
+	while i < payload_b64.length():
+		var next_i := mini(i + chunk_size, payload_b64.length())
+		code_lines.append(payload_b64.substr(i, next_i - i))
+		i = next_i
+	code_lines.append('"""')
 
 func _gdscript_string_literal(value: String) -> String:
 	return '"%s"' % value.c_escape()
@@ -946,6 +982,15 @@ func _chain_needs_physics_process(chain: Dictionary) -> bool:
 			return true
 	return false
 
+
+func _chain_is_state_transition_only(chain: Dictionary) -> bool:
+	var actuators = chain.get("actuators", [])
+	if actuators.is_empty():
+		return false
+	for actuator_data in actuators:
+		if actuator_data.get("type", "") != "StateActuator":
+			return false
+	return true
 
 ## Returns true if this chain mixes physics actuators (Force/Torque/Impulse/LinearVelocity)
 ## with non-physics actuators. Such chains run in _physics_process, which is wrong timing

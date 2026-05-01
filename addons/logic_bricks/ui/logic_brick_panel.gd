@@ -225,6 +225,8 @@ func _create_add_menu() -> void:
 	add_menu.add_item("Reroute", 3)
 	add_menu.add_separator()
 	add_menu.add_item("Rebuild from Script", 5)
+	add_menu.add_separator()
+	add_menu.add_item("🗑 Clear Bricks", 6)
 	add_menu.id_pressed.connect(_on_main_menu_id_pressed)
 	
 	# Populate Sensors submenu (alphabetical order)
@@ -947,7 +949,7 @@ func _get_default_states() -> Array[Dictionary]:
 	]
 
 
-func _load_states_from_metadata() -> void:
+func _load_states_from_metadata(suppress_graph_save: bool = false) -> void:
 	states_data.clear()
 	if current_node and current_node.has_meta("logic_bricks_states"):
 		var saved = current_node.get_meta("logic_bricks_states")
@@ -956,7 +958,15 @@ func _load_states_from_metadata() -> void:
 				states_data.append(state_data.duplicate(true))
 	if states_data.is_empty():
 		states_data = _get_default_states()
-		_save_states_to_metadata()
+		# Guard: do not flush a stale graph_edit into this node's metadata when
+		# called before _load_graph_from_metadata has had a chance to clear and
+		# repopulate the canvas (e.g. during a node-selection switch).
+		if not suppress_graph_save:
+			_save_states_to_metadata()
+		else:
+			# Persist only the default states; skip the graph flush.
+			if current_node and is_instance_valid(current_node):
+				current_node.set_meta("logic_bricks_states", states_data.duplicate(true))
 	_refresh_states_ui()
 	_refresh_brick_state_ui()
 
@@ -1062,6 +1072,10 @@ func set_selected_node(node: Node) -> void:
 	if is_locked:
 		return
 	
+	# No-op if the same node is re-selected (avoids a spurious save+reload cycle)
+	if node == current_node:
+		return
+	
 	# Reset instance override when switching nodes
 	_instance_override = false
 	_hide_instance_panel()
@@ -1117,8 +1131,11 @@ func _update_ui() -> void:
 	if _instructions_label:
 		_instructions_label.visible = false
 	
-	# Load states before building graph UI so state dropdowns have options immediately
-	_load_states_from_metadata()
+	# Load states before building graph UI so state dropdowns have options immediately.
+	# Pass suppress_graph_save=true so that writing default states for a freshly-selected
+	# node does NOT trigger a graph flush while graph_edit still holds the previous
+	# node's bricks (the canvas is cleared and repopulated by _load_graph_from_metadata below).
+	_load_states_from_metadata(true)
 	await _load_graph_from_metadata()
 	_frames_helper.load_frames_from_metadata(self)
 	_load_variables_from_metadata()
@@ -1376,7 +1393,10 @@ func _load_graph_from_metadata() -> void:
 		pass  #print("Logic Bricks: No saved graph data for %s" % (current_node.name if current_node else "null"))
 		return
 	
-	var graph_data = current_node.get_meta("logic_bricks_graph")
+	# Snapshot the node we are loading for — current_node may change during the
+	# await below if the user clicks another node while this coroutine is suspended.
+	var _loading_for_node = current_node
+	var graph_data = _loading_for_node.get_meta("logic_bricks_graph")
 	#print("Logic Bricks: Loading %d nodes and %d connections for %s" % [graph_data.get("nodes", []).size(), graph_data.get("connections", []).size(), current_node.name])
 	
 	# Restore nodes
@@ -1385,6 +1405,16 @@ func _load_graph_from_metadata() -> void:
 	
 	# Restore connections (must happen after all nodes are created)
 	await get_tree().process_frame
+
+	# If the user switched nodes while we were suspended, discard this load —
+	# the new set_selected_node call will handle the correct node's graph.
+	if current_node != _loading_for_node:
+		graph_edit.clear_connections()
+		for child in graph_edit.get_children():
+			if child is GraphNode:
+				child.queue_free()
+		return
+
 	for conn in graph_data.get("connections", []):
 		pass  #print("Logic Bricks: Restoring connection: %s:%d -> %s:%d" % [conn["from_node"], conn["from_port"], conn["to_node"], conn["to_port"]])
 		graph_edit.connect_node(conn["from_node"], conn["from_port"], conn["to_node"], conn["to_port"])
@@ -1436,6 +1466,52 @@ func _on_main_menu_id_pressed(id: int) -> void:
 		_open_search_popup(add_menu.position)
 	elif id == 5:
 		_on_rebuild_from_script_pressed()
+	elif id == 6:
+		_on_clear_bricks_pressed()
+
+
+func _on_clear_bricks_pressed() -> void:
+	if not current_node:
+		return
+
+	# Confirm before wiping — this is destructive and not undo-able via the
+	# standard undo stack (metadata removal is not tracked by UndoRedo).
+	var confirm = ConfirmationDialog.new()
+	confirm.title = "Clear Bricks"
+	confirm.dialog_text = "Remove all bricks from \"%s\"?\n\nThis cannot be undone." % current_node.name
+	confirm.ok_button_text = "Clear"
+	add_child(confirm)
+	confirm.popup_centered()
+
+	await confirm.confirmed
+	confirm.queue_free()
+
+	if not current_node or not is_instance_valid(current_node):
+		return
+
+	# Clear the visual canvas
+	var before_snapshot = _take_graph_snapshot()
+	graph_edit.clear_connections()
+	for child in graph_edit.get_children():
+		if child is GraphNode:
+			child.queue_free()
+	await get_tree().process_frame
+
+	# Remove all logic-brick metadata keys from the node
+	for key in ["logic_bricks", "logic_bricks_graph", "logic_bricks_states",
+				"logic_bricks_variables", "logic_bricks_global_usage"]:
+		if current_node.has_meta(key):
+			current_node.remove_meta(key)
+
+	# Persist the now-empty graph so downstream saves don't resurrect old data
+	_save_graph_to_metadata()
+	_mark_scene_modified()
+
+	# Reset state UI to defaults
+	_load_states_from_metadata(true)
+	_load_variables_from_metadata()
+
+	push_warning("Logic Bricks: All bricks cleared from '%s'. Script markers remain — remove them manually if needed." % current_node.name)
 
 
 func _open_search_popup(screen_pos: Vector2, initial_text: String = "") -> void:
