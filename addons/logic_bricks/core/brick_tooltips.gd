@@ -326,6 +326,16 @@ const TOOLTIPS = {
 		"integer_only": "If true, only generate whole numbers.",
 	},
 	
+	"PreloadActuator": {
+		"_description": "Preloads resources (materials, scenes, textures, audio, meshes) into memory before they are needed, preventing runtime hitches and frame drops.",
+		"load_mode": "Background: loads on a thread without blocking gameplay (recommended).\nImmediate: blocks the main thread until done — use only on loading screens.",
+		"resource_type": "Filter hint for the file picker. Choose 'Any' to mix resource types freely.",
+		"resources": "List of resource paths to preload. Add as many as needed.",
+		"on_complete_signal": "When all resources finish loading, send a message to a group. Useful to hide loading screens or trigger the next event.",
+		"signal_group": "The node group that will receive the completion message.",
+		"signal_message": "The message string sent to the group when loading is complete.",
+	},
+
 	"SaveLoadActuator": {
 		"_description": "Saves or loads game state to/from a JSON file.\nThree scopes — no custom save()/load() methods needed on any node.\n• This Node: saves the node this brick is on\n• Target Node: saves a specific node found by name\n• Group: saves every node in a named group",
 		"mode": "Save: write data to file. Load: read data from file.",

@@ -2,9 +2,9 @@
 
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Sound Actuator - Play, stop, pause, and fade audio
-## Supports positional 3D audio, random pitch variation, audio buses,
-## and multiple play modes (restart, overlap, or ignore if playing)
+## Sound Actuator - Play, stop, pause, and fade audio from a file
+## Creates and manages its own AudioStreamPlayer / AudioStreamPlayer3D at runtime
+## No @export variables needed on the target node
 
 
 func _init() -> void:
@@ -15,13 +15,13 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"sound_file": "",           # Path to audio file
 		"mode": "play",             # play, stop, pause, fade_in, fade_out
-		"volume": 0.0,              # Volume in dB (-80 to 24)
-		"pitch": 1.0,               # Pitch scale (0.01 to 4.0)
-		"pitch_random": 0.0,        # Random pitch variation (+/- this amount)
+		"sound_file": "",           # File path to the audio stream
+		"volume": 0.0,              # dB
+		"pitch": 1.0,               # Pitch scale
+		"pitch_random": 0.0,        # Random pitch range (+/-)
 		"loop": false,              # Loop the sound
-		"positional": false,        # Use 3D positional audio (AudioStreamPlayer3D)
+		"positional": false,        # Use AudioStreamPlayer3D if true
 		"play_mode": "restart",     # restart, overlap, ignore
 		"audio_bus": "",            # Audio bus name (empty = Master)
 		"fade_duration": 1.0,       # Duration for fade_in / fade_out in seconds
@@ -107,18 +107,17 @@ func get_property_definitions() -> Array:
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = properties.get("mode", "play")
-	var sound_file = properties.get("sound_file", "")
-	var volume = properties.get("volume", 0.0)
-	var pitch = properties.get("pitch", 1.0)
-	var pitch_random = properties.get("pitch_random", 0.0)
-	var loop = properties.get("loop", false)
-	var positional = properties.get("positional", false)
-	var play_mode = properties.get("play_mode", "restart")
-	var audio_bus = properties.get("audio_bus", "")
-	var fade_duration = properties.get("fade_duration", 1.0)
-	var min_delay = properties.get("min_delay", 0.0)
+	var sound_file = str(properties.get("sound_file", ""))
+	var volume = float(properties.get("volume", 0.0))
+	var pitch = float(properties.get("pitch", 1.0))
+	var pitch_random = float(properties.get("pitch_random", 0.0))
+	var loop = bool(properties.get("loop", false))
+	var positional = bool(properties.get("positional", false))
+	var play_mode = str(properties.get("play_mode", "restart"))
+	var audio_bus = str(properties.get("audio_bus", ""))
+	var fade_duration = float(properties.get("fade_duration", 1.0))
+	var min_delay = float(properties.get("min_delay", 0.0))
 
-	# Normalize enums
 	if typeof(mode) == TYPE_STRING:
 		mode = mode.to_lower().replace(" ", "_")
 	if typeof(play_mode) == TYPE_STRING:
@@ -135,10 +134,23 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var fade_var = "_audio_fading_%s" % chain_name
 	var last_play_time_var = "_audio_last_play_%s" % chain_name
 
-	# Always declare the player var for stop/pause/fade to reference
+	var stream_setup_lines := func(target_var: String, indent: String = "") -> Array[String]:
+		var lines: Array[String] = []
+		lines.append("%svar _audio_stream = load(\"%s\")" % [indent, sound_file])
+		lines.append("%sif _audio_stream:" % indent)
+		lines.append("%s\t_audio_stream = _audio_stream.duplicate(true)" % indent)
+		if loop:
+			lines.append("%s\tif _audio_stream is AudioStreamWAV:" % indent)
+			lines.append("%s\t\t_audio_stream.loop_mode = AudioStreamWAV.LOOP_FORWARD" % indent)
+			lines.append("%s\telif _audio_stream is AudioStreamOggVorbis or _audio_stream is AudioStreamMP3:" % indent)
+			lines.append("%s\t\t_audio_stream.loop = true" % indent)
+		lines.append("%s\t%s.stream = _audio_stream" % [indent, target_var])
+		lines.append("%selse:" % indent)
+		lines.append("%s\tpush_warning(\"Sound: Failed to load sound file: %s\")" % [indent, sound_file])
+		return lines
+
 	member_vars.append("var %s: %s = null" % [player_var, player_type])
-	
-	# Add delay timer if min_delay is set
+
 	if min_delay > 0.0:
 		member_vars.append("var %s: float = 0.0" % last_play_time_var)
 
@@ -147,60 +159,45 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if sound_file.is_empty():
 				code_lines.append("pass  # No sound file set")
 			else:
-				# Check delay timer if min_delay is set
-				var indent = ""  # Declare indent before if/else
+				var indent = ""
 				if min_delay > 0.0:
 					code_lines.append("# Check minimum delay between plays")
 					code_lines.append("var _current_time = Time.get_ticks_msec() / 1000.0")
 					code_lines.append("if _current_time - %s >= %.3f:" % [last_play_time_var, min_delay])
 					code_lines.append("\t%s = _current_time" % last_play_time_var)
-					# Indent all the following play code
 					indent = "\t"
-				
-				# Helper to create and configure the player
+
 				code_lines.append("%s# Sound actuator - Play" % indent)
 				code_lines.append("%sif %s == null:" % [indent, player_var])
 				code_lines.append("%s\t%s = %s.new()" % [indent, player_var, player_type])
 				code_lines.append("%s\tadd_child(%s)" % [indent, player_var])
-				code_lines.append("%s\t%s.stream = load(\"%s\")" % [indent, player_var, sound_file])
-
-				if loop:
-					code_lines.append("%s\tif %s.stream is AudioStreamWAV:" % [indent, player_var])
-					code_lines.append("%s\t\t%s.stream.loop_mode = AudioStreamWAV.LOOP_FORWARD" % [indent, player_var])
-					code_lines.append("%s\telif %s.stream is AudioStreamOggVorbis:" % [indent, player_var])
-					code_lines.append("%s\t\t%s.stream.loop = true" % [indent, player_var])
+				code_lines.append_array(stream_setup_lines.call(player_var, "%s\t" % indent))
 
 				if not audio_bus.is_empty():
 					code_lines.append("%s\t%s.bus = \"%s\"" % [indent, player_var, audio_bus])
 
-				code_lines.append("%s" % indent)
-
-				# Volume
 				code_lines.append("%s%s.volume_db = %.2f" % [indent, player_var, volume])
 
-				# Pitch with optional random variation
 				if pitch_random > 0.0:
 					code_lines.append("%s%s.pitch_scale = %.2f + randf_range(-%.2f, %.2f)" % [indent, player_var, pitch, pitch_random, pitch_random])
 				else:
 					code_lines.append("%s%s.pitch_scale = %.2f" % [indent, player_var, pitch])
 
-				# Play modes
 				match play_mode:
 					"restart":
 						code_lines.append("%s%s.stop()" % [indent, player_var])
 						code_lines.append("%s%s.play()" % [indent, player_var])
 					"overlap":
-						# Create a fresh player each time for overlapping sounds
 						code_lines.append("%svar _overlap = %s.new()" % [indent, player_type])
 						code_lines.append("%sadd_child(_overlap)" % indent)
-						code_lines.append("%s_overlap.stream = %s.stream" % [indent, player_var])
+						code_lines.append("%s_overlap.stream = %s.stream.duplicate(true) if %s.stream else null" % [indent, player_var, player_var])
 						code_lines.append("%s_overlap.volume_db = %s.volume_db" % [indent, player_var])
 						code_lines.append("%s_overlap.pitch_scale = %s.pitch_scale" % [indent, player_var])
 						if not audio_bus.is_empty():
 							code_lines.append("%s_overlap.bus = \"%s\"" % [indent, audio_bus])
 						code_lines.append("%s_overlap.finished.connect(_overlap.queue_free)" % indent)
 						code_lines.append("%s_overlap.play()" % indent)
-					_:  # ignore_if_playing
+					_:
 						code_lines.append("%sif not %s.playing:" % [indent, player_var])
 						code_lines.append("%s\t%s.play()" % [indent, player_var])
 
@@ -225,12 +222,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("if %s == null:" % player_var)
 				code_lines.append("\t%s = %s.new()" % [player_var, player_type])
 				code_lines.append("\tadd_child(%s)" % player_var)
-				code_lines.append("\t%s.stream = load(\"%s\")" % [player_var, sound_file])
-				if loop:
-					code_lines.append("\tif %s.stream is AudioStreamWAV:" % player_var)
-					code_lines.append("\t\t%s.stream.loop_mode = AudioStreamWAV.LOOP_FORWARD" % player_var)
-					code_lines.append("\telif %s.stream is AudioStreamOggVorbis:" % player_var)
-					code_lines.append("\t\t%s.stream.loop = true" % player_var)
+				code_lines.append_array(stream_setup_lines.call(player_var, "\t"))
 				if not audio_bus.is_empty():
 					code_lines.append("\t%s.bus = \"%s\"" % [player_var, audio_bus])
 

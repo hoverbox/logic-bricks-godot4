@@ -119,7 +119,13 @@ func deserialize(data: Dictionary) -> void:
 	if data.has("debug_message"):
 		debug_message = data["debug_message"]
 	if data.has("properties"):
-		properties = data["properties"].duplicate()
+		# Merge saved properties over the initialized defaults rather than replacing
+		# the whole dict. This prevents stale saved data (e.g. a scene file that was
+		# written before a new property was added) from silently discarding keys that
+		# _initialize_properties() just set — most critically, it stops an old saved
+		# mode = "restart" from overwriting a freshly-set mode = "set_scene".
+		for key in data["properties"]:
+			properties[key] = data["properties"][key]
 
 
 ## Generate the GDScript code for this brick in a chain

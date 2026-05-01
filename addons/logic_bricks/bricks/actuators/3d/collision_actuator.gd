@@ -4,11 +4,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Collision Actuator - Modify collision properties at runtime
 ## Can enable/disable CollisionShape3D nodes, set collision layer/mask bits,
-## and toggle Area3D monitoring. Target node is assigned via @export (drag and drop in inspector).
-##
-## NOTE: Area3D can detect PhysicsBody3D nodes (CharacterBody3D, RigidBody3D, etc.)
-## without requiring an Area3D on the other object. Ensure the Area3D's collision
-## MASK includes the layer the player's body is on.
+## and toggle Area3D monitoring. Target node is found by name via find_child().
 
 
 # Maps enum index -> internal action key.
@@ -31,6 +27,8 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
+		# Name of the target node (Area3D or CollisionShape3D) to look up via find_child()
+		"target_node_name": "",
 		# Stored as an int index matching ACTION_KEYS / hint_string order.
 		"action": 0,
 		# Layer/mask number (1-32) for set_layer_bit / set_mask_bit
@@ -42,6 +40,11 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
+		{
+			"name": "target_node_name",
+			"type": TYPE_STRING,
+			"default": ""
+		},
 		{
 			"name": "action",
 			"type": TYPE_INT,
@@ -64,6 +67,7 @@ func get_property_definitions() -> Array:
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
+	var target_node_name: String = properties.get("target_node_name", "")
 	var action_raw = properties.get("action", 0)
 	var layer_value = properties.get("layer_value", 1)
 	var bit_enabled: bool = properties.get("bit_enabled", true)
@@ -82,36 +86,28 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if typeof(layer_value) == TYPE_STRING:
 		layer_value = int(layer_value) if str(layer_value).is_valid_int() else 1
 
-	# Build a sanitized export label from the instance/brick name (same pattern as collision sensor)
-	var _export_label = instance_name if not instance_name.is_empty() else brick_name
-	_export_label = _export_label.to_lower().replace(" ", "_")
-	var _regex = RegEx.new()
-	_regex.compile("[^a-z0-9_]")
-	_export_label = _regex.sub(_export_label, "", true)
-	if _export_label.is_empty():
-		_export_label = chain_name
-
-	var node_var := "_%s" % _export_label
-	var temp_var := "_col_tgt_%s" % chain_name
+	# Use chain-scoped variable name to guarantee uniqueness even when multiple
+	# collision actuators exist on the same node.
+	var temp_var := "_col_act_tgt_%s" % chain_name
 
 	var member_vars: Array[String] = []
 	var code_lines: Array[String] = []
 
-	# Exported node reference — type is narrowed to match the action so the
-	# inspector only allows dragging in a compatible node.
-	var export_type: String
+	# Determine the expected node type for the warning message
+	var expected_type: String
 	match action:
 		"disable_shape", "enable_shape":
-			export_type = "CollisionShape3D"
+			expected_type = "CollisionShape3D"
 		"enable_monitoring", "disable_monitoring":
-			export_type = "Area3D"
-		_:  # set_layer_bit, set_mask_bit — base class, fall back to Node
-			export_type = "Node"
-	member_vars.append("@export var %s: %s" % [node_var, export_type])
+			expected_type = "Area3D"
+		_:
+			expected_type = "CollisionObject3D"
 
-	code_lines.append("var %s = %s" % [temp_var, node_var])
+	# Resolve the target node at runtime via find_child()
+	var quoted_name = "\"%s\"" % target_node_name
+	code_lines.append("var %s = find_child(%s, true, false)" % [temp_var, quoted_name])
 	code_lines.append("if %s == null:" % temp_var)
-	code_lines.append('\tpush_warning("CollisionActuator: no node assigned to \'%s\' — drag one into the Inspector")' % node_var)
+	code_lines.append("\tpush_warning(\"CollisionActuator: could not find node named '%s' under '\" + name + \"' (expected %s)\")" % [target_node_name, expected_type])
 	code_lines.append("else:")
 
 	match action:

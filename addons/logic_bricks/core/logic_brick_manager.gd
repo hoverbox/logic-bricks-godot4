@@ -4,6 +4,7 @@ extends RefCounted
 ## Manages logic brick chains and generates GDScript code
 
 const LogicBrick = preload("res://addons/logic_bricks/core/logic_brick.gd")
+const VariableUtils = preload("res://addons/logic_bricks/core/logic_brick_variable_utils.gd")
 
 ## Metadata key for storing brick chains
 const METADATA_KEY = "logic_bricks"
@@ -68,7 +69,19 @@ func remove_chain(node: Node, chain_index: int) -> void:
 func rename_chain(node: Node, chain_index: int, new_name: String) -> void:
 	var chains = get_chains(node)
 	if chain_index >= 0 and chain_index < chains.size():
-		chains[chain_index]["name"] = _sanitize_chain_name(new_name)
+		var sanitized = _sanitize_chain_name(new_name)
+		# If another chain already uses this sanitized name, make it unique by appending
+		# a numeric suffix — same strategy as _generate_unique_chain_name.
+		var other_chains: Array = []
+		for i in range(chains.size()):
+			if i != chain_index:
+				other_chains.append(chains[i])
+		var candidate = sanitized
+		var counter = 1
+		while _chain_name_exists(other_chains, candidate):
+			candidate = "%s_%d" % [sanitized, counter]
+			counter += 1
+		chains[chain_index]["name"] = candidate
 		save_chains(node, chains)
 		regenerate_script(node)
 
@@ -115,12 +128,14 @@ func regenerate_script(node: Node, variables_code: String = "") -> void:
 	# Generate the new logic bricks code
 	var generated_code = _generate_code_for_chains(node, chains, variables_code)
 	
-	# Get or create the script
-	var script_path = ""
-	if node.get_script():
-		script_path = node.get_script().resource_path
-	else:
-		script_path = _create_new_script(node)
+	# Only regenerate for nodes that already have a user-assigned script.
+	# This avoids silently attaching scripts to the wrong node when students
+	# accidentally build logic on an unscripted selection.
+	if not node.get_script():
+		push_warning("Logic Bricks: Node '%s' has no script. Add a script manually before applying Logic Bricks code." % node.name)
+		return
+	
+	var script_path = node.get_script().resource_path
 	
 	# Read existing script
 	var file = FileAccess.open(script_path, FileAccess.READ)
@@ -148,21 +163,104 @@ func regenerate_script(node: Node, variables_code: String = "") -> void:
 
 ## Generate code for all chains
 ## Generate variables code from node metadata (same format as panel's get_variables_code)
+func _read_global_vars_from_script() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var script_path = "res://addons/logic_bricks/global_vars.gd"
+	if not FileAccess.file_exists(script_path):
+		return result
+
+	# Use the GDScript API instead of hand-parsing the source text.
+	# get_script_property_list() is authoritative — it handles typed arrays,
+	# multi-line declarations, comments, and any other syntax the parser accepts.
+	var script = load(script_path)
+	if not script:
+		return result
+
+	# get_script_property_list() returns the properties defined directly on the
+	# script (not inherited ones), exactly what we need for global_vars.gd.
+	for prop in script.get_script_property_list():
+		var prop_name: String = prop["name"]
+		if prop_name.is_empty() or prop_name.begins_with("_") or prop_name.begins_with("@"):
+			continue
+		# Map Godot Variant type integers to the string type names the rest of the
+		# addon uses (e.g. "int", "float", "bool", "String").
+		var type_int: int = prop["type"]
+		var type_str: String = VariableUtils.gdscript_type_name_from_variant_type(type_int)
+		if type_str.is_empty():
+			continue  # Skip non-primitive types (Object refs, Arrays, etc.)
+		# Read the current default value from a temporary instance so we get the
+		# actual initialised value, not just a text representation.
+		var tmp = script.new()
+		var value = tmp.get(prop_name)
+		result.append({
+			"name": prop_name,
+			"type": type_str,
+			"value": str(value) if value != null else VariableUtils.get_default_value_for_variable_type(type_str)
+		})
+	return result
+
+
+func _get_selected_global_vars(node: Node) -> Array[Dictionary]:
+	var usage_map: Dictionary = {}
+	if node.has_meta("logic_bricks_global_usage"):
+		var usage = node.get_meta("logic_bricks_global_usage")
+		if usage is Dictionary:
+			usage_map = usage
+	if usage_map.is_empty():
+		return []
+
+	var globals_data: Array[Dictionary] = []
+	var scene_root = node.get_tree().edited_scene_root if node.get_tree() else null
+	if scene_root and scene_root.has_meta("logic_bricks_global_vars"):
+		var meta_globals = scene_root.get_meta("logic_bricks_global_vars")
+		if meta_globals is Array:
+			for var_data in meta_globals:
+				globals_data.append(var_data.duplicate())
+	if globals_data.is_empty():
+		globals_data = _read_global_vars_from_script()
+
+	var selected: Array[Dictionary] = []
+	for var_data in globals_data:
+		var gid = str(var_data.get("id", ""))
+		if not gid.is_empty() and bool(usage_map.get(gid, false)):
+			selected.append(var_data)
+	return selected
+
+
+func _get_default_value_for_variable_type(var_type: String) -> String:
+	return VariableUtils.get_default_value_for_variable_type(var_type)
+
+
+func _coerce_variable_value_for_type(value, var_type: String) -> String:
+	return VariableUtils.coerce_variable_value_for_type(value, var_type)
+
+
+func _to_gdscript_value_literal(value, var_type: String) -> String:
+	return VariableUtils.to_gdscript_value_literal(value, var_type)
+
+
 func _get_variables_code_from_metadata(node: Node) -> String:
-	if not node.has_meta("logic_bricks_variables"):
-		return ""
-	
-	var variables_data = node.get_meta("logic_bricks_variables")
-	if variables_data.is_empty():
-		return ""
-	
+	var variables_data = []
+	if node.has_meta("logic_bricks_variables"):
+		variables_data = node.get_meta("logic_bricks_variables")
+
+	var used_globals = _get_selected_global_vars(node)
 	var lines: Array[String] = []
+	var has_any_vars = false
+	for vd in variables_data:
+		if not vd.get("global", false) and not vd.get("name", "").is_empty():
+			has_any_vars = true
+			break
+	if not has_any_vars and not used_globals.is_empty():
+		has_any_vars = true
+	if not has_any_vars:
+		return ""
 	lines.append("# Variables")
 	
 	for var_data in variables_data:
 		var var_name = var_data.get("name", "")
-		var var_type = var_data.get("type", "float")
-		var var_value = var_data.get("value", "0.0")
+		var var_type = VariableUtils.normalize_type(str(var_data.get("type", "float")), "float")
+		var var_value = _to_gdscript_value_literal(var_data.get("value", _get_default_value_for_variable_type(var_type)), var_type)
 		var exported = var_data.get("exported", false)
 		var is_global = var_data.get("global", false)
 		
@@ -176,15 +274,7 @@ func _get_variables_code_from_metadata(node: Node) -> String:
 		var has_range = (var_type in ["int", "float"]) and (use_min or use_max)
 		
 		if is_global:
-			lines.append("var %s: %s:" % [var_name, var_type])
-			lines.append("\tget: return GlobalVars.%s" % var_name)
-			if has_range:
-				var clamp_fn = "clampi" if var_type == "int" else "clampf"
-				var lo = min_val if use_min else ("-9999999" if var_type == "int" else "-9999999.0")
-				var hi = max_val if use_max else ("9999999"  if var_type == "int" else "9999999.0")
-				lines.append("\tset(val): GlobalVars.%s = %s(val, %s, %s)" % [var_name, clamp_fn, lo, hi])
-			else:
-				lines.append("\tset(val): GlobalVars.%s = val" % var_name)
+			continue
 		elif has_range and exported:
 			var lo = min_val if use_min else ("-9999999" if var_type == "int" else "-9999999.0")
 			var hi = max_val if use_max else ("9999999"  if var_type == "int" else "9999999.0")
@@ -204,6 +294,29 @@ func _get_variables_code_from_metadata(node: Node) -> String:
 			declaration += "var %s: %s = %s" % [var_name, var_type, var_value]
 			lines.append(declaration)
 	
+	for var_data in used_globals:
+		var var_name = var_data.get("name", "")
+		var var_type = VariableUtils.normalize_type(str(var_data.get("type", "int")), "int")
+		var use_min = var_data.get("use_min", false)
+		var min_val = var_data.get("min_val", "0")
+		var use_max = var_data.get("use_max", false)
+		var max_val = var_data.get("max_val", "100")
+		if var_name.is_empty():
+			continue
+		lines.append("var %s: %s:" % [var_name, var_type])
+		lines.append("	get:")
+		lines.append("		var _gv = get_node_or_null(\"/root/GlobalVars\")")
+		lines.append("		return _gv.%s if _gv else null" % var_name)
+		lines.append("	set(val):")
+		lines.append("		var _gv = get_node_or_null(\"/root/GlobalVars\")")
+		if var_type in ["int", "float"] and (use_min or use_max):
+			var clamp_fn = "clampi" if var_type == "int" else "clampf"
+			var lo = min_val if use_min else ("-9999999" if var_type == "int" else "-9999999.0")
+			var hi = max_val if use_max else ("9999999" if var_type == "int" else "9999999.0")
+			lines.append("		if _gv: _gv.%s = %s(val, %s, %s)" % [var_name, clamp_fn, lo, hi])
+		else:
+			lines.append("		if _gv: _gv.%s = val" % var_name)
+
 	lines.append("")  # Empty line after variables
 	return "\n".join(lines)
 
@@ -211,15 +324,40 @@ func _get_variables_code_from_metadata(node: Node) -> String:
 func _generate_code_for_chains(node: Node, chains: Array, variables_code: String = "") -> String:
 	var code_lines: Array[String] = []
 	
+	# Normalize every chain name to its sanitized form before any code is emitted.
+	# This guards against hand-edited scene metadata, old saves, or two display names
+	# that collapse to the same identifier after sanitization (e.g. "my chain" / "my-chain"
+	# both become "my_chain"). We resolve collisions by appending a numeric suffix, mirroring
+	# _generate_unique_chain_name, but only touching duplicates — stable names stay stable.
+	var seen_sanitized: Dictionary = {}
+	for chain in chains:
+		var sanitized = _sanitize_chain_name(chain["name"])
+		if seen_sanitized.has(sanitized):
+			var counter: int = seen_sanitized[sanitized]
+			counter += 1
+			seen_sanitized[sanitized] = counter
+			sanitized = "%s_%d" % [sanitized, counter]
+		else:
+			seen_sanitized[sanitized] = 0
+		chain["name"] = sanitized
+	
 	# Add variables code first (if any)
 	if not variables_code.is_empty():
 		code_lines.append(variables_code)
 	
+	var states_data: Array = []
+	if node.has_meta("logic_bricks_states"):
+		var saved_states = node.get_meta("logic_bricks_states")
+		if saved_states is Array:
+			for state_data in saved_states:
+				states_data.append(state_data.duplicate(true))
+
 	# First pass: collect any member variables from all sensors AND actuators across all chains.
 	# These need to live at script scope (above the functions) because they persist across frames.
 	# Also collect per-chain member vars so we can reset them on state entry.
 	var member_vars: Array[String] = []
 	var chain_member_vars: Dictionary = {}  # chain_name -> Array[String] of reset lines
+	var chain_setup_calls: Dictionary = {}  # chain_name -> Array[String] of setup func calls (re-run on state enter)
 	var ready_code: Array[String] = []
 	var pre_process_code: Array[String] = []
 	var post_process_code: Array[String] = []
@@ -258,14 +396,26 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			if sensor_brick:
 				var generated = sensor_brick.generate_code(node, chain["name"])
 				if generated.has("member_vars"):
-					for mv in generated["member_vars"]:
-						if mv not in member_vars:
-							member_vars.append(mv)
-						# Only collect resets for state-specific chains
-						if not is_all_states_chain:
+					_append_member_var_items(member_vars, generated["member_vars"])
+					# Only collect resets for state-specific chains
+					if not is_all_states_chain:
+						for mv in generated["member_vars"]:
 							var reset = _member_var_to_reset(mv)
 							if not reset.is_empty() and reset not in this_chain_resets:
 								this_chain_resets.append(reset)
+					# Track setup helpers (e.g. _setup_collision_sensor_<chain>) so
+					# _on_logic_brick_state_enter can re-invoke them after state transitions,
+					# re-establishing Area3D refs and signal connections that would otherwise
+					# be lost if the area var was nulled on state entry.
+					if not is_all_states_chain:
+						for mv in generated["member_vars"]:
+							if mv.begins_with("func _setup_"):
+								var func_name = mv.replace("func ", "").split("(")[0].strip_edges()
+								var call_line = "%s()" % func_name
+								if not chain_setup_calls.has(chain["name"]):
+									chain_setup_calls[chain["name"]] = []
+								if call_line not in chain_setup_calls[chain["name"]]:
+									chain_setup_calls[chain["name"]].append(call_line)
 				if generated.has("ready_code"):
 					for rc in generated["ready_code"]:
 						if rc not in ready_code:
@@ -291,17 +441,29 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 						if call_line not in message_handler_calls:
 							message_handler_calls.append(call_line)
 		
+		# Collect from controllers — ScriptController emits a cached instance member var
+		# and ready_code to load it once. Standard controllers emit nothing here.
+		for controller_data in chain.get("controllers", []):
+			var controller_brick = _instantiate_brick(controller_data)
+			if controller_brick:
+				var generated = controller_brick.generate_code(node, chain["name"])
+				if generated.has("member_vars"):
+					_append_member_var_items(member_vars, generated["member_vars"])
+				if generated.has("ready_code"):
+					for rc in generated["ready_code"]:
+						if rc not in ready_code:
+							ready_code.append(rc)
+		
 		# Collect from actuators (they can also have member vars like RNG instances)
 		for actuator_data in chain.get("actuators", []):
 			var actuator_brick = _instantiate_brick(actuator_data)
 			if actuator_brick:
 				var generated = actuator_brick.generate_code(node, chain["name"])
 				if generated.has("member_vars"):
-					for mv in generated["member_vars"]:
-						if mv not in member_vars:
-							member_vars.append(mv)
-						# Only collect resets for state-specific chains
-						if not is_all_states_chain:
+					_append_member_var_items(member_vars, generated["member_vars"])
+					# Only collect resets for state-specific chains
+					if not is_all_states_chain:
+						for mv in generated["member_vars"]:
 							var reset = _member_var_to_reset(mv)
 							if not reset.is_empty() and reset not in this_chain_resets:
 								this_chain_resets.append(reset)
@@ -353,8 +515,9 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 				export_checks.append("if not %s:" % var_name)
 				export_checks.append("\tpush_warning(\"Logic Bricks: '%s' is not assigned! Drag a node into the inspector.\")" % label)
 	
-	if ready_code.size() > 0 or export_checks.size() > 0:
+	if ready_code.size() > 0 or export_checks.size() > 0 or true:
 		code_lines.append("func _ready() -> void:")
+		code_lines.append("	_logic_brick_init_states()")
 		# Defer export validation by one frame so all nodes are in the scene tree.
 		# Accessing @export node references before the tree is ready triggers
 		# "Cannot get path of node as it is not in a scene tree" errors.
@@ -373,43 +536,39 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			code_lines.append("\t" + rc)
 		code_lines.append("")
 	
-	# Add state variable and previous-state tracker for reset-on-enter
-	code_lines.append("# Logic brick state (1-30)")
-	code_lines.append("var _logic_brick_state: int = 1")
-	code_lines.append("var _logic_brick_prev_state: int = -1  # Used to detect state transitions")
+	# Runtime state
+	code_lines.append("var _logic_brick_state: String = \"\"")
 	code_lines.append("")
-	
-	# Group chains by state
-	# Chains with all_states=true are stored in all_state_chains and run in every state
-	var chains_by_state: Dictionary = {}
-	var all_state_chains: Array = []  # Chains that run in every state
-	for chain in chains:
-		var state = 1  # Default state
-		var is_all_states = false
-		
-		# Get state from controller
-		var controllers = chain.get("controllers", [])
-		if controllers.size() > 0:
-			var controller_data = controllers[0]
-			var controller_brick = _instantiate_brick(controller_data)
-			if controller_brick:
-				if controller_brick.properties.get("all_states", false):
-					is_all_states = true
-				elif controller_brick.properties.has("state"):
-					state = int(controller_brick.properties.get("state", 1))
-		
-		if is_all_states:
-			all_state_chains.append(chain)
-		else:
-			if not chains_by_state.has(state):
-				chains_by_state[state] = []
-			chains_by_state[state].append(chain)
-	
+	code_lines.append("func _logic_brick_init_states() -> void:")
+	if states_data.is_empty():
+		code_lines.append("	_logic_brick_state = \"\"")
+	else:
+		code_lines.append("	_logic_brick_state = %s" % _gdscript_string_literal(str(states_data[0].get("id", ""))))
+	code_lines.append("")
+	code_lines.append("func _logic_brick_chain_state_matches(state_id: String, all_states: bool = false) -> bool:")
+	code_lines.append("	if all_states:")
+	code_lines.append("		return true")
+	code_lines.append("	if state_id.is_empty():")
+	code_lines.append("		return true")
+	code_lines.append("	return _logic_brick_state == state_id")
+	code_lines.append("")
+	code_lines.append("func _logic_brick_get_state_signature() -> String:")
+	code_lines.append("	return _logic_brick_state")
+	code_lines.append("")
+
 	# Pre-generate all chain functions — this is the single source of truth for
 	# whether a chain produces valid output. Calls are only emitted if the function
 	# is non-empty, preventing mismatches between call sites and definitions.
 	var generated_chain_functions: Dictionary = {}  # chain_name -> code string
 	for chain in chains:
+		# Warn early if the chain mixes physics and non-physics actuators. The whole
+		# chain runs in _physics_process when any physics actuator is present, so
+		# non-physics actuators (animation, UI, etc.) will run at the wrong time.
+		if _chain_has_mixed_actuators(chain):
+			push_warning(
+				"Logic Bricks: Chain '%s' on node '%s' mixes physics actuators (Force/Torque/Impulse/LinearVelocity) with non-physics actuators. The entire chain will run in _physics_process, which may cause incorrect timing for animation, UI, or other non-physics actuators. Split them into separate chains." \
+				% [chain["name"], node.name]
+			)
 		var chain_code = _generate_chain_function(node, chain)
 		if not chain_code.is_empty():
 			generated_chain_functions[chain["name"]] = chain_code
@@ -427,168 +586,37 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		else:
 			has_process = true
 
-	# Generate process functions with state matching
+	# Generate process functions
 	if has_process:
 		code_lines.append("func _process(delta: float) -> void:")
-		
-		# State transition detection — reset sensor vars for chains in the newly entered state
-		code_lines.append("\tif _logic_brick_state != _logic_brick_prev_state:")
-		code_lines.append("\t\t_on_logic_brick_state_enter(_logic_brick_state)")
-		code_lines.append("\t\t_logic_brick_prev_state = _logic_brick_state")
-		code_lines.append("\t")
-		
-		# Pre-process code runs before any chains (e.g., reset horizontal velocity)
 		if pre_process_code.size() > 0:
 			for pc in pre_process_code:
-				code_lines.append("\t" + pc)
-			code_lines.append("\t")
-		
-		# All-state chains run unconditionally, before the state match
-		if all_state_chains.size() > 0:
-			code_lines.append("\t# All-state chains (run in every state)")
-			for chain in all_state_chains:
-				if generated_chain_functions.has(chain["name"]) and not _chain_needs_physics_process(chain):
-					code_lines.append("\t_logic_brick_%s(delta)" % chain["name"])
-			code_lines.append("\t")
-		
-		code_lines.append("\tmatch _logic_brick_state:")
-		
-		# Generate case for each state
-		var states = chains_by_state.keys()
-		states.sort()
-		var has_any_process_arm = false
-		for state in states:
-			var state_chains = chains_by_state[state]
-			var has_process_chain = false
-			
-			# Check if this state has any _process chains
-			for chain in state_chains:
-				if generated_chain_functions.has(chain["name"]) and not _chain_needs_physics_process(chain):
-					has_process_chain = true
-					break
-			
-			if has_process_chain:
-				has_any_process_arm = true
-				code_lines.append("\t\t%d:" % state)
-				for chain in state_chains:
-					if generated_chain_functions.has(chain["name"]) and not _chain_needs_physics_process(chain):
-						code_lines.append("\t\t\t_logic_brick_%s(delta)" % chain["name"])
-		
-		# Ensure the match block is never empty (GDScript requires at least one arm)
-		if not has_any_process_arm:
-			code_lines.append("\t\t_:")
-			code_lines.append("\t\t\tpass")
-		
-		# Post-process code runs after all chains (e.g., move_and_slide)
+				code_lines.append("	" + pc)
+			code_lines.append("	")
+		var has_any_process_chain = false
+		for chain in chains:
+			if generated_chain_functions.has(chain["name"]) and not _chain_needs_physics_process(chain):
+				code_lines.append("	_logic_brick_%s(delta)" % chain["name"])
+				has_any_process_chain = true
+		if not has_any_process_chain:
+			code_lines.append("	pass")
 		if post_process_code.size() > 0:
-			code_lines.append("\t")
+			code_lines.append("	")
 			for pc in post_process_code:
-				code_lines.append("\t" + pc)
-		
+				code_lines.append("	" + pc)
 		code_lines.append("")
-	
+
 	if has_physics_process:
 		code_lines.append("func _physics_process(delta: float) -> void:")
-		
-		# State transition detection — reset sensor vars for chains in the newly entered state
-		code_lines.append("\tif _logic_brick_state != _logic_brick_prev_state:")
-		code_lines.append("\t\t_on_logic_brick_state_enter(_logic_brick_state)")
-		code_lines.append("\t\t_logic_brick_prev_state = _logic_brick_state")
-		code_lines.append("\t")
-		
-		# Pre-process code for physics
-		if pre_process_code.size() > 0:
-			for pc in pre_process_code:
-				code_lines.append("\t" + pc)
-			code_lines.append("\t")
-		
-		# All-state chains run unconditionally, before the state match
-		if all_state_chains.size() > 0:
-			code_lines.append("\t# All-state chains (run in every state)")
-			for chain in all_state_chains:
-				if generated_chain_functions.has(chain["name"]) and _chain_needs_physics_process(chain):
-					code_lines.append("\t_logic_brick_%s(delta)" % chain["name"])
-			code_lines.append("\t")
-		
-		code_lines.append("\tmatch _logic_brick_state:")
-		
-		# Generate case for each state
-		var states = chains_by_state.keys()
-		states.sort()
-		var has_any_physics_arm = false
-		for state in states:
-			var state_chains = chains_by_state[state]
-			var has_physics_chain = false
-			
-			# Check if this state has any _physics_process chains
-			for chain in state_chains:
-				if generated_chain_functions.has(chain["name"]) and _chain_needs_physics_process(chain):
-					has_physics_chain = true
-					break
-			
-			if has_physics_chain:
-				has_any_physics_arm = true
-				code_lines.append("\t\t%d:" % state)
-				for chain in state_chains:
-					if generated_chain_functions.has(chain["name"]) and _chain_needs_physics_process(chain):
-						code_lines.append("\t\t\t_logic_brick_%s(delta)" % chain["name"])
-		
-		# Ensure the match block is never empty (GDScript requires at least one arm)
-		if not has_any_physics_arm:
-			code_lines.append("\t\t_:")
-			code_lines.append("\t\t\tpass")
-		
-		# Post-process code for physics
-		if post_process_code.size() > 0:
-			code_lines.append("\t")
-			for pc in post_process_code:
-				code_lines.append("\t" + pc)
-		
+		var has_any_physics_chain = false
+		for chain in chains:
+			if generated_chain_functions.has(chain["name"]) and _chain_needs_physics_process(chain):
+				code_lines.append("	_logic_brick_%s(delta)" % chain["name"])
+				has_any_physics_chain = true
+		if not has_any_physics_chain:
+			code_lines.append("	pass")
 		code_lines.append("")
-	
-	# Append pre-generated chain functions
-	for chain in chains:
-		if generated_chain_functions.has(chain["name"]):
-			code_lines.append(generated_chain_functions[chain["name"]])
-			code_lines.append("")
-	
-	# Generate _on_logic_brick_state_enter — resets sensor/actuator state vars for chains
-	# in the newly entered state so they behave as if running for the first time.
-	# Always emitted since _process always calls it; body is empty if nothing needs resetting.
-	code_lines.append("func _on_logic_brick_state_enter(state: int) -> void:")
-	
-	var has_any_resets = false
-	for chain_name in chain_member_vars:
-		if chain_member_vars[chain_name].size() > 0:
-			has_any_resets = true
-			break
-	
-	if has_any_resets:
-		code_lines.append("\tmatch state:")
-		
-		# Emit a case for each state that has resettable chains
-		var all_states_seen: Array = []
-		for state in chains_by_state.keys():
-			var reset_lines: Array[String] = []
-			for chain in chains_by_state[state]:
-				var cname = chain["name"]
-				if chain_member_vars.has(cname):
-					for rl in chain_member_vars[cname]:
-						reset_lines.append(rl)
-			if reset_lines.size() > 0:
-				code_lines.append("\t\t%d:" % int(state))
-				for rl in reset_lines:
-					code_lines.append("\t\t\t" + rl)
-				all_states_seen.append(state)
-		
-		if all_states_seen.is_empty():
-			code_lines.append("\t\t_:")
-			code_lines.append("\t\t\tpass")
-	else:
-		code_lines.append("\tpass")
-	
-	code_lines.append("")
-	
+
 	# Emit assembled _input() if any sensors contributed handler bodies
 	if input_handler_bodies.size() > 0:
 		code_lines.append("func _input(event: InputEvent) -> void:")
@@ -606,6 +634,12 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			code_lines.append("\t" + call_line)
 		code_lines.append("")
 	
+	# Append generated chain functions
+	for chain in chains:
+		if generated_chain_functions.has(chain["name"]):
+			code_lines.append(generated_chain_functions[chain["name"]])
+			code_lines.append("")
+
 	# Append extra methods (e.g. message handlers)
 	for method in extra_methods:
 		code_lines.append(method)
@@ -616,7 +650,9 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 
 ## Generate code for a single chain
 func _generate_chain_function(node: Node, chain: Dictionary) -> String:
-	var chain_name = chain["name"]
+	# Always sanitize at generation time — guards against hand-edited scene metadata
+	# or chains saved by older versions of the addon before sanitization was enforced.
+	var chain_name = _sanitize_chain_name(chain["name"])
 	var sensors = chain.get("sensors", [])
 	var controller_data = null
 	var controllers = chain.get("controllers", [])
@@ -683,6 +719,7 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 		if sensor_brick:
 			var generated = sensor_brick.generate_code(node, chain_name)
 			if generated.has("sensor_code"):
+				lines.append("\t" + _rebuild_meta_comment("SENSOR", sensor_data))
 				var sensor_code = generated["sensor_code"]
 				# Use instance name if available, otherwise use index
 				var instance_name = sensor_data.get("instance_name", "")
@@ -691,7 +728,12 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 					sensor_var = "sensor_%d_active" % sensor_index
 				else:
 					sensor_var = _sanitize_chain_name(instance_name) + "_active"
-				sensor_code = sensor_code.replace("sensor_active", sensor_var)
+				# Use whole-word regex replacement so that a sensor_var that itself
+				# contains "sensor_active" as a substring (e.g. "my_sensor_active_active")
+				# does not corrupt comments, string literals, or other identifiers.
+				var _rename_rx = RegEx.new()
+				_rename_rx.compile("\\bsensor_active\\b")
+				sensor_code = _rename_rx.sub(sensor_code, sensor_var, true)
 				
 				# Handle multi-line sensor code properly (same pattern as actuators)
 				var sensor_code_lines = sensor_code.split("\n")
@@ -706,10 +748,19 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 				
 				sensor_vars.append(sensor_var)
 				sensor_index += 1
-	
+
+	var state_id := ""
+	var all_states := false
+	if controller_data:
+		state_id = str(controller_data.get("properties", {}).get("state_id", "")).strip_edges()
+		all_states = bool(controller_data.get("properties", {}).get("all_states", false))
+	var state_condition := "_logic_brick_chain_state_matches(%s, %s)" % [_gdscript_string_literal(state_id), "true" if all_states else "false"]
+
 	# Generate controller code
 	lines.append("\t")
 	lines.append("\t# Controller logic")
+	if controller_data:
+		lines.append("\t" + _rebuild_meta_comment("CONTROLLER", controller_data))
 	
 	if controller_data:
 		var controller_brick = _instantiate_brick(controller_data)
@@ -717,11 +768,12 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 			# ── Script Controller ───────────────────────────────────────────────
 			if controller_data["type"] == "ScriptController":
 				var condition = controller_brick.get_condition(sensor_vars)
+				condition = state_condition + " and (" + condition + ")" if sensor_vars.size() > 0 else state_condition
 				lines.append("\tvar controller_active = " + condition)
 				lines.append("\t")
 				lines.append("\t# Script Controller — custom code")
 				lines.append("\tif controller_active:")
-				lines.append(controller_brick.get_script_body())
+				lines.append(controller_brick.get_script_body(chain_name))
 				lines.append("\t")
 				lines.append("\t# Actuator Sensor flags")
 				for actuator_data in actuators:
@@ -785,6 +837,7 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 			if actuator_brick:
 				var generated = actuator_brick.generate_code(node, chain_name)
 				if generated.has("actuator_code"):
+					lines.append("\t\t" + _rebuild_meta_comment("ACTUATOR", actuator_data))
 					var actuator_code = generated["actuator_code"]
 					var code_lines_array = actuator_code.split("\n")
 					for code_line in code_lines_array:
@@ -815,6 +868,49 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 			lines.append("\t\t_actuator_active_flags[\"%s\"] = false" % inst_name)
 	
 	return "\n".join(lines)
+
+
+
+func _rebuild_meta_comment(kind: String, brick_data: Dictionary) -> String:
+	# Store the exact brick payload next to the generated code. Encode it onto a
+	# single line so the injected metadata always remains a valid GDScript comment.
+	var payload := {
+		"type": str(brick_data.get("type", "")),
+		"instance_name": str(brick_data.get("instance_name", "")),
+		"debug_enabled": bool(brick_data.get("debug_enabled", false)),
+		"debug_message": str(brick_data.get("debug_message", "")),
+		"properties": brick_data.get("properties", {}).duplicate(true) if brick_data.get("properties", {}) is Dictionary else {}
+	}
+	var payload_b64 := Marshalls.raw_to_base64(var_to_bytes(payload))
+	return "# LB_META_%s_B64 %s" % [kind, payload_b64]
+
+func _gdscript_string_literal(value: String) -> String:
+	return '"%s"' % value.c_escape()
+
+func _append_member_var_items(target: Array[String], items: Array) -> void:
+	# member_vars can contain both plain top-level declarations and entire helper
+	# functions flattened into line arrays. Deduplicating them line-by-line corrupts
+	# function bodies when two helpers share common lines. Keep function blocks intact
+	# and only dedupe plain non-function lines.
+	var i := 0
+	while i < items.size():
+		var line := str(items[i])
+		if line.begins_with("func ") or line.begins_with("static func "):
+			var block: Array[String] = [line]
+			i += 1
+			while i < items.size():
+				var next_line := str(items[i])
+				if next_line.begins_with("	") or next_line.is_empty():
+					block.append(next_line)
+					i += 1
+					continue
+				break
+			for block_line in block:
+				target.append(block_line)
+			continue
+		if line not in target:
+			target.append(line)
+		i += 1
 
 
 ## Check if a chain is complete enough to generate code for
@@ -851,6 +947,22 @@ func _chain_needs_physics_process(chain: Dictionary) -> bool:
 	return false
 
 
+## Returns true if this chain mixes physics actuators (Force/Torque/Impulse/LinearVelocity)
+## with non-physics actuators. Such chains run in _physics_process, which is wrong timing
+## for animation, UI, and other non-physics actuators.
+func _chain_has_mixed_actuators(chain: Dictionary) -> bool:
+	var actuators = chain.get("actuators", [])
+	var has_physics = false
+	var has_non_physics = false
+	for actuator_data in actuators:
+		var brick_type = actuator_data.get("type", "")
+		if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator"]:
+			has_physics = true
+		else:
+			has_non_physics = true
+	return has_physics and has_non_physics
+
+
 ## Instantiate a brick from serialized data
 func _instantiate_brick(brick_data: Dictionary) -> LogicBrick:
 	var brick_type = brick_data.get("type", "")
@@ -871,155 +983,94 @@ func _instantiate_brick(brick_data: Dictionary) -> LogicBrick:
 
 
 ## Get the script path for a brick type
+## Registry mapping brick type names to their script paths.
+## Add new brick types here — one line per entry — instead of extending the match statement.
+## "ANDController" and "Controller" map to the same file (Controller is a legacy alias).
+const BRICK_SCRIPT_REGISTRY: Dictionary = {
+	# ── Sensors ────────────────────────────────────────────────────────────────
+	"ActuatorSensor":       "res://addons/logic_bricks/bricks/sensors/3d/actuator_sensor.gd",
+	"AlwaysSensor":         "res://addons/logic_bricks/bricks/sensors/3d/always_sensor.gd",
+	"AnimationTreeSensor":  "res://addons/logic_bricks/bricks/sensors/3d/animation_tree_sensor.gd",
+	"CollisionSensor":      "res://addons/logic_bricks/bricks/sensors/3d/collision_sensor.gd",
+	"DelaySensor":          "res://addons/logic_bricks/bricks/sensors/3d/delay_sensor.gd",
+	"InputMapSensor":       "res://addons/logic_bricks/bricks/sensors/3d/input_map_sensor.gd",
+	"KeyboardSensor":       "res://addons/logic_bricks/bricks/sensors/3d/keyboard_sensor.gd",  # Legacy
+	"MessageSensor":        "res://addons/logic_bricks/bricks/sensors/3d/message_sensor.gd",
+	"MouseSensor":          "res://addons/logic_bricks/bricks/sensors/3d/mouse_sensor.gd",
+	"MovementSensor":       "res://addons/logic_bricks/bricks/sensors/3d/movement_sensor.gd",
+	"ProximitySensor":      "res://addons/logic_bricks/bricks/sensors/3d/proximity_sensor.gd",
+	"RandomSensor":         "res://addons/logic_bricks/bricks/sensors/3d/random_sensor.gd",
+	"RaycastSensor":        "res://addons/logic_bricks/bricks/sensors/3d/raycast_sensor.gd",
+	"TimerSensor":          "res://addons/logic_bricks/bricks/sensors/3d/timer_sensor.gd",
+	"VariableSensor":       "res://addons/logic_bricks/bricks/sensors/3d/variable_sensor.gd",
+	# ── Controllers ────────────────────────────────────────────────────────────
+	"ANDController":        "res://addons/logic_bricks/bricks/controllers/controller.gd",
+	"Controller":           "res://addons/logic_bricks/bricks/controllers/controller.gd",  # Legacy alias
+	"ScriptController":     "res://addons/logic_bricks/bricks/controllers/script_controller.gd",
+	# ── Actuators ──────────────────────────────────────────────────────────────
+	"AnimationActuator":         "res://addons/logic_bricks/bricks/actuators/3d/animation_actuator.gd",
+	"AnimationTreeActuator":     "res://addons/logic_bricks/bricks/actuators/3d/animation_tree_actuator.gd",
+	"Audio2DActuator":           "res://addons/logic_bricks/bricks/actuators/3d/audio_2d_actuator.gd",
+	"CameraActuator":            "res://addons/logic_bricks/bricks/actuators/3d/camera_actuator.gd",
+	"CameraZoomActuator":        "res://addons/logic_bricks/bricks/actuators/3d/camera_zoom_actuator.gd",
+	"CharacterActuator":         "res://addons/logic_bricks/bricks/actuators/3d/character_actuator.gd",
+	"CollisionActuator":         "res://addons/logic_bricks/bricks/actuators/3d/collision_actuator.gd",
+	"EditObjectActuator":        "res://addons/logic_bricks/bricks/actuators/3d/edit_object_actuator.gd",
+	"EnvironmentActuator":       "res://addons/logic_bricks/bricks/actuators/3d/environment_actuator.gd",
+	"ForceActuator":             "res://addons/logic_bricks/bricks/actuators/3d/force_actuator.gd",
+	"GameActuator":              "res://addons/logic_bricks/bricks/actuators/3d/game_actuator.gd",
+	"GravityActuator":           "res://addons/logic_bricks/bricks/actuators/3d/gravity_actuator.gd",  # Legacy
+	"ImpulseActuator":           "res://addons/logic_bricks/bricks/actuators/3d/impulse_actuator.gd",
+	"JumpActuator":              "res://addons/logic_bricks/bricks/actuators/3d/jump_actuator.gd",  # Legacy
+	"LightActuator":             "res://addons/logic_bricks/bricks/actuators/3d/light_actuator.gd",
+	"LinearVelocityActuator":    "res://addons/logic_bricks/bricks/actuators/3d/linear_velocity_actuator.gd",
+	"LocationActuator":          "res://addons/logic_bricks/bricks/actuators/3d/location_actuator.gd",
+	"LookAtMovementActuator":    "res://addons/logic_bricks/bricks/actuators/3d/look_at_movement_actuator.gd",
+	"MessageActuator":           "res://addons/logic_bricks/bricks/actuators/3d/message_actuator.gd",
+	"ModulateActuator":          "res://addons/logic_bricks/bricks/actuators/3d/modulate_actuator.gd",
+	"MotionActuator":            "res://addons/logic_bricks/bricks/actuators/3d/motion_actuator.gd",
+	"MouseActuator":             "res://addons/logic_bricks/bricks/actuators/3d/mouse_actuator.gd",
+	"MoveTowardsActuator":       "res://addons/logic_bricks/bricks/actuators/3d/move_towards_actuator.gd",
+	"MusicActuator":             "res://addons/logic_bricks/bricks/actuators/3d/music_actuator.gd",
+	"ObjectPoolActuator":        "res://addons/logic_bricks/bricks/actuators/3d/object_pool_actuator.gd",
+	"ObjectFlashActuator":       "res://addons/logic_bricks/bricks/actuators/3d/object_flash_actuator.gd",
+	"ParentActuator":            "res://addons/logic_bricks/bricks/actuators/3d/parent_actuator.gd",
+	"PhysicsActuator":           "res://addons/logic_bricks/bricks/actuators/3d/physics_actuator.gd",
+	"PreloadActuator":           "res://addons/logic_bricks/bricks/actuators/3d/preload_actuator.gd",
+	"PrintActuator":             "res://addons/logic_bricks/bricks/actuators/3d/print_actuator.gd",
+	"ProgressBarActuator":       "res://addons/logic_bricks/bricks/actuators/3d/progress_bar_actuator.gd",
+	"PropertyActuator":          "res://addons/logic_bricks/bricks/actuators/3d/property_actuator.gd",
+	"RandomActuator":            "res://addons/logic_bricks/bricks/actuators/3d/random_actuator.gd",
+	"RotateTowardsActuator":     "res://addons/logic_bricks/bricks/actuators/3d/rotate_towards_actuator.gd",
+	"RotationActuator":          "res://addons/logic_bricks/bricks/actuators/3d/rotation_actuator.gd",
+	"RumbleActuator":            "res://addons/logic_bricks/bricks/actuators/3d/rumble_actuator.gd",
+	"SaveLoadActuator":          "res://addons/logic_bricks/bricks/actuators/3d/save_load_actuator.gd",
+	"SceneActuator":             "res://addons/logic_bricks/bricks/actuators/3d/scene_actuator.gd",
+	"ScreenFlashActuator":       "res://addons/logic_bricks/bricks/actuators/3d/screen_flash_actuator.gd",
+	"ScreenShakeActuator":       "res://addons/logic_bricks/bricks/actuators/3d/screen_shake_actuator.gd",
+	"SetCameraActuator":         "res://addons/logic_bricks/bricks/actuators/3d/set_camera_actuator.gd",
+	"ShaderParamActuator":       "res://addons/logic_bricks/bricks/actuators/3d/shader_param_actuator.gd",
+	"SmoothFollowCameraActuator": "res://addons/logic_bricks/bricks/actuators/3d/smooth_follow_camera_actuator.gd",
+	"SoundActuator":             "res://addons/logic_bricks/bricks/actuators/3d/sound_actuator.gd",
+	"SplitScreenActuator":       "res://addons/logic_bricks/bricks/actuators/3d/split_screen_actuator.gd",
+	"SpriteFramesActuator":      "res://addons/logic_bricks/bricks/actuators/3d/sprite_frames_actuator.gd",
+	"StateActuator":             "res://addons/logic_bricks/bricks/actuators/3d/state_actuator.gd",
+	"TeleportActuator":          "res://addons/logic_bricks/bricks/actuators/3d/teleport_actuator.gd",
+	"TextActuator":              "res://addons/logic_bricks/bricks/actuators/3d/text_actuator.gd",
+	"ThirdPersonCameraActuator": "res://addons/logic_bricks/bricks/actuators/3d/third_person_camera_actuator.gd",
+	"TorqueActuator":            "res://addons/logic_bricks/bricks/actuators/3d/torque_actuator.gd",
+	"TweenActuator":             "res://addons/logic_bricks/bricks/actuators/3d/tween_actuator.gd",
+	"UIFocusActuator":           "res://addons/logic_bricks/bricks/actuators/3d/ui_focus_actuator.gd",
+	"VariableActuator":          "res://addons/logic_bricks/bricks/actuators/3d/variable_actuator.gd",
+	"VisibilityActuator":        "res://addons/logic_bricks/bricks/actuators/3d/visibility_actuator.gd",
+	"WaypointPathActuator":      "res://addons/logic_bricks/bricks/actuators/3d/waypoint_path_actuator.gd",
+}
+
+
+## Get the script path for a brick type.
+## To add a new brick type, add an entry to BRICK_SCRIPT_REGISTRY above — do not modify this function.
 func _get_brick_script_path(brick_type: String) -> String:
-	match brick_type:
-		"ActuatorSensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/actuator_sensor.gd"
-		"AlwaysSensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/always_sensor.gd"
-		"AnimationTreeSensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/animation_tree_sensor.gd"
-		"DelaySensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/delay_sensor.gd"
-		"KeyboardSensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/keyboard_sensor.gd"  # Legacy
-		"InputMapSensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/input_map_sensor.gd"
-		"MessageSensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/message_sensor.gd"
-		"VariableSensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/variable_sensor.gd"
-		"ProximitySensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/proximity_sensor.gd"
-		"RandomSensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/random_sensor.gd"
-		"RaycastSensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/raycast_sensor.gd"
-		"MovementSensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/movement_sensor.gd"
-		"MouseSensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/mouse_sensor.gd"
-		"CollisionSensor":
-			return "res://addons/logic_bricks/bricks/sensors/3d/collision_sensor.gd"
-		"ANDController", "Controller":
-			return "res://addons/logic_bricks/bricks/controllers/controller.gd"
-		"ScriptController":
-			return "res://addons/logic_bricks/bricks/controllers/script_controller.gd"
-		"MotionActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/motion_actuator.gd"
-		"LocationActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/location_actuator.gd"
-		"LinearVelocityActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/linear_velocity_actuator.gd"
-		"RotationActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/rotation_actuator.gd"
-		"ForceActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/force_actuator.gd"
-		"TorqueActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/torque_actuator.gd"
-		"EditObjectActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/edit_object_actuator.gd"
-		"CharacterActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/character_actuator.gd"
-		"GravityActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/gravity_actuator.gd"  # Legacy
-		"JumpActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/jump_actuator.gd"  # Legacy
-		"MoveTowardsActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/move_towards_actuator.gd"
-		"AnimationActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/animation_actuator.gd"
-		"SpriteFramesActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/sprite_frames_actuator.gd"
-		"AnimationTreeActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/animation_tree_actuator.gd"
-		"SoundActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/sound_actuator.gd"
-		"MessageActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/message_actuator.gd"
-		"LookAtMovementActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/look_at_movement_actuator.gd"
-		"RotateTowardsActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/rotate_towards_actuator.gd"
-		"WaypointPathActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/waypoint_path_actuator.gd"
-		"VariableActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/variable_actuator.gd"
-		"RandomActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/random_actuator.gd"
-		"StateActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/state_actuator.gd"
-		"TeleportActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/teleport_actuator.gd"
-		"PropertyActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/property_actuator.gd"
-		"TextActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/text_actuator.gd"
-		"SoundActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/sound_actuator.gd"
-		"SceneActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/scene_actuator.gd"
-		"SaveLoadActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/save_load_actuator.gd"
-		"CameraActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/camera_actuator.gd"
-		"SetCameraActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/set_camera_actuator.gd"
-		"SmoothFollowCameraActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/smooth_follow_camera_actuator.gd"
-		"CollisionActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/collision_actuator.gd"
-		"ParentActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/parent_actuator.gd"
-		"PhysicsActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/physics_actuator.gd"
-		"MouseActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/mouse_actuator.gd"
-		"GameActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/game_actuator.gd"
-		"PrintActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/print_actuator.gd"
-		"EnvironmentActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/environment_actuator.gd"
-		"Audio2DActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/audio_2d_actuator.gd"
-		"ModulateActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/modulate_actuator.gd"
-		"VisibilityActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/visibility_actuator.gd"
-		"ProgressBarActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/progress_bar_actuator.gd"
-		"TweenActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/tween_actuator.gd"
-		"ImpulseActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/impulse_actuator.gd"
-		"MusicActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/music_actuator.gd"
-		"ScreenShakeActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/screen_shake_actuator.gd"
-		"ScreenFlashActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/screen_flash_actuator.gd"
-		"RumbleActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/rumble_actuator.gd"
-		"UIFocusActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/ui_focus_actuator.gd"
-		"ShaderParamActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/shader_param_actuator.gd"
-		"LightActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/light_actuator.gd"
-		"ThirdPersonCameraActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/third_person_camera_actuator.gd"
-		"SplitScreenActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/split_screen_actuator.gd"
-		"CameraZoomActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/camera_zoom_actuator.gd"
-		"ObjectPoolActuator":
-			return "res://addons/logic_bricks/bricks/actuators/3d/object_pool_actuator.gd"
-		"ANDController", "Controller":
-			return "res://addons/logic_bricks/bricks/controllers/controller.gd"
-		"ScriptController":
-			return "res://addons/logic_bricks/bricks/controllers/script_controller.gd"
-	return ""
+	return BRICK_SCRIPT_REGISTRY.get(brick_type, "")
 
 
 ## Replace the code between markers in the existing script
@@ -1068,11 +1119,20 @@ func _create_script_with_markers(existing_code: String, generated_code: String, 
 		# No existing code, create basic script
 		existing_code = "extends %s\n" % node_class
 	
-	# Insert markers before any existing functions
+	# Insert markers before the first real function definition.
+	# We scan line-by-line so that "func" appearing inside comments (#) or
+	# string literals does not trigger a false match.
 	var insert_pos = existing_code.length()
-	var func_pos = existing_code.find("\nfunc ")
-	if func_pos != -1:
-		insert_pos = func_pos + 1
+	var lines_scan = existing_code.split("\n")
+	var char_offset = 0
+	for line in lines_scan:
+		var stripped = line.strip_edges()
+		# A real func declaration: starts with "func " or "@annotation\nfunc"
+		# Here we only need to catch bare top-level func lines.
+		if stripped.begins_with("func ") or stripped.begins_with("static func "):
+			insert_pos = char_offset
+			break
+		char_offset += line.length() + 1  # +1 for the "\n" that split consumed
 	
 	var before = existing_code.substr(0, insert_pos)
 	var after = existing_code.substr(insert_pos)
@@ -1100,7 +1160,13 @@ func _create_script_with_markers(existing_code: String, generated_code: String, 
 
 ## Create a new script file for a node
 func _create_new_script(node: Node) -> String:
-	var scene_path = node.get_tree().edited_scene_root.scene_file_path
+	var tree := node.get_tree()
+	var scene_root := tree.edited_scene_root if tree else null
+	if not scene_root or scene_root.scene_file_path.is_empty():
+		push_error("Logic Bricks: Scene must be saved before a script can be created.")
+		return ""
+	
+	var scene_path = scene_root.scene_file_path
 	var scene_dir = scene_path.get_base_dir()
 	var node_name = node.name.to_snake_case()
 	var script_path = "%s/%s.gd" % [scene_dir, node_name]
@@ -1116,6 +1182,9 @@ func _create_new_script(node: Node) -> String:
 	var basic_script = "extends %s\n" % node_class
 	
 	var file = FileAccess.open(script_path, FileAccess.WRITE)
+	if not file:
+		push_error("Logic Bricks: Could not create script file: " + script_path)
+		return ""
 	file.store_string(basic_script)
 	file.close()
 	

@@ -28,7 +28,7 @@ func _initialize_properties() -> void:
 		"logic_mode": "and",
 		"script_path": "",
 		"all_states": false,
-		"state": 1
+		"state_id": ""
 	}
 
 
@@ -54,11 +54,11 @@ func get_property_definitions() -> Array:
 			"default": false
 		},
 		{
-			"name": "state",
-			"type": TYPE_INT,
-			"default": 1,
-			"hint": PROPERTY_HINT_RANGE,
-			"hint_string": "1,30,1"
+			"name": "state_id",
+			"type": TYPE_STRING,
+			"hint": PROPERTY_HINT_ENUM,
+			"hint_string": "__STATE_LIST__",
+			"default": ""
 		}
 	]
 
@@ -88,26 +88,53 @@ func get_condition(sensor_vars: Array) -> String:
 			return " and ".join(sensor_vars)
 
 
+## Returns the member variable name used to cache the script instance for this chain.
+func _get_cache_var_name(chain_name: String) -> String:
+	return "_sc_obj_%s" % chain_name
+
+
 ## Returns indented code (two tabs = inside `if controller_active:`) that calls
-## the user's script as a module — loading it as a GDScript resource and calling
-## run(node) where node is the scene object (self in the generated script context).
-func get_script_body() -> String:
+## run(self) on the pre-cached script instance. The instance is loaded once in
+## _ready() via the member_vars / ready_code returned by generate_code(), so
+## there is no load() or new() call at all during _process().
+func get_script_body(chain_name: String) -> String:
 	var path: String = properties.get("script_path", "").strip_edges()
 	if path.is_empty():
 		return "\t\tpass  # Script Controller: no script file set"
 
+	var cache_var = _get_cache_var_name(chain_name)
 	var lines: Array[String] = []
-	lines.append("\t\tvar _sc_res = load(\"%s\")" % path)
-	lines.append("\t\tif _sc_res and _sc_res is GDScript:")
-	lines.append("\t\t\tvar _sc_obj = _sc_res.new()")
-	lines.append("\t\t\tif _sc_obj.has_method(\"run\"):")
-	lines.append("\t\t\t\t_sc_obj.run(self)")
-	lines.append("\t\t\telse:")
-	lines.append("\t\t\t\tpush_warning(\"Script Controller: '%s' has no run(node) function\")" % path)
-	lines.append("\t\telse:")
-	lines.append("\t\t\tpush_warning(\"Script Controller: could not load '%s'\")" % path)
+	lines.append("\t\tif %s:" % cache_var)
+	lines.append("\t\t\t%s.run(self)" % cache_var)
 	return "\n".join(lines)
 
 
+## Emits the member variable declaration and _ready() initialisation so the
+## script is loaded and instantiated exactly once, not on every process frame.
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	return {}
+	var path: String = properties.get("script_path", "").strip_edges()
+	if path.is_empty():
+		return {}
+
+	var cache_var = _get_cache_var_name(chain_name)
+
+	var member_vars: Array[String] = [
+		"var %s = null  # Script Controller cache for chain '%s'" % [cache_var, chain_name]
+	]
+
+	var ready_code: Array[String] = [
+		"# Script Controller (%s): load and cache instance" % chain_name,
+		"var _sc_res_%s = load(\"%s\")" % [chain_name, path],
+		"if _sc_res_%s and _sc_res_%s is GDScript:" % [chain_name, chain_name],
+		"\t%s = _sc_res_%s.new()" % [cache_var, chain_name],
+		"\tif not %s.has_method(\"run\"):" % cache_var,
+		"\t\tpush_warning(\"Script Controller: '%s' has no run(node) function\")" % path,
+		"\t\t%s = null" % cache_var,
+		"else:",
+		"\tpush_warning(\"Script Controller: could not load '%s'\")" % path,
+	]
+
+	return {
+		"member_vars": member_vars,
+		"ready_code": ready_code,
+	}

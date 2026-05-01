@@ -98,6 +98,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		slot = slot.strip_edges()
 	if slot.is_empty():
 		slot = "slot1"
+	# Sanitize the slot name: allow only alphanumerics, hyphens, and underscores.
+	# This prevents path traversal attacks (e.g. slot = "../../project/important").
+	var slot_rx = RegEx.new()
+	slot_rx.compile("[^A-Za-z0-9_\\-]")
+	slot = slot_rx.sub(slot, "_", true)
+	if slot.is_empty():
+		slot = "slot1"
 	if typeof(save_path) == TYPE_STRING:
 		save_path = save_path.strip_edges()
 	if typeof(target) == TYPE_STRING:
@@ -106,7 +113,15 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# Resolve the final file path
 	var resolved_path: String
 	if not save_path.is_empty():
-		resolved_path = save_path
+		# Block paths that could overwrite project source files. Only user:// is
+		# safe for runtime writes in both editor and exported builds. res:// is
+		# read-only in exports and could silently clobber project files in the editor.
+		if not save_path.begins_with("user://"):
+			var _err_msg = "Save/Load Actuator: 'Save Path' must start with 'user://' (got '%s'). Paths starting with 'res://' can overwrite project source files and are read-only in exported builds. Falling back to the slot-based path." % save_path
+			push_error(_err_msg)
+			resolved_path = "user://saves/%s.json" % slot
+		else:
+			resolved_path = save_path
 	else:
 		resolved_path = "user://saves/%s.json" % slot
 

@@ -18,9 +18,9 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"logic_mode": "and",  # and, or, nand, nor, xor
-		"all_states": false,  # If true, this chain runs in every state
-		"state": 1  # Which state this chain belongs to (1-30), ignored when all_states is true
+		"logic_mode": "and",
+		"all_states": false,
+		"state_id": ""
 	}
 
 
@@ -39,17 +39,16 @@ func get_property_definitions() -> Array:
 			"default": false
 		},
 		{
-			"name": "state",
-			"type": TYPE_INT,
-			"default": 1,
-			"hint": PROPERTY_HINT_RANGE,
-			"hint_string": "1,30,1"
+			"name": "state_id",
+			"type": TYPE_STRING,
+			"hint": PROPERTY_HINT_ENUM,
+			"hint_string": "__STATE_LIST__",
+			"default": ""
 		}
 	]
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	# Logic is handled by the manager based on the logic_mode property
 	return {
 		"controller_code": ""
 	}

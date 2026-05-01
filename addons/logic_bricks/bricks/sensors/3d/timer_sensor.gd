@@ -56,35 +56,35 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	var elapsed_var = "_timer_elapsed_%s" % chain_name
 	var active_var = "_timer_active_%s" % chain_name
-	var last_state_var = "_timer_last_state_%s" % chain_name
+	var last_state_var = "_timer_last_state_signature_%s" % chain_name
 
 	var member_vars: Array[String] = []
 	var code_lines: Array[String] = []
 
 	member_vars.append("var %s: float = 0.0" % elapsed_var)
 	member_vars.append("var %s: bool = %s" % [active_var, "true" if start_on_ready else "false"])
-	member_vars.append("var %s: int = -1" % last_state_var)
+	member_vars.append("var %s: String = \"\"" % last_state_var)
 
-	# Reset timer when state changes (so countdown starts fresh on state entry)
 	code_lines.append("# Timer sensor")
-	code_lines.append("if %s != _logic_brick_state:" % last_state_var)
-	code_lines.append("\t%s = _logic_brick_state" % last_state_var)
-	code_lines.append("\t%s = 0.0" % elapsed_var)
-	code_lines.append("\t%s = %s" % [active_var, "true" if start_on_ready else "false"])
+	code_lines.append("if %s != _logic_brick_get_state_signature():" % last_state_var)
+	code_lines.append("	%s = _logic_brick_get_state_signature()" % last_state_var)
+	code_lines.append("	%s = 0.0" % elapsed_var)
+	code_lines.append("	%s = %s" % [active_var, "true" if start_on_ready else "false"])
 	code_lines.append("")
 	code_lines.append("var sensor_active = false")
 	code_lines.append("if %s:" % active_var)
-	code_lines.append("\t%s += _delta" % elapsed_var)
-	code_lines.append("\tif %s >= %.3f:" % [elapsed_var, duration])
-	code_lines.append("\t\tsensor_active = true")
+	code_lines.append("	%s += _delta" % elapsed_var)
+	code_lines.append("	if %s >= %.3f:" % [elapsed_var, duration])
+	code_lines.append("		sensor_active = true")
 
 	if repeat:
-		code_lines.append("\t\t%s -= %.3f" % [elapsed_var, duration])
+		code_lines.append("		%s -= %.3f" % [elapsed_var, duration])
 	else:
-		code_lines.append("\t\t%s = false" % active_var)
-		code_lines.append("\t\t%s = 0.0" % elapsed_var)
+		code_lines.append("		%s = false" % active_var)
+		code_lines.append("		%s = 0.0" % elapsed_var)
 
 	return {
-		"sensor_code": "\n".join(code_lines),
+		"sensor_code": "
+".join(code_lines),
 		"member_vars": member_vars
 	}

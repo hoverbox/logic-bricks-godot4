@@ -10,7 +10,7 @@ var manager: LogicBrickManager
 
 # Waypoint handle state
 var _wp_node: Node3D = null          # Node currently showing waypoint handles
-var _wp_actuator_data: Array = []    # Array of {brick_instance, chain_name} for all WaypointPath actuators on _wp_node
+var _wp_actuator_data: Array = []    # Array of {brick_instance, chain_index, actuator_index} for all WaypointPath actuators on _wp_node
 var _dragging_handle: bool = false   # True while dragging a handle
 var _drag_actuator_idx: int = -1     # Which actuator is being dragged
 var _drag_wp_idx: int = -1           # Which waypoint within that actuator
@@ -97,20 +97,24 @@ func _update_waypoint_node(node: Node3D) -> void:
 		return
 	
 	var chains = node.get_meta("logic_bricks")
-	for chain in chains:
-		for actuator_data in chain.get("actuators", []):
+	for chain_idx in range(chains.size()):
+		var chain = chains[chain_idx]
+		var actuators = chain.get("actuators", [])
+		for actuator_idx in range(actuators.size()):
+			var actuator_data = actuators[actuator_idx]
 			if actuator_data.get("type", "") == "WaypointPathActuator":
 				var brick = WaypointPathActuator.new()
 				brick.deserialize(actuator_data)
 				_wp_actuator_data.append({
 					"brick": brick,
-					"chain_name": chain.get("name", ""),
+					"chain_index": chain_idx,
+					"actuator_index": actuator_idx,
 				})
 
 
 ## Draw waypoint handles over the 3D viewport
 func _forward_3d_draw_over_viewport(viewport_control: Control) -> void:
-	if not _wp_node or _wp_actuator_data.is_empty():
+	if not is_instance_valid(_wp_node) or _wp_actuator_data.is_empty():
 		return
 	
 	var camera = _editor_camera
@@ -179,7 +183,12 @@ func _forward_3d_draw_over_viewport(viewport_control: Control) -> void:
 ## Handle mouse input for dragging waypoint handles
 func _forward_3d_gui_input(viewport_camera: Camera3D, event: InputEvent) -> int:
 	_editor_camera = viewport_camera
-	if not _wp_node or _wp_actuator_data.is_empty():
+	if not is_instance_valid(_wp_node) or _wp_actuator_data.is_empty():
+		# If the node was freed mid-drag, clean up drag state gracefully
+		if _dragging_handle:
+			_dragging_handle = false
+			_drag_actuator_idx = -1
+			_drag_wp_idx = -1
 		return EditorPlugin.AFTER_GUI_INPUT_PASS
 	
 	if event is InputEventMouseButton:
@@ -221,6 +230,12 @@ func _forward_3d_gui_input(viewport_camera: Camera3D, event: InputEvent) -> int:
 					return EditorPlugin.AFTER_GUI_INPUT_STOP
 	
 	if event is InputEventMouseMotion and _dragging_handle:
+		# Guard: node may have been freed while drag was in progress
+		if not is_instance_valid(_wp_node):
+			_dragging_handle = false
+			_drag_actuator_idx = -1
+			_drag_wp_idx = -1
+			return EditorPlugin.AFTER_GUI_INPUT_PASS
 		# Project mouse ray onto drag plane to get new world position
 		var ray_origin = viewport_camera.project_ray_origin(event.position)
 		var ray_dir = viewport_camera.project_ray_normal(event.position)
@@ -252,22 +267,31 @@ func _forward_3d_gui_input(viewport_camera: Camera3D, event: InputEvent) -> int:
 
 ## Write dragged waypoint positions back into the chain metadata so they persist
 func _save_waypoints_to_graph() -> void:
-	if not _wp_node or not _wp_node.has_meta("logic_bricks"):
+	if not is_instance_valid(_wp_node) or not _wp_node.has_meta("logic_bricks"):
 		return
 	
 	var chains = _wp_node.get_meta("logic_bricks")
 	
 	for act_data in _wp_actuator_data:
-		var chain_name = act_data["chain_name"]
+		var chain_index = int(act_data.get("chain_index", -1))
+		var actuator_index = int(act_data.get("actuator_index", -1))
 		var brick = act_data["brick"]
 		
-		for chain in chains:
-			if chain.get("name", "") != chain_name:
-				continue
-			for actuator_data in chain.get("actuators", []):
-				if actuator_data.get("type", "") == "WaypointPathActuator":
-					actuator_data["properties"]["waypoints"] = brick.properties.get("waypoints", []).duplicate()
-					break
+		if chain_index < 0 or chain_index >= chains.size():
+			continue
+		
+		var chain = chains[chain_index]
+		var actuators = chain.get("actuators", [])
+		if actuator_index < 0 or actuator_index >= actuators.size():
+			continue
+		
+		var actuator_data = actuators[actuator_index]
+		if actuator_data.get("type", "") != "WaypointPathActuator":
+			continue
+		
+		if not actuator_data.has("properties") or not (actuator_data["properties"] is Dictionary):
+			actuator_data["properties"] = {}
+		actuator_data["properties"]["waypoints"] = brick.properties.get("waypoints", []).duplicate()
 	
 	_wp_node.set_meta("logic_bricks", chains)
 	

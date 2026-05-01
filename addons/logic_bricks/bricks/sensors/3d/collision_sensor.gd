@@ -3,7 +3,7 @@
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Collision Sensor - Detects collisions via an Area3D node
-## The Area3D is assigned via @export (drag and drop in inspector)
+## The Area3D is located by name at runtime using find_child()
 ## Supports body_entered, body_exited, and continuous overlap detection
 
 
@@ -15,6 +15,7 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
+		"area_node_name":  "",
 		"detection_mode": "entered",
 		"detect_bodies":  true,
 		"detect_areas":   false,
@@ -26,6 +27,11 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
+		{
+			"name": "area_node_name",
+			"type": TYPE_STRING,
+			"default": ""
+		},
 		{
 			"name": "detection_mode",
 			"type": TYPE_STRING,
@@ -65,7 +71,8 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Detects collisions via an Area3D node.\n\n⚠ Adds an @export in the Inspector — assign the Area3D node there.",
+		"_description": "Detects collisions via an Area3D node located by name.\n\nType the node name (not the full path) into 'Area Node Name'.",
+		"area_node_name": "The name of the Area3D node to use for collision detection (e.g. \"HitArea\"). Uses find_child() so the node just needs to exist somewhere under this node.",
 		"detection_mode": "Entered: fires once when something enters.\nExited: fires once when something leaves.\nOverlapping: active every frame while overlapping.",
 		"detect_bodies":  "Detect physics bodies (CharacterBody3D, RigidBody3D, etc.).",
 		"detect_areas":   "Detect other Area3D nodes.",
@@ -76,6 +83,7 @@ func get_tooltip_definitions() -> Dictionary:
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
+	var area_node_name = properties.get("area_node_name", "")
 	var detection_mode = properties.get("detection_mode", "entered")
 	var detect_bodies  = properties.get("detect_bodies", true)
 	var detect_areas   = properties.get("detect_areas", false)
@@ -89,16 +97,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if typeof(filter_type) == TYPE_STRING:
 		filter_type = filter_type.to_lower()
 
-	# Build a sanitized export label from the instance/brick name (same pattern as teleport actuator)
-	var _export_label = instance_name if not instance_name.is_empty() else brick_name
-	_export_label = _export_label.to_lower().replace(" ", "_")
-	var _regex = RegEx.new()
-	_regex.compile("[^a-z0-9_]")
-	_export_label = _regex.sub(_export_label, "", true)
-	if _export_label.is_empty():
-		_export_label = chain_name
-
-	var area_var     = "_%s" % _export_label
+	# Build a unique area variable name scoped to this chain so multiple
+	# collision sensors never collide with each other at script scope.
+	var area_var     = "_col_area_%s" % chain_name
 	var flag_var     = "_collision_%s_%s" % [detection_mode, chain_name]
 	var collided_var = "_collided_with_%s" % chain_name
 
@@ -106,8 +107,23 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var member_vars: Array[String] = []
 	var ready_lines: Array[String] = []
 
-	# Exported Area3D reference — assigned via the Inspector
-	member_vars.append("@export var %s: Area3D" % area_var)
+	# Runtime Area3D reference — resolved once in _ready() via find_child()
+	member_vars.append("var %s: Area3D = null" % area_var)
+
+	# _ready(): locate the Area3D by name.
+	# NOTE: We embed `area_var` (unique per chain) in the warning string, not
+	# `area_node_name`, so the manager's ready_code deduplication never strips
+	# the push_warning line from one chain while keeping the `if not` header
+	# from another — which would leave a bodyless `if` in the generated script.
+	var quoted_name = "\"%s\"" % area_node_name
+	ready_lines.append("# Collision Sensor (%s): locate Area3D by name" % chain_name)
+	ready_lines.append("%s = find_child(%s, true, false) as Area3D" % [area_var, quoted_name])
+	ready_lines.append("if not %s:" % area_var)
+	ready_lines.append("\tpush_warning(\"Collision Sensor [%s]: could not find Area3D named '%s' under '\" + name + \"'\")" % [area_var, area_node_name])
+
+	# Name of the per-chain setup helper — called from both _ready() and
+	# _on_logic_brick_state_enter() so signal connections survive state resets.
+	var setup_func = "_setup_collision_sensor_%s" % chain_name
 
 	match detection_mode:
 		"entered", "exited":
@@ -116,10 +132,24 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				detect_bodies, detect_areas, filter_type, filter_value, chain_name, invert
 			)
 			member_vars.append_array(result["member_vars"])
-			ready_lines.append_array(result["ready_lines"])
+
+			# Wrap the find_child + signal-connect block in a helper func so it
+			# can be re-called after a state transition without nulling the ref.
+			member_vars.append("")
+			member_vars.append("func %s() -> void:" % setup_func)
+			for line in ready_lines:
+				member_vars.append("\t" + line)
+			for line in result["ready_lines"]:
+				member_vars.append("\t" + line)
+
+			# Call the helper from _ready() via ready_code
+			ready_lines = ["%s()" % setup_func]
+
 			code_lines.append_array(result["sensor_lines"])
 
 		"overlapping":
+			# Overlapping mode polls each frame — no signal connections needed,
+			# so the find_child lines in ready_lines are fine as-is.
 			code_lines.append_array(
 				_generate_overlapping_code(
 					area_var, detect_bodies, detect_areas, filter_type, filter_value, invert
@@ -169,8 +199,7 @@ func _generate_signal_code(detection_mode: String, area_var: String,
 		member_vars.append("\t%s = true" % flag_var)
 		member_vars.append("\t%s = area" % collided_var)
 
-	# _ready(): connect signals on the exported Area3D reference
-	ready_lines.append("# Collision Sensor: connect signals on exported Area3D")
+	# _ready(): connect signals on the located Area3D reference
 	ready_lines.append("if %s:" % area_var)
 	if detect_bodies:
 		ready_lines.append("\tif not %s.%s.is_connected(%s):" % [area_var, body_signal, body_callback])
@@ -178,8 +207,6 @@ func _generate_signal_code(detection_mode: String, area_var: String,
 	if detect_areas:
 		ready_lines.append("\tif not %s.%s.is_connected(%s):" % [area_var, area_signal, area_callback])
 		ready_lines.append("\t\t%s.%s.connect(%s)" % [area_var, area_signal, area_callback])
-	ready_lines.append("else:")
-	ready_lines.append("\tpush_warning(\"Collision Sensor: No Area3D assigned to '%s'\")" % area_var)
 
 	# Sensor evaluation code (runs each frame)
 	sensor_lines.append("var sensor_active = (func():")
@@ -218,7 +245,7 @@ func _generate_overlapping_code(area_var: String,
 
 	lines.append("var sensor_active = (func():")
 	lines.append("\tif not %s:" % area_var)
-	lines.append("\t\tpush_warning(\"Collision Sensor: No Area3D assigned to '%s'\")" % area_var)
+	lines.append("\t\tpush_warning(\"Collision Sensor: Area3D ref '%s' is null — check node name\")" % area_var)
 	lines.append("\t\treturn false")
 	lines.append("\tvar _detected = []")
 
@@ -235,11 +262,6 @@ func _generate_overlapping_code(area_var: String,
 
 
 func _add_filter_code(lines: Array[String], filter_type: String, filter_value: String, invert: bool = false) -> void:
-	var t = "true"
-	var f = "false"
-	if invert:
-		t = "false"
-		f = "true"
 	if filter_type == "any":
 		lines.append("\treturn _detected.size() > 0" if not invert else "\treturn _detected.size() == 0")
 	elif filter_type == "group" and not filter_value.is_empty():
@@ -253,4 +275,4 @@ func _add_filter_code(lines: Array[String], filter_type: String, filter_value: S
 		else:
 			lines.append("\treturn _detected.any(func(obj): return obj.name == \"%s\")" % filter_value)
 	else:
-		lines.append("\treturn %s" % f)
+		lines.append("\treturn %s" % ("false" if not invert else "true"))

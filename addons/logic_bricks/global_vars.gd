@@ -6,4 +6,6 @@ extends Node
 
 # === LOGIC BRICKS GLOBALS START ===
 var score: int = 0
+var new_global: String = "0"
+var test_global: String = "0"
 # === LOGIC BRICKS GLOBALS END ===

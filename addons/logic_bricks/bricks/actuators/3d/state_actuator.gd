@@ -2,8 +2,7 @@
 
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## State Actuator - Change the active logic brick state
-## Similar to UPBGE's State actuator
+## State Actuator - Set the active named state
 
 
 func _init() -> void:
@@ -14,53 +13,36 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"operation": "set",     # set, add, remove
-		"state": 1              # State number to set/add/remove (1-30)
+		"state_id": ""
 	}
 
 
 func get_property_definitions() -> Array:
 	return [
 		{
-			"name": "operation",
+			"name": "state_id",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Set,Add,Remove",
-			"default": "set"
-		},
-		{
-			"name": "state",
-			"type": TYPE_INT,
-			"default": 1,
-			"hint": PROPERTY_HINT_RANGE,
-			"hint_string": "1,30,1"
+			"hint_string": "__STATE_LIST__",
+			"default": ""
 		}
 	]
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var operation = properties.get("operation", "set")
-	var state = properties.get("state", 1)
-	
-	# Normalize operation
-	if typeof(operation) == TYPE_STRING:
-		operation = operation.to_lower()
-	
+	var state_id = str(properties.get("state_id", "")).strip_edges()
+
 	var code_lines: Array[String] = []
-	
-	match operation:
-		"set":
-			code_lines.append("# Set logic brick state to %d" % state)
-			code_lines.append("_logic_brick_state = %d" % state)
-		
-		"add":
-			code_lines.append("# Increment state by %d (clamped to 1-30)" % state)
-			code_lines.append("_logic_brick_state = clampi(_logic_brick_state + %d, 1, 30)" % state)
-		
-		"remove":
-			code_lines.append("# Decrement state by %d (clamped to 1-30)" % state)
-			code_lines.append("_logic_brick_state = clampi(_logic_brick_state - %d, 1, 30)" % state)
-	
+	if state_id.is_empty():
+		code_lines.append("push_warning(\"State Actuator requires a state selection.\")")
+	else:
+		code_lines.append("# Set logic brick state")
+		code_lines.append("_logic_brick_state = %s" % _gdscript_string_literal(state_id))
+
 	return {
 		"actuator_code": "\n".join(code_lines)
 	}
+
+
+func _gdscript_string_literal(value: String) -> String:
+	return '"%s"' % value.c_escape()
