@@ -118,22 +118,28 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var end_mode = properties.get("end_mode", "queue_free")
 	var end_delay = properties.get("end_delay", 0.1)
 	var mesh_path = properties.get("mesh_path", "")
-	
-	# Normalize enums to lowercase
+
+	# Normalize edit_type to snake_case
 	if typeof(edit_type) == TYPE_STRING:
 		edit_type = edit_type.to_lower().replace(" ", "_")
+
+	# FIX (Bug 3): Explicit end_mode normalization — avoids fragile string stripping
 	if typeof(end_mode) == TYPE_STRING:
-		end_mode = end_mode.to_lower().replace(" ", "_").replace("_immediate", "")
-	
+		var em = end_mode.to_lower()
+		if "queue" in em:
+			end_mode = "queue_free"
+		else:
+			end_mode = "free"
+
 	# Convert NodePath to string for code generation
 	var spawn_point_str = ""
 	if spawn_point is NodePath:
 		spawn_point_str = str(spawn_point)
 	elif spawn_point is String:
 		spawn_point_str = spawn_point
-	
+
 	var code = ""
-	
+
 	match edit_type:
 		"add_object":
 			# Instantiate a scene and add it to the scene root (independent of spawner)
@@ -142,74 +148,81 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			else:
 				var code_lines: Array[String] = []
 				code_lines.append("var _scene = load(\"%s\").instantiate()" % spawn_object)
-				
-				# Determine spawn position and rotation (but NOT scale)
-				if spawn_point_str.is_empty():
-					code_lines.append("var _spawn_pos = global_position")
-					code_lines.append("var _spawn_basis = global_transform.basis.orthonormalized()")
-				else:
+
+				# FIX (Bug 2): Declare vars before the if/else so they stay in scope
+				code_lines.append("var _spawn_pos = global_position")
+				code_lines.append("var _spawn_basis = global_transform.basis.orthonormalized()")
+
+				if not spawn_point_str.is_empty():
 					code_lines.append("var _spawn_point = get_node_or_null(\"%s\")" % spawn_point_str)
 					code_lines.append("if _spawn_point:")
-					code_lines.append("\tvar _spawn_pos = _spawn_point.global_position")
-					code_lines.append("\tvar _spawn_basis = _spawn_point.global_transform.basis.orthonormalized()")
-					code_lines.append("else:")
-					code_lines.append("\tvar _spawn_pos = global_position")
-					code_lines.append("\tvar _spawn_basis = global_transform.basis.orthonormalized()")
-				
+					code_lines.append("\t_spawn_pos = _spawn_point.global_position")
+					code_lines.append("\t_spawn_basis = _spawn_point.global_transform.basis.orthonormalized()")
+
 				# Set position and rotation (with uniform scale) before adding to tree
 				code_lines.append("_scene.global_transform = Transform3D(_spawn_basis, _spawn_pos)")
-				
+
 				# Add to scene root (not as child of spawner - makes it independent)
 				code_lines.append("get_tree().root.add_child(_scene)")
-				
+
 				# Apply velocity if any axis is non-zero (after adding to tree)
 				if velocity_x != 0.0 or velocity_y != 0.0 or velocity_z != 0.0:
 					code_lines.append("# Apply initial velocity")
-					
-					# Calculate velocity (global or local)
+
 					if velocity_local:
 						code_lines.append("var _velocity = _spawn_basis * Vector3(%.2f, %.2f, %.2f)" % [velocity_x, velocity_y, velocity_z])
 					else:
 						code_lines.append("var _velocity = Vector3(%.2f, %.2f, %.2f)" % [velocity_x, velocity_y, velocity_z])
-					
+
 					code_lines.append("if _scene is RigidBody3D:")
 					code_lines.append("\t_scene.linear_velocity = _velocity")
 					code_lines.append("elif _scene.has_method(\"set_velocity\"):")
 					code_lines.append("\t# For CharacterBody3D or custom physics")
 					code_lines.append("\t_scene.set_velocity(_velocity)")
-				
+
 				# Set up auto-destruction if lifespan > 0
+				# FIX (Bug 1): Wait a physics frame before freeing so Jolt can flush area events
 				if lifespan > 0.0:
 					code_lines.append("# Auto-destroy after %.2f seconds" % lifespan)
-					code_lines.append("get_tree().create_timer(%.2f).timeout.connect(_scene.queue_free)" % lifespan)
-				
+					code_lines.append("get_tree().create_timer(%.2f).timeout.connect(func():" % lifespan)
+					code_lines.append("\tawait get_tree().physics_frame")
+					code_lines.append("\tif is_instance_valid(_scene):")
+					code_lines.append("\t\t_scene.queue_free())")
+
 				code = "\n".join(code_lines)
-		
+
 		"end_object":
-			# Remove this object from the scene with optional delay
+			# FIX (Bug 1): Always yield a physics frame before freeing to let Jolt flush
+			# area overlap exit events — prevents the ref_count <= 0 Jolt assertion.
 			if end_delay > 0.0:
-				# Use timer for delayed removal
+				# Delayed removal: timer fires, then wait one physics frame
 				if end_mode == "queue_free":
-					code = "get_tree().create_timer(%.2f).timeout.connect(queue_free)" % end_delay
+					code = ("get_tree().create_timer(%.2f).timeout.connect(func():\n"
+						+ "\tawait get_tree().physics_frame\n"
+						+ "\tif is_instance_valid(self):\n"
+						+ "\t\tqueue_free())") % end_delay
 				else:
-					code = "get_tree().create_timer(%.2f).timeout.connect(free)" % end_delay
+					code = ("get_tree().create_timer(%.2f).timeout.connect(func():\n"
+						+ "\tawait get_tree().physics_frame\n"
+						+ "\tif is_instance_valid(self):\n"
+						+ "\t\tfree())") % end_delay
 			else:
-				# Immediate removal
+				# Immediate removal: still defer past the physics step
 				if end_mode == "queue_free":
-					code = "queue_free()"
+					code = "await get_tree().physics_frame\nif is_instance_valid(self):\n\tqueue_free()"
 				else:
-					code = "free()"
-		
+					code = "await get_tree().physics_frame\nif is_instance_valid(self):\n\tfree()"
+
 		"replace_mesh":
 			# Swap the mesh on this object's MeshInstance3D
 			if mesh_path.is_empty():
 				code = "pass # No mesh path set"
 			else:
 				code = "var _mesh_instance = $MeshInstance3D\nif _mesh_instance:\n\t_mesh_instance.mesh = load(\"%s\")" % mesh_path
-		
+
 		_:
 			code = "pass # Unknown edit type"
-	
+
 	return {
 		"actuator_code": code
 	}
