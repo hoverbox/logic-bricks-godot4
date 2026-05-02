@@ -496,7 +496,6 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			code_lines.append(mv)
 		code_lines.append("")
 
-	_append_rebuild_blob(code_lines, chains)
 	code_lines.append("")
 	
 	# Generate _ready() function
@@ -902,23 +901,6 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 	return "\n".join(lines)
 
 
-
-func _append_rebuild_blob(code_lines: Array[String], chains: Array) -> void:
-	# Keep rebuild metadata in one compact top-level blob instead of injecting long
-	# per-function comments throughout the generated code. This keeps the script
-	# readable while still allowing exact rebuild of every brick.
-	var payload: Array = []
-	for chain in chains:
-		payload.append(chain.duplicate(true))
-	var payload_b64 := Marshalls.raw_to_base64(var_to_bytes(payload))
-	code_lines.append('const _LOGIC_BRICKS_REBUILD_B64 := """')
-	var chunk_size := 96
-	var i := 0
-	while i < payload_b64.length():
-		var next_i := mini(i + chunk_size, payload_b64.length())
-		code_lines.append(payload_b64.substr(i, next_i - i))
-		i = next_i
-	code_lines.append('"""')
 
 func _gdscript_string_literal(value: String) -> String:
 	return '"%s"' % value.c_escape()
