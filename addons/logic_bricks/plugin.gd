@@ -308,4 +308,16 @@ func ensure_global_vars_autoload(script_path: String) -> void:
 	if not ProjectSettings.has_setting("autoload/GlobalVars"):
 		add_autoload_singleton("GlobalVars", script_path)
 		print("Logic Bricks: Registered GlobalVars autoload")
+	else:
+		# The setting exists — check it points to the correct path.
+		# A stale UID from a previous install causes:
+		#   ERROR: Unrecognized UID / Resource file not found / Failed to create autoload
+		# Fix it by removing and re-adding with the current path.
+		var existing = ProjectSettings.get_setting("autoload/GlobalVars", "")
+		# Autoload values are stored as "*res://..." (enabled) or "res://..." (disabled).
+		var existing_path = existing.trim_prefix("*")
+		if existing_path != script_path:
+			remove_autoload_singleton("GlobalVars")
+			add_autoload_singleton("GlobalVars", script_path)
+			print("Logic Bricks: Updated GlobalVars autoload path (was: %s)" % existing_path)
 

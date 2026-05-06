@@ -93,12 +93,18 @@ func open_search_popup(screen_pos: Vector2, initial_text: String = "") -> void:
 
     _search_update_results(initial_text)
 
-    var screen_size = DisplayServer.screen_get_size()
+    # Use the real OS mouse position so the popup always appears under the
+    # cursor, regardless of which editor dock currently has keyboard focus.
+    # The caller's screen_pos is a fallback for menu-button-triggered opens.
+    var mouse_pos := Vector2(DisplayServer.mouse_get_position())
+    var screen_size := Vector2(DisplayServer.screen_get_size())
+    var use_mouse := Rect2(Vector2.ZERO, screen_size).has_point(mouse_pos)
+    var pos := mouse_pos if use_mouse else screen_pos
+
     search_popup.reset_size()
     var pop_size = Vector2(search_popup.size)
     if pop_size == Vector2.ZERO:
         pop_size = Vector2(456, 300)
-    var pos = screen_pos
     if pos.x + pop_size.x > screen_size.x:
         pos.x = screen_size.x - pop_size.x - 8
     if pos.y + pop_size.y > screen_size.y:

@@ -49,7 +49,7 @@ var _side_stack: VBoxContainer          # right column — only one child visibl
 var _collapse_button: Button            # collapses to icon rail only
 var _side_collapsed: bool = false
 var _expanded_side_width: int = 300
-var _active_tab_index: int = 0          # 0=Variables, 1=Globals, 2=Frames, 3=States
+var _active_tab_index: int = 0          # 0=Variables, 1=Globals, 2=States, 3=Frames
 var _nav_buttons: Array[Button] = []    # Kept so we can update active highlight
 var variables_panel: VBoxContainer
 var variables_list: VBoxContainer
@@ -487,19 +487,19 @@ func _create_side_panel() -> void:
 
 	_side_stack.add_child(variables_panel)
 	_side_stack.add_child(global_vars_panel)
-	_side_stack.add_child(frames_panel)
 	_side_stack.add_child(states_panel)
+	_side_stack.add_child(frames_panel)
 
 	# Build nav buttons (one per panel)
 	var tab_defs = [
 		{"tooltip": "Variables", "icon": "LocalVariable", "fallback": "V"},
 		{"tooltip": "Globals", "icon": "WorldEnvironment", "fallback": "G"},
+		{"tooltip": "States", "icon": "StateMachine", "fallback": "S"},
 		{"tooltip": "Frames", "icon": "KeyEasedSelected", "fallback": "F"},
-		{"tooltip": "States", "icon": "StateMachine", "fallback": "S"}
 	]
 	for i in range(tab_defs.size()):
 		var btn = Button.new()
-		btn.flat = true
+		btn.flat = false
 		btn.toggle_mode = false
 		btn.focus_mode = Control.FOCUS_NONE
 		btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
