@@ -16,6 +16,7 @@ func _initialize_properties() -> void:
 	properties = {
 		"forward_axis": "-z",  # Which direction the mesh considers "forward"
 		"smoothing": 0.1,  # How smoothly to rotate (0 = instant, higher = smoother)
+		"ignore_platform_motion": true,  # Ignore moving platform carry/inherited velocity when choosing look direction
 	}
 
 
@@ -33,6 +34,11 @@ func get_property_definitions() -> Array:
 			"type": TYPE_FLOAT,
 			"default": 0.1
 		},
+		{
+			"name": "ignore_platform_motion",
+			"type": TYPE_BOOL,
+			"default": true
+		},
 	]
 
 
@@ -41,12 +47,14 @@ func get_tooltip_definitions() -> Dictionary:
 		"_description": "Rotates a node to face the direction of movement.\n\n⚠ Adds an @export in the Inspector — assign the mesh/Node3D to rotate there.",
 		"forward_axis": "Which direction the mesh considers 'forward'.\n-Z is Godot's default forward direction.",
 		"smoothing": "How smoothly to rotate.\n0 = instant, higher = smoother.",
+		"ignore_platform_motion": "When enabled, moving-platform carry and inherited platform velocity are removed before choosing the look direction. This keeps the character facing the player's input movement instead of the platform's movement.",
 	}
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var forward_axis = properties.get("forward_axis", "-z")
 	var smoothing = properties.get("smoothing", 0.1)
+	var ignore_platform_motion = properties.get("ignore_platform_motion", true)
 
 	# Normalize
 	if typeof(forward_axis) == TYPE_STRING:
@@ -83,6 +91,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# Exported Node3D variable — user assigns via inspector drag-and-drop
 	member_vars.append("@export var %s: Node3D" % target_var)
 	member_vars.append("var %s: Vector3 = Vector3.INF" % last_pos_var)
+	if ignore_platform_motion:
+		# Character/Gravity actuators write this after movement so next frame can ignore external carry.
+		# When no platform actuator is present it remains zero.
+		member_vars.append("var _logic_brick_external_motion_delta: Vector3 = Vector3.ZERO")
 
 	code_lines.append("# Rotate target node to face movement direction")
 	code_lines.append("if not %s:" % target_var)
@@ -94,6 +106,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\tif %s == Vector3.INF:" % last_pos_var)
 	code_lines.append("\t\t%s = global_position" % last_pos_var)
 	code_lines.append("\tvar _movement_dir = global_position - %s" % last_pos_var)
+	if ignore_platform_motion:
+		code_lines.append("\t# Remove last frame's platform-carried/inherited motion so facing follows player movement")
+		code_lines.append("\t_movement_dir -= _logic_brick_external_motion_delta")
 	code_lines.append("\t%s = global_position" % last_pos_var)
 
 	code_lines.append("\t")

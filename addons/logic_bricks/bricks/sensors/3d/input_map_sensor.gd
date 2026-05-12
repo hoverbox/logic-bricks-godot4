@@ -8,6 +8,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ##
 ## Modes:
 ##   Pressed/Just Pressed/Just Released: Boolean input (button-style)
+##   Any Pressed/Any Just Pressed/Any Just Released: Checks every action in the Input Map
 ##   Axis: Reads two opposing actions as a -1 to 1 value and stores it in a variable
 
 
@@ -19,11 +20,11 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"input_mode": "pressed",     # pressed, just_pressed, just_released, axis
+		"input_mode": "pressed",     # pressed, just_pressed, just_released, any_pressed, any_just_pressed, any_just_released, axis
 		"action_name": "ui_accept",  # Button modes: Input Map action name
 		"negative_action": "",       # Axis mode: action for -1 direction
 		"positive_action": "",       # Axis mode: action for +1 direction
-		"invert": false,             # Flip the axis value
+		"invert": false,             # Flip the result
 		"store_in": "",              # Variable name to store the value (-1 to 1)
 		"deadzone": 0.1,             # Ignore values smaller than this
 	}
@@ -35,7 +36,7 @@ func get_property_definitions() -> Array:
 			"name": "input_mode",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Pressed,Just Pressed,Just Released,Axis",
+			"hint_string": "Pressed,Just Pressed,Just Released,Any Pressed,Any Just Pressed,Any Just Released,Axis",
 			"default": "pressed"
 		},
 		{
@@ -73,12 +74,12 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Detects input actions from Project > Input Map.\nSupports button presses and analog joystick axis input.",
-		"input_mode": "Pressed: active while held\nJust Pressed: one frame on press\nJust Released: one frame on release\nAxis: joystick/WASD axis value (-1 to 1)",
-		"action_name": "Input Map action name (e.g. 'jump', 'ui_accept').",
+		"_description": "Detects input actions from Project > Input Map.\nSupports button presses, any-action checks, and analog joystick axis input.",
+		"input_mode": "Pressed: active while held\nJust Pressed: one frame on press\nJust Released: one frame on release\nAny Pressed: active when any action in the Input Map is held\nAny Just Pressed: one frame when any Input Map action is pressed\nAny Just Released: one frame when any Input Map action is released\nAxis: joystick/WASD axis value (-1 to 1)",
+		"action_name": "Input Map action name (e.g. 'jump', 'ui_accept'). Ignored by Any modes.",
 		"negative_action": "Input Map action for the -1 direction.\nExample: 'move_left', 'move_forward', 'look_down'\nMust match an action in Project > Input Map.",
 		"positive_action": "Input Map action for the +1 direction.\nExample: 'move_right', 'move_back', 'look_up'\nMust match an action in Project > Input Map.",
-		"invert": "Invert the sensor result.\nButton modes: active when action is NOT pressed.\nAxis mode: flips the axis value.",
+		"invert": "Invert the sensor result.\nButton modes: active when action is NOT pressed.\nAny modes: active when no Input Map action matches.\nAxis mode: flips the axis value.",
 		"store_in": "Variable name to store the axis value (-1.0 to 1.0).\nCreate this variable in the Variables tab.\nThen use it in a Motion actuator field (e.g. 'up * speed').",
 		"deadzone": "Ignore stick values smaller than this.\nPrevents drift from loose joysticks.\n0.1 is a good default.",
 	}
@@ -94,6 +95,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	match input_mode:
 		"pressed", "just_pressed", "just_released":
 			return _generate_button_code(input_mode)
+		"any_pressed", "any_just_pressed", "any_just_released":
+			return _generate_any_action_code(input_mode)
 		"axis":
 			return _generate_axis_code()
 		_:
@@ -119,6 +122,29 @@ func _generate_button_code(input_mode: String) -> Dictionary:
 	return {"sensor_code": code}
 
 
+func _generate_any_action_code(input_mode: String) -> Dictionary:
+	var invert = properties.get("invert", false)
+	var method_name = "is_action_pressed"
+	match input_mode:
+		"any_pressed":
+			method_name = "is_action_pressed"
+		"any_just_pressed":
+			method_name = "is_action_just_pressed"
+		"any_just_released":
+			method_name = "is_action_just_released"
+
+	var code_lines: Array[String] = []
+	code_lines.append("var sensor_active = false")
+	code_lines.append("for _lb_input_action in InputMap.get_actions():")
+	code_lines.append("\tif Input.%s(_lb_input_action):" % method_name)
+	code_lines.append("\t\tsensor_active = true")
+	code_lines.append("\t\tbreak")
+	if invert:
+		code_lines.append("sensor_active = not sensor_active")
+
+	return {"sensor_code": "\n".join(code_lines)}
+
+
 func _generate_axis_code() -> Dictionary:
 	var neg_action = str(properties.get("negative_action", "")).strip_edges()
 	var pos_action = str(properties.get("positive_action", "")).strip_edges()
@@ -131,17 +157,17 @@ func _generate_axis_code() -> Dictionary:
 	if neg_action.is_empty() or pos_action.is_empty():
 		return {"sensor_code": "var sensor_active = false  # Axis: actions not set"}
 
-	var code_lines: Array[String] = []
-	code_lines.append("var _axis_val = Input.get_axis(\"%s\", \"%s\")" % [neg_action, pos_action])
-
+	var axis_expr = "Input.get_axis(\"%s\", \"%s\")" % [neg_action, pos_action]
 	if invert:
-		code_lines.append("_axis_val = -_axis_val")
+		axis_expr = "-(%s)" % axis_expr
+
+	var code_lines: Array[String] = []
 
 	# Store in variable if specified
 	if not store_var.is_empty():
-		code_lines.append("%s = _axis_val" % store_var)
-
-	# Active when past deadzone
-	code_lines.append("var sensor_active = absf(_axis_val) > %.3f" % deadzone)
+		code_lines.append("%s = %s" % [store_var, axis_expr])
+		code_lines.append("var sensor_active = absf(%s) > %.3f" % [store_var, deadzone])
+	else:
+		code_lines.append("var sensor_active = absf(%s) > %.3f" % [axis_expr, deadzone])
 
 	return {"sensor_code": "\n".join(code_lines)}

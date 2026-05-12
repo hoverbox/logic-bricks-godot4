@@ -96,8 +96,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var decay         = _to_expr(properties.get("decay",        "1.5"))
 	var noise_speed   = _to_expr(properties.get("noise_speed",  "8.0"))
 
-	# Use instance name if set, otherwise use brick name, sanitized for use as a variable
-	var _export_label = instance_name if not instance_name.is_empty() else brick_name
+	# Use instance name if set; otherwise include the chain name and a settings hash.
+	# This prevents multiple Screen Shake actuators from generating the same helper
+	# function and runtime variables.
+	var _export_label = instance_name if not instance_name.is_empty() else "%s_%s_%s" % [brick_name, chain_name, str(abs(str(properties).hash()))]
 	_export_label = _export_label.to_lower().replace(" ", "_")
 	var _regex = RegEx.new()
 	_regex.compile("[^a-z0-9_]")
@@ -106,6 +108,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		_export_label = chain_name
 
 	var cam_var    = "_%s" % _export_label
+	var helper_func = "_process_screen_shake_%s" % _export_label
+	var trauma_var = "_shake_trauma_%s" % _export_label
+	var noise_var = "_shake_noise_%s" % _export_label
+	var time_var = "_shake_time_%s" % _export_label
+	var max_offset_var = "_shake_max_offset_%s" % _export_label
+	var decay_var = "_shake_decay_%s" % _export_label
+	var noise_speed_var = "_shake_noise_speed_%s" % _export_label
 	var prefix     = "@export var" if export_params else "var"
 	var member_vars: Array[String] = []
 	var code_lines: Array[String] = []
@@ -114,40 +123,40 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	member_vars.append("@export var %s: Camera3D" % cam_var)
 
 	# Shake tuning params
-	member_vars.append("%s _shake_max_offset: float = %s" % [prefix, max_offset])
-	member_vars.append("%s _shake_decay: float = %s" % [prefix, decay])
-	member_vars.append("%s _shake_noise_speed: float = %s" % [prefix, noise_speed])
+	member_vars.append("%s %s: float = %s" % [prefix, max_offset_var, max_offset])
+	member_vars.append("%s %s: float = %s" % [prefix, decay_var, decay])
+	member_vars.append("%s %s: float = %s" % [prefix, noise_speed_var, noise_speed])
 
 	# Runtime state
-	member_vars.append("var _shake_trauma: float = 0.0")
-	member_vars.append("var _shake_noise: FastNoiseLite = FastNoiseLite.new()")
-	member_vars.append("var _shake_time: float = 0.0")
+	member_vars.append("var %s: float = 0.0" % trauma_var)
+	member_vars.append("var %s: FastNoiseLite = FastNoiseLite.new()" % noise_var)
+	member_vars.append("var %s: float = 0.0" % time_var)
 	# Helper method — drives h_offset/v_offset so shake never conflicts with transform-based camera scripts
 	member_vars.append("")
-	member_vars.append("func _process_screen_shake(_delta: float) -> void:")
+	member_vars.append("func %s(_delta: float) -> void:" % helper_func)
 	member_vars.append("\tif not %s: return" % cam_var)
-	member_vars.append("\tif _shake_trauma > 0.0:")
-	member_vars.append("\t\t_shake_time += _delta")
-	member_vars.append("\t\tvar _shake_amount = _shake_trauma * _shake_trauma")
-	member_vars.append("\t\t%s.h_offset = _shake_max_offset * _shake_amount * _shake_noise.get_noise_2d(_shake_time * _shake_noise_speed, 0.0)" % cam_var)
-	member_vars.append("\t\t%s.v_offset = _shake_max_offset * _shake_amount * _shake_noise.get_noise_2d(0.0, _shake_time * _shake_noise_speed)" % cam_var)
-	member_vars.append("\t\t_shake_trauma = maxf(_shake_trauma - _shake_decay * _delta, 0.0)")
+	member_vars.append("\tif %s > 0.0:" % trauma_var)
+	member_vars.append("\t\t%s += _delta" % time_var)
+	member_vars.append("\t\tvar _shake_amount = %s * %s" % [trauma_var, trauma_var])
+	member_vars.append("\t\t%s.h_offset = %s * _shake_amount * %s.get_noise_2d(%s * %s, 0.0)" % [cam_var, max_offset_var, noise_var, time_var, noise_speed_var])
+	member_vars.append("\t\t%s.v_offset = %s * _shake_amount * %s.get_noise_2d(0.0, %s * %s)" % [cam_var, max_offset_var, noise_var, time_var, noise_speed_var])
+	member_vars.append("\t\t%s = maxf(%s - %s * _delta, 0.0)" % [trauma_var, trauma_var, decay_var])
 	member_vars.append("\telse:")
 	member_vars.append("\t\t%s.h_offset = 0.0" % cam_var)
 	member_vars.append("\t\t%s.v_offset = 0.0" % cam_var)
 
 	# Actuator code — only triggers if no shake is currently in progress
 	code_lines.append("# Screen Shake: only start if not already shaking")
-	code_lines.append("if _shake_trauma == 0.0:")
-	code_lines.append("\t_shake_trauma = %s" % trauma)
-	code_lines.append("\t_shake_time = 0.0")
+	code_lines.append("if %s == 0.0:" % trauma_var)
+	code_lines.append("\t%s = %s" % [trauma_var, trauma])
+	code_lines.append("\t%s = 0.0" % time_var)
 
 	# post_process_code runs unconditionally every frame after all chains,
 	# so the shake continues to tick and decay even after the sensor goes inactive.
 	return {
 		"actuator_code": "\n".join(code_lines),
 		"member_vars": member_vars,
-		"post_process_code": ["_process_screen_shake(delta)"],
+		"post_process_code": ["%s(delta)" % helper_func],
 	}
 
 

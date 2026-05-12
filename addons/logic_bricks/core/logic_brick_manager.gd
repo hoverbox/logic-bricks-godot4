@@ -361,6 +361,8 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	var ready_code: Array[String] = []
 	var pre_process_code: Array[String] = []
 	var post_process_code: Array[String] = []
+	var physics_pre_process_code: Array[String] = []
+	var physics_post_process_code: Array[String] = []
 	var extra_methods: Array[String] = []
 	var input_handler_bodies: Array[String] = []  # Body lines for shared _input()
 	var message_handler_calls: Array[String] = []  # Call lines for shared _on_message_received()
@@ -378,8 +380,10 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	if has_named_actuators:
 		member_vars.append("var _actuator_active_flags: Dictionary = {}  # Actuator Sensor: tracks which actuators fired this frame")
 		pre_process_code.append("_actuator_active_flags.clear()")
+		physics_pre_process_code.append("_actuator_active_flags.clear()")
 	for chain in chains:
 		var this_chain_resets: Array[String] = []
+		var chain_needs_physics_process := _chain_needs_physics_process(chain)
 		
 		# Check if this chain is an all-states chain — if so, its member vars
 		# should NOT be reset on state entry (they need to persist across states)
@@ -421,13 +425,15 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 						if rc not in ready_code:
 							ready_code.append(rc)
 				if generated.has("pre_process_code"):
+					var _target_pre_process := physics_pre_process_code if chain_needs_physics_process else pre_process_code
 					for pc in generated["pre_process_code"]:
-						if pc not in pre_process_code:
-							pre_process_code.append(pc)
+						if pc not in _target_pre_process:
+							_target_pre_process.append(pc)
 				if generated.has("post_process_code"):
+					var _target_post_process := physics_post_process_code if chain_needs_physics_process else post_process_code
 					for pc in generated["post_process_code"]:
-						if pc not in post_process_code:
-							post_process_code.append(pc)
+						if pc not in _target_post_process:
+							_target_post_process.append(pc)
 				if generated.has("methods"):
 					for method in generated["methods"]:
 						if method.begins_with("input_handler::"):
@@ -454,11 +460,16 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 						if rc not in ready_code:
 							ready_code.append(rc)
 		
-		# Collect from actuators (they can also have member vars like RNG instances)
-		for actuator_data in chain.get("actuators", []):
+		# Collect from actuators (they can also have member vars like RNG instances).
+		# Use a per-actuator code namespace so multiple actuators of the same type in
+		# one chain do not generate duplicate member variable or helper names.
+		var actuator_list = chain.get("actuators", [])
+		for actuator_index in range(actuator_list.size()):
+			var actuator_data = actuator_list[actuator_index]
 			var actuator_brick = _instantiate_brick(actuator_data)
 			if actuator_brick:
-				var generated = actuator_brick.generate_code(node, chain["name"])
+				var actuator_code_name := "%s_%d" % [chain["name"], actuator_index]
+				var generated = actuator_brick.generate_code(node, actuator_code_name)
 				if generated.has("member_vars"):
 					_append_member_var_items(member_vars, generated["member_vars"])
 					# Only collect resets for state-specific chains
@@ -472,13 +483,15 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 						if rc not in ready_code:
 							ready_code.append(rc)
 				if generated.has("pre_process_code"):
+					var _target_pre_process := physics_pre_process_code if chain_needs_physics_process else pre_process_code
 					for pc in generated["pre_process_code"]:
-						if pc not in pre_process_code:
-							pre_process_code.append(pc)
+						if pc not in _target_pre_process:
+							_target_pre_process.append(pc)
 				if generated.has("post_process_code"):
+					var _target_post_process := physics_post_process_code if chain_needs_physics_process else post_process_code
 					for pc in generated["post_process_code"]:
-						if pc not in post_process_code:
-							post_process_code.append(pc)
+						if pc not in _target_post_process:
+							_target_post_process.append(pc)
 				if generated.has("methods"):
 					for method in generated["methods"]:
 						if method.begins_with("input_handler::"):
@@ -592,7 +605,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		# non-physics actuators (animation, UI, etc.) will run at the wrong time.
 		if _chain_has_mixed_actuators(chain):
 			push_warning(
-				"Logic Bricks: Chain '%s' on node '%s' mixes physics actuators (Force/Torque/Impulse/LinearVelocity) with non-physics actuators. The entire chain will run in _physics_process, which may cause incorrect timing for animation, UI, or other non-physics actuators. Split them into separate chains." \
+				"Logic Bricks: Chain '%s' on node '%s' mixes physics movement with timing-sensitive actuators. The entire chain will run in _physics_process, which may cause incorrect timing for animation, UI, audio, or other time-based actuators. Split only those timing-sensitive actuators into a separate chain." \
 				% [chain["name"], node.name]
 			)
 		var chain_code = _generate_chain_function(node, chain)
@@ -638,6 +651,10 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 
 	if has_physics_process:
 		code_lines.append("func _physics_process(delta: float) -> void:")
+		if physics_pre_process_code.size() > 0:
+			for pc in physics_pre_process_code:
+				code_lines.append("	" + pc)
+			code_lines.append("	")
 		var has_any_physics_chain = false
 		for chain in chains:
 			if generated_chain_functions.has(chain["name"]) and not _chain_needs_physics_process(chain) and _chain_is_state_transition_only(chain):
@@ -649,6 +666,10 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 				has_any_physics_chain = true
 		if not has_any_physics_chain:
 			code_lines.append("	pass")
+		if physics_post_process_code.size() > 0:
+			code_lines.append("	")
+			for pc in physics_post_process_code:
+				code_lines.append("	" + pc)
 		code_lines.append("")
 
 	# Emit assembled _input() if any sensors contributed handler bodies
@@ -864,10 +885,12 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 		return ""  # No actuators — incomplete chain
 	else:
 		var actuator_lines_written = 0
-		for actuator_data in actuators:
+		for actuator_index in range(actuators.size()):
+			var actuator_data = actuators[actuator_index]
 			var actuator_brick = _instantiate_brick(actuator_data)
 			if actuator_brick:
-				var generated = actuator_brick.generate_code(node, chain_name)
+				var actuator_code_name := "%s_%d" % [chain_name, actuator_index]
+				var generated = actuator_brick.generate_code(node, actuator_code_name)
 				if generated.has("actuator_code"):
 					var actuator_code = generated["actuator_code"]
 					var code_lines_array = actuator_code.split("\n")
@@ -909,7 +932,14 @@ func _append_member_var_items(target: Array[String], items: Array) -> void:
 	# member_vars can contain both plain top-level declarations and entire helper
 	# functions flattened into line arrays. Deduplicating them line-by-line corrupts
 	# function bodies when two helpers share common lines. Keep function blocks intact
-	# and only dedupe plain non-function lines.
+	# and dedupe whole helper functions by signature so repeated bricks can safely
+	# share helpers such as _find_anim_player() and _find_sprite_node().
+	var existing_function_signatures: Dictionary = {}
+	for target_line in target:
+		var target_text := str(target_line)
+		if target_text.begins_with("func ") or target_text.begins_with("static func "):
+			existing_function_signatures[_function_signature_key(target_text)] = true
+
 	var i := 0
 	while i < items.size():
 		var line := str(items[i])
@@ -923,12 +953,23 @@ func _append_member_var_items(target: Array[String], items: Array) -> void:
 					i += 1
 					continue
 				break
-			for block_line in block:
-				target.append(block_line)
+			var signature_key := _function_signature_key(line)
+			if not existing_function_signatures.has(signature_key):
+				for block_line in block:
+					target.append(block_line)
+				existing_function_signatures[signature_key] = true
 			continue
 		if line not in target:
 			target.append(line)
 		i += 1
+
+
+func _function_signature_key(signature_line: String) -> String:
+	var text := signature_line.strip_edges()
+	var paren_index := text.find("(")
+	if paren_index == -1:
+		return text
+	return text.substr(0, paren_index)
 
 
 ## Check if a chain is complete enough to generate code for
@@ -960,8 +1001,15 @@ func _chain_needs_physics_process(chain: Dictionary) -> bool:
 	var actuators = chain.get("actuators", [])
 	for actuator_data in actuators:
 		var brick_type = actuator_data.get("type", "")
-		if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator"]:
+		if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator"]:
 			return true
+		if brick_type == "MotionActuator":
+			var props = actuator_data.get("properties", {})
+			var motion_type = str(props.get("motion_type", "location")).to_lower().replace(" ", "_")
+			var movement_method = str(props.get("movement_method", "character_velocity")).to_lower().replace(" ", "_")
+			var call_move_and_slide = props.get("call_move_and_slide", false) == true
+			if motion_type == "location" or movement_method == "character_velocity" or call_move_and_slide:
+				return true
 	return false
 
 
@@ -974,20 +1022,56 @@ func _chain_is_state_transition_only(chain: Dictionary) -> bool:
 			return false
 	return true
 
-## Returns true if this chain mixes physics actuators (Force/Torque/Impulse/LinearVelocity)
-## with non-physics actuators. Such chains run in _physics_process, which is wrong timing
-## for animation, UI, and other non-physics actuators.
+## Returns true if this chain mixes physics actuators with timing-sensitive
+## non-physics actuators. Physics-compatible actuators such as LookAtMovement
+## are allowed in the same chain, because they should run after the character
+## velocity has been resolved in _physics_process.
 func _chain_has_mixed_actuators(chain: Dictionary) -> bool:
 	var actuators = chain.get("actuators", [])
 	var has_physics = false
-	var has_non_physics = false
+	var has_timing_sensitive_non_physics = false
 	for actuator_data in actuators:
 		var brick_type = actuator_data.get("type", "")
-		if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator"]:
+		if _logic_brick_actuator_requires_physics(actuator_data):
 			has_physics = true
-		else:
-			has_non_physics = true
-	return has_physics and has_non_physics
+		elif _logic_brick_actuator_is_timing_sensitive_non_physics(brick_type):
+			has_timing_sensitive_non_physics = true
+	return has_physics and has_timing_sensitive_non_physics
+
+
+func _logic_brick_actuator_requires_physics(actuator_data: Dictionary) -> bool:
+	var brick_type = actuator_data.get("type", "")
+	if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator"]:
+		return true
+	if brick_type == "MotionActuator":
+		var props = actuator_data.get("properties", {})
+		var motion_type = str(props.get("motion_type", "location")).to_lower().replace(" ", "_")
+		var movement_method = str(props.get("movement_method", "character_velocity")).to_lower().replace(" ", "_")
+		var call_move_and_slide = props.get("call_move_and_slide", false) == true
+		return motion_type == "location" or movement_method == "character_velocity" or call_move_and_slide
+	return false
+
+
+func _logic_brick_actuator_is_timing_sensitive_non_physics(brick_type: String) -> bool:
+	# These are the actuators most likely to behave incorrectly if forced into
+	# _physics_process by a movement chain. Other actuators, including
+	# LookAtMovementActuator, are safe/useful in physics chains.
+	return brick_type in [
+		"AnimationActuator",
+		"AnimationTreeActuator",
+		"Audio2DActuator",
+		"CameraZoomActuator",
+		"EnvironmentActuator",
+		"GameActuator",
+		"MusicActuator",
+		"ObjectFlashActuator",
+		"ProgressBarActuator",
+		"ScreenShakeActuator",
+		"SpriteFramesActuator",
+		"TextActuator",
+		"TimerActuator",
+		"UIActuator"
+	]
 
 
 ## Instantiate a brick from serialized data
