@@ -306,7 +306,8 @@ func _create_add_menu() -> void:
 			"label": "Movement",
 			"items": [
 				["Motion", 309, "MotionActuator", "Move or rotate a node.\\nCharacter Velocity, Translate, or Position modes."],
-				["Character", 303, "CharacterActuator", "All-in-one: gravity, jumping, and ground detection."],
+				["Character", 303, "CharacterActuator", "Gravity, ground detection, and move_and_slide() for CharacterBody3D.\nPair with the Jump Actuator to handle jumping."],
+				["Jump", 350, "JumpActuator", "Apply a jump impulse to a CharacterBody3D.\nTrigger from any sensor — InputMap, Proximity, Message, etc.\nRequires a Character Actuator in another chain for gravity."],
 				["Look At Movement", 306, "LookAtMovementActuator", "Rotates a node to face the direction of movement.\n⚠ Adds @export in Inspector — assign the mesh/Node3D to rotate."],
 				["Rotate Towards", 342, "RotateTowardsActuator", "Rotates to face a target node found by name or group.\nUseful for turrets and enemies tracking the player."],
 				["Waypoint Path", 343, "WaypointPathActuator", "Moves a node through a series of waypoints placed in the 3D viewport.\nDrag the handles to position each point. Supports Loop, Ping Pong, and Once."],
@@ -1770,7 +1771,7 @@ func _create_brick_instance(brick_class: String):
 		"GravityActuator":
 			script_path = "res://addons/logic_bricks/bricks/actuators/3d/gravity_actuator.gd"  # Legacy
 		"JumpActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/jump_actuator.gd"  # Legacy
+			script_path = "res://addons/logic_bricks/bricks/actuators/3d/jump_actuator.gd"
 		"MoveTowardsActuator":
 			script_path = "res://addons/logic_bricks/bricks/actuators/3d/move_towards_actuator.gd"
 		"AnimationActuator":

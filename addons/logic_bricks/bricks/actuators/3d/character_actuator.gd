@@ -2,14 +2,15 @@
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Character Actuator - Unified character controller for CharacterBody3D
-## Handles gravity, jumping, and ground detection in one brick
-## Pair with an Always Sensor so it runs every frame
-## Horizontal movement is handled by separate Motion Actuators
+## Handles gravity, ground detection, and move_and_slide() in one brick.
+## Jumping is handled by the separate Jump Actuator.
+## Pair with an Always Sensor so it runs every frame.
+## Horizontal movement is handled by separate Motion / Move Towards Actuators.
 ##
 ## Execution order (guaranteed):
 ##   1. Pre-process: reset horizontal velocity
-##   2. This chain: apply gravity, detect ground, handle jump input
-##   3. Other chains: motion actuators set velocity.x / velocity.z
+##   2. This chain: apply gravity, detect ground
+##   3. Other chains: motion actuators set velocity.x / velocity.z; Jump Actuator sets velocity.y
 ##   4. Post-process: move_and_slide()
 
 
@@ -22,12 +23,8 @@ func _init() -> void:
 func _initialize_properties() -> void:
 	properties = {
 		# Gravity
-		"gravity_strength": 9.8,
-		"max_fall_speed": 50.0,
-		# Jump
-		"jump_action": "",           # InputMap action name (e.g., "jump"). Empty = no jump.
-		"jump_height": 4.5,
-		"max_jumps": 1,              # 1 = single, 2 = double, etc.
+		"gravity_strength": "9.8",
+		"max_fall_speed": "50.0",
 		# Ground detection
 		"ground_groups": "",         # Comma-separated groups (empty = any floor)
 		"platform_groups": "",       # Comma-separated moving platform groups (empty = disabled)
@@ -39,28 +36,13 @@ func get_property_definitions() -> Array:
 	return [
 		{
 			"name": "gravity_strength",
-			"type": TYPE_FLOAT,
-			"default": 9.8
+			"type": TYPE_STRING,
+			"default": "9.8"
 		},
 		{
 			"name": "max_fall_speed",
-			"type": TYPE_FLOAT,
-			"default": 50.0
-		},
-		{
-			"name": "jump_action",
 			"type": TYPE_STRING,
-			"default": ""
-		},
-		{
-			"name": "jump_height",
-			"type": TYPE_FLOAT,
-			"default": 4.5
-		},
-		{
-			"name": "max_jumps",
-			"type": TYPE_INT,
-			"default": 1
+			"default": "50.0"
 		},
 		{
 			"name": "ground_groups",
@@ -81,12 +63,23 @@ func get_property_definitions() -> Array:
 	]
 
 
+## Convert a value to a code expression.
+## If it's a number (or string of a number), returns the numeric literal.
+## Otherwise returns it as-is (a variable name or expression).
+func _to_expr(val) -> String:
+	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
+		return "%.3f" % val
+	var s = str(val).strip_edges()
+	if s.is_empty():
+		return "0.0"
+	if s.is_valid_float() or s.is_valid_int():
+		return "%.3f" % float(s)
+	return s
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var gravity_strength = properties.get("gravity_strength", 9.8)
-	var max_fall_speed = properties.get("max_fall_speed", 50.0)
-	var jump_action = properties.get("jump_action", "")
-	var jump_height = properties.get("jump_height", 4.5)
-	var max_jumps = properties.get("max_jumps", 1)
+	var gravity_strength = properties.get("gravity_strength", "9.8")
+	var max_fall_speed = properties.get("max_fall_speed", "50.0")
 	var ground_groups = properties.get("ground_groups", "")
 	var platform_groups = properties.get("platform_groups", "")
 	var inherit_platform_velocity_on_jump = properties.get("inherit_platform_velocity_on_jump", true)
@@ -109,14 +102,16 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	var has_group_filter = groups.size() > 0
 	var has_platform_filter = platform_group_list.size() > 0
-	var has_jump = typeof(jump_action) == TYPE_STRING and not jump_action.strip_edges().is_empty()
+	var gravity_expr = _to_expr(gravity_strength)
+	var max_fall_expr = _to_expr(max_fall_speed)
 
 	var member_vars: Array[String] = []
 	var code_lines: Array[String] = []
 	var pre_process: Array[String] = []
 	var post_process: Array[String] = []
 
-	# Member variables
+	# Member variables — _jumps_remaining/_max_jumps are declared here so that
+	# the Jump Actuator (which deduplicates member vars) can share them safely.
 	member_vars.append("var _on_ground: bool = false")
 	member_vars.append("var _moving_platform_delta: Vector3 = Vector3.ZERO")
 	member_vars.append("var _moving_platform_velocity: Vector3 = Vector3.ZERO")
@@ -126,8 +121,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	member_vars.append("var _inherited_platform_velocity: Vector3 = Vector3.ZERO")
 	member_vars.append("var _logic_brick_external_motion_delta: Vector3 = Vector3.ZERO")
 	member_vars.append("var _logic_brick_external_motion_total: Vector3 = Vector3.ZERO")
-	member_vars.append("var _jumps_remaining: int = %d" % max_jumps)
-	member_vars.append("var _max_jumps: int = %d" % max_jumps)
+	# Shared with Jump Actuator — dedup keeps only one declaration
+	member_vars.append("var _jumps_remaining: int = 0")
+	member_vars.append("var _max_jumps: int = 0")
 
 	# Pre-process: reset horizontal velocity before any chains run
 	pre_process.append("# Reset horizontal velocity (motion actuators re-apply when active)")
@@ -213,21 +209,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\tif velocity.y < 0.0:")
 	code_lines.append("\t\tvelocity.y = 0.0")
 	code_lines.append("else:")
-	code_lines.append("\tvelocity.y -= %.3f * _delta" % gravity_strength)
-	code_lines.append("\tif velocity.y < -%.3f:" % max_fall_speed)
-	code_lines.append("\t\tvelocity.y = -%.3f" % max_fall_speed)
+	code_lines.append("\tvelocity.y -= (%s) * _delta" % gravity_expr)
+	code_lines.append("\tif velocity.y < -(%s):" % max_fall_expr)
+	code_lines.append("\t\tvelocity.y = -(%s)" % max_fall_expr)
 
-	# --- Jump ---
-	if has_jump:
-		code_lines.append("")
-		code_lines.append("# Jump")
-		code_lines.append("if Input.is_action_just_pressed(\"%s\"):" % jump_action.strip_edges())
-		code_lines.append("\tif _jumps_remaining > 0:")
-		if inherit_platform_velocity_on_jump and has_platform_filter:
-			code_lines.append("\t\tif _on_ground:")
-			code_lines.append("\t\t\t_inherited_platform_velocity = Vector3(_moving_platform_velocity.x, 0.0, _moving_platform_velocity.z)")
-		code_lines.append("\t\tvelocity.y = sqrt(2.0 * %.3f * %.3f)" % [gravity_strength, jump_height])
-		code_lines.append("\t\t_jumps_remaining -= 1")
+	# Jump is now handled by the separate Jump Actuator.
 
 	# Post-process: carry by platform displacement first, then run the player's move_and_slide.
 	# The platform displacement is not stored in CharacterBody3D.velocity, so it cannot accumulate

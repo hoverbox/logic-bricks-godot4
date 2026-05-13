@@ -18,8 +18,8 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"gravity_strength": 9.8,       # Gravity force (units per second squared)
-		"max_fall_speed": 50.0,        # Terminal velocity
+		"gravity_strength": "9.8",       # Gravity force; accepts numbers, variables, or expressions
+		"max_fall_speed": "50.0",        # Terminal velocity; accepts numbers, variables, or expressions
 		"ground_groups": "",           # Comma-separated groups that count as ground (empty = any floor)
 		"platform_groups": "",         # Comma-separated moving platform groups (empty = disabled)
 	}
@@ -29,13 +29,13 @@ func get_property_definitions() -> Array:
 	return [
 		{
 			"name": "gravity_strength",
-			"type": TYPE_FLOAT,
-			"default": 9.8
+			"type": TYPE_STRING,
+			"default": "9.8"
 		},
 		{
 			"name": "max_fall_speed",
-			"type": TYPE_FLOAT,
-			"default": 50.0
+			"type": TYPE_STRING,
+			"default": "50.0"
 		},
 		{
 			"name": "ground_groups",
@@ -51,9 +51,25 @@ func get_property_definitions() -> Array:
 	]
 
 
+## Convert a value to a code expression.
+## If it's a number (or string of a number), returns the numeric literal.
+## Otherwise returns it as-is (a variable name or expression).
+func _to_expr(val) -> String:
+	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
+		return "%.3f" % val
+	var s = str(val).strip_edges()
+	if s.is_empty():
+		return "0.0"
+	if s.is_valid_float() or s.is_valid_int():
+		return "%.3f" % float(s)
+	return s
+
+
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var gravity_strength = properties.get("gravity_strength", 9.8)
-	var max_fall_speed = properties.get("max_fall_speed", 50.0)
+	var gravity_strength = properties.get("gravity_strength", "9.8")
+	var max_fall_speed = properties.get("max_fall_speed", "50.0")
 	var ground_groups = properties.get("ground_groups", "")
 	var platform_groups = properties.get("platform_groups", "")
 
@@ -75,6 +91,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	var has_group_filter = groups.size() > 0
 	var has_platform_filter = platform_group_list.size() > 0
+	var gravity_expr = _to_expr(gravity_strength)
+	var max_fall_expr = _to_expr(max_fall_speed)
 
 	var member_vars: Array[String] = []
 	var code_lines: Array[String] = []
@@ -166,10 +184,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\t\tvelocity.y = 0.0")
 	code_lines.append("else:")
 	code_lines.append("\t# Airborne — apply gravity")
-	code_lines.append("\tvelocity.y -= %.3f * _delta" % gravity_strength)
+	code_lines.append("\tvelocity.y -= (%s) * _delta" % gravity_expr)
 	code_lines.append("\t# Clamp to terminal velocity")
-	code_lines.append("\tif velocity.y < -%.3f:" % max_fall_speed)
-	code_lines.append("\t\tvelocity.y = -%.3f" % max_fall_speed)
+	code_lines.append("\tif velocity.y < -(%s):" % max_fall_expr)
+	code_lines.append("\t\tvelocity.y = -(%s)" % max_fall_expr)
 
 	# Post-process: move_and_slide after all chains have set their velocity
 	post_process.append("# Move with the platform before the character movement step")

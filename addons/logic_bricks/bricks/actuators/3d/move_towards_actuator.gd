@@ -17,15 +17,15 @@ func _initialize_properties() -> void:
 		"behavior": "seek",                    # "seek", "flee", "path_follow"
 		"target_mode": "group",                # "group", "node_name"
 		"target_name": "",                     # Group name or node name of target
-		"arrival_distance": 1.0,               # Distance at which target is considered reached
-		"velocity": 5.0,                       # Movement speed
-		"acceleration": 0.0,                   # Acceleration (0 = instant, >0 = gradual)
-		"turn_speed": 0.0,                     # Turn speed in degrees/sec (0 = instant rotation)
+		"arrival_distance": "1.0",               # Distance at which target is considered reached
+		"velocity": "5.0",                       # Movement speed; accepts numbers, variables, or expressions
+		"acceleration": "0.0",                   # Acceleration (0 = instant, >0 = gradual); accepts expressions
+		"turn_speed": "0.0",                     # Turn speed in degrees/sec (0 = instant rotation); accepts expressions
 		"face_target": false,                  # Whether to rotate toward target
 		"facing_axis": "+z",                   # Which axis points toward target
 		"use_navmesh_normal": false,           # Use navmesh surface normal for up direction
 		"self_terminate": false,               # Stop executing when target reached
-		"lock_y_velocity": false               # Lock Y axis velocity (Godot's vertical axis)
+		"lock_y_velocity": true                # Lock Y axis velocity — keep true when paired with Character Actuator so jumps aren't cancelled
 	}
 
 
@@ -52,23 +52,23 @@ func get_property_definitions() -> Array:
 		},
 		{
 			"name": "arrival_distance",
-			"type": TYPE_FLOAT,
-			"default": 1.0
+			"type": TYPE_STRING,
+			"default": "1.0"
 		},
 		{
 			"name": "velocity",
-			"type": TYPE_FLOAT,
-			"default": 5.0
+			"type": TYPE_STRING,
+			"default": "5.0"
 		},
 		{
 			"name": "acceleration",
-			"type": TYPE_FLOAT,
-			"default": 0.0
+			"type": TYPE_STRING,
+			"default": "0.0"
 		},
 		{
 			"name": "turn_speed",
-			"type": TYPE_FLOAT,
-			"default": 0.0
+			"type": TYPE_STRING,
+			"default": "0.0"
 		},
 		{
 			"name": "face_target",
@@ -95,7 +95,7 @@ func get_property_definitions() -> Array:
 		{
 			"name": "lock_y_velocity",
 			"type": TYPE_BOOL,
-			"default": false
+			"default": true
 		}
 	]
 
@@ -106,31 +106,56 @@ func get_tooltip_definitions() -> Dictionary:
 		"behavior": "Seek: move directly toward nearest target\nFlee: move directly away from nearest target\nPath Follow: use NavigationAgent3D to navigate around obstacles",
 		"target_mode": "How to find the target:\nGroup: find the nearest node in the named group\nNode Name: find a node anywhere in the scene tree by name",
 		"target_name": "Group name or node name to target.\nFor Group: the nearest node in this group will be used.\nFor Node Name: finds a node anywhere in the scene tree.",
-		"arrival_distance": "Distance at which the target is considered reached.",
-		"velocity": "Movement speed.",
-		"acceleration": "Acceleration rate. 0 = instant full speed.",
-		"turn_speed": "Rotation speed in degrees/sec. 0 = instant.",
+		"arrival_distance": "Distance at which the target is considered reached. Accepts numbers, variable names, or math expressions.",
+		"velocity": "Movement speed. Accepts numbers, variable names, or math expressions.",
+		"acceleration": "Acceleration rate. 0 = instant full speed. Accepts numbers, variable names, or math expressions.",
+		"turn_speed": "Rotation speed in degrees/sec. 0 = instant. Accepts numbers, variable names, or math expressions.",
 		"face_target": "Rotate the node to face the target.",
 		"facing_axis": "Which local axis points toward the target.",
 		"use_navmesh_normal": "Align to navmesh surface normal (Path Follow only).",
 		"self_terminate": "Stop executing when target is reached.",
-		"lock_y_velocity": "Lock vertical (Y) velocity to zero.",
+		"lock_y_velocity": "Lock vertical (Y) velocity to zero when calculating movement direction.\nKeep ON (default) when paired with a Character Actuator — otherwise the target's height difference can bleed into the direction vector and fight gravity / jump velocity.\nTurn OFF only if you want the enemy to fly directly toward an airborne target.",
 	}
+
+
+## Convert a value to a code expression.
+## If it's a number (or string of a number), returns the numeric literal.
+## Otherwise returns it as-is (a variable name or expression).
+func _to_expr(val) -> String:
+	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
+		return "%.3f" % val
+	var s = str(val).strip_edges()
+	if s.is_empty():
+		return "0.0"
+	if s.is_valid_float() or s.is_valid_int():
+		return "%.3f" % float(s)
+	return s
+
+
+## True only when the user entered a literal numeric value greater than zero.
+## Variable/expression values are treated as potentially non-zero so generated code preserves them.
+func _literal_gt_zero(val) -> bool:
+	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
+		return float(val) > 0.0
+	var s = str(val).strip_edges()
+	if s.is_valid_float() or s.is_valid_int():
+		return float(s) > 0.0
+	return true
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var behavior = properties.get("behavior", "seek")
 	var target_mode = properties.get("target_mode", "group")
 	var target_name = properties.get("target_name", properties.get("target_group", ""))  # fallback for legacy
-	var arrival_distance = properties.get("arrival_distance", 1.0)
-	var vel = properties.get("velocity", 5.0)
-	var acceleration = properties.get("acceleration", 0.0)
-	var turn_speed = properties.get("turn_speed", 0.0)
+	var arrival_distance = properties.get("arrival_distance", "1.0")
+	var vel = properties.get("velocity", "5.0")
+	var acceleration = properties.get("acceleration", "0.0")
+	var turn_speed = properties.get("turn_speed", "0.0")
 	var face_target = properties.get("face_target", false)
 	var facing_axis = properties.get("facing_axis", "+z")
 	var use_navmesh_normal = properties.get("use_navmesh_normal", false)
 	var self_terminate = properties.get("self_terminate", false)
-	var lock_y_velocity = properties.get("lock_y_velocity", false)
+	var lock_y_velocity = properties.get("lock_y_velocity", true)
 	
 	# Normalize enums
 	if typeof(behavior) == TYPE_STRING:
@@ -175,7 +200,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	return result
 
 
-func _generate_direct_movement(behavior: String, target_mode: String, target_name: String, arrival_dist: float, vel: float, accel: float, turn: float, face: bool, axis: String, lock_y: bool, terminate: bool) -> String:
+func _generate_direct_movement(behavior: String, target_mode: String, target_name: String, arrival_dist, vel, accel, turn, face: bool, axis: String, lock_y: bool, terminate: bool) -> String:
 	var lines: Array[String] = []
 	var escaped = target_name.replace("\"", "\\\"")
 	
@@ -200,9 +225,13 @@ func _generate_direct_movement(behavior: String, target_mode: String, target_nam
 	
 	var indent = "\t" if target_mode == "node_name" else "\t\t"
 	
+	var arrival_expr = _to_expr(arrival_dist)
+	var vel_expr = _to_expr(vel)
+	var accel_expr = _to_expr(accel)
+
 	# Check arrival / self-terminate
 	if terminate:
-		lines.append("%sif _nearest_dist <= %.2f:" % [indent, arrival_dist])
+		lines.append("%sif _nearest_dist <= (%s):" % [indent, arrival_expr])
 		lines.append("%s\treturn  # Target reached, self-terminate" % indent)
 	
 	# Calculate movement direction
@@ -219,15 +248,15 @@ func _generate_direct_movement(behavior: String, target_mode: String, target_nam
 		lines.append("%s_move_dir = _move_dir.normalized()" % indent)
 	
 	# Apply velocity
-	if accel > 0.0:
-		lines.append("%svar _target_vel = _move_dir * %.2f" % [indent, vel])
+	if _literal_gt_zero(accel):
+		lines.append("%svar _target_vel = _move_dir * (%s)" % [indent, vel_expr])
 		lines.append("%svar _current_vel = Vector3.ZERO" % indent)
 		lines.append("%svar _cb3d = (self as Node) as CharacterBody3D" % indent)
 		lines.append("%sif _cb3d:" % indent)
-		lines.append("%s\t_current_vel = _cb3d.velocity" % indent)
-		lines.append("%svar _new_vel = _current_vel.move_toward(_target_vel, %.2f * _delta)" % [indent, accel])
+		lines.append("%s\t_current_vel = Vector3(_cb3d.velocity.x, 0.0, _cb3d.velocity.z)" % indent)
+		lines.append("%svar _new_vel = _current_vel.move_toward(_target_vel, (%s) * _delta)" % [indent, accel_expr])
 	else:
-		lines.append("%svar _new_vel = _move_dir * %.2f" % [indent, vel])
+		lines.append("%svar _new_vel = _move_dir * (%s)" % [indent, vel_expr])
 	
 	# Face target if enabled
 	if face:
@@ -237,7 +266,8 @@ func _generate_direct_movement(behavior: String, target_mode: String, target_nam
 			lines.append(indent + line)
 	
 	# Apply movement
-	lines.append("%svar _cb3d = (self as Node) as CharacterBody3D" % indent)
+	if not _literal_gt_zero(accel):
+		lines.append("%svar _cb3d = (self as Node) as CharacterBody3D" % indent)
 	lines.append("%sif _cb3d:" % indent)
 	lines.append("%s\t_cb3d.velocity.x = _new_vel.x" % indent)
 	lines.append("%s\t_cb3d.velocity.z = _new_vel.z" % indent)
@@ -247,7 +277,7 @@ func _generate_direct_movement(behavior: String, target_mode: String, target_nam
 	return "\n".join(lines)
 
 
-func _generate_pathfinding_movement(target_mode: String, target_name: String, nav_var: String, arrival_dist: float, vel: float, accel: float, turn: float, face: bool, axis: String, use_normal: bool, lock_y: bool, terminate: bool) -> String:
+func _generate_pathfinding_movement(target_mode: String, target_name: String, nav_var: String, arrival_dist, vel, accel, turn, face: bool, axis: String, use_normal: bool, lock_y: bool, terminate: bool) -> String:
 	var lines: Array[String] = []
 	var escaped = target_name.replace("\"", "\\\"")
 
@@ -277,9 +307,13 @@ func _generate_pathfinding_movement(target_mode: String, target_name: String, na
 
 	var indent = "\t\t" if target_mode == "node_name" else "\t\t\t"
 
+	var arrival_expr = _to_expr(arrival_dist)
+	var vel_expr = _to_expr(vel)
+	var accel_expr = _to_expr(accel)
+
 	# Arrival check
 	if terminate:
-		lines.append("%sif _nearest_dist <= %.2f:" % [indent, arrival_dist])
+		lines.append("%sif _nearest_dist <= (%s):" % [indent, arrival_expr])
 		lines.append("%s\treturn  # Target reached, self-terminate" % indent)
 
 	lines.append("%s%s.target_position = _nearest_target.global_position + _mt_stuck_offset_%s" % [indent, nav_var, nav_var])
@@ -291,22 +325,23 @@ func _generate_pathfinding_movement(target_mode: String, target_name: String, na
 		lines.append("%s\t_move_dir.y = 0.0" % indent)
 		lines.append("%s\t_move_dir = _move_dir.normalized()" % indent)
 
-	if accel > 0.0:
-		lines.append("%s\tvar _target_vel = _move_dir * %.2f" % [indent, vel])
+	if _literal_gt_zero(accel):
+		lines.append("%s\tvar _target_vel = _move_dir * (%s)" % [indent, vel_expr])
 		lines.append("%s\tvar _current_vel = Vector3.ZERO" % indent)
 		lines.append("%s\tvar _cb3d = (self as Node) as CharacterBody3D" % indent)
 		lines.append("%s\tif _cb3d:" % indent)
-		lines.append("%s\t\t_current_vel = _cb3d.velocity" % indent)
-		lines.append("%s\tvar _new_vel = _current_vel.move_toward(_target_vel, %.2f * _delta)" % [indent, accel])
+		lines.append("%s\t\t_current_vel = Vector3(_cb3d.velocity.x, 0.0, _cb3d.velocity.z)" % indent)
+		lines.append("%s\tvar _new_vel = _current_vel.move_toward(_target_vel, (%s) * _delta)" % [indent, accel_expr])
 	else:
-		lines.append("%s\tvar _new_vel = _move_dir * %.2f" % [indent, vel])
+		lines.append("%s\tvar _new_vel = _move_dir * (%s)" % [indent, vel_expr])
 
 	if face:
 		var face_code = _generate_look_at_code("_next_pos", axis, turn)
 		for line in face_code.split("\n"):
 			lines.append("%s\t%s" % [indent, line])
 
-	lines.append("%s\tvar _cb3d = (self as Node) as CharacterBody3D" % indent)
+	if not _literal_gt_zero(accel):
+		lines.append("%s\tvar _cb3d = (self as Node) as CharacterBody3D" % indent)
 	lines.append("%s\tif _cb3d:" % indent)
 	lines.append("%s\t\t_cb3d.velocity.x = _new_vel.x" % indent)
 	lines.append("%s\t\t_cb3d.velocity.z = _new_vel.z" % indent)
@@ -331,7 +366,7 @@ func _generate_pathfinding_movement(target_mode: String, target_name: String, na
 	return "\n".join(lines)
 
 
-func _generate_look_at_code(target_pos: String, axis: String, turn_speed: float) -> String:
+func _generate_look_at_code(target_pos: String, axis: String, turn_speed) -> String:
 	var lines: Array[String] = []
 	
 	# Determine which axis points forward
@@ -348,11 +383,12 @@ func _generate_look_at_code(target_pos: String, axis: String, turn_speed: float)
 	lines.append("_look_dir.y = 0.0  # Only rotate around Y axis")
 	lines.append("if _look_dir.length() > 0.001:")
 	
-	if turn_speed > 0.0:
+	if _literal_gt_zero(turn_speed):
 		# Gradual rotation
+		var turn_expr = _to_expr(turn_speed)
 		lines.append("\tvar _target_angle = atan2(_look_dir.x, _look_dir.z)")
 		lines.append("\tvar _current_angle = rotation.y")
-		lines.append("\trotation.y = lerp_angle(_current_angle, _target_angle, deg_to_rad(%.2f) * _delta)" % turn_speed)
+		lines.append("\trotation.y = lerp_angle(_current_angle, _target_angle, deg_to_rad(%s) * _delta)" % turn_expr)
 	else:
 		# Instant rotation
 		lines.append("\tlook_at(global_position + _look_dir, Vector3.UP)")
