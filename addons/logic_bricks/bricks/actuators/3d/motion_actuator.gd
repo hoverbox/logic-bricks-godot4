@@ -198,22 +198,46 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 		
 		"character_velocity":
 			code_lines.append("# Set CharacterBody3D velocity on active axes")
+			code_lines.append("_logic_brick_character_motion_active = true")
+			code_lines.append("if _logic_brick_character_use_acceleration:")
+			code_lines.append("	if not _logic_brick_character_motion_frame_prepared:")
+			code_lines.append("		_logic_brick_character_target_velocity = Vector3.ZERO")
+			code_lines.append("		_logic_brick_character_motion_frame_prepared = true")
+			code_lines.append("else:")
+			code_lines.append("	if not _logic_brick_character_motion_frame_prepared:")
+			code_lines.append("		velocity.x = 0.0")
+			code_lines.append("		velocity.z = 0.0")
+			code_lines.append("		_logic_brick_character_motion_frame_prepared = true")
 			if camera_relative:
-				code_lines.append("velocity.x += _motion_dir.x")
-				code_lines.append("velocity.z += _motion_dir.z")
+				code_lines.append("if _logic_brick_character_use_acceleration:")
+				code_lines.append("	_logic_brick_character_target_velocity.x += _motion_dir.x")
+				code_lines.append("	_logic_brick_character_target_velocity.z += _motion_dir.z")
+				code_lines.append("else:")
+				code_lines.append("	velocity.x += _motion_dir.x")
+				code_lines.append("	velocity.z += _motion_dir.z")
 				code_lines.append("# velocity.y intentionally preserved (gravity/jump from Character Actuator)")
 			elif space == "local":
 				code_lines.append("var _motion_dir = global_transform.basis * %s" % vec)
-				code_lines.append("velocity.x += _motion_dir.x")
-				code_lines.append("velocity.z += _motion_dir.z")
+				code_lines.append("if _logic_brick_character_use_acceleration:")
+				code_lines.append("	_logic_brick_character_target_velocity.x += _motion_dir.x")
+				code_lines.append("	_logic_brick_character_target_velocity.z += _motion_dir.z")
+				code_lines.append("else:")
+				code_lines.append("	velocity.x += _motion_dir.x")
+				code_lines.append("	velocity.z += _motion_dir.z")
 				code_lines.append("# velocity.y intentionally preserved (gravity/jump from Character Actuator)")
 			else:
 				if not _is_zero(x):
-					code_lines.append("velocity.x = %s" % vx)
+					code_lines.append("if _logic_brick_character_use_acceleration:")
+					code_lines.append("	_logic_brick_character_target_velocity.x = %s" % vx)
+					code_lines.append("else:")
+					code_lines.append("	velocity.x = %s" % vx)
 				if not _is_zero(y):
 					code_lines.append("velocity.y = %s" % vy)
 				if not _is_zero(z):
-					code_lines.append("velocity.z = %s" % vz)
+					code_lines.append("if _logic_brick_character_use_acceleration:")
+					code_lines.append("	_logic_brick_character_target_velocity.z = %s" % vz)
+					code_lines.append("else:")
+					code_lines.append("	velocity.z = %s" % vz)
 			if call_mas:
 				code_lines.append("move_and_slide()")
 		
@@ -228,7 +252,13 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("# Set global position")
 				code_lines.append("global_position = %s" % vec)
 	
-	return {"actuator_code": "\n".join(code_lines)}
+	var member_vars: Array[String] = []
+	member_vars.append("var _logic_brick_character_use_acceleration: bool = false")
+	member_vars.append("var _logic_brick_character_acceleration: float = 1.0")
+	member_vars.append("var _logic_brick_character_motion_frame_prepared: bool = false")
+	member_vars.append("var _logic_brick_character_motion_active: bool = false")
+	member_vars.append("var _logic_brick_character_target_velocity: Vector3 = Vector3.ZERO")
+	return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
 
 
 func _generate_rotation_code(node: Node, chain_name: String) -> Dictionary:

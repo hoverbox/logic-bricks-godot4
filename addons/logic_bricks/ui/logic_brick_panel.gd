@@ -306,7 +306,7 @@ func _create_add_menu() -> void:
 			"label": "Movement",
 			"items": [
 				["Motion", 309, "MotionActuator", "Move or rotate a node.\\nCharacter Velocity, Translate, or Position modes."],
-				["Character", 303, "CharacterActuator", "Gravity, ground detection, and move_and_slide() for CharacterBody3D.\nPair with the Jump Actuator to handle jumping."],
+				["Character", 303, "CharacterActuator", "CharacterBody3D gravity, fall speed, snap, slope, acceleration, friction, bounce, and move_and_slide().\nPair with the Jump Actuator to handle jumping."],
 				["Jump", 350, "JumpActuator", "Apply a jump impulse to a CharacterBody3D.\nTrigger from any sensor — InputMap, Proximity, Message, etc.\nRequires a Character Actuator in another chain for gravity."],
 				["Look At Movement", 306, "LookAtMovementActuator", "Rotates a node to face the direction of movement.\n⚠ Adds @export in Inspector — assign the mesh/Node3D to rotate."],
 				["Rotate Towards", 342, "RotateTowardsActuator", "Rotates to face a target node found by name or group.\nUseful for turrets and enemies tracking the player."],
@@ -320,6 +320,7 @@ func _create_add_menu() -> void:
 			"label": "Physics",
 			"items": [
 				["Physics", 313, "PhysicsActuator", "Modify physics properties: gravity scale, mass, friction."],
+				["Gravity", 351, "GravityActuator", "Apply custom gravity to a RigidBody3D physics object.\nCharacterBody3D gravity is handled by the Character Actuator."],
 				["Force", 339, "ForceActuator", "Apply a continuous force to a RigidBody3D.\nUse for gravity-like effects or constant pushes."],
 				["Torque", 340, "TorqueActuator", "Apply a rotational force to a RigidBody3D.\nUse for spinning or angular acceleration."],
 				["Linear Velocity", 341, "LinearVelocityActuator", "Set, add, or average the linear velocity of a RigidBody3D."],

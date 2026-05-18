@@ -54,7 +54,7 @@ const ACTUATOR_SIGNATURES: Array = [
 	# ── Character / Physics / Motion ───────────────────────────────────────
 	["# Ground detection",                 "CharacterActuator"],
 	["_on_ground",                         "CharacterActuator"],
-	["# Apply gravity and detect ground",  "GravityActuator"],
+	["# Apply custom gravity",             "GravityActuator"],
 	["# WARNING: Force actuator",          "ForceActuator"],
 	["apply_central_force(",                "ForceActuator"],
 	["apply_force(",                        "ForceActuator"],

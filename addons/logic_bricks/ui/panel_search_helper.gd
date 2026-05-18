@@ -28,6 +28,7 @@ const SEARCH_BRICKS: Array = [
     ["Mouse", "actuator", "MouseActuator"],
     ["Physics", "actuator", "PhysicsActuator"],
     ["Force", "actuator", "ForceActuator"],
+    ["Gravity", "actuator", "GravityActuator"],
     ["Torque", "actuator", "TorqueActuator"],
     ["Linear Velocity", "actuator", "LinearVelocityActuator"],
     ["Impulse", "actuator", "ImpulseActuator"],

@@ -1130,7 +1130,7 @@ const BRICK_SCRIPT_REGISTRY: Dictionary = {
 	"EnvironmentActuator":       "res://addons/logic_bricks/bricks/actuators/3d/environment_actuator.gd",
 	"ForceActuator":             "res://addons/logic_bricks/bricks/actuators/3d/force_actuator.gd",
 	"GameActuator":              "res://addons/logic_bricks/bricks/actuators/3d/game_actuator.gd",
-	"GravityActuator":           "res://addons/logic_bricks/bricks/actuators/3d/gravity_actuator.gd",  # Legacy
+	"GravityActuator":           "res://addons/logic_bricks/bricks/actuators/3d/gravity_actuator.gd",
 	"ImpulseActuator":           "res://addons/logic_bricks/bricks/actuators/3d/impulse_actuator.gd",
 	"JumpActuator":              "res://addons/logic_bricks/bricks/actuators/3d/jump_actuator.gd",  # Legacy
 	"LightActuator":             "res://addons/logic_bricks/bricks/actuators/3d/light_actuator.gd",

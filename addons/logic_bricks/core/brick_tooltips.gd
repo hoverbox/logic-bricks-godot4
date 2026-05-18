@@ -168,12 +168,18 @@ const TOOLTIPS = {
 	},
 	
 	"CharacterActuator": {
-		"_description": "All-in-one character controller: gravity, jumping, and ground detection.\nDesigned for CharacterBody3D nodes.",
-		"gravity_strength": "Downward force applied per second. Default 9.8 matches Earth gravity.",
-		"jump_force": "Upward velocity applied when jumping. Higher = higher jumps.",
-		"max_jumps": "Maximum jumps before landing. 1 = normal, 2 = double jump, etc.",
-		"ground_group": "Group name for ground detection. Nodes in this group count as ground.",
-		"coyote_time": "Seconds after leaving a ledge where jumping is still allowed.",
+		"_description": "CharacterBody3D body rules: gravity, fall speed, floor snapping, slope limit, acceleration, friction, bounce, ground detection, and move_and_slide().\nHorizontal speed is still controlled by Motion-style actuators. Jumping is handled by the Jump Actuator.",
+		"gravity_strength": "Downward acceleration applied while airborne. Accepts a number, variable name, or expression.",
+		"max_fall_speed": "Maximum downward speed. Accepts a number, variable name, or expression.",
+		"floor_snap_length": "How strongly the character sticks to floors, ramps, and small uneven surfaces. Larger values help stay grounded.",
+		"slope_limit": "Steepest walkable slope in degrees. Higher values allow steeper slopes.",
+		"use_acceleration": "Off by default. When enabled, the character eases toward Motion actuator speed instead of instantly reaching it.",
+		"acceleration": "Normalized 0 to 1. 0 = barely accelerates; 1 = reaches requested speed quickly.",
+		"friction": "Normalized 0 to 1 slowdown when no Motion actuator is pushing the character. 0 = icy/no slowdown; 1 = quick stop.",
+		"bounce": "How much the character rebounds after hitting a surface. 0 = no bounce; 1 = full rebound.",
+		"ground_groups": "Optional comma-separated groups that count as ground. Empty = any floor.",
+		"platform_groups": "Optional comma-separated groups used as moving platforms.",
+		"inherit_platform_velocity_on_jump": "Keep horizontal moving-platform momentum when jumping off a platform.",
 	},
 	
 	"CollisionActuator": {
@@ -283,6 +289,15 @@ const TOOLTIPS = {
 		"_description": "Modifies physics properties at runtime.\nChange gravity scale, mass, friction, or bounce.",
 		"property": "Which physics property to modify.",
 		"value": "New value for the property.",
+	},
+
+	"GravityActuator": {
+		"_description": "Applies custom gravity to a RigidBody3D physics object.\nUse the Character Actuator for CharacterBody3D gravity.",
+		"gravity_strength": "Gravity acceleration or raw force amount, depending on Use Mass.",
+		"direction_x": "Gravity direction X component.",
+		"direction_y": "Gravity direction Y component. -1 pulls downward.",
+		"direction_z": "Gravity direction Z component.",
+		"use_mass": "If true, force is multiplied by mass so objects fall with the same acceleration.",
 	},
 	
 	"ForceActuator": {
