@@ -309,6 +309,7 @@ func _create_add_menu() -> void:
 				["Character", 303, "CharacterActuator", "CharacterBody3D gravity, fall speed, snap, slope, acceleration, friction, bounce, and move_and_slide().\nPair with the Jump Actuator to handle jumping."],
 				["Jump", 350, "JumpActuator", "Apply a jump impulse to a CharacterBody3D.\nTrigger from any sensor — InputMap, Proximity, Message, etc.\nRequires a Character Actuator in another chain for gravity."],
 				["Look At Movement", 306, "LookAtMovementActuator", "Rotates a node to face the direction of movement.\n⚠ Adds @export in Inspector — assign the mesh/Node3D to rotate."],
+				["Look At Input", 307, "LookAtInputActuator", "Rotates a node to face combined Input Map direction.\nUseful for icy movement where facing and sliding differ.\n⚠ Adds @export in Inspector — assign the mesh/Node3D to rotate."],
 				["Rotate Towards", 342, "RotateTowardsActuator", "Rotates to face a target node found by name or group.\nUseful for turrets and enemies tracking the player."],
 				["Waypoint Path", 343, "WaypointPathActuator", "Moves a node through a series of waypoints placed in the 3D viewport.\nDrag the handles to position each point. Supports Loop, Ping Pong, and Once."],
 				["Move Towards", 311, "MoveTowardsActuator", "Seek, flee, or path-follow toward a target node.\n⚠ Path Follow adds @export in Inspector — assign your NavigationAgent3D."],
@@ -1785,6 +1786,8 @@ func _create_brick_instance(brick_class: String):
 			script_path = "res://addons/logic_bricks/bricks/actuators/3d/message_actuator.gd"
 		"LookAtMovementActuator":
 			script_path = "res://addons/logic_bricks/bricks/actuators/3d/look_at_movement_actuator.gd"
+		"LookAtInputActuator":
+			script_path = "res://addons/logic_bricks/bricks/actuators/3d/look_at_input_actuator.gd"
 		"RotateTowardsActuator":
 			script_path = "res://addons/logic_bricks/bricks/actuators/3d/rotate_towards_actuator.gd"
 		"WaypointPathActuator":

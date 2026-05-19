@@ -356,8 +356,8 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	# These need to live at script scope (above the functions) because they persist across frames.
 	# Also collect per-chain member vars so we can reset them on state entry.
 	var member_vars: Array[String] = []
-	var chain_member_vars: Dictionary = {}  # chain_name -> Array[String] of reset lines
-	var chain_setup_calls: Dictionary = {}  # chain_name -> Array[String] of setup func calls (re-run on state enter)
+	var chain_member_vars: Dictionary = {}  # state_id -> Array[String] of reset lines
+	var chain_setup_calls: Dictionary = {}  # state_id -> Array[String] of setup func calls (re-run on state enter)
 	var ready_code: Array[String] = []
 	var pre_process_code: Array[String] = []
 	var post_process_code: Array[String] = []
@@ -385,14 +385,24 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		var this_chain_resets: Array[String] = []
 		var chain_needs_physics_process := _chain_needs_physics_process(chain)
 		
-		# Check if this chain is an all-states chain — if so, its member vars
-		# should NOT be reset on state entry (they need to persist across states)
+		# Check which state this chain belongs to. Member vars for state-specific
+		# chains must reset when that state is entered, not when a chain-name-like
+		# id is entered. The runtime calls _on_logic_brick_state_enter("state_...").
+		# Older code incorrectly keyed resets by chain["name"], so checks like
+		# state_id == "_10" never matched actual ids such as "state_2".
 		var is_all_states_chain = false
+		var chain_state_id := ""
 		var controllers = chain.get("controllers", [])
 		if controllers.size() > 0:
-			var ctrl_brick = _instantiate_brick(controllers[0])
-			if ctrl_brick and ctrl_brick.properties.get("all_states", false):
-				is_all_states_chain = true
+			var ctrl_props: Dictionary = controllers[0].get("properties", {})
+			is_all_states_chain = bool(ctrl_props.get("all_states", false))
+			chain_state_id = str(ctrl_props.get("state_id", "")).strip_edges()
+			# Fall back to instantiated properties for older/oddly-shaped metadata.
+			if chain_state_id.is_empty():
+				var ctrl_brick = _instantiate_brick(controllers[0])
+				if ctrl_brick:
+					is_all_states_chain = bool(ctrl_brick.properties.get("all_states", is_all_states_chain))
+					chain_state_id = str(ctrl_brick.properties.get("state_id", "")).strip_edges()
 		
 		# Collect from sensors
 		for sensor_data in chain.get("sensors", []):
@@ -416,10 +426,11 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 							if mv.begins_with("func _setup_"):
 								var func_name = mv.replace("func ", "").split("(")[0].strip_edges()
 								var call_line = "%s()" % func_name
-								if not chain_setup_calls.has(chain["name"]):
-									chain_setup_calls[chain["name"]] = []
-								if call_line not in chain_setup_calls[chain["name"]]:
-									chain_setup_calls[chain["name"]].append(call_line)
+								if not chain_state_id.is_empty():
+									if not chain_setup_calls.has(chain_state_id):
+										chain_setup_calls[chain_state_id] = []
+									if call_line not in chain_setup_calls[chain_state_id]:
+										chain_setup_calls[chain_state_id].append(call_line)
 				if generated.has("ready_code"):
 					for rc in generated["ready_code"]:
 						if rc not in ready_code:
@@ -501,8 +512,12 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 						elif method not in extra_methods:
 							extra_methods.append(method)
 		
-		if this_chain_resets.size() > 0:
-			chain_member_vars[chain["name"]] = this_chain_resets
+		if this_chain_resets.size() > 0 and not chain_state_id.is_empty():
+			if not chain_member_vars.has(chain_state_id):
+				chain_member_vars[chain_state_id] = []
+			for _reset_line in this_chain_resets:
+				if _reset_line not in chain_member_vars[chain_state_id]:
+					chain_member_vars[chain_state_id].append(_reset_line)
 	
 	if member_vars.size() > 0:
 		for mv in member_vars:
@@ -656,10 +671,9 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 				code_lines.append("	" + pc)
 			code_lines.append("	")
 		var has_any_physics_chain = false
-		for chain in chains:
-			if generated_chain_functions.has(chain["name"]) and not _chain_needs_physics_process(chain) and _chain_is_state_transition_only(chain):
-				code_lines.append("	_logic_brick_%s(delta)" % chain["name"])
-				has_any_physics_chain = true
+		# Do not run non-physics state-transition-only chains again here. They are
+		# already emitted in _process(); emitting them in both loops makes delay
+		# sensors advance twice and can switch states in the same frame.
 		for chain in chains:
 			if generated_chain_functions.has(chain["name"]) and _chain_needs_physics_process(chain):
 				code_lines.append("	_logic_brick_%s(delta)" % chain["name"])
@@ -1137,6 +1151,7 @@ const BRICK_SCRIPT_REGISTRY: Dictionary = {
 	"LinearVelocityActuator":    "res://addons/logic_bricks/bricks/actuators/3d/linear_velocity_actuator.gd",
 	"LocationActuator":          "res://addons/logic_bricks/bricks/actuators/3d/location_actuator.gd",
 	"LookAtMovementActuator":    "res://addons/logic_bricks/bricks/actuators/3d/look_at_movement_actuator.gd",
+	"LookAtInputActuator":       "res://addons/logic_bricks/bricks/actuators/3d/look_at_input_actuator.gd",
 	"MessageActuator":           "res://addons/logic_bricks/bricks/actuators/3d/message_actuator.gd",
 	"ModulateActuator":          "res://addons/logic_bricks/bricks/actuators/3d/modulate_actuator.gd",
 	"MotionActuator":            "res://addons/logic_bricks/bricks/actuators/3d/motion_actuator.gd",
