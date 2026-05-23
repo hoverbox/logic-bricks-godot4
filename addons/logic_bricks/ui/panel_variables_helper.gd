@@ -175,7 +175,10 @@ func _build_variable_item_ui(item_panel: PanelContainer, index: int, var_data: D
 	row_max.add_child(max_edit)
 	max_check.toggled.connect(_on_variable_max_toggled.bind(index, max_edit, is_global))
 
-	collapse_btn.pressed.connect(_on_variable_collapse_toggled.bind(collapse_btn, details))
+	var is_collapsed = var_data.get("collapsed", false)
+	details.visible = not is_collapsed
+	collapse_btn.text = "▶" if is_collapsed else "▼"
+	collapse_btn.pressed.connect(_on_variable_collapse_toggled.bind(index, is_global, collapse_btn, details))
 
 
 func _get_type_index(type_name: String) -> int:
@@ -284,9 +287,17 @@ func _on_variable_max_val_changed(new_val: String, index: int, is_global: bool) 
 		panel._save_variables_to_metadata()
 
 
-func _on_variable_collapse_toggled(collapse_btn: Button, details: VBoxContainer) -> void:
+func _on_variable_collapse_toggled(index: int, is_global: bool, collapse_btn: Button, details: VBoxContainer) -> void:
 	details.visible = not details.visible
 	collapse_btn.text = "▼" if details.visible else "▶"
+	var data = panel.global_vars_data if is_global else panel.variables_data
+	if index >= data.size():
+		return
+	data[index]["collapsed"] = not details.visible
+	if is_global:
+		panel._save_global_vars_to_metadata()
+	else:
+		panel._save_variables_to_metadata()
 
 
 func _on_delete_variable_pressed(index: int, is_global: bool) -> void:

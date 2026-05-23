@@ -115,7 +115,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		axes = axes.to_lower().split("(")[0].strip_edges().replace(" ", "_")
 	if typeof(forward_axis) == TYPE_STRING:
 		forward_axis = forward_axis.to_lower().replace(" ", "_").replace("(", "").replace(")", "").replace("+", "positive_").replace("-", "negative_")
-	
+
 	# Positive Z faces +Z so we must flip the direction to face the target
 	# Negative Z faces -Z which is what Basis.looking_at/look_at expects natively
 	var flip_dir: bool = (forward_axis == "positive_z" or forward_axis.contains("positive"))

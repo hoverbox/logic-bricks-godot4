@@ -87,21 +87,21 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = properties.get("mode", "assign")
 	var value = properties.get("value", "")
 	var source_var = properties.get("source_variable", "")
-	
+
 	# Normalize mode
 	if typeof(mode) == TYPE_STRING:
 		mode = mode.to_lower().replace(" ", "_")
-	
+
 	if var_name.is_empty():
 		return {"actuator_code": "push_warning(\"Modify Variable: No variable name set — open the brick and enter a variable name\")"}
-	
+
 	var sanitized_name = _sanitize_name(var_name)
 	var code_lines: Array[String] = []
-	
+
 	# Add resolve block
 	code_lines.append_array(_generate_resolve_code(sanitized_name))
 	code_lines.append("if _target:")
-	
+
 	match mode:
 		"assign":
 			if value.is_empty():
@@ -109,14 +109,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			else:
 				var parsed_value = _parse_value(value)
 				code_lines.append("\t_target.set(\"%s\", %s)" % [sanitized_name, parsed_value])
-		
+
 		"add":
 			if value.is_empty():
 				code_lines.append("\tpush_warning(\"Modify Variable: No value set for '%s' — open the brick and enter a value\")" % sanitized_name)
 			else:
 				var parsed_value = _parse_value(value)
 				code_lines.append("\t_target.set(\"%s\", _target.get(\"%s\") + %s)" % [sanitized_name, sanitized_name, parsed_value])
-		
+
 		"copy":
 			if source_var.is_empty():
 				code_lines.append("\tpush_warning(\"Modify Variable: No source variable set for Copy mode — open the brick and enter a source variable name\")")
@@ -133,12 +133,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("\t\t\t_src_val = _gv_src.get(\"%s\")" % sanitized_source)
 				code_lines.append("\tif _src_val != null:")
 				code_lines.append("\t\t_target.set(\"%s\", _src_val)" % sanitized_name)
-		
+
 		"toggle":
 			code_lines.append("\tvar _cur = _target.get(\"%s\")" % sanitized_name)
 			code_lines.append("\tif typeof(_cur) == TYPE_BOOL:")
 			code_lines.append("\t\t_target.set(\"%s\", not _cur)" % sanitized_name)
-	
+
 	return {
 		"actuator_code": "\n".join(code_lines)
 	}
@@ -146,24 +146,24 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 func _parse_value(value_str: String) -> String:
 	value_str = value_str.strip_edges()
-	
+
 	if value_str.to_lower() == "true":
 		return "true"
 	if value_str.to_lower() == "false":
 		return "false"
-	
+
 	if value_str.is_valid_float():
 		return value_str
-	
+
 	if value_str.begins_with("Vector2(") or value_str.begins_with("Vector3("):
 		return value_str
-	
+
 	if value_str.begins_with("Color(") and value_str.ends_with(")"):
 		return value_str
-	
+
 	# Could be a variable name or expression
 	if value_str.is_valid_identifier():
 		return value_str
-	
+
 	# Default: string
 	return "\"%s\"" % value_str.replace("\"", "\\\"")

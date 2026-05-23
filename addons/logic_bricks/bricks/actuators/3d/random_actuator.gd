@@ -140,76 +140,76 @@ func get_property_definitions() -> Array:
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var var_name = properties.get("variable_name", "")
 	var distribution = properties.get("distribution", "int_uniform")
-	
+
 	# Normalize distribution type
 	if typeof(distribution) == TYPE_STRING:
 		distribution = distribution.to_lower().replace(" ", "_")
-	
+
 	if var_name.is_empty():
 		return {"actuator_code": "pass # Random actuator: no variable name specified"}
-	
+
 	# Sanitize variable name (preserve casing)
 	var sanitized_name = var_name.strip_edges().replace(" ", "_")
 	var regex = RegEx.new()
 	regex.compile("[^a-zA-Z0-9_]")
 	sanitized_name = regex.sub(sanitized_name, "", true)
-	
+
 	var code_lines: Array[String] = []
 	var member_vars: Array[String] = []
-	
+
 	# RNG member variable
 	var rng_var = "_rng_random_%s" % chain_name
 	member_vars.append("var %s: RandomNumberGenerator = null" % rng_var)
-	
+
 	# Initialize RNG
 	code_lines.append("# Initialize RNG if needed")
 	code_lines.append("if %s == null:" % rng_var)
 	code_lines.append("\t%s = RandomNumberGenerator.new()" % rng_var)
-	
+
 	var use_seed = properties.get("use_seed", false)
 	var seed_value = properties.get("seed_value", 0)
-	
+
 	if use_seed:
 		code_lines.append("\t%s.seed = %d" % [rng_var, seed_value])
 	else:
 		code_lines.append("\t%s.randomize()" % rng_var)
 	code_lines.append("")
-	
+
 	# Generate value based on distribution
 	var debug_code = get_debug_code()
 	var debug_msg = debug_message if not debug_message.is_empty() else "Random Actuator"
-	
+
 	match distribution:
 		"bool_constant":
 			var bool_val = properties.get("bool_value", true)
 			code_lines.append("self.%s = %s" % [sanitized_name, "true" if bool_val else "false"])
 			if not debug_code.is_empty():
 				code_lines.append("print(\"%s - Set %s = %%s\" %% self.%s)" % [debug_msg, sanitized_name, sanitized_name])
-		
+
 		"bool_uniform":
 			code_lines.append("self.%s = %s.randf() < 0.5" % [sanitized_name, rng_var])
 			if not debug_code.is_empty():
 				code_lines.append("print(\"%s - Set %s = %%s\" %% self.%s)" % [debug_msg, sanitized_name, sanitized_name])
-		
+
 		"bool_bernoulli":
 			var prob = properties.get("bool_probability", 0.5)
 			code_lines.append("self.%s = %s.randf() < %.3f" % [sanitized_name, rng_var, prob])
 			if not debug_code.is_empty():
 				code_lines.append("print(\"%s - Set %s = %%s\" %% self.%s)" % [debug_msg, sanitized_name, sanitized_name])
-		
+
 		"int_constant":
 			var int_val = properties.get("int_value", 0)
 			code_lines.append("self.%s = %d" % [sanitized_name, int_val])
 			if not debug_code.is_empty():
 				code_lines.append("print(\"%s - Set %s = %%d\" %% self.%s)" % [debug_msg, sanitized_name, sanitized_name])
-		
+
 		"int_uniform":
 			var int_min = properties.get("int_min", 0)
 			var int_max = properties.get("int_max", 100)
 			code_lines.append("self.%s = %s.randi_range(%d, %d)" % [sanitized_name, rng_var, int_min, int_max])
 			if not debug_code.is_empty():
 				code_lines.append("print(\"%s - Set %s = %%d\" %% self.%s)" % [debug_msg, sanitized_name, sanitized_name])
-		
+
 		"int_poisson":
 			var lambda_val = properties.get("int_lambda", 1.0)
 			code_lines.append("# Poisson distribution (approximate using exponential)")
@@ -222,20 +222,20 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("self.%s = _poisson_sum - 1" % sanitized_name)
 			if not debug_code.is_empty():
 				code_lines.append("print(\"%s - Set %s = %%d\" %% self.%s)" % [debug_msg, sanitized_name, sanitized_name])
-		
+
 		"float_constant":
 			var float_val = properties.get("float_value", 0.0)
 			code_lines.append("self.%s = %.3f" % [sanitized_name, float_val])
 			if not debug_code.is_empty():
 				code_lines.append("print(\"%s - Set %s = %%0.3f\" %% self.%s)" % [debug_msg, sanitized_name, sanitized_name])
-		
+
 		"float_uniform":
 			var float_min = properties.get("float_min", 0.0)
 			var float_max = properties.get("float_max", 1.0)
 			code_lines.append("self.%s = %s.randf_range(%.3f, %.3f)" % [sanitized_name, rng_var, float_min, float_max])
 			if not debug_code.is_empty():
 				code_lines.append("print(\"%s - Set %s = %%0.3f\" %% self.%s)" % [debug_msg, sanitized_name, sanitized_name])
-		
+
 		"float_normal":
 			var mean = properties.get("float_mean", 0.0)
 			var stddev = properties.get("float_stddev", 1.0)
@@ -246,7 +246,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("self.%s = %.3f + %.3f * _z0" % [sanitized_name, mean, stddev])
 			if not debug_code.is_empty():
 				code_lines.append("print(\"%s - Set %s = %%0.3f\" %% self.%s)" % [debug_msg, sanitized_name, sanitized_name])
-		
+
 		"float_neg_exp":
 			var lambda_exp = properties.get("float_lambda", 1.0)
 			code_lines.append("# Negative exponential distribution")
@@ -254,15 +254,15 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("self.%s = -log(1.0 - _uniform) / %.3f" % [sanitized_name, lambda_exp])
 			if not debug_code.is_empty():
 				code_lines.append("print(\"%s - Set %s = %%0.3f\" %% self.%s)" % [debug_msg, sanitized_name, sanitized_name])
-		
+
 		_:
 			code_lines.append("pass # Unknown distribution type")
-	
+
 	var result = {
 		"actuator_code": "\n".join(code_lines)
 	}
-	
+
 	if member_vars.size() > 0:
 		result["member_vars"] = member_vars
-	
+
 	return result

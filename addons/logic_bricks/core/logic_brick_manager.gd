@@ -29,7 +29,7 @@ func get_chains(node: Node) -> Array:
 ## Save brick chains to node metadata
 func save_chains(node: Node, chains: Array) -> void:
 	node.set_meta(METADATA_KEY, chains)
-	
+
 	# Mark the scene as modified so changes are saved
 	_mark_scene_modified(node)
 
@@ -37,22 +37,22 @@ func save_chains(node: Node, chains: Array) -> void:
 ## Add a new chain to the node
 func add_chain(node: Node, chain_name: String = "") -> Dictionary:
 	var chains = get_chains(node)
-	
+
 	# Generate unique name if not provided
 	if chain_name.is_empty():
 		chain_name = _generate_unique_chain_name(chains)
 	else:
 		chain_name = _sanitize_chain_name(chain_name)
-	
+
 	var new_chain = {
 		"name": chain_name,
 		"bricks": []
 	}
-	
+
 	chains.append(new_chain)
 	save_chains(node, chains)
 	regenerate_script(node)
-	
+
 	return new_chain
 
 
@@ -120,45 +120,44 @@ func update_brick_properties(node: Node, chain_index: int, brick_index: int, pro
 ## Regenerate the script for a node based on its brick chains
 func regenerate_script(node: Node, variables_code: String = "") -> void:
 	var chains = get_chains(node)
-	
+
 	# If no variables code was passed, generate it from node metadata
 	if variables_code.is_empty() and node.has_meta("logic_bricks_variables"):
 		variables_code = _get_variables_code_from_metadata(node)
-	
+
 	# Generate the new logic bricks code
 	var generated_code = _generate_code_for_chains(node, chains, variables_code)
-	
+
 	# Only regenerate for nodes that already have a user-assigned script.
 	# This avoids silently attaching scripts to the wrong node when students
 	# accidentally build logic on an unscripted selection.
 	if not node.get_script():
 		push_warning("Logic Bricks: Node '%s' has no script. Add a script manually before applying Logic Bricks code." % node.name)
 		return
-	
+
 	var script_path = node.get_script().resource_path
-	
+
 	# Read existing script
 	var file = FileAccess.open(script_path, FileAccess.READ)
 	if not file:
 		push_error("Logic Bricks: Could not open script file: " + script_path)
 		return
-	
+
 	var existing_code = file.get_as_text()
 	file.close()
-	
+
 	# Replace code between markers
 	var new_code = _replace_generated_code(existing_code, generated_code, node)
-	
+
 	# Write the updated script
 	file = FileAccess.open(script_path, FileAccess.WRITE)
 	if not file:
 		push_error("Logic Bricks: Could not write script file: " + script_path)
 		return
-	
+
 	file.store_string(new_code)
 	file.close()
-	
-	#print("Logic Bricks: Script regenerated at: " + script_path)
+
 
 
 ## Generate code for all chains
@@ -256,23 +255,23 @@ func _get_variables_code_from_metadata(node: Node) -> String:
 	if not has_any_vars:
 		return ""
 	lines.append("# Variables")
-	
+
 	for var_data in variables_data:
 		var var_name = var_data.get("name", "")
 		var var_type = VariableUtils.normalize_type(str(var_data.get("type", "float")), "float")
 		var var_value = _to_gdscript_value_literal(var_data.get("value", _get_default_value_for_variable_type(var_type)), var_type)
 		var exported = var_data.get("exported", false)
 		var is_global = var_data.get("global", false)
-		
+
 		if var_name.is_empty():
 			continue
-		
+
 		var use_min   = var_data.get("use_min", false)
 		var min_val   = var_data.get("min_val", "0")
 		var use_max   = var_data.get("use_max", false)
 		var max_val   = var_data.get("max_val", "100")
 		var has_range = (var_type in ["int", "float"]) and (use_min or use_max)
-		
+
 		if is_global:
 			continue
 		elif has_range and exported:
@@ -293,7 +292,7 @@ func _get_variables_code_from_metadata(node: Node) -> String:
 				declaration += "@export "
 			declaration += "var %s: %s = %s" % [var_name, var_type, var_value]
 			lines.append(declaration)
-	
+
 	for var_data in used_globals:
 		var var_name = var_data.get("name", "")
 		var var_type = VariableUtils.normalize_type(str(var_data.get("type", "int")), "int")
@@ -323,7 +322,7 @@ func _get_variables_code_from_metadata(node: Node) -> String:
 
 func _generate_code_for_chains(node: Node, chains: Array, variables_code: String = "") -> String:
 	var code_lines: Array[String] = []
-	
+
 	# Normalize every chain name to its sanitized form before any code is emitted.
 	# This guards against hand-edited scene metadata, old saves, or two display names
 	# that collapse to the same identifier after sanitization (e.g. "my chain" / "my-chain"
@@ -340,11 +339,11 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		else:
 			seen_sanitized[sanitized] = 0
 		chain["name"] = sanitized
-	
+
 	# Add variables code first (if any)
 	if not variables_code.is_empty():
 		code_lines.append(variables_code)
-	
+
 	var states_data: Array = []
 	if node.has_meta("logic_bricks_states"):
 		var saved_states = node.get_meta("logic_bricks_states")
@@ -366,7 +365,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	var extra_methods: Array[String] = []
 	var input_handler_bodies: Array[String] = []  # Body lines for shared _input()
 	var message_handler_calls: Array[String] = []  # Call lines for shared _on_message_received()
-	
+
 	# Check if any actuator has an instance name — if so, we need the flags dict
 	# and must clear it at the start of every frame so stale values don't linger.
 	var has_named_actuators = false
@@ -384,7 +383,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	for chain in chains:
 		var this_chain_resets: Array[String] = []
 		var chain_needs_physics_process := _chain_needs_physics_process(chain)
-		
+
 		# Check which state this chain belongs to. Member vars for state-specific
 		# chains must reset when that state is entered, not when a chain-name-like
 		# id is entered. The runtime calls _on_logic_brick_state_enter("state_...").
@@ -403,9 +402,9 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 				if ctrl_brick:
 					is_all_states_chain = bool(ctrl_brick.properties.get("all_states", is_all_states_chain))
 					chain_state_id = str(ctrl_brick.properties.get("state_id", "")).strip_edges()
-		
-		# Collect from sensors
-		for sensor_data in chain.get("sensors", []):
+
+		# Collect from direct sensors and sensors nested inside controller inputs.
+		for sensor_data in _collect_all_sensors_for_chain(chain):
 			var sensor_brick = _instantiate_brick(sensor_data)
 			if sensor_brick:
 				var generated = sensor_brick.generate_code(node, chain["name"])
@@ -457,7 +456,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 					for call_line in generated["message_handler_calls"]:
 						if call_line not in message_handler_calls:
 							message_handler_calls.append(call_line)
-		
+
 		# Collect from controllers — ScriptController emits a cached instance member var
 		# and ready_code to load it once. Standard controllers emit nothing here.
 		for controller_data in chain.get("controllers", []):
@@ -470,7 +469,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 					for rc in generated["ready_code"]:
 						if rc not in ready_code:
 							ready_code.append(rc)
-		
+
 		# Collect from actuators (they can also have member vars like RNG instances).
 		# Use a per-actuator code namespace so multiple actuators of the same type in
 		# one chain do not generate duplicate member variable or helper names.
@@ -511,21 +510,21 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 								input_handler_bodies.append(_body)
 						elif method not in extra_methods:
 							extra_methods.append(method)
-		
+
 		if this_chain_resets.size() > 0 and not chain_state_id.is_empty():
 			if not chain_member_vars.has(chain_state_id):
 				chain_member_vars[chain_state_id] = []
 			for _reset_line in this_chain_resets:
 				if _reset_line not in chain_member_vars[chain_state_id]:
 					chain_member_vars[chain_state_id].append(_reset_line)
-	
+
 	if member_vars.size() > 0:
 		for mv in member_vars:
 			code_lines.append(mv)
 		code_lines.append("")
 
 	code_lines.append("")
-	
+
 	# Generate _ready() function
 	# Collect export validation checks from member vars
 	var export_checks: Array[String] = []
@@ -544,7 +543,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 				var label = var_name
 				export_checks.append("if not %s:" % var_name)
 				export_checks.append("\tpush_warning(\"Logic Bricks: '%s' is not assigned! Drag a node into the inspector.\")" % label)
-	
+
 	if ready_code.size() > 0 or export_checks.size() > 0 or true:
 		code_lines.append("func _ready() -> void:")
 		code_lines.append("	_logic_brick_init_states()")
@@ -565,7 +564,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		for rc in ready_code:
 			code_lines.append("\t" + rc)
 		code_lines.append("")
-	
+
 	# Runtime state
 	code_lines.append("var _logic_brick_state: String = \"\"")
 	code_lines.append("")
@@ -630,7 +629,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	# Determine if we need process or physics process
 	var has_process = false
 	var has_physics_process = false
-	
+
 	for chain in chains:
 		if not generated_chain_functions.has(chain["name"]):
 			continue
@@ -693,7 +692,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			for _body_line in _body_block.split("\n"):
 				code_lines.append(_body_line)
 		code_lines.append("")
-	
+
 	# Emit single _on_message_received dispatcher that forwards to each chain's
 	# scoped handler. This avoids duplicate-function errors when multiple Message
 	# Sensors are present on the same node.
@@ -702,7 +701,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		for call_line in message_handler_calls:
 			code_lines.append("\t" + call_line)
 		code_lines.append("")
-	
+
 	# Append generated chain functions
 	for chain in chains:
 		if generated_chain_functions.has(chain["name"]):
@@ -713,7 +712,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	for method in extra_methods:
 		code_lines.append(method)
 		code_lines.append("")
-	
+
 	return "\n".join(code_lines)
 
 
@@ -723,6 +722,7 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 	# or chains saved by older versions of the addon before sanitization was enforced.
 	var chain_name = _sanitize_chain_name(chain["name"])
 	var sensors = chain.get("sensors", [])
+	var controller_inputs = chain.get("controller_inputs", [])
 	var controller_data = null
 	var controllers = chain.get("controllers", [])
 	if controllers.size() > 0:
@@ -731,23 +731,23 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 		# Legacy: try singular key
 		controller_data = chain.get("controller", null)
 	var actuators = chain.get("actuators", [])
-	
+
 	var lines: Array[String] = []
 	lines.append("func _logic_brick_%s(_delta: float) -> void:" % chain_name)
-	
+
 	var is_script_controller = controller_data != null and controller_data.get("type", "") == "ScriptController"
-	if sensors.is_empty() or not controller_data:
+	if (sensors.is_empty() and controller_inputs.is_empty()) or not controller_data:
 		return ""  # Incomplete chain — skip entirely, generate nothing
 	if not is_script_controller and actuators.is_empty():
 		return ""  # Standard chains need at least one actuator
-	
+
 	# Collect @export var node names from this chain's bricks so we can
 	# guard against freed instances (e.g. object pool recycling nodes).
 	# Primitive types (float, int, bool, etc.) are skipped — is_instance_valid
 	# always returns false for them, which would incorrectly kill the function.
 	var _guard_primitive_types = ["float", "int", "bool", "String", "Vector2", "Vector3", "Color", "Basis", "Transform3D"]
 	var _chain_export_vars: Array[String] = []
-	for _sd in sensors:
+	for _sd in _collect_all_sensors_for_chain(chain):
 		var _sb = _instantiate_brick(_sd)
 		if _sb:
 			var _sg = _sb.generate_code(node, chain_name)
@@ -777,45 +777,24 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 		lines.append("\t# Guard: skip if any assigned node has been freed (e.g. by object pool)")
 		for _ev in _chain_export_vars:
 			lines.append("\tif %s != null and not is_instance_valid(%s): return" % [_ev, _ev])
-	
-	# Generate sensor code for ALL sensors
-	lines.append("\t# Sensor evaluation")
+
+	# Generate sensor code for ALL direct and nested controller inputs.
+	lines.append("\t# Sensor and controller input evaluation")
 	var sensor_vars = []
 	var sensor_index = 0
-	
+
 	for sensor_data in sensors:
-		var sensor_brick = _instantiate_brick(sensor_data)
-		if sensor_brick:
-			var generated = sensor_brick.generate_code(node, chain_name)
-			if generated.has("sensor_code"):
-				var sensor_code = generated["sensor_code"]
-				# Use instance name if available, otherwise use index
-				var instance_name = sensor_data.get("instance_name", "")
-				var sensor_var = ""
-				if instance_name.is_empty():
-					sensor_var = "sensor_%d_active" % sensor_index
-				else:
-					sensor_var = _sanitize_chain_name(instance_name) + "_active"
-				# Use whole-word regex replacement so that a sensor_var that itself
-				# contains "sensor_active" as a substring (e.g. "my_sensor_active_active")
-				# does not corrupt comments, string literals, or other identifiers.
-				var _rename_rx = RegEx.new()
-				_rename_rx.compile("\\bsensor_active\\b")
-				sensor_code = _rename_rx.sub(sensor_code, sensor_var, true)
-				
-				# Handle multi-line sensor code properly (same pattern as actuators)
-				var sensor_code_lines = sensor_code.split("\n")
-				for code_line in sensor_code_lines:
-					if code_line.strip_edges() != "":
-						lines.append("\t" + code_line)
-				
-				# Add debug print if enabled
-				var debug_code = sensor_brick.get_debug_code()
-				if not debug_code.is_empty():
-					lines.append("\t" + debug_code)
-				
-				sensor_vars.append(sensor_var)
-				sensor_index += 1
+		var sensor_var = _emit_sensor_eval(lines, node, chain_name, sensor_data, "sensor_%d_active" % sensor_index)
+		if not sensor_var.is_empty():
+			sensor_vars.append(sensor_var)
+			sensor_index += 1
+
+	var nested_index = 0
+	for nested_controller in controller_inputs:
+		var nested_var = _emit_nested_controller_eval(lines, node, chain_name, nested_controller, "controller_%d" % nested_index)
+		if not nested_var.is_empty():
+			sensor_vars.append(nested_var)
+		nested_index += 1
 
 	var state_id := ""
 	var all_states := false
@@ -849,7 +828,7 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 						lines.append("\telse:")
 						lines.append("\t\t_actuator_active_flags[\"%s\"] = false" % inst_name)
 				return "\n".join(lines)
-			
+
 			# ── Standard Controller ─────────────────────────────────────────────
 			# Determine logic mode from properties, fall back to class name for legacy bricks
 			var logic_mode = "and"
@@ -859,25 +838,10 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 					logic_mode = logic_mode.to_lower()
 			elif controller_data["type"] == "ANDController":
 				logic_mode = "and"
-			
+
 			if sensor_vars.size() > 0:
-				var condition = ""
-				match logic_mode:
-					"or":
-						condition = " or ".join(sensor_vars)
-					"nand":
-						condition = "not (" + " and ".join(sensor_vars) + ")"
-					"nor":
-						condition = "not (" + " or ".join(sensor_vars) + ")"
-					"xor":
-						# Exactly one sensor active: int(a) + int(b) + ... == 1
-						var int_vars: Array[String] = []
-						for sv in sensor_vars:
-							int_vars.append("int(%s)" % sv)
-						condition = "(" + " + ".join(int_vars) + ") == 1"
-					_:  # "and" and default
-						condition = " and ".join(sensor_vars)
-				condition = state_condition + " and (" + condition + ")" if sensor_vars.size() > 0 else state_condition
+				var condition = _controller_condition_from_vars(logic_mode, sensor_vars)
+				condition = state_condition + " and (" + condition + ")"
 				lines.append("\tvar controller_active = " + condition)
 			else:
 				lines.append("\tvar controller_active = " + state_condition)
@@ -889,12 +853,12 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 			lines.append("\tvar controller_active = " + condition)
 		else:
 			lines.append("\tvar controller_active = " + state_condition)
-	
+
 	# Generate actuator code for ALL actuators
 	lines.append("\t")
 	lines.append("\t# Actuator execution")
 	lines.append("\tif controller_active:")
-	
+
 	if actuators.is_empty():
 		return ""  # No actuators — incomplete chain
 	else:
@@ -912,16 +876,28 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 						if code_line.strip_edges() != "":
 							lines.append("\t\t" + code_line)
 							actuator_lines_written += 1
-					
+
 					var debug_code = actuator_brick.get_debug_code()
 					if not debug_code.is_empty():
 						lines.append("\t\t" + debug_code)
 						actuator_lines_written += 1
-		
+
+				# inactive_code: code to emit in the else branch (when controller is NOT active).
+				# Used by actuators that need to reset state every frame regardless of activation
+				# (e.g. AnimationTree conditions, which are consumed by the state machine and must
+				# be driven continuously to avoid one-shot race conditions).
+				if generated.has("inactive_code") and not str(generated["inactive_code"]).is_empty():
+					var inactive = str(generated["inactive_code"])
+					lines.append("\telse:")
+					var inactive_lines = inactive.split("\n")
+					for il in inactive_lines:
+						if il.strip_edges() != "":
+							lines.append("\t\t" + il)
+
 		# If all actuators produced empty code, treat as incomplete — skip entirely
 		if actuator_lines_written == 0:
 			return ""
-	
+
 	# Write active flags for any named actuators so the Actuator Sensor can read them.
 	# Flags are written both when active (true) and when not (false) so the sensor
 	# always has an up-to-date value regardless of which branch ran.
@@ -934,10 +910,118 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 			lines.append("\t\t_actuator_active_flags[\"%s\"] = true" % inst_name)
 			lines.append("\telse:")
 			lines.append("\t\t_actuator_active_flags[\"%s\"] = false" % inst_name)
-	
+
 	return "\n".join(lines)
 
 
+
+
+func _emit_sensor_eval(lines: Array[String], node: Node, chain_name: String, sensor_data: Dictionary, fallback_var: String) -> String:
+	var sensor_brick = _instantiate_brick(sensor_data)
+	if not sensor_brick:
+		return ""
+	var generated = sensor_brick.generate_code(node, chain_name)
+	if not generated.has("sensor_code"):
+		return ""
+
+	var instance_name = sensor_data.get("instance_name", "")
+	var sensor_var = fallback_var
+	if not instance_name.is_empty():
+		sensor_var = _sanitize_chain_name(instance_name) + "_active"
+
+	var sensor_code = str(generated["sensor_code"])
+	var _rename_rx = RegEx.new()
+	_rename_rx.compile("\\bsensor_active\\b")
+	sensor_code = _rename_rx.sub(sensor_code, sensor_var, true)
+
+	for code_line in sensor_code.split("\n"):
+		if code_line.strip_edges() != "":
+			lines.append("\t" + code_line)
+
+	var debug_code = sensor_brick.get_debug_code()
+	if not debug_code.is_empty():
+		lines.append("\t" + debug_code)
+	return sensor_var
+
+
+func _emit_nested_controller_eval(lines: Array[String], node: Node, chain_name: String, controller_tree: Dictionary, prefix: String) -> String:
+	if bool(controller_tree.get("cycle", false)):
+		var cycle_var = "%s_cycle_active" % prefix
+		lines.append("\tvar %s = false  # Controller chain cycle ignored" % cycle_var)
+		return cycle_var
+
+	var input_vars: Array[String] = []
+	var sensor_index := 0
+	for sensor_data in controller_tree.get("sensors", []):
+		var sensor_var = _emit_sensor_eval(lines, node, chain_name, sensor_data, "%s_sensor_%d_active" % [prefix, sensor_index])
+		if not sensor_var.is_empty():
+			input_vars.append(sensor_var)
+		sensor_index += 1
+
+	var nested_index := 0
+	for nested_tree in controller_tree.get("controller_inputs", []):
+		var nested_var = _emit_nested_controller_eval(lines, node, chain_name, nested_tree, "%s_controller_%d" % [prefix, nested_index])
+		if not nested_var.is_empty():
+			input_vars.append(nested_var)
+		nested_index += 1
+
+	var controller_data = controller_tree.get("controller", null)
+	var out_var = "%s_active" % prefix
+	if controller_data == null:
+		lines.append("\tvar %s = false" % out_var)
+		return out_var
+
+	var controller_brick = _instantiate_brick(controller_data)
+	if controller_brick and controller_data.get("type", "") == "ScriptController":
+		lines.append("\tvar %s = %s" % [out_var, controller_brick.get_condition(input_vars) if input_vars.size() > 0 else "true"])
+		return out_var
+
+	var logic_mode = "and"
+	if controller_brick and controller_brick.properties.has("logic_mode"):
+		logic_mode = str(controller_brick.properties.get("logic_mode", "and")).to_lower()
+	var condition = _controller_condition_from_vars(logic_mode, input_vars) if input_vars.size() > 0 else "true"
+
+	var state_id = str(controller_data.get("properties", {}).get("state_id", "")).strip_edges()
+	var all_states = bool(controller_data.get("properties", {}).get("all_states", false))
+	if not state_id.is_empty() or all_states:
+		condition = "_logic_brick_chain_state_matches(%s, %s) and (%s)" % [_gdscript_string_literal(state_id), "true" if all_states else "false", condition]
+
+	lines.append("\tvar %s = %s" % [out_var, condition])
+	return out_var
+
+
+func _controller_condition_from_vars(logic_mode: String, input_vars: Array) -> String:
+	if input_vars.is_empty():
+		return "true"
+	match logic_mode:
+		"or":
+			return " or ".join(input_vars)
+		"nand":
+			return "not (" + " and ".join(input_vars) + ")"
+		"nor":
+			return "not (" + " or ".join(input_vars) + ")"
+		"xor":
+			var int_vars: Array[String] = []
+			for sv in input_vars:
+				int_vars.append("int(%s)" % sv)
+			return "(" + " + ".join(int_vars) + ") == 1"
+		_:
+			return " and ".join(input_vars)
+
+
+func _collect_all_sensors_for_chain(chain: Dictionary) -> Array:
+	var sensors: Array = []
+	for sensor_data in chain.get("sensors", []):
+		sensors.append(sensor_data)
+	_collect_sensors_from_controller_inputs(chain.get("controller_inputs", []), sensors)
+	return sensors
+
+
+func _collect_sensors_from_controller_inputs(controller_inputs: Array, sensors: Array) -> void:
+	for controller_tree in controller_inputs:
+		for sensor_data in controller_tree.get("sensors", []):
+			sensors.append(sensor_data)
+		_collect_sensors_from_controller_inputs(controller_tree.get("controller_inputs", []), sensors)
 
 func _gdscript_string_literal(value: String) -> String:
 	return '"%s"' % value.c_escape()
@@ -990,7 +1074,7 @@ func _function_signature_key(signature_line: String) -> String:
 ## Requires at least one sensor and one controller.
 ## ScriptController chains do not require actuators; all others do.
 func _chain_is_complete(chain: Dictionary) -> bool:
-	if chain.get("sensors", []).is_empty():
+	if chain.get("sensors", []).is_empty() and chain.get("controller_inputs", []).is_empty():
 		return false
 
 	var controllers = chain.get("controllers", [])
@@ -1012,6 +1096,15 @@ func _chain_is_complete(chain: Dictionary) -> bool:
 
 ## Check if a chain needs physics process (has force/torque actuators)
 func _chain_needs_physics_process(chain: Dictionary) -> bool:
+	# Physics-dependent sensors must also run in _physics_process.
+	# Example: PhysicsSensor uses is_on_floor()/is_on_wall()/is_on_ceiling(),
+	# which are only reliable after physics movement has been resolved.
+	var sensors = _collect_all_sensors_for_chain(chain)
+	for sensor_data in sensors:
+		var sensor_type = sensor_data.get("type", "")
+		if sensor_type in ["PhysicsSensor"]:
+			return true
+
 	var actuators = chain.get("actuators", [])
 	for actuator_data in actuators:
 		var brick_type = actuator_data.get("type", "")
@@ -1092,16 +1185,16 @@ func _logic_brick_actuator_is_timing_sensitive_non_physics(brick_type: String) -
 func _instantiate_brick(brick_data: Dictionary) -> LogicBrick:
 	var brick_type = brick_data.get("type", "")
 	var brick_script_path = _get_brick_script_path(brick_type)
-	
+
 	if brick_script_path.is_empty():
 		push_error("Logic Bricks: Unknown brick type: " + brick_type)
 		return null
-	
+
 	var brick_script = load(brick_script_path)
 	if not brick_script:
 		push_error("Logic Bricks: Could not load brick script: " + brick_script_path)
 		return null
-	
+
 	var brick = brick_script.new()
 	brick.deserialize(brick_data)
 	return brick
@@ -1123,6 +1216,7 @@ const BRICK_SCRIPT_REGISTRY: Dictionary = {
 	"MessageSensor":        "res://addons/logic_bricks/bricks/sensors/3d/message_sensor.gd",
 	"MouseSensor":          "res://addons/logic_bricks/bricks/sensors/3d/mouse_sensor.gd",
 	"MovementSensor":       "res://addons/logic_bricks/bricks/sensors/3d/movement_sensor.gd",
+	"PhysicsSensor":        "res://addons/logic_bricks/bricks/sensors/3d/physics_sensor.gd",
 	"ProximitySensor":      "res://addons/logic_bricks/bricks/sensors/3d/proximity_sensor.gd",
 	"RandomSensor":         "res://addons/logic_bricks/bricks/sensors/3d/random_sensor.gd",
 	"RaycastSensor":        "res://addons/logic_bricks/bricks/sensors/3d/raycast_sensor.gd",
@@ -1203,40 +1297,40 @@ func _get_brick_script_path(brick_type: String) -> String:
 func _replace_generated_code(existing_code: String, generated_code: String, node: Node) -> String:
 	var start_pos = existing_code.find(CODE_START_MARKER)
 	var end_pos = existing_code.find(CODE_END_MARKER)
-	
+
 	if start_pos == -1 or end_pos == -1:
 		# Markers don't exist, add them
 		return _create_script_with_markers(existing_code, generated_code, node)
-	
+
 	# Calculate positions correctly
 	# We want to keep everything BEFORE the start marker
 	var before = existing_code.substr(0, start_pos)
-	
+
 	# We want to keep everything AFTER the end marker (including the marker itself on its own line)
 	# end_pos points to the start of CODE_END_MARKER, so we add its length to skip past it
 	var after_marker_pos = end_pos + CODE_END_MARKER.length()
 	var after = existing_code.substr(after_marker_pos)
-	
+
 	# Build the new code with proper formatting
 	# Keep the start marker on its own line, add generated code, then the end marker
 	var new_code = before + CODE_START_MARKER + "\n"
-	
+
 	# Add the generated code (it already has proper indentation)
 	if not generated_code.is_empty():
 		new_code += generated_code
 		if not generated_code.ends_with("\n"):
 			new_code += "\n"
-	
+
 	# Add the end marker
 	new_code += CODE_END_MARKER + after
-	
+
 	return new_code
 
 
 ## Create a new script with markers
 func _create_script_with_markers(existing_code: String, generated_code: String, node: Node) -> String:
 	var node_class = node.get_class()
-	
+
 	# If there's existing code without markers, preserve it
 	if not existing_code.is_empty() and not existing_code.begins_with("extends"):
 		# Has existing code but no extends, add extends
@@ -1244,7 +1338,7 @@ func _create_script_with_markers(existing_code: String, generated_code: String, 
 	elif existing_code.is_empty():
 		# No existing code, create basic script
 		existing_code = "extends %s\n" % node_class
-	
+
 	# Insert markers before the first real function definition.
 	# We scan line-by-line so that "func" appearing inside comments (#) or
 	# string literals does not trigger a false match.
@@ -1259,28 +1353,28 @@ func _create_script_with_markers(existing_code: String, generated_code: String, 
 			insert_pos = char_offset
 			break
 		char_offset += line.length() + 1  # +1 for the "\n" that split consumed
-	
+
 	var before = existing_code.substr(0, insert_pos)
 	var after = existing_code.substr(insert_pos)
-	
+
 	# Build with proper newline handling
 	var marked_code = before
 	if not before.ends_with("\n"):
 		marked_code += "\n"
-	
+
 	marked_code += "\n" + CODE_START_MARKER + "\n"
 	marked_code += generated_code
-	
+
 	if not generated_code.ends_with("\n"):
 		marked_code += "\n"
-	
+
 	marked_code += CODE_END_MARKER + "\n"
-	
+
 	if not after.is_empty():
 		if not after.begins_with("\n"):
 			marked_code += "\n"
 		marked_code += after
-	
+
 	return marked_code
 
 
@@ -1291,29 +1385,29 @@ func _create_new_script(node: Node) -> String:
 	if not scene_root or scene_root.scene_file_path.is_empty():
 		push_error("Logic Bricks: Scene must be saved before a script can be created.")
 		return ""
-	
+
 	var scene_path = scene_root.scene_file_path
 	var scene_dir = scene_path.get_base_dir()
 	var node_name = node.name.to_snake_case()
 	var script_path = "%s/%s.gd" % [scene_dir, node_name]
-	
+
 	# Ensure unique filename
 	var counter = 1
 	while FileAccess.file_exists(script_path):
 		script_path = "%s/%s_%d.gd" % [scene_dir, node_name, counter]
 		counter += 1
-	
+
 	# Create basic script
 	var node_class = node.get_class()
 	var basic_script = "extends %s\n" % node_class
-	
+
 	var file = FileAccess.open(script_path, FileAccess.WRITE)
 	if not file:
 		push_error("Logic Bricks: Could not create script file: " + script_path)
 		return ""
 	file.store_string(basic_script)
 	file.close()
-	
+
 	return script_path
 
 
@@ -1321,11 +1415,11 @@ func _create_new_script(node: Node) -> String:
 func _generate_unique_chain_name(existing_chains: Array) -> String:
 	var counter = 0
 	var name = "chain_%d" % counter
-	
+
 	while _chain_name_exists(existing_chains, name):
 		counter += 1
 		name = "chain_%d" % counter
-	
+
 	return name
 
 
@@ -1347,11 +1441,11 @@ func _sanitize_chain_name(name: String) -> String:
 			sanitized += c
 		else:
 			sanitized += "_"
-	
+
 	# Ensure it starts with a letter or underscore
 	if sanitized.is_empty() or sanitized[0].is_valid_int():
 		sanitized = "_" + sanitized
-	
+
 	return sanitized
 
 
@@ -1359,7 +1453,7 @@ func _sanitize_chain_name(name: String) -> String:
 func _mark_scene_modified(node: Node) -> void:
 	if not editor_interface:
 		return
-	
+
 	# Mark the currently edited scene as unsaved
 	# This is the correct way to tell Godot the scene needs saving
 	editor_interface.mark_scene_as_unsaved()
@@ -1373,11 +1467,11 @@ func _member_var_to_reset(member_var_line: String) -> String:
 	# Skip exported vars — those are set by the user in the inspector, not reset on state entry
 	if member_var_line.begins_with("@export"):
 		return ""
-	
+
 	# Must start with "var "
 	if not member_var_line.begins_with("var "):
 		return ""
-	
+
 	# Skip object pool vars — pools are built once in _ready() and must survive
 	# state transitions. Resetting them would empty the pool on the first frame.
 	# _pools_*        — the Array-of-Arrays holding live instances
@@ -1385,32 +1479,51 @@ func _member_var_to_reset(member_var_line: String) -> String:
 	# _pool_scenes_*  — the PackedScene registry array used by _pool_grow_*
 	# _pool_cap_*     — per-sub-pool capacity tracker used by _pool_grow_*
 	var after_var = member_var_line.substr(4)  # strip "var "
+
+	# Skip shared CharacterBody runtime state. These values are initialized in
+	# _ready() and maintained by Character/Jump actuators across frames. Resetting
+	# them on state entry breaks common state flows such as: press jump -> enter
+	# jump state -> JumpActuator fires. In that case _max_jumps/_jumps_remaining
+	# were being reset to 0 before the jump could execute.
+	var protected_runtime_prefixes = [
+		"_logic_brick_character_",
+		"_on_ground",
+		"_moving_platform_",
+		"_inherited_platform_velocity",
+		"_logic_brick_external_motion_",
+		"_logic_brick_pre_slide_velocity",
+		"_jumps_remaining",
+		"_max_jumps",
+	]
+	for protected_prefix in protected_runtime_prefixes:
+		if after_var.begins_with(protected_prefix):
+			return ""
 	if after_var.begins_with("_pools_") or after_var.begins_with("_pool_scene_") \
 			or after_var.begins_with("_pool_scenes_") or after_var.begins_with("_pool_cap_") \
 			or after_var.begins_with("_pool_timers_"):
 		return ""
-	
+
 	# Skip music shared state — players are built once in _ready() and must survive
 	# state transitions. Resetting them would empty the array on the first frame,
 	# silencing music before the Set brick gets a chance to play anything.
 	if after_var.begins_with("_music_players") or after_var.begins_with("_music_current") \
 			or after_var.begins_with("_music_crossfading") or after_var.begins_with("_music_initialized"):
 		return ""
-	
+
 	# Skip any var typed as PackedScene — these are preloaded resources, not runtime state
 	if ": PackedScene" in member_var_line:
 		return ""
-	
+
 	# Skip Modulate Actuator target color vars — these persist the lerp destination
 	# across frames and must not be reset on state entry or the transition never completes.
 	if after_var.contains("_target_color"):
 		return ""
-	
+
 	# Check there's a "=" to split on
 	var eq_pos = member_var_line.find("=")
 	if eq_pos == -1:
 		return ""
-	
+
 	# Extract default value (trim trailing comments)
 	var default_val = member_var_line.substr(eq_pos + 1).strip_edges()
 	var comment_pos = default_val.find("  #")
@@ -1418,7 +1531,7 @@ func _member_var_to_reset(member_var_line: String) -> String:
 		comment_pos = default_val.find("\t#")
 	if comment_pos != -1:
 		default_val = default_val.substr(0, comment_pos).strip_edges()
-	
+
 	# Extract variable name: "var _foo: float = ..." or "var _foo = ..."
 	var colon_pos = after_var.find(":")
 	var var_name = ""
@@ -1427,8 +1540,8 @@ func _member_var_to_reset(member_var_line: String) -> String:
 	else:
 		var space_pos = after_var.find(" ")
 		var_name = after_var.substr(0, space_pos if space_pos != -1 else after_var.length()).strip_edges()
-	
+
 	if var_name.is_empty() or default_val.is_empty():
 		return ""
-	
+
 	return "%s = %s" % [var_name, default_val]

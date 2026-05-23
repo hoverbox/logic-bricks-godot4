@@ -76,7 +76,7 @@ func _init() -> void:
 	# Set minimum size for the bottom panel
 	custom_minimum_size = Vector2(0, 300)
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
-	
+
 	_search_helper.setup(self)
 	_clipboard_helper.setup(self)
 	_graph_helper.setup(self)
@@ -86,7 +86,7 @@ func _init() -> void:
 	# Create header
 	var header_hbox = HBoxContainer.new()
 	add_child(header_hbox)
-	
+
 	var title_label = Label.new()
 	title_label.text = "Logic Bricks - Node Graph"
 	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -94,46 +94,46 @@ func _init() -> void:
 	if title_font:
 		title_label.add_theme_font_override("font", title_font)
 	header_hbox.add_child(title_label)
-	
+
 	node_info_label = Label.new()
 	node_info_label.text = "No node selected"
 	header_hbox.add_child(node_info_label)
-	
+
 	# Lock button to prevent losing selection
 	lock_button = Button.new()
 	lock_button.text = "🔓"  # Unlocked icon
 	lock_button.tooltip_text = "Lock selection (prevents panel from changing when clicking elsewhere)"
 	lock_button.pressed.connect(_on_lock_toggled)
 	header_hbox.add_child(lock_button)
-	
+
 	_copy_button = Button.new()
 	_copy_button.text = "C"
 	_copy_button.tooltip_text = "Copy selected bricks (Ctrl+C)\nIf nothing is selected, copies the entire node setup."
 	_copy_button.pressed.connect(_on_copy_bricks_pressed)
 	header_hbox.add_child(_copy_button)
-	
+
 	_paste_button = Button.new()
 	_paste_button.text = "P"
 	_paste_button.tooltip_text = "Paste copied bricks into this node (Ctrl+V)\nIf bricks were copied, pastes those. Otherwise pastes the whole node setup."
 	_paste_button.pressed.connect(_on_paste_bricks_pressed)
 	header_hbox.add_child(_paste_button)
-	
+
 	_popout_button = Button.new()
 	_popout_button.text = "⧉"
 	_popout_button.tooltip_text = "Pop out into a floating window (useful for 2nd screen)"
 	_popout_button.pressed.connect(_on_popout_pressed)
 	header_hbox.add_child(_popout_button)
-	
+
 	# Separator
 	var separator1 = HSeparator.new()
 	add_child(separator1)
-	
+
 	# Create horizontal split: graph on left, variables on right
 	_main_hsplit = HSplitContainer.new()
 	_main_hsplit.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_main_hsplit.split_offset = -300  # Variables panel takes 300px from the right
 	add_child(_main_hsplit)
-	
+
 	# GraphEdit for visual node connections (LEFT SIDE)
 	graph_edit = GraphEdit.new()
 	graph_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -142,10 +142,10 @@ func _init() -> void:
 	graph_edit.show_zoom_label = true
 	graph_edit.minimap_enabled = true
 	graph_edit.minimap_size = Vector2(200, 150)
-	
+
 	# Enable panning - allow dragging the canvas
 	graph_edit.panning_scheme = GraphEdit.SCROLL_ZOOMS  # Mouse wheel zooms, drag pans
-	
+
 	graph_edit.connection_request.connect(_on_connection_request)
 	graph_edit.disconnection_request.connect(_on_disconnection_request)
 	graph_edit.delete_nodes_request.connect(_on_delete_nodes_request)
@@ -153,14 +153,14 @@ func _init() -> void:
 	graph_edit.gui_input.connect(_on_graph_edit_input)
 	graph_edit.visible = false  # Hidden until node selected
 	_main_hsplit.add_child(graph_edit)
-	
+
 	# Side Panel (RIGHT SIDE) - Tabbed: Variables, Globals, Frames
 	_create_side_panel()
 	_main_hsplit.add_child(side_panel)
-	
+
 	# Create add node menu
 	_create_add_menu()
-	
+
 	# Instructions label (shown when graph is hidden)
 	_instructions_label = Label.new()
 	_instructions_label.name = "InstructionsLabel"
@@ -170,24 +170,24 @@ func _init() -> void:
 	_instructions_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_instructions_label.add_theme_font_size_override("font_size", 16)
 	add_child(_instructions_label)
-	
+
 	# Toolbar
 	_toolbar_separator = HSeparator.new()
 	add_child(_toolbar_separator)
-	
+
 	_toolbar = HBoxContainer.new()
 	add_child(_toolbar)
-	
+
 	var help_label = Label.new()
 	help_label.text = "  Right-click: Add nodes | Drag nodes: Move | Middle-click drag: Pan | Scroll: Zoom | Select + Delete: Remove"
 	help_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_toolbar.add_child(help_label)
-	
+
 	var add_frame_button = Button.new()
 	add_frame_button.text = "Add Frame"
 	add_frame_button.pressed.connect(_on_add_frame_pressed)
 	_toolbar.add_child(add_frame_button)
-	
+
 	var apply_code_button = Button.new()
 	apply_code_button.text = "Apply Code"
 	apply_code_button.pressed.connect(_on_apply_code_pressed)
@@ -199,23 +199,23 @@ func _create_add_menu() -> void:
 	add_menu = PopupMenu.new()
 	add_menu.name = "AddNodeMenu"
 	add_child(add_menu)
-	
+
 	# Create submenus
 	sensors_menu = PopupMenu.new()
 	sensors_menu.name = "SensorsMenu"
 	add_menu.add_child(sensors_menu)
 	sensors_menu.id_pressed.connect(_on_add_menu_item_selected)
-	
+
 	controllers_menu = PopupMenu.new()
 	controllers_menu.name = "ControllersMenu"
 	add_menu.add_child(controllers_menu)
 	controllers_menu.id_pressed.connect(_on_add_menu_item_selected)
-	
+
 	actuators_menu = PopupMenu.new()
 	actuators_menu.name = "ActuatorsMenu"
 	add_menu.add_child(actuators_menu)
 	actuators_menu.id_pressed.connect(_on_add_menu_item_selected)
-	
+
 	# Add submenu items to main menu
 	add_menu.add_submenu_item("Sensors", "SensorsMenu", 0)
 	add_menu.add_submenu_item("Controllers", "ControllersMenu", 1)
@@ -228,77 +228,81 @@ func _create_add_menu() -> void:
 	add_menu.add_separator()
 	add_menu.add_item("🗑 Clear Bricks", 6)
 	add_menu.id_pressed.connect(_on_main_menu_id_pressed)
-	
+
 	# Populate Sensors submenu (alphabetical order)
 	sensors_menu.add_item("Actuator", 112)
 	sensors_menu.set_item_metadata(0, {"type": "sensor", "class": "ActuatorSensor"})
 	sensors_menu.set_item_tooltip(0, "Fires TRUE when a named actuator on this node is running.\nThe actuator must have an instance name set.")
-	
+
 	sensors_menu.add_item("Always", 100)
 	sensors_menu.set_item_metadata(1, {"type": "sensor", "class": "AlwaysSensor"})
 	sensors_menu.set_item_tooltip(1, "Always active. Fires every frame.\nUse for continuous actions like gravity or idle animations.")
-	
+
 	sensors_menu.add_item("Animation Tree", 101)
 	sensors_menu.set_item_metadata(2, {"type": "sensor", "class": "AnimationTreeSensor"})
 	sensors_menu.set_item_tooltip(2, "Detects animation tree state changes and conditions.")
-	
+
 	sensors_menu.add_item("Collision", 102)
 	sensors_menu.set_item_metadata(3, {"type": "sensor", "class": "CollisionSensor"})
 	sensors_menu.set_item_tooltip(3, "Detects collisions using an Area3D node.\nRequires an Area3D child or reference.\n⚠ Adds @export in Inspector — assign your Area3D.")
-	
+
 	sensors_menu.add_item("Compare Variable", 103)
 	sensors_menu.set_item_metadata(4, {"type": "sensor", "class": "VariableSensor"})
 	sensors_menu.set_item_tooltip(4, "Compares a logic brick variable against a value.\nTriggers when the comparison is true.")
-	
+
 	sensors_menu.add_item("Delay", 104)
 	sensors_menu.set_item_metadata(5, {"type": "sensor", "class": "DelaySensor"})
 	sensors_menu.set_item_tooltip(5, "Adds a delay before activating.\nStays active for a set duration, can repeat.")
-	
+
 	sensors_menu.add_item("InputMap", 105)
 	sensors_menu.set_item_metadata(6, {"type": "sensor", "class": "InputMapSensor"})
 	sensors_menu.set_item_tooltip(6, "Detects input actions from Project > Input Map.\nWorks with keyboard, gamepad, etc.")
-	
+
 	sensors_menu.add_item("Message", 106)
 	sensors_menu.set_item_metadata(7, {"type": "sensor", "class": "MessageSensor"})
 	sensors_menu.set_item_tooltip(7, "Listens for messages sent by a Message Actuator.\nFilters by subject.")
-	
+
 	sensors_menu.add_item("Mouse", 107)
 	sensors_menu.set_item_metadata(8, {"type": "sensor", "class": "MouseSensor"})
 	sensors_menu.set_item_tooltip(8, "Detects mouse button presses and releases.")
-	
+
 	sensors_menu.add_item("Movement", 108)
 	sensors_menu.set_item_metadata(9, {"type": "sensor", "class": "MovementSensor"})
 	sensors_menu.set_item_tooltip(9, "Detects if the node is moving or stationary.")
-	
+
+	sensors_menu.add_item("Physics", 113)
+	sensors_menu.set_item_metadata(10, {"type": "sensor", "class": "PhysicsSensor"})
+	sensors_menu.set_item_tooltip(10, "Checks CharacterBody contact state: On Floor, On Wall, or On Ceiling.\nUse for jump checks, wall checks, and platformer logic.")
+
 	sensors_menu.add_item("Proximity", 109)
-	sensors_menu.set_item_metadata(10, {"type": "sensor", "class": "ProximitySensor"})
-	sensors_menu.set_item_tooltip(10, "Detects nodes within a certain distance.\nChecks against nodes in a specified group.")
-	
+	sensors_menu.set_item_metadata(11, {"type": "sensor", "class": "ProximitySensor"})
+	sensors_menu.set_item_tooltip(11, "Detects nodes within a certain distance.\nChecks against nodes in a specified group.")
+
 	sensors_menu.add_item("Random", 110)
-	sensors_menu.set_item_metadata(11, {"type": "sensor", "class": "RandomSensor"})
-	sensors_menu.set_item_tooltip(11, "Activates randomly based on a probability.\nUseful for random behaviors or AI variation.")
-	
+	sensors_menu.set_item_metadata(12, {"type": "sensor", "class": "RandomSensor"})
+	sensors_menu.set_item_tooltip(12, "Activates randomly based on a probability.\nUseful for random behaviors or AI variation.")
+
 	sensors_menu.add_item("Raycast", 111)
-	sensors_menu.set_item_metadata(12, {"type": "sensor", "class": "RaycastSensor"})
-	sensors_menu.set_item_tooltip(12, "Casts a ray to detect objects in a direction.\nUseful for line-of-sight or ground detection.")
-	
-	
+	sensors_menu.set_item_metadata(13, {"type": "sensor", "class": "RaycastSensor"})
+	sensors_menu.set_item_tooltip(13, "Casts a ray to detect objects in a direction.\nUseful for line-of-sight or ground detection.")
+
+
 	# Populate Controllers submenu
 	controllers_menu.add_item("Controller", 200)
 	controllers_menu.set_item_metadata(0, {"type": "controller", "class": "Controller"})
 	controllers_menu.set_item_tooltip(0, "Logic gate that combines sensor inputs.\nAND, OR, NAND, NOR, XOR modes.")
-	
+
 	controllers_menu.add_item("Script Controller", 201)
 	controllers_menu.set_item_metadata(1, {"type": "controller", "class": "ScriptController"})
 	controllers_menu.set_item_tooltip(1, "Run custom GDScript or C# code when sensors fire.\nWrite your code directly in the brick's Script Body property.")
-	
+
 	# Populate Actuators submenu — grouped into categories
 	var _actuator_groups = [
 		{
 			"label": "Animation",
 			"items": [
 				["Animation", 300, "AnimationActuator", "Play, stop, pause, queue, ping-pong, or flipper animations.\nAutomatically finds the AnimationPlayer that owns the animation.\n⚠ No @export needed — AnimationPlayer is found automatically."],
-				["Animation Tree", 301, "AnimationTreeActuator", "Controls AnimationTree: travel states, set parameters/conditions.\n⚠ Adds @export in Inspector — assign your AnimationTree."],
+				["Animation Tree", 301, "AnimationTreeActuator", "Controls AnimationTree: travel states, set parameters/conditions.\nNo @export needed — AnimationTree is found automatically."],
 				["Sprite Frames", 346, "SpriteFramesActuator", "Play, stop, or pause Sprite3D / AnimatedSprite3D frame animations.\nLeave Target Node empty to target self.\n⚠ No @export needed — node is found by name automatically."],
 			]
 		},
@@ -401,11 +405,11 @@ func _create_add_menu() -> void:
 			]
 		},
 	]
-	
+
 	for group in _actuator_groups:
 		var group_label: String = group["label"]
 		var group_items: Array = group["items"]
-		
+
 		# Single-item groups go directly into the actuators menu, no submenu needed
 		if group_items.size() == 1:
 			var item = group_items[0]
@@ -421,13 +425,13 @@ func _create_add_menu() -> void:
 			actuators_menu.add_child(submenu)
 			submenu.id_pressed.connect(_on_add_menu_item_selected)
 			actuator_submenus[submenu_name] = submenu
-			
+
 			for item in group_items:
 				submenu.add_item(item[0], item[1])
 				var idx = submenu.get_item_index(item[1])
 				submenu.set_item_metadata(idx, {"type": "actuator", "class": item[2]})
 				submenu.set_item_tooltip(idx, item[3])
-			
+
 			actuators_menu.add_submenu_item(group_label, submenu_name)
 
 
@@ -692,11 +696,11 @@ func _create_variables_tab() -> void:
 	variables_panel = VBoxContainer.new()
 	variables_panel.name = "Variables"
 	variables_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	
+
 	# ── Local Variables header ──
 	var header = HBoxContainer.new()
 	variables_panel.add_child(header)
-	
+
 	var title = Label.new()
 	title.text = "Node Variables"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -704,21 +708,21 @@ func _create_variables_tab() -> void:
 	if title_font:
 		title.add_theme_font_override("font", title_font)
 	header.add_child(title)
-	
+
 	# Add Variable button
 	var add_var_button = Button.new()
 	add_var_button.text = "+ Add"
 	add_var_button.pressed.connect(_on_add_variable_pressed)
 	header.add_child(add_var_button)
-	
+
 	var sep = HSeparator.new()
 	variables_panel.add_child(sep)
-	
+
 	# Scrollable list of local variables
 	var scroll = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	variables_panel.add_child(scroll)
-	
+
 	variables_list = VBoxContainer.new()
 	variables_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(variables_list)
@@ -729,36 +733,42 @@ func _create_global_variables_tab() -> void:
 	global_vars_panel = VBoxContainer.new()
 	global_vars_panel.name = "Globals"
 	global_vars_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	
+
 	var header = HBoxContainer.new()
 	global_vars_panel.add_child(header)
-	
+
 	var title = Label.new()
 	title.text = "Global Variables"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.clip_text = true
+	title.custom_minimum_size = Vector2(0, 0)
 	var title_font = title.get_theme_font("bold", "EditorFonts")
 	if title_font:
 		title.add_theme_font_override("font", title_font)
 	header.add_child(title)
-	
+
 	var add_global_button = Button.new()
 	add_global_button.text = "+ Add"
+	add_global_button.size_flags_horizontal = Control.SIZE_SHRINK_END
 	add_global_button.pressed.connect(_on_add_global_variable_pressed)
 	header.add_child(add_global_button)
-	
+
 	var sep = HSeparator.new()
 	global_vars_panel.add_child(sep)
-	
+
 	var hint = Label.new()
 	hint.text = "Shared across all nodes and all scenes (via GlobalVars autoload)"
+	hint.clip_text = true
+	hint.custom_minimum_size = Vector2(0, 0)
+	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hint.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
 	hint.add_theme_font_size_override("font_size", 10)
 	global_vars_panel.add_child(hint)
-	
+
 	var global_scroll = ScrollContainer.new()
 	global_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	global_vars_panel.add_child(global_scroll)
-	
+
 	global_vars_list = VBoxContainer.new()
 	global_vars_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	global_scroll.add_child(global_vars_list)
@@ -769,11 +779,11 @@ func _create_frames_tab() -> void:
 	frames_panel = VBoxContainer.new()
 	frames_panel.name = "Frames"
 	frames_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	
+
 	# Header
 	var header = HBoxContainer.new()
 	frames_panel.add_child(header)
-	
+
 	var title = Label.new()
 	title.text = "Frames"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -781,15 +791,15 @@ func _create_frames_tab() -> void:
 	if title_font:
 		title.add_theme_font_override("font", title_font)
 	header.add_child(title)
-	
+
 	# Separator
 	var sep1 = HSeparator.new()
 	frames_panel.add_child(sep1)
-	
+
 	# Frame list with controls
 	var list_container = HBoxContainer.new()
 	frames_panel.add_child(list_container)
-	
+
 	# Frame list
 	frames_list = ItemList.new()
 	frames_list.custom_minimum_size = Vector2(0, 150)
@@ -798,58 +808,58 @@ func _create_frames_tab() -> void:
 	frames_list.item_selected.connect(_on_frame_list_item_selected)
 	frames_list.item_activated.connect(_on_frame_list_item_activated)  # Double-click to rename
 	list_container.add_child(frames_list)
-	
+
 	# Separator
 	var sep2 = HSeparator.new()
 	frames_panel.add_child(sep2)
-	
+
 	# Frame settings (shown when a frame is selected)
 	frame_settings_container = VBoxContainer.new()
 	frame_settings_container.name = "FrameSettings"
 	frame_settings_container.visible = false
 	frames_panel.add_child(frame_settings_container)
-	
+
 	var settings_label = Label.new()
 	settings_label.text = "Frame Settings:"
 	var settings_font = settings_label.get_theme_font("bold", "EditorFonts")
 	if settings_font:
 		settings_label.add_theme_font_override("font", settings_font)
 	frame_settings_container.add_child(settings_label)
-	
+
 	# Frame name field
 	var name_label = Label.new()
 	name_label.text = "Name:"
 	frame_settings_container.add_child(name_label)
-	
+
 	var name_edit = LineEdit.new()
 	name_edit.name = "FrameNameEdit"
 	name_edit.placeholder_text = "Enter frame name..."
 	name_edit.text_changed.connect(_on_frame_name_changed)
 	frame_settings_container.add_child(name_edit)
-	
+
 	# Frame color picker
 	var color_label = Label.new()
 	color_label.text = "Color:"
 	frame_settings_container.add_child(color_label)
-	
+
 	var color_picker = ColorPickerButton.new()
 	color_picker.name = "FrameColorPicker"
 	color_picker.edit_alpha = true
 	color_picker.color_changed.connect(_on_frame_color_changed)
 	frame_settings_container.add_child(color_picker)
-	
+
 	# Manual size controls
 	var size_label = Label.new()
 	size_label.text = "Frame Size:"
 	frame_settings_container.add_child(size_label)
-	
+
 	var size_hbox = HBoxContainer.new()
 	frame_settings_container.add_child(size_hbox)
-	
+
 	var width_label = Label.new()
 	width_label.text = "W:"
 	size_hbox.add_child(width_label)
-	
+
 	var width_spin = SpinBox.new()
 	width_spin.name = "FrameWidthSpin"
 	width_spin.min_value = 100
@@ -857,11 +867,11 @@ func _create_frames_tab() -> void:
 	width_spin.step = 10
 	width_spin.value_changed.connect(_on_frame_width_changed)
 	size_hbox.add_child(width_spin)
-	
+
 	var height_label = Label.new()
 	height_label.text = "H:"
 	size_hbox.add_child(height_label)
-	
+
 	var height_spin = SpinBox.new()
 	height_spin.name = "FrameHeightSpin"
 	height_spin.min_value = 100
@@ -869,13 +879,13 @@ func _create_frames_tab() -> void:
 	height_spin.step = 10
 	height_spin.value_changed.connect(_on_frame_height_changed)
 	size_hbox.add_child(height_spin)
-	
+
 	# Auto-resize button
 	var resize_button = Button.new()
 	resize_button.text = "Auto-Resize to Fit Nodes"
 	resize_button.pressed.connect(_on_frame_resize_pressed)
 	frame_settings_container.add_child(resize_button)
-	
+
 	# Delete frame button
 	var delete_button = Button.new()
 	delete_button.text = "Delete Frame"
@@ -1074,20 +1084,20 @@ func set_selected_node(node: Node) -> void:
 	# Don't change selection if locked
 	if is_locked:
 		return
-	
+
 	# No-op if the same node is re-selected (avoids a spurious save+reload cycle)
 	if node == current_node:
 		return
-	
+
 	# Reset instance override when switching nodes
 	_instance_override = false
 	_hide_instance_panel()
-	
+
 	# Save current state before switching (but NOT if current node is an instance)
 	if current_node and not _is_part_of_instance(current_node):
 		_save_graph_to_metadata()
 		_frames_helper.save_frames_to_metadata(self)
-	
+
 	current_node = node
 	_update_ui()
 
@@ -1100,7 +1110,7 @@ func _update_ui() -> void:
 		if _instructions_label:
 			_instructions_label.visible = true
 		return
-	
+
 	# Check if node is supported
 	if not _is_supported_node(current_node):
 		node_info_label.text = "Unsupported node type: %s - Use Node3D, CharacterBody3D, or RigidBody3D" % current_node.get_class()
@@ -1109,7 +1119,7 @@ func _update_ui() -> void:
 		if _instructions_label:
 			_instructions_label.visible = true
 		return
-	
+
 	# Check if node is part of an instanced scene
 	if _is_part_of_instance(current_node) and not _instance_override:
 		node_info_label.text = "⚠ Instanced Node: %s" % current_node.name
@@ -1120,20 +1130,20 @@ func _update_ui() -> void:
 			_instructions_label.visible = false
 		_show_instance_panel()
 		return
-	
+
 	# Hide instance panel if showing
 	_hide_instance_panel()
-	
+
 	# Reset label color to normal
 	node_info_label.remove_theme_color_override("font_color")
-	
+
 	# Update header
 	node_info_label.text = "✓ Node: %s (%s) - Right-click to add bricks" % [current_node.name, current_node.get_class()]
 	graph_edit.visible = true
 	_apply_side_panel_visibility()
 	if _instructions_label:
 		_instructions_label.visible = false
-	
+
 	# Load states before building graph UI so state dropdowns have options immediately.
 	# Pass suppress_graph_save=true so that writing default states for a freshly-selected
 	# node does NOT trigger a graph flush while graph_edit still holds the previous
@@ -1183,46 +1193,46 @@ func _popout_window_open() -> void:
 	_popout_window.wrap_controls = true
 	_popout_window.min_size = Vector2i(640, 400)
 	_popout_window.close_requested.connect(_dock_window)
-	
+
 	# Root container inside the window (mirrors the bottom panel VBox structure)
 	var win_root = VBoxContainer.new()
 	win_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_popout_window.add_child(win_root)
-	
+
 	# Move instructions label into the window root
 	remove_child(_instructions_label)
 	win_root.add_child(_instructions_label)
-	
+
 	# Re-create the hsplit inside the window
 	var win_hsplit = HSplitContainer.new()
 	win_hsplit.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	win_hsplit.split_offset = _main_hsplit.split_offset
 	win_root.add_child(win_hsplit)
-	
+
 	# Move graph_edit and side_panel into the window hsplit
 	_main_hsplit.remove_child(graph_edit)
 	_main_hsplit.remove_child(side_panel)
 	win_hsplit.add_child(graph_edit)
 	win_hsplit.add_child(side_panel)
-	
+
 	# Move toolbar separator and toolbar into the window root
 	remove_child(_toolbar_separator)
 	remove_child(_toolbar)
 	win_root.add_child(_toolbar_separator)
 	win_root.add_child(_toolbar)
-	
+
 	# Re-parent add_menu into the floating window so right-click popups
 	# appear on the correct monitor (popups always follow their owner window)
 	remove_child(add_menu)
 	_popout_window.add_child(add_menu)
-	
+
 	# Hide the now-empty bottom panel hsplit
 	_main_hsplit.visible = false
-	
+
 	# Update button
 	_popout_button.text = "⬅"
 	_popout_button.tooltip_text = "Dock back into the bottom panel"
-	
+
 	# Add the window to the editor
 	get_tree().root.add_child(_popout_window)
 	_popout_window.popup_centered()
@@ -1231,7 +1241,7 @@ func _popout_window_open() -> void:
 func _dock_window() -> void:
 	if not _popout_window:
 		return
-	
+
 	# Retrieve the window's hsplit so we can restore split_offset
 	var win_root = _popout_window.get_child(0) if _popout_window.get_child_count() > 0 else null
 	var win_hsplit: HSplitContainer = null
@@ -1240,40 +1250,40 @@ func _dock_window() -> void:
 			if child is HSplitContainer:
 				win_hsplit = child
 				break
-	
+
 	# Restore split offset from window if available
 	if win_hsplit:
 		_main_hsplit.split_offset = win_hsplit.split_offset
 		win_hsplit.remove_child(graph_edit)
 		win_hsplit.remove_child(side_panel)
-	
+
 	# Move instructions label back
 	if win_root:
 		win_root.remove_child(_instructions_label)
 	add_child(_instructions_label)
 	move_child(_instructions_label, get_child_count() - 1)
-	
+
 	# Re-parent back into the bottom panel hsplit
 	_main_hsplit.add_child(graph_edit)
 	_main_hsplit.add_child(side_panel)
 	_main_hsplit.visible = true
-	
+
 	# Move toolbar separator and toolbar back
 	if win_root:
 		win_root.remove_child(_toolbar_separator)
 		win_root.remove_child(_toolbar)
 	add_child(_toolbar_separator)
 	add_child(_toolbar)
-	
+
 	# Move add_menu back to the main panel
 	_popout_window.remove_child(add_menu)
 	add_child(add_menu)
-	
+
 	# Close and free the window
 	_popout_window.close_requested.disconnect(_dock_window)
 	_popout_window.queue_free()
 	_popout_window = null
-	
+
 	# Restore button
 	_popout_button.text = "⧉"
 	_popout_button.tooltip_text = "Pop out into a floating window (useful for 2nd screen)"
@@ -1283,16 +1293,16 @@ func _show_instance_panel() -> void:
 	if _instance_panel:
 		_instance_panel.visible = true
 		return
-	
+
 	# Build the panel
 	_instance_panel = PanelContainer.new()
 	_instance_panel.name = "InstancePanel"
 	_instance_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	
+
 	var vbox = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 10)
 	_instance_panel.add_child(vbox)
-	
+
 	# Warning icon + title
 	var title = Label.new()
 	title.text = "⚠  Instanced Scene"
@@ -1300,7 +1310,7 @@ func _show_instance_panel() -> void:
 	title.add_theme_color_override("font_color", Color(1.0, 0.6, 0.0))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(title)
-	
+
 	# Description
 	var desc = Label.new()
 	desc.text = "This node belongs to an instanced scene.\nChanges made here will only affect this instance.\nTo change all instances, edit the original scene."
@@ -1308,28 +1318,28 @@ func _show_instance_panel() -> void:
 	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	desc.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
 	vbox.add_child(desc)
-	
+
 	var sep = HSeparator.new()
 	vbox.add_child(sep)
-	
+
 	# Buttons
 	var btn_box = HBoxContainer.new()
 	btn_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	btn_box.add_theme_constant_override("separation", 12)
 	vbox.add_child(btn_box)
-	
+
 	var open_btn = Button.new()
 	open_btn.text = "📂  Open Original Scene"
 	open_btn.tooltip_text = "Open the original scene file for this instance"
 	open_btn.pressed.connect(_on_open_original_pressed)
 	btn_box.add_child(open_btn)
-	
+
 	var override_btn = Button.new()
 	override_btn.text = "✏  Edit This Instance"
 	override_btn.tooltip_text = "Add Logic Bricks to this instance only.\nWarning: these bricks will not appear in the original scene."
 	override_btn.pressed.connect(_on_edit_instance_pressed)
 	btn_box.add_child(override_btn)
-	
+
 	# Insert above the graph_edit in the layout
 	var parent = graph_edit.get_parent()
 	var graph_index = graph_edit.get_index()
@@ -1365,11 +1375,11 @@ func _is_part_of_instance(node: Node) -> bool:
 	# Check if the node is part of an instanced scene (not the root scene)
 	if not editor_interface:
 		return false
-	
+
 	var edited_scene_root = editor_interface.get_edited_scene_root()
 	if not edited_scene_root:
 		return false
-	
+
 	var current = node
 	while current:
 		if current == edited_scene_root:
@@ -1377,7 +1387,7 @@ func _is_part_of_instance(node: Node) -> bool:
 		if current.scene_file_path != "" and current != edited_scene_root:
 			return true
 		current = current.get_parent()
-	
+
 	return false
 
 
@@ -1391,21 +1401,20 @@ func _load_graph_from_metadata() -> void:
 	for child in children_to_remove:
 		graph_edit.remove_child(child)
 		child.free()
-	
+
 	if not current_node or not current_node.has_meta("logic_bricks_graph"):
-		pass  #print("Logic Bricks: No saved graph data for %s" % (current_node.name if current_node else "null"))
+		pass
 		return
-	
+
 	# Snapshot the node we are loading for — current_node may change during the
 	# await below if the user clicks another node while this coroutine is suspended.
 	var _loading_for_node = current_node
 	var graph_data = _loading_for_node.get_meta("logic_bricks_graph")
-	#print("Logic Bricks: Loading %d nodes and %d connections for %s" % [graph_data.get("nodes", []).size(), graph_data.get("connections", []).size(), current_node.name])
-	
+
 	# Restore nodes
 	for node_data in graph_data.get("nodes", []):
 		_create_graph_node_from_data(node_data)
-	
+
 	# Restore connections (must happen after all nodes are created)
 	await get_tree().process_frame
 
@@ -1419,9 +1428,9 @@ func _load_graph_from_metadata() -> void:
 		return
 
 	for conn in graph_data.get("connections", []):
-		pass  #print("Logic Bricks: Restoring connection: %s:%d -> %s:%d" % [conn["from_node"], conn["from_port"], conn["to_node"], conn["to_port"]])
+		pass
 		graph_edit.connect_node(conn["from_node"], conn["from_port"], conn["to_node"], conn["to_port"])
-	
+
 	next_node_id = graph_data.get("next_id", 0)
 
 
@@ -1452,7 +1461,7 @@ func _save_graph_to_metadata() -> void:
 
 
 func _on_popup_request(position: Vector2) -> void:
-	pass  #print("Logic Bricks: Right-click popup at position: ", position)
+	pass
 	# Store the position accounting for scroll offset
 	# position is in local graph coordinates, we need to add scroll offset
 	last_mouse_position = (position + graph_edit.scroll_offset) / graph_edit.zoom
@@ -1531,20 +1540,20 @@ func _create_reroute_node(position: Vector2) -> void:
 	graph_node.size = Vector2(30, 30)
 	graph_node.resizable = false
 	graph_node.draggable = true
-	
+
 	# Add a minimal spacer child so the slot renders
 	var spacer = Control.new()
 	spacer.custom_minimum_size = Vector2(10, 4)
 	graph_node.add_child(spacer)
-	
+
 	# Both input and output, type 0, white color (connects to both green and blue)
 	graph_node.set_slot(0, true, 0, Color.WHITE, true, 0, Color.WHITE)
-	
+
 	# Mark as reroute so chain extraction skips it
 	graph_node.set_meta("is_reroute", true)
-	
+
 	graph_node.dragged.connect(_on_reroute_dragged.bind(graph_node))
-	
+
 	graph_edit.add_child(graph_node)
 	_save_graph_to_metadata()
 
@@ -1571,7 +1580,7 @@ func _on_add_menu_item_selected(id: int) -> void:
 				if sub_index >= 0:
 					metadata = submenu.get_item_metadata(sub_index)
 					break
-	
+
 	if metadata:
 		var brick_type = metadata["type"]
 		var brick_class = metadata["class"]
@@ -1586,22 +1595,22 @@ func _create_graph_node(brick_type: String, brick_class: String, position: Vecto
 	if not brick_instance:
 		push_error("Logic Bricks: Failed to create brick instance for: " + brick_class)
 		return
-	
+
 	# Create the GraphNode
 	var graph_node = BrickGraphNode.new()
 	graph_node.name = "brick_node_%d" % next_node_id
 	next_node_id += 1
-	
+
 	graph_node.position_offset = position
 	graph_node.title = brick_instance.get_brick_name()
-	
+
 	# Store brick data
 	graph_node.set_meta("brick_data", {
 		"brick_type": brick_type,
 		"brick_class": brick_class,
 		"brick_instance": brick_instance
 	})
-	
+
 	# Set up ports based on brick type
 	if brick_type == "sensor":
 		graph_node.set_slot(0, false, 0, Color.WHITE, true, 0, Color.GREEN)
@@ -1609,10 +1618,10 @@ func _create_graph_node(brick_type: String, brick_class: String, position: Vecto
 		graph_node.set_slot(0, true, 0, Color.GREEN, true, 0, Color.BLUE)
 	elif brick_type == "actuator":
 		graph_node.set_slot(0, true, 0, Color.BLUE, false, 0, Color.WHITE)
-	
+
 	# Create UI for brick properties
 	_create_brick_ui(graph_node, brick_instance)
-	
+
 	# Add "View Code" button to controller nodes
 	if brick_type == "controller":
 		_update_controller_title(graph_node, brick_instance)
@@ -1621,17 +1630,16 @@ func _create_graph_node(brick_type: String, brick_class: String, position: Vecto
 		view_code_btn.tooltip_text = "Open the generated script and jump to this chain's code"
 		view_code_btn.pressed.connect(_on_view_chain_code.bind(graph_node))
 		graph_node.add_child(view_code_btn)
-	
+
 	# Add context menu for duplicate/delete
 	_setup_graph_node_context_menu(graph_node)
-	
+
 	# Connect drag signal for frame detection
 	graph_node.dragged.connect(_on_brick_node_dragged.bind(graph_node))
-	
+
 	graph_edit.add_child(graph_node)
 	_save_graph_to_metadata()
-	
-	#print("Logic Bricks: Created graph node '%s' at %s" % [graph_node.name, position])
+
 
 
 func _create_graph_node_from_data(node_data: Dictionary) -> GraphNode:
@@ -1653,7 +1661,7 @@ func _create_graph_node_from_data(node_data: Dictionary) -> GraphNode:
 		graph_node.dragged.connect(_on_reroute_dragged.bind(graph_node))
 		graph_edit.add_child(graph_node)
 		return graph_node
-	
+
 	var brick_type = node_data["brick_type"]
 	var brick_class = node_data["brick_class"]
 	var position = node_data["position"]
@@ -1661,43 +1669,43 @@ func _create_graph_node_from_data(node_data: Dictionary) -> GraphNode:
 	var instance_name = node_data.get("instance_name", "")
 	var debug_enabled = node_data.get("debug_enabled", false)
 	var debug_message = node_data.get("debug_message", "")
-	
+
 	# Create brick instance
 	var brick_instance = _create_brick_instance(brick_class)
 	if not brick_instance:
 		return null
-	
+
 	# Restore instance name
 	if not instance_name.is_empty():
 		brick_instance.set_instance_name(instance_name)
-	
+
 	# Restore debug fields
 	brick_instance.debug_enabled = debug_enabled
 	brick_instance.debug_message = debug_message
-	
+
 	# Restore properties
 	for prop_name in properties:
 		brick_instance.set_property(prop_name, properties[prop_name])
-	
+
 	# If this is a WaypointPathActuator, restore pos_# Node3D children
 	if brick_class == "WaypointPathActuator" and current_node is Node3D:
 		var WaypointPathActuator = load("res://addons/logic_bricks/bricks/actuators/3d/waypoint_path_actuator.gd")
 		if WaypointPathActuator:
 			WaypointPathActuator.sync_waypoint_nodes(current_node, brick_instance)
-	
+
 	# Create GraphNode
 	var graph_node = BrickGraphNode.new()
 	graph_node.name = node_data["id"]
 	graph_node.position_offset = position
 	graph_node.title = brick_instance.get_brick_name()
-	
+
 	# Store brick data
 	graph_node.set_meta("brick_data", {
 		"brick_type": brick_type,
 		"brick_class": brick_class,
 		"brick_instance": brick_instance
 	})
-	
+
 	# Set up ports
 	if brick_type == "sensor":
 		graph_node.set_slot(0, false, 0, Color.WHITE, true, 0, Color.GREEN)
@@ -1705,10 +1713,10 @@ func _create_graph_node_from_data(node_data: Dictionary) -> GraphNode:
 		graph_node.set_slot(0, true, 0, Color.GREEN, true, 0, Color.BLUE)
 	elif brick_type == "actuator":
 		graph_node.set_slot(0, true, 0, Color.BLUE, false, 0, Color.WHITE)
-	
+
 	# Create UI
 	_create_brick_ui(graph_node, brick_instance)
-	
+
 	# Add "View Code" button to controller nodes
 	if brick_type == "controller":
 		_update_controller_title(graph_node, brick_instance)
@@ -1717,20 +1725,20 @@ func _create_graph_node_from_data(node_data: Dictionary) -> GraphNode:
 		view_code_btn.tooltip_text = "Open the generated script and jump to this chain's code"
 		view_code_btn.pressed.connect(_on_view_chain_code.bind(graph_node))
 		graph_node.add_child(view_code_btn)
-	
+
 	# Add context menu for duplicate/delete
 	_setup_graph_node_context_menu(graph_node)
-	
+
 	# Connect drag signal for frame detection
 	graph_node.dragged.connect(_on_brick_node_dragged.bind(graph_node))
-	
+
 	graph_edit.add_child(graph_node)
 	return graph_node
 
 
 func _create_brick_instance(brick_class: String):
 	var script_path = ""
-	
+
 	match brick_class:
 		"ActuatorSensor":
 			script_path = "res://addons/logic_bricks/bricks/sensors/3d/actuator_sensor.gd"
@@ -1756,6 +1764,8 @@ func _create_brick_instance(brick_class: String):
 			script_path = "res://addons/logic_bricks/bricks/sensors/3d/raycast_sensor.gd"
 		"MovementSensor":
 			script_path = "res://addons/logic_bricks/bricks/sensors/3d/movement_sensor.gd"
+		"PhysicsSensor":
+			script_path = "res://addons/logic_bricks/bricks/sensors/3d/physics_sensor.gd"
 		"MouseSensor":
 			script_path = "res://addons/logic_bricks/bricks/sensors/3d/mouse_sensor.gd"
 		"CollisionSensor":
@@ -1870,7 +1880,7 @@ func _create_brick_instance(brick_class: String):
 			script_path = "res://addons/logic_bricks/bricks/actuators/3d/physics_actuator.gd"
 		"ANDController", "Controller":
 			script_path = "res://addons/logic_bricks/bricks/controllers/controller.gd"
-	
+
 	if script_path.is_empty():
 		return null
 
@@ -1901,7 +1911,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 func _on_lock_toggled() -> void:
 	# Toggle the lock state to prevent/allow selection changes
 	is_locked = not is_locked
-	
+
 	if is_locked:
 		lock_button.text = "🔒"  # Locked icon
 		lock_button.modulate = Color(1.0, 0.8, 0.8)  # Slight red tint
@@ -1920,10 +1930,10 @@ func _setup_graph_node_context_menu(graph_node: GraphNode) -> void:
 	popup_menu.add_item("Duplicate", 0)
 	popup_menu.add_separator()
 	popup_menu.add_item("Delete", 1)
-	
+
 	popup_menu.id_pressed.connect(_on_graph_node_context_menu.bind(graph_node))
 	graph_node.add_child(popup_menu)
-	
+
 	# Connect gui_input to show context menu on right-click
 	graph_node.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton:
@@ -1947,22 +1957,22 @@ func _generate_unique_brick_name(base_name: String) -> String:
 
 func _on_connection_request(from_node: String, from_port: int, to_node: String, to_port: int) -> void:
 	var before_snapshot = _take_graph_snapshot()
-	
+
 	# Check if this is a sensor → actuator direct connection
 	var from_graph_node = graph_edit.get_node_or_null(NodePath(from_node))
 	var to_graph_node = graph_edit.get_node_or_null(NodePath(to_node))
-	
+
 	if from_graph_node and to_graph_node:
 		var from_data = from_graph_node.get_meta("brick_data") if from_graph_node.has_meta("brick_data") else null
 		var to_data = to_graph_node.get_meta("brick_data") if to_graph_node.has_meta("brick_data") else null
-		
+
 		if from_data and to_data:
 			if from_data["brick_type"] == "sensor" and to_data["brick_type"] == "actuator":
 				# Auto-insert a controller between them
 				var mid_x = (from_graph_node.position_offset.x + to_graph_node.position_offset.x) / 2.0
 				var mid_y = (from_graph_node.position_offset.y + to_graph_node.position_offset.y) / 2.0
 				_create_graph_node("controller", "Controller", Vector2(mid_x, mid_y))
-				
+
 				# Find the controller we just created (it's the last child added)
 				var controller_node: GraphNode = null
 				for child in graph_edit.get_children():
@@ -1970,7 +1980,7 @@ func _on_connection_request(from_node: String, from_port: int, to_node: String, 
 						var data = child.get_meta("brick_data")
 						if data["brick_type"] == "controller":
 							controller_node = child
-				
+
 				if controller_node:
 					# Connect sensor → controller → actuator
 					graph_edit.connect_node(from_node, from_port, controller_node.name, 0)
@@ -1978,7 +1988,7 @@ func _on_connection_request(from_node: String, from_port: int, to_node: String, 
 					_save_graph_to_metadata()
 					_record_undo("Connect Logic Bricks", before_snapshot, _take_graph_snapshot())
 				return
-	
+
 	# Normal connection (sensor→controller or controller→actuator)
 	graph_edit.connect_node(from_node, from_port, to_node, to_port)
 	_save_graph_to_metadata()
@@ -2072,23 +2082,23 @@ func _on_view_chain_code(controller_node: GraphNode) -> void:
 	# Open the generated script and jump to this chain's function
 	if not current_node or not editor_interface:
 		return
-	
+
 	var script = current_node.get_script()
 	if not script:
 		push_warning("Logic Bricks: No script on this node. Click 'Apply Code' first.")
 		return
-	
+
 	# Get chain name from controller node
 	var chain_name = _graph_helper.get_chain_name_for_controller(controller_node)
 	var func_name = "_logic_brick_%s" % chain_name
-	
+
 	# Read the script to find the line number
 	var script_path = script.resource_path
 	var file = FileAccess.open(script_path, FileAccess.READ)
 	if not file:
 		push_warning("Logic Bricks: Could not read script file.")
 		return
-	
+
 	var line_number = 1
 	var found = false
 	while not file.eof_reached():
@@ -2098,11 +2108,11 @@ func _on_view_chain_code(controller_node: GraphNode) -> void:
 			break
 		line_number += 1
 	file.close()
-	
+
 	if not found:
 		push_warning("Logic Bricks: Chain function '%s' not found in script. Try 'Apply Code' first." % func_name)
 		return
-	
+
 	# Open script editor at the line
 	editor_interface.set_main_screen_editor("Script")
 	editor_interface.edit_script(script, line_number)
@@ -2158,57 +2168,57 @@ func _on_rebuild_from_script_pressed() -> void:
 
 
 func _on_apply_code_pressed() -> void:
-	pass  #print("Logic Bricks: Applying code to script...")
-	
+	pass
+
 	if not current_node:
 		push_error("Logic Bricks: No node selected!")
 		return
-	
+
 	if not manager:
 		push_error("Logic Bricks: Manager not initialized!")
 		return
-	
+
 	if not editor_interface:
 		push_error("Logic Bricks: Editor interface not available!")
 		return
-	
+
 	_graph_helper.sync_graph_ui_to_bricks()
 	_save_graph_to_metadata()
-	
+
 	# Extract chains
 	var chains = _graph_helper.extract_chains_from_graph()
-	
+
 	# Clear old metadata
 	if current_node.has_meta("logic_bricks"):
 		current_node.remove_meta("logic_bricks")
-	
+
 	if not current_node.get_script():
 		push_error("Logic Bricks: Selected node has no script. Add a script manually before applying Logic Bricks code.")
 		return
-	
+
 	# Get script path before regeneration
 	var script_path = current_node.get_script().resource_path
-	
+
 	# Get variables code
 	var variables_code = get_variables_code()
-	
+
 	# Save and regenerate - this writes the file to disk
 	manager.save_chains(current_node, chains)
 	manager.regenerate_script(current_node, variables_code)
-	
+
 	# Phase 1: create any required scene nodes (CanvasLayer, ColorRect, etc.)
 	# @export var assignment happens in Phase 2 AFTER set_script() below,
 	# because set_script() resets all properties to their defaults.
 	_apply_scene_setup_create(current_node, chains)
-	
+
 	# Get script path if we didn't have one
 	if script_path.is_empty() and current_node.get_script():
 		script_path = current_node.get_script().resource_path
-	
+
 	if script_path.is_empty():
 		push_error("Logic Bricks: No script path available!")
 		return
-	
+
 	# Save the scene before hot-reload only when ScreenFlashActuator is present,
 	# because it creates nodes that reference SubViewport NodePaths — Godot can
 	# hit "common_parent is null" in get_path_to() if those paths aren't on disk
@@ -2223,39 +2233,39 @@ func _on_apply_code_pressed() -> void:
 			break
 	if needs_pre_save:
 		editor_interface.save_scene()
-	
+
 	# Force filesystem to update
 	var filesystem = editor_interface.get_resource_filesystem()
 	filesystem.update_file(script_path)
-	
+
 	# Snapshot current_node before awaiting — the user may click away during the
 	# yield, setting current_node to null or a different node.
 	var _apply_node = current_node
-	
+
 	# Wait a frame
 	await get_tree().process_frame
-	
+
 	# Guard: node must still be valid after the yield
 	if not is_instance_valid(_apply_node):
 		push_error("Logic Bricks: Node was freed during Apply Code — try again.")
 		return
-	
+
 	# Reload the script with cache bypass
 	var reloaded_script = ResourceLoader.load(script_path, "", ResourceLoader.CACHE_MODE_IGNORE)
-	
+
 	if not reloaded_script:
 		push_error("Logic Bricks: Failed to reload script from disk!")
 		return
-	
+
 	# Apply the reloaded script to the node
 	_apply_node.set_script(reloaded_script)
-	
+
 	# Phase 2: assign @export vars now that the new script is live.
 	# This MUST come after set_script() or the assignments get wiped.
 	await get_tree().process_frame
 	if is_instance_valid(_apply_node):
 		_apply_scene_setup_assign(_apply_node, chains)
-	
+
 	# Minimize/restore is the only reliable way to force Godot to rebuild
 	# the inspector's @export slots after a script reload.
 	# Hide all secondary Window nodes first — any visible child Window (including
@@ -2265,14 +2275,14 @@ func _on_apply_code_pressed() -> void:
 	var was_popout_open = _popout_window != null
 	if was_popout_open:
 		_popout_window.hide()
-	
+
 	# Also hide any other top-level Windows that are currently visible.
 	var other_windows: Array[Window] = []
 	for child in get_tree().root.get_children():
 		if child is Window and child.visible and child != get_tree().root:
 			other_windows.append(child)
 			child.hide()
-	
+
 	# Capture the restore mode *before* minimizing.
 	# Always restore to WINDOWED or MAXIMIZED — never back to MINIMIZED — so
 	# that a pre-existing minimized state (e.g. caused by another window) does
@@ -2283,28 +2293,23 @@ func _on_apply_code_pressed() -> void:
 	   prev_window_mode == DisplayServer.WINDOW_MODE_FULLSCREEN or \
 	   prev_window_mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN:
 		restore_mode = prev_window_mode
-	
+
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)
 	# A single process frame is enough for the OS to register the minimize.
 	await get_tree().process_frame
 	DisplayServer.window_set_mode(restore_mode)
-	
+
 	# Restore all secondary windows that were hidden above.
 	for w in other_windows:
 		if is_instance_valid(w):
 			w.show()
-	
+
 	if was_popout_open and _popout_window:
 		_popout_window.show()
-	
+
 	# Open the script in the script editor
 	editor_interface.edit_script(reloaded_script, 1)
-	
-	#print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-	#print("✓ Code applied and script opened!")
-	#print("  Script: " + script_path)
-	#print("  The script editor should now show the updated code.")
-	#print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
 
 
 
@@ -2321,7 +2326,8 @@ func _on_add_variable_pressed() -> void:
 		"use_min": false,
 		"min_val": "0",
 		"use_max": false,
-		"max_val": "100"
+		"max_val": "100",
+		"collapsed": false
 	}
 	variables_data.append(var_data)
 	_refresh_variables_ui()
@@ -2337,7 +2343,8 @@ func _on_add_global_variable_pressed() -> void:
 		"use_min": false,
 		"min_val": "0",
 		"use_max": false,
-		"max_val": "100"
+		"max_val": "100",
+		"collapsed": false
 	}
 	global_vars_data.append(var_data)
 	_refresh_global_vars_ui()
@@ -2364,35 +2371,35 @@ func _refresh_global_vars_ui() -> void:
 func _create_variable_ui(index: int, var_data: Dictionary) -> void:
 	var panel = PanelContainer.new()
 	variables_list.add_child(panel)
-	
+
 	var vbox = VBoxContainer.new()
 	panel.add_child(vbox)
-	
+
 	var header = HBoxContainer.new()
 	vbox.add_child(header)
-	
+
 	var collapse_btn = Button.new()
 	collapse_btn.text = "▼"
 	collapse_btn.custom_minimum_size = Vector2(24, 0)
 	collapse_btn.name = "CollapseBtn"
 	header.add_child(collapse_btn)
-	
+
 	var name_display = Label.new()
 	name_display.text = "%s: %s" % [var_data["name"], var_data["type"]]
 	name_display.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_display.name = "NameDisplay"
 	header.add_child(name_display)
-	
+
 	var delete_btn = Button.new()
 	delete_btn.text = "×"
 	delete_btn.custom_minimum_size = Vector2(24, 0)
 	delete_btn.pressed.connect(_on_delete_variable_pressed.bind(index))
 	header.add_child(delete_btn)
-	
+
 	var details = VBoxContainer.new()
 	details.name = "Details"
 	vbox.add_child(details)
-	
+
 	# Name
 	var row1 = HBoxContainer.new()
 	details.add_child(row1)
@@ -2405,7 +2412,7 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
 	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_edit.text_changed.connect(_on_variable_name_changed.bind(index, name_display))
 	row1.add_child(name_edit)
-	
+
 	# Type
 	var row2 = HBoxContainer.new()
 	details.add_child(row2)
@@ -2427,7 +2434,7 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
 	type_option.selected = type_index
 	type_option.item_selected.connect(_on_variable_type_changed.bind(index, name_display))
 	row2.add_child(type_option)
-	
+
 	# Value
 	var row3 = HBoxContainer.new()
 	details.add_child(row3)
@@ -2439,7 +2446,7 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
 	value_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	value_edit.text_changed.connect(_on_variable_value_changed.bind(index))
 	row3.add_child(value_edit)
-	
+
 	# Export
 	var row4 = HBoxContainer.new()
 	details.add_child(row4)
@@ -2448,10 +2455,10 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
 	export_check.button_pressed = var_data.get("exported", false)
 	export_check.toggled.connect(_on_variable_exported_changed.bind(index))
 	row4.add_child(export_check)
-	
+
 	# Min / Max (numeric types only)
 	var is_numeric = var_data["type"] in ["int", "float"]
-	
+
 	var row_min = HBoxContainer.new()
 	row_min.name = "RowMin"
 	row_min.visible = is_numeric
@@ -2468,7 +2475,7 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
 	min_edit.text_changed.connect(_on_variable_min_val_changed.bind(index))
 	row_min.add_child(min_edit)
 	min_check.toggled.connect(_on_variable_min_toggled.bind(index, min_edit))
-	
+
 	var row_max = HBoxContainer.new()
 	row_max.name = "RowMax"
 	row_max.visible = is_numeric
@@ -2485,8 +2492,9 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
 	max_edit.text_changed.connect(_on_variable_max_val_changed.bind(index))
 	row_max.add_child(max_edit)
 	max_check.toggled.connect(_on_variable_max_toggled.bind(index, max_edit))
-	
-	collapse_btn.pressed.connect(_on_variable_collapse_toggled.bind(collapse_btn, details))
+
+	_apply_variable_collapsed_state(collapse_btn, details, var_data.get("collapsed", false))
+	collapse_btn.pressed.connect(_on_local_variable_collapse_toggled.bind(index, collapse_btn, details))
 
 
 func _on_variable_name_changed(new_name: String, index: int, name_display: Label) -> void:
@@ -2529,33 +2537,33 @@ func _on_variable_exported_changed(exported: bool, index: int) -> void:
 func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
 	var panel = PanelContainer.new()
 	global_vars_list.add_child(panel)
-	
+
 	var vbox = VBoxContainer.new()
 	panel.add_child(vbox)
-	
+
 	var header = HBoxContainer.new()
 	vbox.add_child(header)
-	
+
 	var collapse_btn = Button.new()
 	collapse_btn.text = "▼"
 	collapse_btn.custom_minimum_size = Vector2(24, 0)
 	header.add_child(collapse_btn)
-	
+
 	var name_display = Label.new()
 	name_display.text = "%s: %s" % [var_data.get("name", ""), var_data.get("type", "int")]
 	name_display.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(name_display)
-	
+
 	var delete_btn = Button.new()
 	delete_btn.text = "×"
 	delete_btn.custom_minimum_size = Vector2(24, 0)
 	delete_btn.pressed.connect(_on_delete_global_variable_pressed.bind(index))
 	header.add_child(delete_btn)
-	
+
 	var details = VBoxContainer.new()
 	details.name = "Details"
 	vbox.add_child(details)
-	
+
 	# Name
 	var row1 = HBoxContainer.new()
 	details.add_child(row1)
@@ -2567,7 +2575,7 @@ func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
 	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_edit.text_changed.connect(_on_global_variable_name_changed.bind(index, name_display))
 	row1.add_child(name_edit)
-	
+
 	# Type
 	var row2 = HBoxContainer.new()
 	details.add_child(row2)
@@ -2588,7 +2596,7 @@ func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
 	type_option.selected = type_index
 	type_option.item_selected.connect(_on_global_variable_type_changed.bind(index, name_display))
 	row2.add_child(type_option)
-	
+
 	# Value
 	var row3 = HBoxContainer.new()
 	details.add_child(row3)
@@ -2609,10 +2617,10 @@ func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
 	use_check.button_pressed = _is_global_used_in_current_script(var_data)
 	use_check.toggled.connect(_on_global_variable_use_in_script_toggled.bind(index))
 	row_use.add_child(use_check)
-	
+
 	# Min / Max (numeric types only)
 	var is_numeric = var_data.get("type", "int") in ["int", "float"]
-	
+
 	var row_min = HBoxContainer.new()
 	row_min.visible = is_numeric
 	details.add_child(row_min)
@@ -2628,7 +2636,7 @@ func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
 	min_edit.text_changed.connect(_on_global_variable_min_val_changed.bind(index))
 	row_min.add_child(min_edit)
 	min_check.toggled.connect(_on_global_variable_min_toggled.bind(index, min_edit))
-	
+
 	var row_max = HBoxContainer.new()
 	row_max.visible = is_numeric
 	details.add_child(row_max)
@@ -2644,8 +2652,9 @@ func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
 	max_edit.text_changed.connect(_on_global_variable_max_val_changed.bind(index))
 	row_max.add_child(max_edit)
 	max_check.toggled.connect(_on_global_variable_max_toggled.bind(index, max_edit))
-	
-	collapse_btn.pressed.connect(_on_variable_collapse_toggled.bind(collapse_btn, details))
+
+	_apply_variable_collapsed_state(collapse_btn, details, var_data.get("collapsed", false))
+	collapse_btn.pressed.connect(_on_global_variable_collapse_toggled.bind(index, collapse_btn, details))
 
 
 func _on_global_variable_name_changed(new_name: String, index: int, name_display: Label) -> void:
@@ -2745,13 +2754,25 @@ func _on_variable_max_val_changed(new_val: String, index: int) -> void:
 		_save_variables_to_metadata()
 
 
-func _on_variable_collapse_toggled(collapse_btn: Button, details: VBoxContainer) -> void:
-	# Toggle variable details visibility
-	details.visible = !details.visible
-	if details.visible:
-		collapse_btn.text = "▼"  # Down arrow = expanded
-	else:
-		collapse_btn.text = "▶"  # Right arrow = collapsed
+func _apply_variable_collapsed_state(collapse_btn: Button, details: VBoxContainer, collapsed: bool) -> void:
+	details.visible = not collapsed
+	collapse_btn.text = "▶" if collapsed else "▼"
+
+
+func _on_local_variable_collapse_toggled(index: int, collapse_btn: Button, details: VBoxContainer) -> void:
+	var collapsed = details.visible
+	_apply_variable_collapsed_state(collapse_btn, details, collapsed)
+	if index < variables_data.size():
+		variables_data[index]["collapsed"] = collapsed
+		_save_variables_to_metadata()
+
+
+func _on_global_variable_collapse_toggled(index: int, collapse_btn: Button, details: VBoxContainer) -> void:
+	var collapsed = details.visible
+	_apply_variable_collapsed_state(collapse_btn, details, collapsed)
+	if index < global_vars_data.size():
+		global_vars_data[index]["collapsed"] = collapsed
+		_save_global_vars_to_metadata()
 
 
 func _on_delete_variable_pressed(index: int) -> void:
@@ -2767,7 +2788,7 @@ func _save_variables_to_metadata() -> void:
 		return
 	if _is_part_of_instance(current_node) and not _instance_override:
 		return
-	
+
 	# Save only local (non-global) variables on this node
 	current_node.set_meta("logic_bricks_variables", variables_data.duplicate())
 	_mark_scene_modified()
@@ -2777,13 +2798,13 @@ func _save_variables_to_metadata() -> void:
 func _save_global_vars_to_metadata() -> void:
 	if not editor_interface:
 		return
-	
+
 	_ensure_global_var_ids()
 	# Global variables live on the scene root — single source of truth, no duplication
 	var scene_root = editor_interface.get_edited_scene_root()
 	if not scene_root:
 		return
-	
+
 	scene_root.set_meta("logic_bricks_global_vars", global_vars_data.duplicate())
 	_mark_scene_modified()
 	_update_global_vars_script()
@@ -2791,27 +2812,27 @@ func _save_global_vars_to_metadata() -> void:
 
 func _update_global_vars_script() -> void:
 	var script_path = "res://addons/logic_bricks/global_vars.gd"
-	
+
 	# Merge global_vars_data with whatever is already on disk.
 	# This prevents a scene that has no globals metadata from wiping variables
 	# that were defined in other scenes.
 	var merged: Array[Dictionary] = []
 	var merged_names: Array[String] = []
-	
+
 	# Start with current scene's data (highest priority — newest edit wins)
 	for var_data in global_vars_data:
 		var vname = var_data.get("name", "")
 		if not vname.is_empty() and vname not in merged_names:
 			merged.append(var_data.duplicate())
 			merged_names.append(vname)
-	
+
 	# Fill in any variables from disk that this scene doesn't define
 	for disk_var in _read_global_vars_from_script():
 		var vname = disk_var.get("name", "")
 		if not vname.is_empty() and vname not in merged_names:
 			merged.append(disk_var)
 			merged_names.append(vname)
-	
+
 	if merged.is_empty():
 		var empty_lines: Array[String] = []
 		empty_lines.append("extends Node")
@@ -2830,7 +2851,7 @@ func _update_global_vars_script() -> void:
 			if editor_interface:
 				editor_interface.get_resource_filesystem().scan()
 		return
-	
+
 	var lines: Array[String] = []
 	lines.append("extends Node")
 	lines.append("")
@@ -2839,17 +2860,17 @@ func _update_global_vars_script() -> void:
 	lines.append("## Do not edit between the markers")
 	lines.append("")
 	lines.append("# === LOGIC BRICKS GLOBALS START ===")
-	
+
 	for var_data in merged:
 		var var_name  = var_data.get("name", "")
 		var var_type  = VariableUtils.normalize_type(str(var_data.get("type", "int")))
 		var var_value = _to_gdscript_value_literal(var_data.get("value", _get_default_value_for_variable_type(var_type)), var_type)
 		if not var_name.is_empty():
 			lines.append("var %s: %s = %s" % [var_name, var_type, var_value])
-	
+
 	lines.append("# === LOGIC BRICKS GLOBALS END ===")
 	lines.append("")
-	
+
 	var file = FileAccess.open(script_path, FileAccess.WRITE)
 	if file:
 		file.store_string("\n".join(lines))
@@ -2857,10 +2878,10 @@ func _update_global_vars_script() -> void:
 	else:
 		push_error("Logic Bricks: Could not write global vars script at: " + script_path)
 		return
-	
+
 	if editor_interface:
 		editor_interface.get_resource_filesystem().scan()
-	
+
 	_ensure_global_vars_autoload(script_path)
 
 
@@ -2875,7 +2896,7 @@ func _read_global_vars_from_script() -> Array[Dictionary]:
 		return result
 	var text = file.get_as_text()
 	file.close()
-	
+
 	var in_block = false
 	for raw_line in text.split("\n"):
 		var line = raw_line.strip_edges()
@@ -2920,10 +2941,10 @@ func _ensure_global_vars_autoload(script_path: String) -> void:
 func _load_variables_from_metadata() -> void:
 	variables_data.clear()
 	global_vars_data.clear()
-	
+
 	if not current_node:
 		return
-	
+
 	# Load local variables from this node's metadata (non-global only)
 	if current_node.has_meta("logic_bricks_variables"):
 		var saved_vars = current_node.get_meta("logic_bricks_variables")
@@ -2931,7 +2952,7 @@ func _load_variables_from_metadata() -> void:
 			for var_data in saved_vars:
 				if not var_data.get("global", false):
 					variables_data.append(var_data.duplicate())
-	
+
 	# Load global variables — prefer scene root metadata, fall back to global_vars.gd on disk.
 	# This ensures scenes that have never had their Globals tab opened still see all globals
 	# defined in other scenes, so variables persist correctly across scene transitions.
@@ -3019,7 +3040,7 @@ func get_variables_code() -> String:
 
 	if not variables_data.is_empty() or not used_globals.is_empty():
 		lines.append("# Variables")
-	
+
 	# Local variables only
 	for var_data in variables_data:
 		var var_name  = var_data.get("name", "")
@@ -3031,7 +3052,7 @@ func get_variables_code() -> String:
 		var use_max   = var_data.get("use_max", false)
 		var max_val   = var_data.get("max_val", "100")
 		var has_range = (var_type in ["int", "float"]) and (use_min or use_max)
-		
+
 		if has_range and exported:
 			var range_str = _build_export_range_str(var_type, use_min, min_val, use_max, max_val)
 			lines.append("@export_range(%s) var %s: %s = %s" % [range_str, var_name, var_type, var_value])
@@ -3047,7 +3068,7 @@ func get_variables_code() -> String:
 				declaration += "@export "
 			declaration += "var %s: %s = %s" % [var_name, var_type, var_value]
 			lines.append(declaration)
-	
+
 	for var_data in used_globals:
 		var var_name = var_data.get("name", "")
 		var var_type = var_data.get("type", "int")
@@ -3100,14 +3121,14 @@ func _on_add_frame_pressed() -> void:
 func _on_brick_node_dragged(from: Vector2, to: Vector2, node: GraphNode) -> void:
 	# Check if node entered/left any frames
 	_frames_helper.check_node_frame_membership(self, node)
-	
+
 	# Auto-resize frames that contain this node
 	for frame_name in frame_node_mapping.keys():
 		if node.name in frame_node_mapping[frame_name]:
 			var frame = graph_edit.get_node_or_null(NodePath(frame_name))
 			if frame and frame is GraphFrame:
 				_frames_helper.auto_resize_frame(self, frame)
-	
+
 	# Save node positions
 	_save_graph_to_metadata()
 
@@ -3119,35 +3140,35 @@ func _on_reroute_dragged(from: Vector2, to: Vector2, reroute: GraphNode) -> void
 		if conn["from_node"] == reroute.name or conn["to_node"] == reroute.name:
 			_save_graph_to_metadata()
 			return
-	
+
 	# Check if the reroute landed on top of an existing connection
 	var reroute_center = reroute.position_offset + reroute.size / 2.0
 	var best_conn = null
 	var best_dist = 40.0  # Max distance in graph units to snap
-	
+
 	for conn in connections:
 		var from_node = graph_edit.get_node_or_null(NodePath(conn["from_node"]))
 		var to_node = graph_edit.get_node_or_null(NodePath(conn["to_node"]))
 		if not from_node or not to_node:
 			continue
-		
+
 		# Get approximate port positions (output port on right side, input port on left side)
 		var from_pos = from_node.position_offset + Vector2(from_node.size.x, from_node.size.y / 2.0)
 		var to_pos = to_node.position_offset + Vector2(0, to_node.size.y / 2.0)
-		
+
 		# Distance from reroute center to the line segment
 		var dist = _point_to_segment_distance(reroute_center, from_pos, to_pos)
 		if dist < best_dist:
 			best_dist = dist
 			best_conn = conn
-	
+
 	if best_conn:
 		# Remove the original connection
 		graph_edit.disconnect_node(best_conn["from_node"], best_conn["from_port"], best_conn["to_node"], best_conn["to_port"])
 		# Insert reroute: original_from → reroute → original_to
 		graph_edit.connect_node(best_conn["from_node"], best_conn["from_port"], reroute.name, 0)
 		graph_edit.connect_node(reroute.name, 0, best_conn["to_node"], best_conn["to_port"])
-	
+
 	_save_graph_to_metadata()
 
 
@@ -3234,7 +3255,7 @@ func _on_frame_list_color_changed(new_color: Color) -> void:
 func _mark_scene_modified() -> void:
 	if not editor_interface:
 		return
-	
+
 	# Mark the currently edited scene as unsaved
 	# This is the correct way to tell Godot the scene needs saving
 	editor_interface.mark_scene_as_unsaved()

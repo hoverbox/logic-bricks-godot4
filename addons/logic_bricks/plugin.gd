@@ -21,18 +21,18 @@ var _editor_camera: Camera3D = null  # Cached from _forward_3d_gui_input each fr
 func _enter_tree() -> void:
 	manager = LogicBrickManager.new()
 	manager.editor_interface = get_editor_interface()
-	
+
 	panel = LogicBrickPanel.new()
 	panel.manager = manager
 	panel.editor_interface = get_editor_interface()
 	panel.plugin = self
-	
+
 	add_control_to_bottom_panel(panel, "Logic Bricks")
 	get_editor_interface().get_selection().selection_changed.connect(_on_selection_changed)
-	
+
 	# Ensure the GlobalVars autoload is registered so generated code can reference it
 	ensure_global_vars_autoload("res://addons/logic_bricks/global_vars.gd")
-	
+
 	print("Logic Bricks Plugin: Enabled")
 
 
@@ -54,11 +54,11 @@ func _save_external_data() -> void:
 func _exit_tree() -> void:
 	if get_editor_interface().get_selection().selection_changed.is_connected(_on_selection_changed):
 		get_editor_interface().get_selection().selection_changed.disconnect(_on_selection_changed)
-	
+
 	if panel:
 		remove_control_from_bottom_panel(panel)
 		panel.queue_free()
-	
+
 	print("Logic Bricks Plugin: Disabled")
 
 
@@ -68,7 +68,7 @@ func _on_selection_changed() -> void:
 		if selected_nodes.size() > 0:
 			var sel = selected_nodes[0]
 			panel.set_selected_node(sel)
-			
+
 			# Show waypoint handles if node has WaypointPath actuators
 			# Keep showing if we were dragging (handle click deselects the node briefly)
 			if not _dragging_handle:
@@ -81,21 +81,21 @@ func _on_selection_changed() -> void:
 			if not _dragging_handle:
 				panel.set_selected_node(null)
 				_update_waypoint_node(null)
-	
+
 	update_overlays()
 
 
 func _update_waypoint_node(node: Node3D) -> void:
 	_wp_node = node
 	_wp_actuator_data = []
-	
+
 	if not node:
 		return
-	
+
 	# Collect all WaypointPath actuator brick instances from the node's chain metadata
 	if not node.has_meta("logic_bricks"):
 		return
-	
+
 	var chains = node.get_meta("logic_bricks")
 	for chain_idx in range(chains.size()):
 		var chain = chains[chain_idx]
@@ -116,30 +116,30 @@ func _update_waypoint_node(node: Node3D) -> void:
 func _forward_3d_draw_over_viewport(viewport_control: Control) -> void:
 	if not is_instance_valid(_wp_node) or _wp_actuator_data.is_empty():
 		return
-	
+
 	var camera = _editor_camera
 	if not camera:
 		camera = get_editor_interface().get_editor_viewport_3d(0).get_camera_3d()
 	if not camera:
 		return
-	
+
 	for act_data in _wp_actuator_data:
 		var brick = act_data["brick"]
 		var waypoints = brick.properties.get("waypoints", [])
 		var space = brick.properties.get("space", "world")
 		if typeof(space) == TYPE_STRING:
 			space = space.to_lower()
-		
+
 		var world_positions: Array[Vector3] = []
 		for wp in waypoints:
 			var v = WaypointPathActuator.parse_waypoint(str(wp))
 			if space == "local":
 				v = _wp_node.global_position + v
 			world_positions.append(v)
-		
+
 		if world_positions.is_empty():
 			continue
-		
+
 		# Draw connecting lines first
 		for i in range(world_positions.size() - 1):
 			var p0 = camera.unproject_position(world_positions[i])
@@ -148,7 +148,7 @@ func _forward_3d_draw_over_viewport(viewport_control: Control) -> void:
 			if camera.is_position_behind(world_positions[i]) or camera.is_position_behind(world_positions[i + 1]):
 				continue
 			viewport_control.draw_line(p0, p1, Color(0.3, 0.8, 1.0, 0.7), 2.0)
-		
+
 		# Draw loop line back to start
 		var loop_mode = brick.properties.get("loop_mode", "loop")
 		if typeof(loop_mode) == TYPE_STRING:
@@ -158,7 +158,7 @@ func _forward_3d_draw_over_viewport(viewport_control: Control) -> void:
 			var p1 = camera.unproject_position(world_positions[0])
 			if not camera.is_position_behind(world_positions[-1]) and not camera.is_position_behind(world_positions[0]):
 				viewport_control.draw_dashed_line(p0, p1, Color(0.3, 0.8, 1.0, 0.4), 2.0)
-		
+
 		# Draw handles
 		for i in range(world_positions.size()):
 			if camera.is_position_behind(world_positions[i]):
@@ -190,7 +190,7 @@ func _forward_3d_gui_input(viewport_camera: Camera3D, event: InputEvent) -> int:
 			_drag_actuator_idx = -1
 			_drag_wp_idx = -1
 		return EditorPlugin.AFTER_GUI_INPUT_PASS
-	
+
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
@@ -201,15 +201,15 @@ func _forward_3d_gui_input(viewport_camera: Camera3D, event: InputEvent) -> int:
 					var space = brick.properties.get("space", "world")
 					if typeof(space) == TYPE_STRING:
 						space = space.to_lower()
-					
+
 					for wp_idx in range(waypoints.size()):
 						var v = WaypointPathActuator.parse_waypoint(str(waypoints[wp_idx]))
 						var world_pos = _wp_node.global_position + v if space == "local" else v
 						var screen_pos = viewport_camera.unproject_position(world_pos)
-						
+
 						if viewport_camera.is_position_behind(world_pos):
 							continue
-						
+
 						if event.position.distance_to(screen_pos) < 12.0:
 							# Start drag
 							_dragging_handle = true
@@ -228,7 +228,7 @@ func _forward_3d_gui_input(viewport_camera: Camera3D, event: InputEvent) -> int:
 					_save_waypoints_to_graph()
 					update_overlays()
 					return EditorPlugin.AFTER_GUI_INPUT_STOP
-	
+
 	if event is InputEventMouseMotion and _dragging_handle:
 		# Guard: node may have been freed while drag was in progress
 		if not is_instance_valid(_wp_node):
@@ -240,28 +240,28 @@ func _forward_3d_gui_input(viewport_camera: Camera3D, event: InputEvent) -> int:
 		var ray_origin = viewport_camera.project_ray_origin(event.position)
 		var ray_dir = viewport_camera.project_ray_normal(event.position)
 		var intersection = _drag_plane.intersects_ray(ray_origin, ray_dir)
-		
+
 		if intersection != null:
 			var new_world_pos: Vector3 = intersection
 			var brick = _wp_actuator_data[_drag_actuator_idx]["brick"]
 			var space = brick.properties.get("space", "world")
 			if typeof(space) == TYPE_STRING:
 				space = space.to_lower()
-			
+
 			# Convert to local offset if needed
 			var store_pos = new_world_pos
 			if space == "local":
 				store_pos = new_world_pos - _wp_node.global_position
-			
+
 			var waypoints = brick.properties.get("waypoints", []).duplicate()
 			while waypoints.size() <= _drag_wp_idx:
 				waypoints.append("0.000,0.000,0.000")
 			waypoints[_drag_wp_idx] = WaypointPathActuator.serialize_waypoint(store_pos)
 			brick.set_property("waypoints", waypoints)
-			
+
 			update_overlays()
 		return EditorPlugin.AFTER_GUI_INPUT_STOP
-	
+
 	return EditorPlugin.AFTER_GUI_INPUT_PASS
 
 
@@ -269,36 +269,36 @@ func _forward_3d_gui_input(viewport_camera: Camera3D, event: InputEvent) -> int:
 func _save_waypoints_to_graph() -> void:
 	if not is_instance_valid(_wp_node) or not _wp_node.has_meta("logic_bricks"):
 		return
-	
+
 	var chains = _wp_node.get_meta("logic_bricks")
-	
+
 	for act_data in _wp_actuator_data:
 		var chain_index = int(act_data.get("chain_index", -1))
 		var actuator_index = int(act_data.get("actuator_index", -1))
 		var brick = act_data["brick"]
-		
+
 		if chain_index < 0 or chain_index >= chains.size():
 			continue
-		
+
 		var chain = chains[chain_index]
 		var actuators = chain.get("actuators", [])
 		if actuator_index < 0 or actuator_index >= actuators.size():
 			continue
-		
+
 		var actuator_data = actuators[actuator_index]
 		if actuator_data.get("type", "") != "WaypointPathActuator":
 			continue
-		
+
 		if not actuator_data.has("properties") or not (actuator_data["properties"] is Dictionary):
 			actuator_data["properties"] = {}
 		actuator_data["properties"]["waypoints"] = brick.properties.get("waypoints", []).duplicate()
-	
+
 	_wp_node.set_meta("logic_bricks", chains)
-	
+
 	# Also trigger a code regeneration so the generated script stays in sync
 	if manager:
 		manager.regenerate_script(_wp_node)
-	
+
 	# Mark scene modified
 	get_editor_interface().mark_scene_as_unsaved()
 

@@ -110,13 +110,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var invert = properties.get("invert", false)
 	var all_axis = properties.get("all_axis", false)
 	var ignore_platform_motion = properties.get("ignore_platform_motion", true)
-	
+
 	if typeof(threshold) == TYPE_STRING:
 		threshold = float(threshold) if str(threshold).is_valid_float() else 0.1
-	
+
 	var code_lines: Array[String] = []
 	var member_vars: Array[String] = []
-	
+
 	var prev_pos_var = "_prev_pos_%s" % chain_name
 	member_vars.append("var %s: Vector3 = Vector3.ZERO" % prev_pos_var)
 	if ignore_platform_motion:
@@ -125,7 +125,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		member_vars.append("var _logic_brick_external_motion_delta: Vector3 = Vector3.ZERO")
 		member_vars.append("var _logic_brick_external_motion_total: Vector3 = Vector3.ZERO")
 		member_vars.append("var _inherited_platform_velocity: Vector3 = Vector3.ZERO")
-	
+
 	if node is CharacterBody3D:
 		code_lines.append("# CharacterBody3D: use current body velocity instead of position delta")
 		code_lines.append("# This stays stable when animation chains run in _process between physics ticks")
@@ -144,7 +144,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("var _ms_motion_delta = _ms_pos - %s" % prev_pos_var)
 		code_lines.append("var _ms_vel = _ms_motion_delta / _ms_dt if _ms_dt > 0 else Vector3.ZERO")
 		code_lines.append("%s = _ms_pos" % prev_pos_var)
-	
+
 	if use_local:
 		code_lines.append("# Convert to local horizontal movement without letting jump/fall velocity bleed into X/Z")
 		code_lines.append("var _ms_right = global_transform.basis.x")
@@ -159,7 +159,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		var y_needed = all_axis or properties.get("pos_y", false) or properties.get("neg_y", false)
 		var y_component = "_ms_vel.y" if y_needed else "0.0"
 		code_lines.append("_ms_vel = Vector3(_ms_vel.dot(_ms_right), %s, _ms_vel.dot(_ms_forward))" % y_component)
-	
+
 	# Build conditions from checked directions
 	var conditions: Array[String] = []
 
@@ -184,7 +184,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			conditions.append("_ms_vel.z > %.3f" % threshold)
 		if properties.get("neg_z", false):
 			conditions.append("_ms_vel.z < -%.3f" % threshold)
-	
+
 	if conditions.is_empty():
 		code_lines.append("var sensor_active = %s  # No directions checked" % ("true" if invert else "false"))
 	else:
@@ -193,7 +193,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("var sensor_active = not (%s)" % joined)
 		else:
 			code_lines.append("var sensor_active = %s" % joined)
-	
+
 	return {
 		"sensor_code": "\n".join(code_lines),
 		"member_vars": member_vars

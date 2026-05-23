@@ -14,11 +14,11 @@ const TOOLTIPS = {
 		"actuator_name": "The instance name of the actuator to watch.\nMust match the Name field on the actuator's graph node.",
 		"trigger_on": "Active: fires TRUE while the actuator is running.\nInactive: fires TRUE while the actuator is NOT running.",
 	},
-	
+
 	"AlwaysSensor": {
 		"_description": "Always active sensor. Fires every frame.\nUseful for continuous actions like gravity or idle animations.",
 	},
-	
+
 	"AnimationTreeSensor": {
 		"_description": "Detects animation tree state changes and conditions.",
 		"check_type": "What to check: current state name, a condition value, or a parameter value.",
@@ -29,57 +29,63 @@ const TOOLTIPS = {
 		"compare_value": "Value to compare against the parameter.",
 		"compare_mode": "How to compare: equal, not equal, greater than, less than, etc.",
 	},
-	
+
 	"CollisionSensor": {
 		"_description": "Detects collisions using an Area3D node.\nRequires an Area3D child or reference to detect overlapping bodies.",
 		"collision_area": "The Area3D node used for collision detection. Drag from the scene tree.",
 		"filter_group": "Only detect bodies in this group. Leave empty to detect all bodies.",
 	},
-	
+
 	"DelaySensor": {
 		"_description": "Adds a delay before activating. Stays active for a set duration.\nUseful for timed sequences or delayed triggers.",
 		"delay_frames": "Number of frames to wait before activating.",
 		"duration_frames": "Number of frames to stay active after the delay.",
 		"repeat": "If true, the sensor repeats after completing its cycle.",
 	},
-	
+
 	"InputMapSensor": {
 		"_description": "Detects input actions defined in Project > Input Map.\nDevice-agnostic: works with keyboard, gamepad, etc.",
 		"action_name": "The Input Map action name (e.g. 'move_left', 'jump').\nMust match an action defined in Project > Input Map.",
 		"input_type": "When to activate: Pressed (held down), Just Pressed (single frame), or Just Released.",
 	},
-	
+
 	"MessageSensor": {
 		"_description": "Listens for messages sent by a Message Actuator.\nThe sending node must target a group that this node belongs to.",
 		"subject": "The message subject to listen for. Must match what the Message Actuator sends.",
 		"match_mode": "How to match: Exact (full match), Contains (substring), or Starts With (prefix).",
 	},
-	
+
 	"MouseSensor": {
 		"_description": "Detects mouse button presses and releases.",
 		"button": "Which mouse button to detect: Left, Right, or Middle.",
 		"input_type": "When to activate: Pressed (held), Just Pressed (single frame), or Just Released.",
 	},
-	
+
 	"MovementSensor": {
 		"_description": "Detects if the node is moving or stationary.\nCompares position between frames.",
 		"detection_mode": "Is Moving: active when node moves. Is Stationary: active when node is still.",
 		"threshold": "Minimum distance per frame to count as movement. Increase if jitter causes false positives.",
 	},
-	
+
+	"PhysicsSensor": {
+		"_description": "Checks CharacterBody collision state: on floor, on wall, or on ceiling.\nUse this for jump checks, wall checks, ceiling bumps, and platformer logic.",
+		"contact_type": "Which contact state to check.\nOn Floor: true when the character is standing on a floor.\nOn Wall: true when the character is touching a wall.\nOn Ceiling: true when the character is touching a ceiling.",
+		"invert": "Invert the result.\nExample: NOT On Floor is useful for airborne or falling logic.",
+	},
+
 	"ProximitySensor": {
 		"_description": "Detects nodes within a certain distance.\nChecks against nodes in a specified group.",
 		"distance": "Detection radius in units. Nodes closer than this distance will trigger the sensor.",
 		"target_group": "Only detect nodes in this group. The group must be assigned in the Godot editor.",
 		"detection_mode": "Nearest: only detect the closest node. Any: detect if any node is in range.",
 	},
-	
+
 	"RandomSensor": {
 		"_description": "Activates randomly based on a probability.\nUseful for random behaviors, particle effects, or AI variation.",
 		"probability": "Chance of activating each frame (0.0 = never, 1.0 = always, 0.5 = 50% chance).",
 		"seed_value": "Random seed for reproducible results. 0 = truly random.",
 	},
-	
+
 	"RaycastSensor": {
 		"_description": "Casts a ray to detect objects in a direction.\nUseful for line-of-sight, ground detection, or wall checks.",
 		"direction": "Direction to cast the ray: Forward, Back, Up, Down, Left, Right.",
@@ -87,20 +93,20 @@ const TOOLTIPS = {
 		"filter_group": "Only detect nodes in this group. Leave empty to detect everything.",
 		"use_collision_mask": "If true, respect the node's collision mask for ray filtering.",
 	},
-	
+
 	"TimerSensor": {
 		"_description": "Activates after a set time duration.\nCan repeat for periodic triggers.",
 		"duration": "Time in seconds before the sensor activates.",
 		"repeat": "If true, the timer resets and repeats after firing.",
 	},
-	
+
 	"VariableSensor": {
 		"_description": "Compares a logic brick variable against a value.\nUse to trigger actions when variables change.",
 		"variable_name": "Name of the logic brick variable to check (defined in the Variables tab).",
 		"compare_mode": "Comparison operator: equal, not equal, greater than, less than, etc.",
 		"compare_value": "Value to compare the variable against.",
 	},
-	
+
 	# =========================================================================
 	# CONTROLLERS
 	# =========================================================================
@@ -109,14 +115,14 @@ const TOOLTIPS = {
 		"logic_mode": "Logic gate type:\n• AND: All connected sensors must be active\n• OR: At least one sensor must be active\n• NAND: NOT AND — active when not all sensors are active\n• NOR: NOT OR — active only when no sensors are active\n• XOR: Exclusive OR — active when exactly one sensor is active",
 		"state": "Which state this chain runs in (1-30). Use State Actuator to change states.",
 	},
-	
+
 	"ScriptController": {
 		"_description": "Calls a function in a custom .gd script when sensors fire.\nWorks like UPBGE's Python Controller (module mode):\nno actuator needed — the script is the action.",
 		"logic_mode": "Logic gate type:\n• AND: All connected sensors must be active\n• OR: At least one sensor must be active\n• NAND: NOT AND — active when not all sensors are active\n• NOR: NOT OR — active only when no sensors are active\n• XOR: Exclusive OR — active when exactly one sensor is active",
 		"script_path": "Path to the .gd script file to run.\nThe script must define: func run(node: Node) -> void:\n'node' is the scene object this brick is attached to.\nDo NOT add 'extends' to the script — it is called as a module.",
 		"state": "Which state this chain runs in (1-30). Use State Actuator to change states.",
 	},
-	
+
 	# =========================================================================
 	# ACTUATORS
 	# =========================================================================
@@ -137,19 +143,20 @@ const TOOLTIPS = {
 		"play_backwards": "If true, play the animation in reverse.",
 		"from_end": "If true, start playback from the last frame.",
 	},
-	
+
 	"AnimationTreeActuator": {
-		"_description": "Controls an AnimationTree node.\nCan travel to states, set parameters, or toggle conditions.",
-		"action": "What to do: Travel to a state, Set a parameter value, or Set a condition boolean.",
-		"animation_tree_path": "Path to the AnimationTree node relative to this node.",
-		"state_machine_path": "Path to the state machine playback parameter.",
-		"target_state": "Name of the state to travel to in the state machine.",
-		"parameter_name": "Name of the AnimationTree parameter to set.",
-		"parameter_value": "Value to assign to the parameter.",
-		"condition_name": "Name of the boolean condition to set.",
-		"condition_value": "Whether to set the condition to true or false.",
+		"_description": "Controls an AnimationTree node.\nBeginner choice: Set Condition Pair. Use two transition conditions, like is_moving and is_idle.",
+		"mode": "Go To State: travel directly to a state. Set Blend Parameter: blend values such as blend_position. Advanced - Set Condition: for transition condition users only.",
+		"animation_tree_name": "Optional AnimationTree node name. Leave blank to use the first AnimationTree found under this node.",
+		"state_machine_path": "Path to the state machine playback parameter. Usually parameters/playback.",
+		"state_name": "Name of the state to travel to in the state machine.",
+		"parameter_path": "AnimationTree parameter path to set, such as parameters/blend_position.",
+		"true_condition_name": "Condition to set TRUE while this brick is active. Example for movement: is_moving.",
+		"false_condition_name": "Condition to set FALSE while this brick is active. Example for movement: is_idle.",
+		"condition_name": "Advanced single-value mode. Condition name only. The brick generates parameters/conditions/<name> automatically.",
+		"condition_value": "Advanced single-value mode. Value to assign to the condition. Use true/false or a bool variable/expression.",
 	},
-	
+
 	"CameraActuator": {
 		"_description": "Controls camera behavior: follow target, orbit, or set position.\nCreates smooth camera movement with configurable offsets.",
 		"camera_path": "Path to the Camera3D node to control.",
@@ -160,13 +167,13 @@ const TOOLTIPS = {
 		"offset_z": "Camera offset on Z axis (in front/behind target).",
 		"smooth_speed": "How quickly the camera catches up (higher = faster, 0 = instant).",
 	},
-	
+
 	"SplitScreenActuator": {
 		"_description": "Positions SubViewportContainers for 2-4 player split screen.\nAssign your SubViewportContainers via @export in the Inspector.\nLayout is applied every frame so it adapts to window resizes.",
 		"player_count": "How many players (2, 3, or 4).\nDetermines how many SubViewportContainer @export slots are created.",
 		"layout": "Vertical: players side by side (left/right).\nHorizontal: players stacked (top/bottom).\n2x2 Grid: 4-player grid (2 rows, 2 columns).\nTop Wide: P1 gets full top half, remaining share bottom.\nBottom Wide: remaining share top, last player gets full bottom.",
 	},
-	
+
 	"CharacterActuator": {
 		"_description": "CharacterBody3D body rules: gravity, fall speed, floor snapping, slope limit, acceleration, friction, bounce, ground detection, and move_and_slide().\nHorizontal speed is still controlled by Motion-style actuators. Jumping is handled by the Jump Actuator.",
 		"gravity_strength": "Downward acceleration applied while airborne. Accepts a number, variable name, or expression.",
@@ -181,7 +188,7 @@ const TOOLTIPS = {
 		"platform_groups": "Optional comma-separated groups used as moving platforms.",
 		"inherit_platform_velocity_on_jump": "Keep horizontal moving-platform momentum when jumping off a platform.",
 	},
-	
+
 	"CollisionActuator": {
 		"_description": "Modifies collision properties at runtime.\nCan enable/disable shapes, change layers/masks, or toggle Area3D monitoring.",
 		"action": "What to change:\n• Disable/Enable Shape: toggle a CollisionShape3D\n• Set Layer/Mask Bit: change collision filtering\n• Enable/Disable Monitoring: toggle Area3D detection",
@@ -189,7 +196,7 @@ const TOOLTIPS = {
 		"layer_value": "Collision layer/mask bit number (1-32). Only used with Set Layer/Mask Bit.",
 		"bit_enabled": "Whether to enable or disable the layer/mask bit.",
 	},
-	
+
 	"EditObjectActuator": {
 		"_description": "Add, remove, or replace objects in the scene at runtime.\nUseful for spawning enemies, projectiles, or swapping meshes.",
 		"edit_type": "Action: Add Object (instance scene), End Object (remove), or Replace Mesh.",
@@ -197,19 +204,19 @@ const TOOLTIPS = {
 		"end_mode": "How to end the object: Queue Free (deferred) or Free (immediate).",
 		"mesh_path": "Path to the mesh resource to swap in (for Replace Mesh).",
 	},
-	
+
 	"GameActuator": {
 		"_description": "Game-level actions: quit, restart, or pause the game.",
 		"action": "What to do: Quit Game, Restart Scene, Pause, or Unpause.",
 	},
-	
+
 	"LookAtMovementActuator": {
 		"_description": "Rotates the node to face a target or direction.\nSmooth rotation with configurable speed.",
 		"target_path": "Path to the node to look at. Leave empty to use a direction vector.",
 		"look_axis": "Which axis to align: Y (horizontal), X (vertical), or All.",
 		"speed": "Rotation speed. Higher = faster turning. 0 = instant.",
 	},
-	
+
 	"RotateTowardsActuator": {
 		"_description": "Rotates this node to face a target found by name or group.\nUseful for turrets, enemies tracking a player, or any look-at behaviour.",
 		"target_mode": "How to find the target:\n• Node Name: find a node anywhere in the scene tree by name\n• Group: find the nearest node in the specified group",
@@ -221,7 +228,7 @@ const TOOLTIPS = {
 		"clamp_x_min": "Minimum pitch angle in degrees (e.g. -45 = 45 degrees down).",
 		"clamp_x_max": "Maximum pitch angle in degrees (e.g. 45 = 45 degrees up).",
 	},
-	
+
 	"WaypointPathActuator": {
 		"_description": "Moves this node through a series of waypoints.\nPlace and drag waypoint handles directly in the 3D viewport.",
 		"waypoints": "List of waypoint positions.\nAdd with + then drag the sphere handles in the viewport to place them.",
@@ -231,14 +238,14 @@ const TOOLTIPS = {
 		"arrival_distance": "How close the node must get to count as having reached a waypoint.",
 		"face_direction": "Rotate the node to face the direction of movement.",
 	},
-	
+
 	"MessageActuator": {
 		"_description": "Sends a message to all nodes in a target group.\nReceivers need a Message Sensor listening for the same subject.",
 		"target_group": "Group name to send the message to. Receiving nodes must be in this group.",
 		"subject": "Message subject/identifier. The Message Sensor filters by this.",
 		"body": "Optional message body/data. Can carry extra information.",
 	},
-	
+
 	"MotionActuator": {
 		"_description": "Moves or rotates the node.\nFor physics forces/torque, use the Physics actuators in the Physics submenu.",
 		"motion_type": "Type of motion:\n• Location: move by offset, set character velocity, or set position\n• Rotation: rotate by degrees each frame",
@@ -249,7 +256,7 @@ const TOOLTIPS = {
 		"space": "Coordinate space: Local (relative to node's rotation) or Global (world axes).",
 		"call_move_and_slide": "If true, call move_and_slide() after setting velocity. Enable if no other actuator does this.",
 	},
-	
+
 	"MouseActuator": {
 		"_description": "Controls mouse-based camera rotation.\nApplies mouse movement to rotate the node or a camera.",
 		"sensitivity_x": "Horizontal mouse sensitivity. Higher = faster turning.",
@@ -262,7 +269,7 @@ const TOOLTIPS = {
 		"clamp_y_max": "Maximum vertical angle in degrees (looking up limit).",
 		"camera_node": "Path to the camera node for vertical rotation (pitch).",
 	},
-	
+
 	"MoveTowardsActuator": {
 		"_description": "Moves toward or away from a target node.\nFind target by group (nearest member) or by node name (scene-wide search).\nCan use NavigationAgent3D for pathfinding.",
 		"behavior": "Seek: move directly toward the target.\nFlee: move directly away from the target.\nPath Follow: use NavigationAgent3D to navigate around obstacles.",
@@ -278,13 +285,13 @@ const TOOLTIPS = {
 		"self_terminate": "Stop executing when the target is reached.",
 		"lock_y_velocity": "Lock vertical (Y) velocity to zero (useful for flat movement).",
 	},
-	
+
 	"ParentActuator": {
 		"_description": "Changes the node's parent in the scene tree.\nUseful for attaching objects to characters or vehicles.",
 		"action": "Set Parent: reparent this node. Remove Parent: move to scene root.",
 		"target_path": "Path to the new parent node.",
 	},
-	
+
 	"PhysicsActuator": {
 		"_description": "Modifies physics properties at runtime.\nChange gravity scale, mass, friction, or bounce.",
 		"property": "Which physics property to modify.",
@@ -299,7 +306,7 @@ const TOOLTIPS = {
 		"direction_z": "Gravity direction Z component.",
 		"use_mass": "If true, force is multiplied by mass so objects fall with the same acceleration.",
 	},
-	
+
 	"ForceActuator": {
 		"_description": "Applies a continuous force to a RigidBody3D each physics frame.\nRequires a RigidBody3D node.",
 		"x": "Force on the X axis.",
@@ -307,7 +314,7 @@ const TOOLTIPS = {
 		"z": "Force on the Z axis.",
 		"space": "Local: force is relative to the node's rotation.\nGlobal: force is in world-space axes.",
 	},
-	
+
 	"TorqueActuator": {
 		"_description": "Applies a rotational force (torque) to a RigidBody3D each physics frame.\nRequires a RigidBody3D node.",
 		"x": "Torque around the X axis.",
@@ -315,7 +322,7 @@ const TOOLTIPS = {
 		"z": "Torque around the Z axis.",
 		"space": "Local: torque is relative to the node's rotation.\nGlobal: torque is in world-space axes.",
 	},
-	
+
 	"LinearVelocityActuator": {
 		"_description": "Sets, adds to, or averages the linear_velocity of a RigidBody3D.\nRequires a RigidBody3D node.",
 		"mode": "Set: replace current velocity.\nAdd: add to current velocity.\nAverage: blend with current velocity.",
@@ -324,7 +331,7 @@ const TOOLTIPS = {
 		"velocity_z": "Velocity on the Z axis.",
 		"local": "If true, velocity is relative to the node's rotation.\nIf false, velocity is in world-space axes.",
 	},
-	
+
 	"PropertyActuator": {
 		"_description": "Sets any property on a target node.\nCan assign, add, copy, or toggle property values.",
 		"target_node": "The node whose property will be modified. Must be set explicitly.",
@@ -332,7 +339,7 @@ const TOOLTIPS = {
 		"operation": "How to modify: Assign (set), Add (increment), Toggle (flip bool), Copy (from another).",
 		"value": "Value to assign or add to the property.",
 	},
-	
+
 	"RandomActuator": {
 		"_description": "Sets a variable to a random value within a range.\nUseful for randomized behavior, damage variation, etc.",
 		"variable_name": "Logic brick variable to store the random value in.",
@@ -340,7 +347,7 @@ const TOOLTIPS = {
 		"max_value": "Maximum random value (inclusive).",
 		"integer_only": "If true, only generate whole numbers.",
 	},
-	
+
 	"PreloadActuator": {
 		"_description": "Preloads resources (materials, scenes, textures, audio, meshes) into memory before they are needed, preventing runtime hitches and frame drops.",
 		"load_mode": "Background: loads on a thread without blocking gameplay (recommended).\nImmediate: blocks the main thread until done — use only on loading screens.",
@@ -362,13 +369,13 @@ const TOOLTIPS = {
 		"save_rotation": "Include the node's global rotation in the save data.",
 		"save_variables": "Include non-private script variables in the save data.",
 	},
-	
+
 	"SceneActuator": {
 		"_description": "Changes or manages scenes.\nCan switch to a new scene or reload the current one.",
 		"action": "Change Scene: load a different scene. Reload: restart current scene.",
 		"scene_path": "Path to the .tscn file to load (for Change Scene).",
 	},
-	
+
 	"SoundActuator": {
 		"_description": "Plays audio with advanced options.\nSupports random pitch, audio buses, and multiple play modes.",
 		"sound_path": "Path to the audio file (.wav, .ogg, .mp3).",
@@ -380,12 +387,12 @@ const TOOLTIPS = {
 		"fade_in_time": "Fade in duration in seconds. 0 = instant.",
 		"fade_out_time": "Fade out duration in seconds. 0 = instant.",
 	},
-	
+
 	"StateActuator": {
 		"_description": "Changes the logic brick state (1-30).\nOnly chains assigned to the active state will run.",
 		"target_state": "State number to switch to (1-30).\nControllers have a 'state' property that determines which state they run in.",
 	},
-	
+
 	"TeleportActuator": {
 		"_description": "Instantly moves the node to a target position.\nCan teleport to a node's position or specific coordinates.",
 		"mode": "Target Node: teleport to another node's position. Coordinates: teleport to X/Y/Z.",
@@ -395,7 +402,7 @@ const TOOLTIPS = {
 		"z": "Z coordinate (for Coordinates mode).",
 		"copy_rotation": "If true, also copy the target node's rotation.",
 	},
-	
+
 	"TextActuator": {
 		"_description": "Displays text on a UI Label node.\nCan set static text or show variable values.",
 		"label_path": "Path to the Label or RichTextLabel node to display text on.",
@@ -405,7 +412,7 @@ const TOOLTIPS = {
 		"prefix": "Text shown before the value (e.g. 'Score: ').",
 		"suffix": "Text shown after the value (e.g. ' points').",
 	},
-	
+
 	"VariableActuator": {
 		"_description": "Modifies a logic brick variable.\nCan assign, add, subtract, multiply, divide, or toggle.",
 		"variable_name": "Name of the logic brick variable to modify (from the Variables tab).",

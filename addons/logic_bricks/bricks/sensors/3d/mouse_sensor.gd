@@ -72,7 +72,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var wheel_direction = properties.get("wheel_direction", "up")
 	var movement_threshold = properties.get("movement_threshold", 0.1)
 	var area_node_name = properties.get("area_node_name", "MouseArea")
-	
+
 	# Normalize
 	if typeof(detection_type) == TYPE_STRING:
 		detection_type = detection_type.to_lower().replace(" ", "_")
@@ -82,12 +82,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		button_state = button_state.to_lower()
 	if typeof(wheel_direction) == TYPE_STRING:
 		wheel_direction = wheel_direction.to_lower()
-	
-	
+
+
 	var code_lines: Array[String] = []
 	var member_vars: Array[String] = []
 	var extra_methods: Array[String] = []
-	
+
 	match detection_type:
 		"button":
 			var button_code = ""
@@ -98,13 +98,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					button_code = "MOUSE_BUTTON_RIGHT"
 				"middle":
 					button_code = "MOUSE_BUTTON_MIDDLE"
-			
+
 			match button_state:
 				"pressed":
 					# Just pressed - only true for one frame when clicked
 					var pressed_var = "_mouse_%s_was_pressed_%s" % [mouse_button, chain_name]
 					member_vars.append("var %s: bool = false" % pressed_var)
-					
+
 					code_lines.append("var sensor_active = false")
 					code_lines.append("var _is_pressed = Input.is_mouse_button_pressed(%s)" % button_code)
 					code_lines.append("if _is_pressed and not %s:" % pressed_var)
@@ -114,7 +114,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					# Just released - only true for one frame when released
 					var pressed_var = "_mouse_%s_was_pressed_%s" % [mouse_button, chain_name]
 					member_vars.append("var %s: bool = false" % pressed_var)
-					
+
 					code_lines.append("var sensor_active = false")
 					code_lines.append("var _is_pressed = Input.is_mouse_button_pressed(%s)" % button_code)
 					code_lines.append("if %s and not _is_pressed:" % pressed_var)
@@ -123,7 +123,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				"held":
 					# Held - continuously true while button is down
 					code_lines.append("var sensor_active = Input.is_mouse_button_pressed(%s)" % button_code)
-		
+
 		"wheel":
 			# Each wheel sensor contributes handler lines to "input_handlers".
 			# The manager assembles them all into one func _input() so multiple
@@ -131,11 +131,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			var wheel_var    = "_ms_wheel_%s_%s" % [wheel_direction, chain_name]
 			var button_const = "MOUSE_BUTTON_WHEEL_UP" if wheel_direction == "up" else "MOUSE_BUTTON_WHEEL_DOWN"
 			member_vars.append("var %s: bool = false" % wheel_var)
-			
+
 			# Sensor body: read the flag then clear it (true for one frame only)
 			code_lines.append("var sensor_active = %s" % wheel_var)
 			code_lines.append("%s = false" % wheel_var)
-			
+
 			# Contribute body lines to the shared _input function.
 			# Indented with one tab — the manager wraps them in func _input().
 			var handler_lines: Array[String] = []
@@ -143,20 +143,20 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			handler_lines.append("\t\tif event.button_index == %s:" % button_const)
 			handler_lines.append("\t\t\t%s = true" % wheel_var)
 			extra_methods.append("input_handler::" + "\n".join(handler_lines))
-			
+
 		"movement":
 			var movement_var = "_mouse_moved_%s" % chain_name
 			var last_pos_var = "_mouse_last_pos_%s" % chain_name
-			
+
 			member_vars.append("var %s: bool = false" % movement_var)
 			member_vars.append("var %s: Vector2 = Vector2.ZERO" % last_pos_var)
-			
+
 			code_lines.append("# Mouse movement detection")
 			code_lines.append("var _current_pos = get_viewport().get_mouse_position()")
 			code_lines.append("var _delta_mouse = _current_pos - %s" % last_pos_var)
 			code_lines.append("var sensor_active = _delta_mouse.length() > %.3f" % movement_threshold)
 			code_lines.append("%s = _current_pos" % last_pos_var)
-		
+
 		"hover_object":
 			code_lines.append("# Hover over this object detection")
 			code_lines.append("var sensor_active = false")
@@ -175,7 +175,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("\t\t\t")
 			code_lines.append("\t\t\tif _result and _result.collider == self:")
 			code_lines.append("\t\t\t\tsensor_active = true")
-		
+
 		"hover_any":
 			code_lines.append("# Hover over any object detection")
 			code_lines.append("var sensor_active = false")
@@ -191,14 +191,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("\t")
 			code_lines.append("\tif _result:")
 			code_lines.append("\t\tsensor_active = true")
-	
+
 	var result = {
 		"sensor_code": "\n".join(code_lines)
 	}
-	
+
 	if member_vars.size() > 0:
 		result["member_vars"] = member_vars
 	if extra_methods.size() > 0:
 		result["methods"] = extra_methods
-	
+
 	return result

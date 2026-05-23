@@ -87,18 +87,18 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var y = properties.get("y", "0.0")
 	var z = properties.get("z", "0.0")
 	var space = properties.get("space", "local")
-	
+
 	# Normalize values to lowercase
 	if typeof(movement_method) == TYPE_STRING:
 		movement_method = movement_method.to_lower()
 	if typeof(space) == TYPE_STRING:
 		space = space.to_lower()
-	
+
 	var code = ""
 	var vx = _to_expr(x)
 	var vy = _to_expr(y)
 	var vz = _to_expr(z)
-	
+
 	match movement_method:
 		"translate":
 			# Direct translation - works on all Node3D
@@ -106,25 +106,25 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code = "translate(Vector3(%s, %s, %s))" % [vx, vy, vz]
 			else:
 				code = "global_position += Vector3(%s, %s, %s)" % [vx, vy, vz]
-		
+
 		"velocity":
 			# Set velocity - for CharacterBody3D using move_and_slide()
 			if space == "local":
 				code = "velocity = global_transform.basis * Vector3(%s, %s, %s)\nmove_and_slide()" % [vx, vy, vz]
 			else:
 				code = "velocity = Vector3(%s, %s, %s)\nmove_and_slide()" % [vx, vy, vz]
-		
+
 		"position":
 			# Direct position assignment - instant teleport
 			if space == "local":
 				code = "position += Vector3(%s, %s, %s)" % [vx, vy, vz]
 			else:
 				code = "global_position = Vector3(%s, %s, %s)" % [vx, vy, vz]
-		
+
 		_:
 			# Fallback to translate
 			code = "translate(Vector3(%s, %s, %s))" % [vx, vy, vz]
-	
+
 	return {
 		"actuator_code": code
 	}

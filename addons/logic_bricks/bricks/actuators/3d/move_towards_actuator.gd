@@ -156,7 +156,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var use_navmesh_normal = properties.get("use_navmesh_normal", false)
 	var self_terminate = properties.get("self_terminate", false)
 	var lock_y_velocity = properties.get("lock_y_velocity", true)
-	
+
 	# Normalize enums
 	if typeof(behavior) == TYPE_STRING:
 		behavior = behavior.to_lower().replace(" ", "_")
@@ -164,34 +164,34 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		facing_axis = facing_axis.to_lower()
 	if typeof(target_mode) == TYPE_STRING:
 		target_mode = target_mode.to_lower().replace(" ", "_")
-	
+
 	var code_lines: Array[String] = []
 	var member_vars: Array[String] = []
-	
+
 	# Early exit if no target name
 	if target_name.is_empty():
 		code_lines.append("pass  # No target name set")
 		return {"actuator_code": "\n".join(code_lines)}
-	
+
 	# For path_follow, add an @export for the NavigationAgent3D and stuck-detection state
 	var nav_var = "_nav_agent_%s" % chain_name
 	if behavior == "path_follow":
 		member_vars.append("@export var %s: NavigationAgent3D" % nav_var)
 		member_vars.append("var _mt_stuck_offset_%s: Vector3 = Vector3.ZERO" % nav_var)
-	
+
 	# Get instance name for arrived flag — empty string means no flag written
 	var inst_name = get_instance_name()
-	
+
 	match behavior:
 		"seek", "flee":
 			code_lines.append(_generate_direct_movement(behavior, target_mode, target_name, arrival_distance, vel, acceleration, turn_speed, face_target, facing_axis, lock_y_velocity, self_terminate))
-		
+
 		"path_follow":
 			code_lines.append(_generate_pathfinding_movement(target_mode, target_name, nav_var, arrival_distance, vel, acceleration, turn_speed, face_target, facing_axis, use_navmesh_normal, lock_y_velocity, self_terminate))
-		
+
 		_:
 			code_lines.append("pass  # Unknown behavior")
-	
+
 	var result = {
 		"actuator_code": "\n".join(code_lines)
 	}
@@ -203,7 +203,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 func _generate_direct_movement(behavior: String, target_mode: String, target_name: String, arrival_dist, vel, accel, turn, face: bool, axis: String, lock_y: bool, terminate: bool) -> String:
 	var lines: Array[String] = []
 	var escaped = target_name.replace("\"", "\\\"")
-	
+
 	# Find target based on mode
 	if target_mode == "node_name":
 		lines.append("var _nearest_target = get_tree().root.find_child(\"%s\", true, false)" % escaped)
@@ -222,9 +222,9 @@ func _generate_direct_movement(behavior: String, target_mode: String, target_nam
 		lines.append("\t\t\t_nearest_target = _t")
 		lines.append("\t")
 		lines.append("\tif _nearest_target:")
-	
+
 	var indent = "\t" if target_mode == "node_name" else "\t\t"
-	
+
 	var arrival_expr = _to_expr(arrival_dist)
 	var vel_expr = _to_expr(vel)
 	var accel_expr = _to_expr(accel)
@@ -233,20 +233,20 @@ func _generate_direct_movement(behavior: String, target_mode: String, target_nam
 	if terminate:
 		lines.append("%sif _nearest_dist <= (%s):" % [indent, arrival_expr])
 		lines.append("%s\treturn  # Target reached, self-terminate" % indent)
-	
+
 	# Calculate movement direction
 	lines.append("%svar _to_target = _nearest_target.global_position - global_position" % indent)
-	
+
 	if behavior == "flee":
 		lines.append("%svar _move_dir = -_to_target.normalized()" % indent)
 	else:
 		lines.append("%svar _move_dir = _to_target.normalized()" % indent)
-	
+
 	# Lock Y if needed
 	if lock_y:
 		lines.append("%s_move_dir.y = 0.0" % indent)
 		lines.append("%s_move_dir = _move_dir.normalized()" % indent)
-	
+
 	# Apply velocity
 	if _literal_gt_zero(accel):
 		lines.append("%svar _target_vel = _move_dir * (%s)" % [indent, vel_expr])
@@ -257,14 +257,14 @@ func _generate_direct_movement(behavior: String, target_mode: String, target_nam
 		lines.append("%svar _new_vel = _current_vel.move_toward(_target_vel, (%s) * _delta)" % [indent, accel_expr])
 	else:
 		lines.append("%svar _new_vel = _move_dir * (%s)" % [indent, vel_expr])
-	
+
 	# Face target if enabled
 	if face:
 		var face_target_pos = "_nearest_target.global_position" if behavior == "seek" else "global_position - _to_target"
 		var face_code = _generate_look_at_code(face_target_pos, axis, turn)
 		for line in face_code.split("\n"):
 			lines.append(indent + line)
-	
+
 	# Apply movement
 	if not _literal_gt_zero(accel):
 		lines.append("%svar _cb3d = (self as Node) as CharacterBody3D" % indent)
@@ -273,7 +273,7 @@ func _generate_direct_movement(behavior: String, target_mode: String, target_nam
 	lines.append("%s\t_cb3d.velocity.z = _new_vel.z" % indent)
 	lines.append("%selse:" % indent)
 	lines.append("%s\tglobal_position += _new_vel * _delta" % indent)
-	
+
 	return "\n".join(lines)
 
 
@@ -368,7 +368,7 @@ func _generate_pathfinding_movement(target_mode: String, target_name: String, na
 
 func _generate_look_at_code(target_pos: String, axis: String, turn_speed) -> String:
 	var lines: Array[String] = []
-	
+
 	# Determine which axis points forward
 	var axis_vector = "Vector3.FORWARD"
 	match axis:
@@ -378,11 +378,11 @@ func _generate_look_at_code(target_pos: String, axis: String, turn_speed) -> Str
 		"-y": axis_vector = "Vector3.DOWN"
 		"+z": axis_vector = "Vector3.FORWARD"
 		"-z": axis_vector = "Vector3.BACK"
-	
+
 	lines.append("var _look_dir = %s - global_position" % target_pos)
 	lines.append("_look_dir.y = 0.0  # Only rotate around Y axis")
 	lines.append("if _look_dir.length() > 0.001:")
-	
+
 	if _literal_gt_zero(turn_speed):
 		# Gradual rotation
 		var turn_expr = _to_expr(turn_speed)
@@ -392,5 +392,5 @@ func _generate_look_at_code(target_pos: String, axis: String, turn_speed) -> Str
 	else:
 		# Instant rotation
 		lines.append("\tlook_at(global_position + _look_dir, Vector3.UP)")
-	
+
 	return "\n".join(lines)

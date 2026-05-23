@@ -54,13 +54,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target_group = properties.get("target_group", "")
 	var subject = properties.get("subject", "")
 	var body = properties.get("body", "")
-	
+
 	if subject.is_empty():
 		return {"actuator_code": "pass  # Message actuator: subject not set"}
-	
+
 	var code_lines: Array[String] = []
 	var body_str = "\"%s\"" % body if not body.is_empty() else "\"\""
-	
+
 	if target_group.is_empty():
 		# Broadcast to ALL nodes in the scene tree that have the handler
 		code_lines.append("# Broadcast message to all nodes with a message handler")
@@ -73,7 +73,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("for _target in _msg_targets:")
 		code_lines.append("\tif _target.has_method(\"_on_message_received\"):")
 		code_lines.append("\t\t_target._on_message_received(\"%s\", %s, self)" % [subject, body_str])
-	
+
 	return {
 		"actuator_code": "\n".join(code_lines)
 	}

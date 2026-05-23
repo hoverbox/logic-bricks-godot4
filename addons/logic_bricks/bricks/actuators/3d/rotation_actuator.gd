@@ -78,12 +78,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var y = properties.get("y", "0.0")
 	var z = properties.get("z", "0.0")
 	var space = properties.get("space", "local")
-	
+
 	var code_lines = []
 	var vx = _to_expr(x)
 	var vy = _to_expr(y)
 	var vz = _to_expr(z)
-	
+
 	if space == "local":
 		# Only add rotation for non-zero values
 		if not _is_zero(x):
@@ -96,10 +96,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		# Global rotation - only if at least one axis is non-zero
 		if not _is_zero(x) or not _is_zero(y) or not _is_zero(z):
 			code_lines.append("global_rotation += Vector3(deg_to_rad(%s), deg_to_rad(%s), deg_to_rad(%s))" % [vx, vy, vz])
-	
+
 	# Join lines or return pass if no rotation
 	var code = "\n".join(code_lines) if code_lines.size() > 0 else "pass"
-	
+
 	return {
 		"actuator_code": code
 	}

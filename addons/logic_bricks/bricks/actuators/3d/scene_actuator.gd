@@ -40,29 +40,29 @@ func get_property_definitions() -> Array:
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = properties.get("mode", "restart")
 	var scene_path = properties.get("scene_path", "")
-	
+
 	# Normalize mode
 	if typeof(mode) == TYPE_STRING:
 		mode = mode.to_lower().replace(" ", "_")
-	
-	
+
+
 	var code_lines: Array[String] = []
-	
+
 	match mode:
 		"restart":
 			code_lines.append("# Restart current scene")
 			code_lines.append("get_tree().reload_current_scene()")
-		
+
 		"set_scene":
 			if scene_path.is_empty():
 				code_lines.append("push_warning(\"Scene Actuator: No scene path specified\")")
 			else:
 				code_lines.append("# Change to specified scene")
 				code_lines.append("get_tree().change_scene_to_file(\"%s\")" % scene_path)
-		
+
 		_:
 			code_lines.append("push_warning(\"Scene Actuator: Unknown mode '%s'\")" % mode)
-	
+
 	return {
 		"actuator_code": "\n".join(code_lines)
 	}

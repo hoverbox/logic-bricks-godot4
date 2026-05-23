@@ -39,7 +39,7 @@ const CHAIN_BOTTOM_PAD := 140.0 ## Extra padding under each rebuilt chain block
 const ACTUATOR_SIGNATURES: Array = [
 	# ── Animation ──────────────────────────────────────────────────────────
 	["# Animation Actuator:",              "AnimationActuator"],
-	["# Animation Tree actuator",          "AnimationTreeActuator"],
+	["# Animation Tree Actuator",          "AnimationTreeActuator"],
 	# ── Audio ───────────────────────────────────────────────────────────────
 	["# Audio 2D Actuator",                "Audio2DActuator"],
 	["# Sound actuator",                   "SoundActuator"],
@@ -515,6 +515,80 @@ func _parse_animation_tree_sensor_props(segment: String) -> Dictionary:
 	return props
 
 
+## Recover AnimationTreeActuator properties from previously generated code.
+## Handles travel, set_condition, and set_parameter modes.
+func _parse_animation_tree_actuator_props(act_block: String) -> Dictionary:
+	var props: Dictionary = {}
+	# Recover animation tree node name
+	var tree_rx := RegEx.new()
+	tree_rx.compile(r'find_child\("([^"]+)",\s*true,\s*false\)\s+as\s+AnimationTree')
+	var tree_m := tree_rx.search(act_block)
+	if tree_m:
+		props["animation_tree_name"] = tree_m.get_string(1)
+
+	if ".travel(" in act_block:
+		# Travel mode
+		props["mode"] = "travel"
+		var rx := RegEx.new()
+		rx.compile(r'\.travel\("([^"]*)"\)')
+		var m := rx.search(act_block)
+		if m:
+			props["state_name"] = m.get_string(1)
+		var sm_rx := RegEx.new()
+		sm_rx.compile(r'_lb_find_animation_tree_playback\([^,]+,\s*"([^"]*)"\)')
+		var sm_m := sm_rx.search(act_block)
+		if sm_m and not sm_m.get_string(1).is_empty():
+			props["state_machine_path"] = sm_m.get_string(1)
+	elif "parameters/conditions/" in act_block:
+		# Set Condition mode
+		props["mode"] = "set_condition"
+		var crx := RegEx.new()
+		crx.compile(r'parameters/conditions/([^"]+)"')
+		var cm := crx.search(act_block)
+		if cm:
+			props["condition_name"] = cm.get_string(1)
+		# Recover condition value (true/false or variable name)
+		var val_rx := RegEx.new()
+		val_rx.compile(r'var _condition_value_\w+\s*=\s*(\S+)')
+		var val_m := val_rx.search(act_block)
+		if val_m:
+			props["condition_value"] = val_m.get_string(1)
+	elif '.set("parameters/' in act_block:
+		# Set Parameter mode
+		props["mode"] = "set_parameter"
+		var path_rx := RegEx.new()
+		path_rx.compile(r'\.set\("(parameters/[^"]+)"')
+		var path_m := path_rx.search(act_block)
+		if path_m:
+			var full_path: String = path_m.get_string(1)
+			# Strip the "parameters/" prefix for parameter_name storage
+			props["parameter_name"] = full_path.substr("parameters/".length())
+		# Try to recover value type
+		var bool_rx := RegEx.new()
+		bool_rx.compile(r'\.set\("[^"]+",\s*(true|false)\)')
+		var bool_m := bool_rx.search(act_block)
+		if bool_m:
+			props["param_type"] = "bool"
+			props["param_bool"] = bool_m.get_string(1) == "true"
+		else:
+			var float_rx := RegEx.new()
+			float_rx.compile(r'\.set\("[^"]+",\s*(-?[0-9]+\.[0-9]+)\)')
+			var float_m := float_rx.search(act_block)
+			if float_m:
+				props["param_type"] = "float"
+				props["param_float"] = float(float_m.get_string(1))
+			else:
+				var int_rx := RegEx.new()
+				int_rx.compile(r'\.set\("[^"]+",\s*(-?[0-9]+)\)')
+				var int_m := int_rx.search(act_block)
+				if int_m:
+					props["param_type"] = "int"
+					props["param_int"] = int(int_m.get_string(1))
+	return props
+
+
+
+
 func _parse_message_sensor_props(segment: String) -> Dictionary:
 	var props: Dictionary = {}
 	props["consume_message"] = "= false  # Consume" in segment or "= false" in segment
@@ -624,7 +698,7 @@ func _parse_input_map_sensor_props(segment: String) -> Dictionary:
 		props["input_mode"] = "axis"
 		props["negative_action"] = am.get_string(1)
 		props["positive_action"] = am.get_string(2)
-		props["invert"] = "_axis_val = -_axis_val" in segment
+		props["invert"] = "sensor_active = not sensor_active" in segment
 		var store_rx := RegEx.new()
 		store_rx.compile(r'\n(\w+)\s*=\s*_axis_val')
 		var sm := store_rx.search(segment)
@@ -950,6 +1024,8 @@ func _extract_actuator_properties(cls: String, act_block: String) -> Dictionary:
 			return _parse_state_actuator_props(act_block)
 		"PropertyActuator":
 			return _parse_property_actuator_props(act_block)
+		"AnimationTreeActuator":
+			return _parse_animation_tree_actuator_props(act_block)
 		_:
 			return _parse_generic_actuator_props(act_block)
 

@@ -15,10 +15,10 @@ func _init() -> void:
 func _initialize_properties() -> void:
 	properties = {
 		"motion_type": "location",  # location, rotation
-		
+
 		# Location properties
 		"movement_method": "character_velocity",  # translate, character_velocity, position
-		
+
 		# Common properties
 		"x": "0.0",
 		"y": "0.0",
@@ -105,11 +105,11 @@ func get_tooltip_definitions() -> Dictionary:
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var motion_type = properties.get("motion_type", "location")
-	
+
 	# Normalize motion_type
 	if typeof(motion_type) == TYPE_STRING:
 		motion_type = motion_type.to_lower().replace(" ", "_")
-	
+
 	# Generate code based on motion type
 	match motion_type:
 		"location":
@@ -155,20 +155,20 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 	var movement_method = properties.get("movement_method", "character_velocity")
 	var camera_relative = properties.get("camera_relative", false)
 	var camera_name = str(properties.get("camera_name", "")).strip_edges()
-	
+
 	# Normalize
 	if typeof(space) == TYPE_STRING:
 		space = space.to_lower()
 	if typeof(movement_method) == TYPE_STRING:
 		movement_method = movement_method.to_lower().replace(" ", "_")
-	
+
 	var code_lines: Array[String] = []
 	var call_mas = properties.get("call_move_and_slide", false)
 	var vx = _to_expr(x)
 	var vy = _to_expr(y)
 	var vz = _to_expr(z)
 	var vec = "Vector3(%s, %s, %s)" % [vx, vy, vz]
-	
+
 	# Camera-relative: find the named camera node at runtime and use its yaw.
 	# find_child() searches the whole scene tree recursively, so just the node
 	# name is enough — no path needed. Works in split-screen because each player
@@ -184,7 +184,7 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("var _cam_yaw = _cam.global_rotation.y if _cam else 0.0")
 		code_lines.append("var _cam_basis = Basis(Vector3.UP, _cam_yaw)")
 		code_lines.append("var _motion_dir = _cam_basis * %s" % vec)
-	
+
 	match movement_method:
 		"translate":
 			if camera_relative:
@@ -195,7 +195,7 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 			else:
 				code_lines.append("# Move in global space")
 				code_lines.append("global_position += %s" % vec)
-		
+
 		"character_velocity":
 			code_lines.append("# Set CharacterBody3D velocity on active axes")
 			code_lines.append("_logic_brick_character_motion_active = true")
@@ -240,7 +240,7 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 					code_lines.append("	velocity.z = %s" % vz)
 			if call_mas:
 				code_lines.append("move_and_slide()")
-		
+
 		"position":
 			if camera_relative:
 				code_lines.append("# Camera-relative position not supported — applying as global")
@@ -251,7 +251,7 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 			else:
 				code_lines.append("# Set global position")
 				code_lines.append("global_position = %s" % vec)
-	
+
 	var member_vars: Array[String] = []
 	member_vars.append("var _logic_brick_character_use_acceleration: bool = false")
 	member_vars.append("var _logic_brick_character_acceleration: float = 1.0")
@@ -266,16 +266,16 @@ func _generate_rotation_code(node: Node, chain_name: String) -> Dictionary:
 	var y = properties.get("y", 0.0)
 	var z = properties.get("z", 0.0)
 	var space = properties.get("space", "local")
-	
+
 	# Normalize
 	if typeof(space) == TYPE_STRING:
 		space = space.to_lower()
-	
+
 	var code_lines: Array[String] = []
 	var vx = _to_expr(x)
 	var vy = _to_expr(y)
 	var vz = _to_expr(z)
-	
+
 	if space == "local":
 		if not _is_zero(x):
 			code_lines.append("rotate_x(deg_to_rad(%s))" % vx)
@@ -286,8 +286,8 @@ func _generate_rotation_code(node: Node, chain_name: String) -> Dictionary:
 	else:
 		if not _is_zero(x) or not _is_zero(y) or not _is_zero(z):
 			code_lines.append("global_rotation += Vector3(deg_to_rad(%s), deg_to_rad(%s), deg_to_rad(%s))" % [vx, vy, vz])
-	
+
 	var code = "\n".join(code_lines) if code_lines.size() > 0 else "pass"
-	
+
 	return {"actuator_code": code}
 

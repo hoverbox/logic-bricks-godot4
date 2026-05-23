@@ -97,7 +97,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var inverse = properties.get("inverse", false)
 	var store_object = properties.get("store_object", false)
 	var object_var = properties.get("object_variable", "")
-	
+
 	# Normalize — PROPERTY_HINT_ENUM stores an integer index at runtime
 	var axis_names = ["all", "+x", "-x", "+y", "-y", "+z", "-z"]
 	if typeof(axis) == TYPE_INT:
@@ -110,9 +110,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		detection_mode = detection_mode_names[detection_mode] if detection_mode < detection_mode_names.size() else "any"
 	elif typeof(detection_mode) == TYPE_STRING:
 		detection_mode = detection_mode.to_lower()
-	
+
 	var code_lines: Array[String] = []
-	
+
 	# Get potential targets
 	if target_group.is_empty():
 		code_lines.append("# Proximity: scan all Node3D objects")
@@ -125,10 +125,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("\t\t\t_prox_targets.append(_c)")
 	else:
 		code_lines.append("var _prox_targets = get_tree().get_nodes_in_group(\"%s\")" % target_group)
-	
+
 	code_lines.append("var _detected_objects: Array[Node] = []")
 	code_lines.append("")
-	
+
 	# Determine forward vector for angle check
 	# Use a local-space basis vector that gets transformed to world space at runtime
 	var local_axis_vector = "Vector3.ZERO"
@@ -141,7 +141,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"+z": local_axis_vector = "Vector3.BACK"   # Godot's -Z is local forward, +Z is back
 		"-z": local_axis_vector = "Vector3.FORWARD"
 		"all": skip_angle_check = true
-	
+
 	# Detection loop
 	code_lines.append("for _pt in _prox_targets:")
 	code_lines.append("\tif _pt == self or not _pt is Node3D:")
@@ -150,7 +150,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\tvar _dist = _to_target.length()")
 	code_lines.append("\tif _dist > %.2f or _dist < 0.01:" % distance)
 	code_lines.append("\t\tcontinue")
-	
+
 	# Angle check (only if not full circle and not "all" axis)
 	# Transform the local axis into world space using global_basis so the
 	# cone rotates with the object instead of staying fixed in world space.
@@ -159,24 +159,24 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("\tvar _angle_to = rad_to_deg(_forward.angle_to(_to_target.normalized()))")
 		code_lines.append("\tif _angle_to > %.2f:" % (angle / 2.0))
 		code_lines.append("\t\tcontinue")
-	
+
 	code_lines.append("\t_detected_objects.append(_pt)")
 	code_lines.append("")
-	
+
 	# Store detected object if requested
 	if store_object and not object_var.is_empty():
 		var sanitized_var = object_var.strip_edges().replace(" ", "_")
 		var regex = RegEx.new()
 		regex.compile("[^a-zA-Z0-9_]")
 		sanitized_var = regex.sub(sanitized_var, "", true)
-		
+
 		code_lines.append("# Store nearest detected object")
 		code_lines.append("if _detected_objects.size() > 0:")
 		code_lines.append("\t%s = _detected_objects[0]" % sanitized_var)
 		code_lines.append("else:")
 		code_lines.append("\t%s = null" % sanitized_var)
 		code_lines.append("")
-	
+
 	# Determine result based on detection mode
 	match detection_mode:
 		"any":
@@ -189,13 +189,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("var _prox_result = _detected_objects.size() == _prox_total and _prox_total > 0")
 		"none":
 			code_lines.append("var _prox_result = _detected_objects.size() == 0")
-	
+
 	# Apply inverse
 	if inverse:
 		code_lines.append("var sensor_active = not _prox_result")
 	else:
 		code_lines.append("var sensor_active = _prox_result")
-	
+
 	return {
 		"sensor_code": "\n".join(code_lines)
 	}

@@ -78,7 +78,7 @@ func serialize() -> Dictionary:
 	# Get the script filename as the type identifier
 	var script_path = get_script().resource_path
 	var type_name = script_path.get_file().get_basename()
-	
+
 	# Convert snake_case to PascalCase for consistency
 	# keyboard_sensor -> KeyboardSensor
 	# and_controller -> ANDController (special case)
@@ -100,7 +100,7 @@ func serialize() -> Dictionary:
 			class_name_str += "3D"
 		else:
 			class_name_str += part.capitalize()
-	
+
 	return {
 		"type": class_name_str,
 		"instance_name": instance_name,

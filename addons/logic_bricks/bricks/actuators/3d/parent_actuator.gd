@@ -46,13 +46,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = properties.get("mode", "set_parent")
 	var parent_node = properties.get("parent_node", "")
 	var keep_transform = properties.get("keep_transform", true)
-	
+
 	# Normalize mode
 	if typeof(mode) == TYPE_STRING:
 		mode = mode.to_lower().replace(" ", "_")
-	
+
 	var code_lines: Array[String] = []
-	
+
 	match mode:
 		"set_parent":
 			if parent_node.is_empty():
@@ -85,7 +85,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					code_lines.append("\t\t_new_parent.add_child(self)")
 				code_lines.append("else:")
 				code_lines.append("\tpush_warning(\"Parent Actuator: Node named '%s' not found\")" % parent_node)
-		
+
 		"remove_parent":
 			code_lines.append("# Remove parent (reparent to scene root)")
 			code_lines.append("var _current_parent = get_parent()")
@@ -113,10 +113,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("\t_scene_root.add_child(self)")
 			code_lines.append("else:")
 			code_lines.append("\tpush_warning(\"Parent Actuator: Node has no parent to remove\")")
-		
+
 		_:
 			code_lines.append("push_warning(\"Parent Actuator: Unknown mode '%s'\")" % mode)
-	
+
 	return {
 		"actuator_code": "\n".join(code_lines)
 	}

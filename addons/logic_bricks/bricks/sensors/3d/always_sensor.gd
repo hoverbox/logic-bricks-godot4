@@ -29,14 +29,14 @@ func get_property_definitions() -> Array:
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var enabled = properties.get("enabled", true)
-	
+
 	# Always sensor is just always true (when enabled)
 	var code = ""
 	if enabled:
 		code = "var sensor_active = true"
 	else:
 		code = "var sensor_active = false"
-	
+
 	return {
 		"sensor_code": code
 	}

@@ -176,7 +176,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var x_use_local = properties.get("x_use_local", false)
 	var y_use_local = properties.get("y_use_local", false)
 	var recenter = properties.get("recenter_cursor", true)
-	
+
 	# Normalize
 	if typeof(mode) == TYPE_STRING:
 		mode = mode.to_lower().replace(" ", "_")
@@ -184,10 +184,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		x_rot_axis = x_rot_axis.to_lower()
 	if typeof(y_rot_axis) == TYPE_STRING:
 		y_rot_axis = y_rot_axis.to_lower()
-	
-	
+
+
 	var code_lines: Array[String] = []
-	
+
 	match mode:
 		"cursor_visibility":
 			code_lines.append("# Set cursor visibility")
@@ -195,7 +195,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("Input.mouse_mode = Input.MOUSE_MODE_VISIBLE")
 			else:
 				code_lines.append("Input.mouse_mode = Input.MOUSE_MODE_HIDDEN")
-		
+
 		"mouse_look":
 			code_lines.append("# Mouse look rotation")
 			code_lines.append("var _viewport = get_viewport()")
@@ -204,10 +204,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("var _center = _viewport_size / 2.0")
 			code_lines.append("var _mouse_delta = _mouse_pos - _center")
 			code_lines.append("")
-			
+
 			if use_x_axis:
 				code_lines.append("# X axis (horizontal) mouse movement")
-				
+
 				# Determine target node and indentation
 				var x_indent = ""
 				var x_node_ref = "self" if x_target == "self" else ("get_node_or_null(\"%s\")" % x_target)
@@ -215,11 +215,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					code_lines.append("var _x_target = %s" % x_node_ref)
 					code_lines.append("if _x_target:")
 					x_indent = "\t"
-				
+
 				code_lines.append("%sif abs(_mouse_delta.x) > %.3f:" % [x_indent, x_threshold])
 				var x_mult = 1.0 if x_invert else -1.0
 				code_lines.append("%s\tvar _x_rotation = _mouse_delta.x * %.3f * %.1f" % [x_indent, x_sensitivity, x_mult])
-				
+
 				# Apply limits if set
 				if x_min != 0.0 or x_max != 0.0:
 					var axis_index = {"x": "0", "y": "1", "z": "2"}[x_rot_axis]
@@ -228,14 +228,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 						code_lines.append("%s\tvar _current_rot = %srotation_degrees[%s]" % [x_indent, target_prefix, axis_index])
 					else:
 						code_lines.append("%s\tvar _current_rot = %sglobal_rotation_degrees[%s]" % [x_indent, target_prefix, axis_index])
-					
+
 					code_lines.append("%s\tvar _new_rot = _current_rot + _x_rotation" % x_indent)
 					if x_min != 0.0:
 						code_lines.append("%s\t_new_rot = max(_new_rot, %.2f)" % [x_indent, x_min])
 					if x_max != 0.0:
 						code_lines.append("%s\t_new_rot = min(_new_rot, %.2f)" % [x_indent, x_max])
 					code_lines.append("%s\t_x_rotation = _new_rot - _current_rot" % x_indent)
-				
+
 				# Apply rotation
 				var x_axis_vector = {"x": "Vector3.RIGHT", "y": "Vector3.UP", "z": "Vector3.BACK"}[x_rot_axis]
 				var target_prefix = "_x_target." if x_target != "self" else ""
@@ -244,10 +244,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				else:
 					code_lines.append("%s\t%srotate(%s, deg_to_rad(_x_rotation))" % [x_indent, target_prefix, x_axis_vector])
 				code_lines.append("")
-			
+
 			if use_y_axis:
 				code_lines.append("# Y axis (vertical) mouse movement")
-				
+
 				# Determine target node and indentation
 				var y_indent = ""
 				var y_node_ref = "self" if y_target == "self" else ("get_node_or_null(\"%s\")" % y_target)
@@ -255,11 +255,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					code_lines.append("var _y_target = %s" % y_node_ref)
 					code_lines.append("if _y_target:")
 					y_indent = "\t"
-				
+
 				code_lines.append("%sif abs(_mouse_delta.y) > %.3f:" % [y_indent, y_threshold])
 				var y_mult = 1.0 if y_invert else -1.0
 				code_lines.append("%s\tvar _y_rotation = _mouse_delta.y * %.3f * %.1f" % [y_indent, y_sensitivity, y_mult])
-				
+
 				# Apply limits
 				if y_min != 0.0 or y_max != 0.0:
 					var axis_index = {"x": "0", "y": "1", "z": "2"}[y_rot_axis]
@@ -268,11 +268,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 						code_lines.append("%s\tvar _current_rot = %srotation_degrees[%s]" % [y_indent, target_prefix, axis_index])
 					else:
 						code_lines.append("%s\tvar _current_rot = %sglobal_rotation_degrees[%s]" % [y_indent, target_prefix, axis_index])
-					
+
 					code_lines.append("%s\tvar _new_rot = _current_rot + _y_rotation" % y_indent)
 					code_lines.append("%s\t_new_rot = clamp(_new_rot, %.2f, %.2f)" % [y_indent, y_min, y_max])
 					code_lines.append("%s\t_y_rotation = _new_rot - _current_rot" % y_indent)
-				
+
 				# Apply rotation
 				var y_axis_vector = {"x": "Vector3.RIGHT", "y": "Vector3.UP", "z": "Vector3.BACK"}[y_rot_axis]
 				var target_prefix = "_y_target." if y_target != "self" else ""
@@ -281,11 +281,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				else:
 					code_lines.append("%s\t%srotate(%s, deg_to_rad(_y_rotation))" % [y_indent, target_prefix, y_axis_vector])
 				code_lines.append("")
-			
+
 			if recenter:
 				code_lines.append("# Recenter cursor")
 				code_lines.append("_viewport.warp_mouse(_center)")
-	
+
 	return {
 		"actuator_code": "\n".join(code_lines)
 	}

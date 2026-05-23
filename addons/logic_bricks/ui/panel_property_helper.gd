@@ -9,7 +9,7 @@ func setup(target_panel) -> void:
 func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 	var properties = brick_instance.get_properties()
 	var prop_definitions = brick_instance.get_property_definitions()
-	
+
 	# Get tooltip definitions - try brick first, then centralized file
 	var tooltips = {}
 	if brick_instance.has_method("get_tooltip_definitions"):
@@ -20,17 +20,17 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 			var brick_data = graph_node.get_meta("brick_data") if graph_node.has_meta("brick_data") else null
 			if brick_data:
 				tooltips = BrickTooltips.get_tooltips(brick_data["brick_class"])
-	
+
 	# Apply brick description tooltip to the GraphNode itself
 	if tooltips.has("_description"):
 		graph_node.tooltip_text = tooltips["_description"]
-	
+
 	# Add instance name field first
 	var name_hbox = HBoxContainer.new()
 	var name_label = Label.new()
 	name_label.text = "Name:"
 	name_hbox.add_child(name_label)
-	
+
 	var name_edit = LineEdit.new()
 	name_edit.name = "InstanceNameEdit"
 	var inst_name = brick_instance.get_instance_name()
@@ -40,36 +40,36 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 	name_edit.text_changed.connect(_on_instance_name_changed.bind(graph_node, brick_instance))
 	name_hbox.add_child(name_edit)
 	name_hbox.tooltip_text = "Unique name for this brick instance. Used as variable prefix in generated code."
-	
+
 	graph_node.add_child(name_hbox)
-	
+
 	# Add separator if there are properties
 	if prop_definitions.size() > 0:
 		var separator = HSeparator.new()
 		graph_node.add_child(separator)
-	
+
 	# Create UI based on property definitions if available
 	if prop_definitions.size() > 0:
 		var current_group_container: VBoxContainer = null  # Active group body
-		
+
 		for prop_def in prop_definitions:
 			var property_name = prop_def["name"]
 			var property_value = properties.get(property_name, prop_def.get("default", null))
 			var property_type = prop_def.get("type", TYPE_NIL)
 			var hint = prop_def.get("hint", PROPERTY_HINT_NONE)
 			var hint_string = prop_def.get("hint_string", "")
-			
+
 			var ui_element = null
-			
+
 			# === Collapsible group header (hint == 999) ===
 			if property_type == TYPE_NIL and hint == 999:
 				# Outer container so we can set_meta on it
 				var group_outer = VBoxContainer.new()
 				group_outer.set_meta("property_name", property_name)
-				
+
 				# Check if this group should start collapsed
 				var start_collapsed = prop_def.get("collapsed", false)
-				
+
 				# Header button
 				var group_btn = Button.new()
 				group_btn.text = ("▸ " if start_collapsed else "▾ ") + hint_string
@@ -77,61 +77,61 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				group_btn.flat = true
 				group_btn.add_theme_font_size_override("font_size", 11)
 				group_outer.add_child(group_btn)
-				
+
 				# Body container (holds the properties in this group)
 				var group_body = VBoxContainer.new()
 				group_body.name = "GroupBody"
 				group_body.visible = not start_collapsed
 				group_outer.add_child(group_body)
-				
+
 				# Toggle collapse on click
 				group_btn.pressed.connect(func():
 					group_body.visible = not group_body.visible
 					group_btn.text = ("▾ " if group_body.visible else "▸ ") + hint_string
 					graph_node.reset_size()
 				)
-				
+
 				graph_node.add_child(group_outer)
 				current_group_container = group_body
 				continue
-			
+
 			# Check if this is an enum
 			if hint == PROPERTY_HINT_ENUM and not hint_string.is_empty():
 				var hbox = HBoxContainer.new()
 				var label = Label.new()
 				label.text = _format_property_name(property_name) + ":"
 				hbox.add_child(label)
-				
+
 				var option_button = OptionButton.new()
 				option_button.name = "PropertyControl_" + property_name
-				
+
 				# Special case: AnimationPlayer list (find AnimationPlayer children)
 				if hint_string == "__ANIMATION_PLAYER_LIST__":
 					var anim_player_list = _get_animation_players(graph_node)
-					
+
 					var selected_index = 0
 					for i in range(anim_player_list.size()):
 						var player_name = anim_player_list[i]
 						option_button.add_item(player_name, i)
 						option_button.set_item_metadata(i, player_name)
-						
+
 						if player_name == property_value:
 							selected_index = i
-					
+
 					# Add empty option if no AnimationPlayers found
 					if anim_player_list.is_empty():
 						option_button.add_item("(No AnimationPlayers found)", 0)
 						option_button.disabled = true
-					
+
 					option_button.selected = selected_index
-				
+
 				# Special case: Animation list — scans scene tree for all AnimationPlayers
 				elif hint_string == "__ANIMATION_LIST__":
 					option_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-					
+
 					# Populate from all AnimationPlayers found in the scene tree
 					var animation_list = _get_all_animations_in_scene()
-					
+
 					var selected_index = 0
 					if animation_list.is_empty():
 						option_button.add_item("(Click ↻ to load animations)", 0)
@@ -145,7 +145,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 							if anim_name == property_value:
 								selected_index = i
 						option_button.selected = selected_index
-					
+
 					# Add a Refresh button to rescan the scene
 					var refresh_btn = Button.new()
 					refresh_btn.text = "↻"
@@ -170,7 +170,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 							option_button.selected = new_selected
 						graph_node.reset_size()
 					)
-					
+
 					option_button.item_selected.connect(_on_enum_property_changed.bind(graph_node, property_name, property_type))
 					hbox.add_child(option_button)
 					hbox.add_child(refresh_btn)
@@ -179,7 +179,61 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 					graph_node.add_child(ui_element)
 					ui_element.set_meta("property_name", property_name)
 					continue
-				
+
+				# AnimationTree condition list — scans current node's AnimationTree for conditions
+				elif hint_string == "__ANIM_TREE_CONDITION_LIST__":
+					option_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+					var condition_list = _get_animation_tree_conditions()
+
+					var selected_index = 0
+					if condition_list.is_empty():
+						option_button.add_item("(Click ↻ to load conditions)", 0)
+						option_button.disabled = true
+					else:
+						option_button.disabled = false
+						for i in range(condition_list.size()):
+							var cond_name = condition_list[i]
+							option_button.add_item(cond_name, i)
+							option_button.set_item_metadata(i, cond_name)
+							if cond_name == property_value:
+								selected_index = i
+						option_button.selected = selected_index
+
+					# Refresh button to re-scan the AnimationTree
+					var refresh_btn = Button.new()
+					refresh_btn.text = "↻"
+					refresh_btn.tooltip_text = "Scan AnimationTree for conditions and reload list"
+					refresh_btn.custom_minimum_size = Vector2(28, 0)
+					refresh_btn.pressed.connect(func():
+						var new_list = _get_animation_tree_conditions()
+						option_button.clear()
+						if new_list.is_empty():
+							option_button.add_item("(No conditions found)", 0)
+							option_button.disabled = true
+						else:
+							option_button.disabled = false
+							var new_selected = 0
+							var current_val = brick_instance.get_property(property_name, "")
+							for i in range(new_list.size()):
+								var cond_name = new_list[i]
+								option_button.add_item(cond_name, i)
+								option_button.set_item_metadata(i, cond_name)
+								if cond_name == current_val:
+									new_selected = i
+							option_button.selected = new_selected
+						graph_node.reset_size()
+					)
+
+					option_button.item_selected.connect(_on_enum_property_changed.bind(graph_node, property_name, property_type))
+					hbox.add_child(option_button)
+					hbox.add_child(refresh_btn)
+					ui_element = hbox
+					# Skip the normal item_selected connection below since we connected it above
+					graph_node.add_child(ui_element)
+					ui_element.set_meta("property_name", property_name)
+					continue
+
 				# Dynamic state-layer/state dropdowns
 				elif _populate_dynamic_enum(option_button, brick_instance, property_name, hint_string, property_value):
 					pass
@@ -189,25 +243,25 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 					# Parse enum string (format: "Display1:value1,Display2:value2" or "Display1,Display2")
 					var enum_parts = hint_string.split(",")
 					var selected_index = 0
-					
+
 					for i in range(enum_parts.size()):
 						var part = enum_parts[i].strip_edges()
 						var display_name = part
 						var value = part.to_lower().replace(" ", "_")
-						
+
 						# Check if it has a value specified (like "Space:32")
 						if ":" in part:
 							var split = part.split(":")
 							display_name = split[0]
 							value = split[1]
-						
+
 						option_button.add_item(display_name, i)
 						option_button.set_item_metadata(i, value)
-						
+
 						# Check if this is the current value
 						var current_value_str = str(property_value).to_lower().replace(" ", "_")
 						var value_str = str(value).to_lower().replace(" ", "_")
-						
+
 						if property_type == TYPE_INT:
 							# For int enums, compare as integers
 							if str(value) == str(property_value):
@@ -216,13 +270,13 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 							# For string enums, compare as strings
 							if current_value_str == value_str:
 								selected_index = i
-					
+
 					option_button.selected = selected_index
-				
+
 				option_button.item_selected.connect(_on_enum_property_changed.bind(graph_node, property_name, property_type))
 				hbox.add_child(option_button)
 				ui_element = hbox
-			
+
 			# Regular bool checkbox
 			elif property_type == TYPE_BOOL:
 				ui_element = CheckBox.new()
@@ -230,14 +284,14 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				ui_element.button_pressed = property_value
 				ui_element.text = _format_property_name(property_name)
 				ui_element.toggled.connect(_on_property_changed.bind(graph_node, property_name))
-			
+
 			# Regular int spinbox
 			elif property_type == TYPE_INT and hint != PROPERTY_HINT_ENUM:
 				var hbox = HBoxContainer.new()
 				var label = Label.new()
 				label.text = _format_property_name(property_name) + ":"
 				hbox.add_child(label)
-				
+
 				var spinbox = SpinBox.new()
 				spinbox.name = "PropertyControl_" + property_name
 				spinbox.min_value = -10000
@@ -246,14 +300,14 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				spinbox.value_changed.connect(func(val: float): _on_property_changed(int(val), graph_node, property_name))
 				hbox.add_child(spinbox)
 				ui_element = hbox
-			
+
 			# Regular float spinbox
 			elif property_type == TYPE_FLOAT:
 				var hbox = HBoxContainer.new()
 				var label = Label.new()
 				label.text = _format_property_name(property_name) + ":"
 				hbox.add_child(label)
-				
+
 				var spinbox = SpinBox.new()
 				spinbox.name = "PropertyControl_" + property_name
 				# Parse range from hint_string if provided (format: "min,max,step")
@@ -271,14 +325,14 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				spinbox.value_changed.connect(_on_property_changed.bind(graph_node, property_name))
 				hbox.add_child(spinbox)
 				ui_element = hbox
-			
+
 			# File path with picker button
 			elif property_type == TYPE_STRING and hint == PROPERTY_HINT_FILE:
 				var hbox = HBoxContainer.new()
 				var label = Label.new()
 				label.text = _format_property_name(property_name) + ":"
 				hbox.add_child(label)
-				
+
 				var line_edit = LineEdit.new()
 				line_edit.name = "PropertyControl_" + property_name
 				# Show just the filename, store full path in metadata
@@ -290,21 +344,21 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				line_edit.editable = false  # Use the file picker button instead
 				line_edit.tooltip_text = property_value  # Full path on hover
 				hbox.add_child(line_edit)
-				
+
 				var button = Button.new()
 				button.text = "..."
 				button.pressed.connect(_on_file_picker_pressed.bind(graph_node, property_name, hint_string))
 				hbox.add_child(button)
-				
+
 				ui_element = hbox
-			
+
 			# Regular string line edit
 			elif property_type == TYPE_STRING and hint != PROPERTY_HINT_ENUM:
 				var hbox = HBoxContainer.new()
 				var label = Label.new()
 				label.text = _format_property_name(property_name) + ":"
 				hbox.add_child(label)
-				
+
 				var line_edit = LineEdit.new()
 				line_edit.name = "PropertyControl_" + property_name
 				line_edit.text = str(property_value) if typeof(property_value) != TYPE_STRING else property_value
@@ -312,7 +366,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				line_edit.text_changed.connect(_on_property_changed.bind(graph_node, property_name))
 				hbox.add_child(line_edit)
 				ui_element = hbox
-			
+
 			# Color picker
 			elif property_type == TYPE_COLOR:
 				var hbox = HBoxContainer.new()
@@ -320,7 +374,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				label.text = _format_property_name(property_name) + ":"
 				label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 				hbox.add_child(label)
-				
+
 				var color_btn = ColorPickerButton.new()
 				color_btn.name = "PropertyControl_" + property_name
 				color_btn.custom_minimum_size = Vector2(80, 0)
@@ -329,16 +383,16 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				color_btn.color_changed.connect(_on_property_changed.bind(graph_node, property_name))
 				hbox.add_child(color_btn)
 				ui_element = hbox
-			
+
 			# === Dynamic array list (e.g. track list) ===
 			elif property_type == TYPE_ARRAY:
 				var item_hint        = prop_def.get("item_hint", PROPERTY_HINT_NONE)
 				var item_hint_string = prop_def.get("item_hint_string", "")
 				var item_label_text  = prop_def.get("item_label", "Item")
-				
+
 				var vbox = VBoxContainer.new()
 				vbox.set_meta("property_name", property_name)
-				
+
 				# Header row: label + Add button
 				var header = HBoxContainer.new()
 				var arr_label = Label.new()
@@ -350,12 +404,12 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				add_btn.custom_minimum_size = Vector2(28, 0)
 				header.add_child(add_btn)
 				vbox.add_child(header)
-				
+
 				# Item list container
 				var list_vbox = VBoxContainer.new()
 				list_vbox.name = "ArrayListContainer"
 				vbox.add_child(list_vbox)
-				
+
 				# Build the list rows — called immediately and after any add/remove
 				var capture_linked = prop_def.get("linked_array", "")
 				var capture_linked_default = prop_def.get("linked_default", "")
@@ -364,7 +418,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 					property_name, item_hint, item_hint_string, item_label_text,
 					capture_linked, capture_linked_default
 				)
-				
+
 				# Add button handler
 				var capture_item_default = prop_def.get("item_default", "")
 				add_btn.pressed.connect(func():
@@ -395,7 +449,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 					)
 					graph_node.reset_size()
 				)
-				
+
 				ui_element = vbox
 
 			if ui_element:
@@ -414,19 +468,19 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 		for property_name in properties:
 			var property_value = properties[property_name]
 			var ui_element = null
-			
+
 			if property_value is bool:
 				ui_element = CheckBox.new()
 				ui_element.button_pressed = property_value
 				ui_element.text = _format_property_name(property_name)
 				ui_element.toggled.connect(_on_property_changed.bind(graph_node, property_name))
-			
+
 			elif property_value is int:
 				var hbox = HBoxContainer.new()
 				var label = Label.new()
 				label.text = _format_property_name(property_name) + ":"
 				hbox.add_child(label)
-				
+
 				ui_element = SpinBox.new()
 				ui_element.min_value = -10000
 				ui_element.max_value = 10000
@@ -434,15 +488,15 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				ui_element.value_changed.connect(_on_property_changed.bind(graph_node, property_name))
 				hbox.add_child(ui_element)
 				ui_element = hbox
-			
-			
+
+
 
 			elif property_value is float:
 				var hbox = HBoxContainer.new()
 				var label = Label.new()
 				label.text = _format_property_name(property_name) + ":"
 				hbox.add_child(label)
-				
+
 				ui_element = SpinBox.new()
 				ui_element.step = 0.01
 				ui_element.min_value = -10000
@@ -451,30 +505,30 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				ui_element.value_changed.connect(_on_property_changed.bind(graph_node, property_name))
 				hbox.add_child(ui_element)
 				ui_element = hbox
-			
+
 			elif property_value is String:
 				var hbox = HBoxContainer.new()
 				var label = Label.new()
 				label.text = _format_property_name(property_name) + ":"
 				hbox.add_child(label)
-				
+
 				ui_element = LineEdit.new()
 				ui_element.text = property_value
 				ui_element.text_changed.connect(_on_property_changed.bind(graph_node, property_name))
 				hbox.add_child(ui_element)
 				ui_element = hbox
-			
+
 			if ui_element:
 				# Store property name on the UI element for conditional visibility
 				ui_element.set_meta("property_name", property_name)
 				if tooltips.has(property_name):
 					ui_element.tooltip_text = tooltips[property_name]
 				graph_node.add_child(ui_element)
-	
+
 	# Add debug section separator
 	var debug_separator = HSeparator.new()
 	graph_node.add_child(debug_separator)
-	
+
 	# Add debug checkbox
 	var debug_hbox = HBoxContainer.new()
 	var debug_check = CheckBox.new()
@@ -484,13 +538,13 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 	debug_check.toggled.connect(_on_debug_enabled_changed.bind(graph_node, brick_instance))
 	debug_hbox.add_child(debug_check)
 	graph_node.add_child(debug_hbox)
-	
+
 	# Add debug message field
 	var debug_msg_hbox = HBoxContainer.new()
 	var debug_msg_label = Label.new()
 	debug_msg_label.text = "Message:"
 	debug_msg_hbox.add_child(debug_msg_label)
-	
+
 	var debug_msg_edit = LineEdit.new()
 	debug_msg_edit.name = "DebugMessageEdit"
 	debug_msg_edit.text = brick_instance.debug_message
@@ -499,7 +553,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 	debug_msg_edit.text_changed.connect(_on_debug_message_changed.bind(graph_node, brick_instance))
 	debug_msg_hbox.add_child(debug_msg_edit)
 	graph_node.add_child(debug_msg_hbox)
-	
+
 	# Apply initial conditional visibility based on current property values
 	_update_conditional_visibility(graph_node, brick_instance)
 
@@ -516,35 +570,35 @@ func _format_property_name(property_name: String) -> String:
 func _get_animations_from_player(graph_node: GraphNode, anim_player_name: String) -> Array[String]:
 	# Get list of animation names from the AnimationPlayer on panel.current_node
 	var animations: Array[String] = []
-	
+
 	if not panel.current_node:
 		return animations
-	
+
 	# Try to find AnimationPlayer as child of panel.current_node
 	var anim_player = panel.current_node.get_node_or_null(anim_player_name)
 	if not anim_player or not anim_player is AnimationPlayer:
 		return animations
-	
+
 	# Get all animation names
 	var anim_list = anim_player.get_animation_list()
 	for anim_name in anim_list:
 		animations.append(anim_name)
-	
+
 	return animations
 
 
 func _get_animations_from_node_path(graph_node: GraphNode, node_path: String) -> Array[String]:
 	# Get list of animation names from AnimationPlayer on the specified child node
 	var animations: Array[String] = []
-	
+
 	if not panel.current_node or node_path.is_empty():
 		return animations
-	
+
 	# Find the node specified by the path
 	var target_node = panel.current_node.get_node_or_null(node_path)
 	if not target_node:
 		return animations
-	
+
 	# Find AnimationPlayer as child of that node
 	for child in target_node.get_children():
 		if child is AnimationPlayer:
@@ -552,22 +606,22 @@ func _get_animations_from_node_path(graph_node: GraphNode, node_path: String) ->
 			for anim_name in anim_list:
 				animations.append(anim_name)
 			break
-	
+
 	return animations
 
 
 func _get_animation_players(graph_node: GraphNode) -> Array[String]:
 	# Get list of AnimationPlayer node names that are children of panel.current_node
 	var players: Array[String] = []
-	
+
 	if not panel.current_node:
 		return players
-	
+
 	# Search all children for AnimationPlayer nodes
 	for child in panel.current_node.get_children():
 		if child is AnimationPlayer:
 			players.append(child.name)
-	
+
 	return players
 
 
@@ -584,19 +638,19 @@ func _build_array_property_list(
 	# Clear existing rows
 	for c in list_vbox.get_children():
 		c.queue_free()
-	
+
 	var current_arr: Array = brick_instance.get_property(property_name)
 	if typeof(current_arr) != TYPE_ARRAY:
 		current_arr = []
-	
+
 	for idx in current_arr.size():
 		var row = HBoxContainer.new()
-		
+
 		var idx_label = Label.new()
 		idx_label.text = "%s %d:" % [item_label_text, idx]
 		idx_label.custom_minimum_size = Vector2(56, 0)
 		row.add_child(idx_label)
-		
+
 		if item_hint == PROPERTY_HINT_FILE:
 			var le = LineEdit.new()
 			le.text = str(current_arr[idx])
@@ -605,7 +659,7 @@ func _build_array_property_list(
 			le.editable = false
 			le.tooltip_text = le.text
 			row.add_child(le)
-			
+
 			var pick_btn = Button.new()
 			pick_btn.text = "..."
 			pick_btn.custom_minimum_size = Vector2(28, 0)
@@ -646,7 +700,7 @@ func _build_array_property_list(
 				)
 			)
 			row.add_child(pick_btn)
-			
+
 			# If this array has a linked value (e.g. pool_sizes), show an editable
 			# field for it inline on the same row, right after the file picker.
 			if not linked_array.is_empty():
@@ -668,7 +722,7 @@ func _build_array_property_list(
 					panel._save_graph_to_metadata()
 				)
 				row.add_child(linked_le)
-		
+
 		# Remove button
 		var rm_btn = Button.new()
 		rm_btn.text = "-"
@@ -707,18 +761,18 @@ func _get_all_animations_in_scene() -> Array[String]:
 	# Recursively search panel.current_node's entire subtree for AnimationPlayer nodes
 	# and collect all unique animation names across all of them
 	var animations: Array[String] = []
-	
+
 	if not panel.current_node:
 		return animations
-	
+
 	var players: Array[AnimationPlayer] = []
 	_find_animation_players_recursive(panel.current_node, players)
-	
+
 	for player in players:
 		for anim_name in player.get_animation_list():
 			if anim_name not in animations:
 				animations.append(anim_name)
-	
+
 	animations.sort()
 	return animations
 
@@ -730,15 +784,44 @@ func _find_animation_players_recursive(node: Node, result: Array[AnimationPlayer
 		_find_animation_players_recursive(child, result)
 
 
+func _get_animation_tree_conditions() -> Array[String]:
+	# Find the first AnimationTree under panel.current_node and collect all
+	# parameters/conditions/<name> entries exposed in its property list.
+	var conditions: Array[String] = []
+	if not panel.current_node:
+		return conditions
+	var anim_tree = _find_first_animation_tree_node(panel.current_node)
+	if not anim_tree:
+		return conditions
+	for prop in anim_tree.get_property_list():
+		var prop_name: String = str(prop.get("name", ""))
+		if prop_name.begins_with("parameters/conditions/"):
+			var cond_name = prop_name.trim_prefix("parameters/conditions/")
+			if not cond_name.is_empty() and cond_name not in conditions:
+				conditions.append(cond_name)
+	conditions.sort()
+	return conditions
+
+
+func _find_first_animation_tree_node(node: Node) -> AnimationTree:
+	for child in node.get_children():
+		if child is AnimationTree:
+			return child
+		var found = _find_first_animation_tree_node(child)
+		if found:
+			return found
+	return null
+
+
 func _rebuild_dependent_property(graph_node: GraphNode, property_name: String) -> void:
 	# Find and rebuild the UI for a property that depends on another property
 	if not graph_node.has_meta("brick_data"):
 		return
-	
+
 	var brick_data = graph_node.get_meta("brick_data")
 	var brick_instance = brick_data["brick_instance"]
 	var properties = brick_instance.get_properties()
-	
+
 	# Find the property control in the graph node
 	var property_control = graph_node.get_node_or_null("PropertyControl_" + property_name)
 	if not property_control:
@@ -749,20 +832,20 @@ func _rebuild_dependent_property(graph_node: GraphNode, property_name: String) -
 				if ctrl:
 					property_control = ctrl
 					break
-	
+
 	if not property_control or not property_control is OptionButton:
 		return
-	
+
 	# Clear and repopulate the dropdown
 	var option_button: OptionButton = property_control
 	option_button.clear()
-	
+
 	# Get the animation list (legacy path kept for other bricks that may use it)
 	var animation_list: Array[String] = []
-	
+
 	var current_value = properties.get(property_name, "")
 	var selected_index = 0
-	
+
 	if animation_list.is_empty():
 		option_button.add_item("(No animations found)", 0)
 		option_button.disabled = true
@@ -772,10 +855,10 @@ func _rebuild_dependent_property(graph_node: GraphNode, property_name: String) -
 			var anim_name = animation_list[i]
 			option_button.add_item(anim_name, i)
 			option_button.set_item_metadata(i, anim_name)
-			
+
 			if anim_name == current_value:
 				selected_index = i
-		
+
 		option_button.selected = selected_index
 
 
@@ -796,7 +879,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 	# Update visibility of UI elements based on current property values
 	var brick_class = brick_instance.get_script().resource_path.get_file().get_basename()
 	var properties = brick_instance.get_properties()
-	
+
 	# Define visibility rules for specific brick types
 	match brick_class:
 		"end_object_actuator":  # Edit Object Actuator
@@ -804,7 +887,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 			# Normalize to lowercase
 			if typeof(edit_type) == TYPE_STRING:
 				edit_type = edit_type.to_lower()
-			
+
 			# Find and show/hide relevant property controls
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
@@ -816,25 +899,25 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = (edit_type == "end_object")
 						"mesh_path":
 							child.visible = (edit_type == "replace_mesh")
-		
+
 		"move_towards_actuator":  # Move Towards Actuator
 			var behavior = properties.get("behavior", "seek")
 			if typeof(behavior) == TYPE_STRING:
 				behavior = behavior.to_lower().replace(" ", "_")
-			
+
 			# use_navmesh_normal is only relevant for path_follow
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
 					var prop_name = child.get_meta("property_name")
 					if prop_name == "use_navmesh_normal":
 						child.visible = (behavior == "path_follow")
-		
+
 		"variable_actuator":  # Variable Actuator
 			var mode = properties.get("mode", "assign")
 			# Normalize to lowercase
 			if typeof(mode) == TYPE_STRING:
 				mode = mode.to_lower()
-			
+
 			# Show/hide fields based on mode
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
@@ -844,13 +927,13 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = (mode in ["assign", "add"])
 						"source_variable":
 							child.visible = (mode == "copy")
-		
+
 		"variable_sensor":  # Variable Sensor
 			var eval_type = properties.get("evaluation_type", "equal")
 			# Normalize to lowercase
 			if typeof(eval_type) == TYPE_STRING:
 				eval_type = eval_type.to_lower().replace(" ", "_")
-			
+
 			# Show/hide fields based on evaluation type
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
@@ -860,26 +943,26 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = (eval_type in ["equal", "not_equal", "greater_than", "less_than", "greater_or_equal", "less_or_equal"])
 						"min_value", "max_value":
 							child.visible = (eval_type == "interval")
-		
+
 		"proximity_sensor":  # Proximity Sensor
 			var store_obj = properties.get("store_object", false)
-			
+
 			# Show object_variable only when store_object is true
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
 					var prop_name = child.get_meta("property_name")
 					if prop_name == "object_variable":
 						child.visible = store_obj
-		
+
 		"random_sensor":  # Random Sensor
 			var trigger_mode = properties.get("trigger_mode", "value")
 			var use_seed = properties.get("use_seed", false)
 			var store_val = properties.get("store_value", false)
-			
+
 			# Normalize trigger_mode
 			if typeof(trigger_mode) == TYPE_STRING:
 				trigger_mode = trigger_mode.to_lower()
-			
+
 			# Show/hide fields based on settings
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
@@ -895,14 +978,14 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = use_seed
 						"value_variable":
 							child.visible = store_val
-		
+
 		"movement_sensor":  # Movement Sensor
 			var detection_mode = properties.get("detection_mode", "any_movement")
-			
+
 			# Normalize detection_mode
 			if typeof(detection_mode) == TYPE_STRING:
 				detection_mode = detection_mode.to_lower().replace(" ", "_")
-			
+
 			# Show/hide fields based on detection mode
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
@@ -911,7 +994,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 						"axis", "direction":
 							# Only show for specific_axis mode
 							child.visible = (detection_mode == "specific_axis")
-		
+
 		"animation_actuator":  # Animation Actuator
 			var anim_mode = properties.get("mode", "play").to_lower().replace(" ", "_")
 			for child in graph_node.get_children():
@@ -924,7 +1007,39 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = (anim_mode in ["play", "ping_pong", "flipper"])
 						"speed":
 							child.visible = (anim_mode != "stop" and anim_mode != "pause")
-		
+
+		"animation_tree_actuator":  # Animation Tree Actuator
+			var tree_mode = properties.get("mode", "go_to_state")
+			if typeof(tree_mode) == TYPE_STRING:
+				tree_mode = tree_mode.to_lower().replace(" ", "_")
+			var param_type = properties.get("param_type", "float")
+			if typeof(param_type) == TYPE_STRING:
+				param_type = param_type.to_lower().replace(" ", "_")
+			for child in _find_prop_nodes(graph_node):
+				if child.has_meta("property_name"):
+					var prop_name = child.get_meta("property_name")
+					match prop_name:
+						"animation_tree_name":
+							child.visible = true
+						"state_name":
+							child.visible = (tree_mode in ["travel", "go_to_state"])
+						"true_condition_name", "false_condition_name":
+							child.visible = (tree_mode == "set_condition_pair")
+						"condition_name", "condition_value":
+							child.visible = (tree_mode in ["set_condition", "set_condition_value"])
+						"parameter_name", "param_type":
+							child.visible = (tree_mode == "set_parameter")
+						"param_float":
+							child.visible = (tree_mode == "set_parameter" and param_type == "float")
+						"param_int":
+							child.visible = (tree_mode == "set_parameter" and param_type == "int")
+						"param_bool":
+							child.visible = (tree_mode == "set_parameter" and param_type == "bool")
+						"param_x", "param_y":
+							child.visible = (tree_mode == "set_parameter" and param_type == "vector2")
+						"state_machine_path", "parameter_path":
+							child.visible = false
+
 		"sprite_frames_actuator":  # Sprite Frames Actuator
 			var sf_mode = properties.get("mode", "play").to_lower()
 			for child in graph_node.get_children():
@@ -933,20 +1048,20 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 					match prop_name:
 						"animation_name", "loop", "speed_scale":
 							child.visible = (sf_mode == "play")
-		
+
 		"motion_actuator":  # Motion Actuator
 			var motion_type = properties.get("motion_type", "location")
 			var movement_method = properties.get("movement_method", "character_velocity")
-			
+
 			# Normalize
 			if typeof(motion_type) == TYPE_STRING:
 				motion_type = motion_type.to_lower().replace(" ", "_")
 			if typeof(movement_method) == TYPE_STRING:
 				movement_method = movement_method.to_lower().replace(" ", "_")
-			
+
 			var is_location = (motion_type == "location")
 			var is_character_velocity = (movement_method == "character_velocity")
-			
+
 			# Show/hide fields based on motion type and movement method
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
@@ -958,14 +1073,14 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 						"call_move_and_slide":
 							# Only relevant when using character velocity
 							child.visible = is_location and is_character_velocity
-		
+
 		"physics_actuator":  # Physics Actuator
 			var physics_action = properties.get("physics_action", "suspend")
-			
+
 			# Normalize
 			if typeof(physics_action) == TYPE_STRING:
 				physics_action = physics_action.to_lower().replace(" ", "_")
-			
+
 			# Show/hide fields based on physics action
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
@@ -979,29 +1094,29 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = (physics_action == "set_linear_damping")
 						"angular_damp":
 							child.visible = (physics_action == "set_angular_damping")
-		
+
 		"collision_sensor":  # Collision Sensor
 			var filter_type = properties.get("filter_type", "any")
-			
+
 			# Normalize
 			if typeof(filter_type) == TYPE_STRING:
 				filter_type = filter_type.to_lower()
-			
+
 			# Show filter_value only when filtering by group or name
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
 					var prop_name = child.get_meta("property_name")
 					if prop_name == "filter_value":
 						child.visible = (filter_type in ["group", "name"])
-		
+
 		"random_actuator":  # Random Actuator
 			var distribution = properties.get("distribution", "int_uniform")
 			var use_seed = properties.get("use_seed", false)
-			
+
 			# Normalize distribution
 			if typeof(distribution) == TYPE_STRING:
 				distribution = distribution.to_lower().replace(" ", "_")
-			
+
 			# Show/hide fields based on distribution type
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
@@ -1031,40 +1146,40 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 						# Seed
 						"seed_value":
 							child.visible = use_seed
-		
+
 		"scene_actuator":  # Scene Actuator
 			var mode = properties.get("mode", "restart")
-			
+
 			# Normalize mode
 			if typeof(mode) == TYPE_STRING:
 				mode = mode.to_lower().replace(" ", "_")
-			
+
 			# Hide scene_path when mode is restart
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
 					var prop_name = child.get_meta("property_name")
 					if prop_name == "scene_path":
 						child.visible = (mode == "set_scene")
-		
+
 		"parent_actuator":  # Parent Actuator
 			var mode = properties.get("mode", "set_parent")
-			
+
 			# Normalize mode
 			if typeof(mode) == TYPE_STRING:
 				mode = mode.to_lower().replace(" ", "_")
-			
+
 			# Show parent_node only in set_parent mode
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
 					var prop_name = child.get_meta("property_name")
 					if prop_name == "parent_node":
 						child.visible = (mode == "set_parent")
-		
+
 		"property_actuator":  # Property Actuator
 			var node_type = properties.get("node_type", "node_3d")
 			if typeof(node_type) == TYPE_STRING:
 				node_type = node_type.to_lower().replace(" ", "_")
-			
+
 			# All groups and their node type prefix
 			var group_type_map = {
 				"_group_n3d_visibility": "node_3d",
@@ -1122,7 +1237,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 				"spr_hframes": "sprite_3d", "spr_vframes": "sprite_3d",
 				"custom_property": "custom", "custom_value": "custom",
 			}
-			
+
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
 					var prop_name = child.get_meta("property_name")
@@ -1139,14 +1254,14 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 								# Parent group visibility handles this —
 								# individual items inside groups don't need separate handling
 								pass
-		
+
 		"mouse_sensor":  # Mouse Sensor
 			var detection_type = properties.get("detection_type", "button")
-			
+
 			# Normalize
 			if typeof(detection_type) == TYPE_STRING:
 				detection_type = detection_type.to_lower().replace(" ", "_")
-			
+
 			# Show/hide fields based on detection type
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
@@ -1160,14 +1275,14 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = (detection_type == "movement")
 						"area_node_name":
 							child.visible = (detection_type == "hover_object")
-		
+
 		"mouse_actuator":  # Mouse Actuator
 			var mode = properties.get("mode", "cursor_visibility")
-			
+
 			# Normalize
 			if typeof(mode) == TYPE_STRING:
 				mode = mode.to_lower().replace(" ", "_")
-			
+
 			# Show/hide fields based on mode
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
@@ -1177,14 +1292,14 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = (mode == "cursor_visibility")
 						"use_x_axis", "use_y_axis", "x_sensitivity", "y_sensitivity", "x_threshold", "y_threshold", "x_min_degrees", "x_max_degrees", "y_min_degrees", "y_max_degrees", "x_rotation_axis", "y_rotation_axis", "x_use_local", "y_use_local", "recenter_cursor":
 							child.visible = (mode == "mouse_look")
-		
+
 		"edit_object_actuator":  # Edit Object Actuator
 			var edit_type = properties.get("edit_type", "end")
-			
+
 			# Normalize
 			if typeof(edit_type) == TYPE_STRING:
 				edit_type = edit_type.to_lower().replace(" ", "_")
-			
+
 			# Show/hide fields based on edit_type
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
@@ -1196,7 +1311,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = (edit_type == "end_object")
 						"mesh_path":
 							child.visible = (edit_type == "replace_mesh")
-		
+
 		"audio_2d_actuator":  # Audio 2D Actuator
 			var mode = properties.get("mode", "play")
 			if typeof(mode) == TYPE_STRING:
@@ -1216,7 +1331,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = is_fade
 						"volume", "pitch":
 							child.visible = (mode != "stop")
-		
+
 		"modulate_actuator":  # Modulate Actuator
 			var transition = properties.get("transition", false)
 			for child in graph_node.get_children():
@@ -1224,13 +1339,13 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 					var prop_name = child.get_meta("property_name")
 					if prop_name == "transition_speed":
 						child.visible = transition
-		
+
 		"visibility_actuator":  # Visibility Actuator
 			var target_mode = properties.get("target_mode", "self")
 			if typeof(target_mode) == TYPE_STRING:
 				target_mode = target_mode.to_lower()
 			# No extra fields to show/hide — target_mode controls @export presence via code gen
-		
+
 		"progress_bar_actuator":  # Progress Bar Actuator
 			var set_value = properties.get("set_value", true)
 			var set_min = properties.get("set_min", false)
@@ -1248,13 +1363,13 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = set_max
 						"transition_speed":
 							child.visible = transition and set_value
-		
+
 		"tween_actuator":  # Tween Actuator
 			var target_mode = properties.get("target_mode", "self")
 			if typeof(target_mode) == TYPE_STRING:
 				target_mode = target_mode.to_lower()
 			# No fields conditionally hidden — all always relevant
-		
+
 		"impulse_actuator":  # Impulse Actuator
 			var impulse_type = properties.get("impulse_type", "central")
 			if typeof(impulse_type) == TYPE_STRING:
@@ -1267,7 +1382,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = (impulse_type == "positional")
 						"space":
 							child.visible = (impulse_type != "torque")
-		
+
 		"music_actuator":  # Music Actuator
 			var music_mode = properties.get("music_mode", "tracks")
 			if typeof(music_mode) == TYPE_STRING:
@@ -1291,10 +1406,10 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = is_control
 						"to_track", "crossfade_time":
 							child.visible = is_control and is_crossfade
-		
+
 		"screen_flash_actuator":  # Screen Flash Actuator — no conditional fields
 			pass
-		
+
 		"screen_shake_actuator":  # Screen Shake Actuator — hide tune fields when export_params is on
 			var export_params = properties.get("export_params", false)
 			for child in graph_node.get_children():
@@ -1303,7 +1418,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 					match prop_name:
 						"trauma", "max_offset", "decay", "noise_speed":
 							child.visible = not export_params
-		
+
 		"rumble_actuator":  # Rumble Actuator
 			var action = properties.get("action", "vibrate")
 			if typeof(action) == TYPE_STRING:
@@ -1314,10 +1429,10 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 					match prop_name:
 						"weak_motor", "strong_motor", "duration":
 							child.visible = (action == "vibrate")
-		
+
 		"shader_param_actuator":  # Shader Parameter Actuator (legacy — removed from menu)
 			pass
-		
+
 		"light_actuator":  # Light Actuator
 			var light_type = properties.get("light_type", "omni").to_lower().replace(" ", "_")
 			var fx         = properties.get("fx", "normal").to_lower().replace(" ", "_")
@@ -1340,7 +1455,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 						node.visible = (fx == "pulse")
 					"fade_target", "fade_speed":
 						node.visible = (fx in ["fade_in", "fade_out"])
-		
+
 		"third_person_camera_actuator":  # 3rd Person Camera Actuator
 			var input_mode = properties.get("input_mode", "mouse").to_lower()
 			var use_joy = input_mode in ["joystick", "both"]
@@ -1351,7 +1466,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 						node.visible = use_joy
 					"capture_mouse":
 						node.visible = input_mode in ["mouse", "both"]
-		
+
 		"camera_zoom_actuator":  # Camera Zoom Actuator
 			var camera_type = properties.get("camera_type", "camera_3d")
 			if typeof(camera_type) == TYPE_STRING:
@@ -1367,7 +1482,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = (camera_type == "camera_2d")
 						"transition_speed":
 							child.visible = transition
-		
+
 		"object_pool_actuator":  # Object Pool Actuator
 			var action = properties.get("action", "spawn")
 			if typeof(action) == TYPE_STRING:
@@ -1384,14 +1499,14 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = is_spawn
 						"spawn_node":
 							child.visible = is_spawn and not spawn_at_self
-		
+
 		"game_actuator":  # Game Actuator
 			var action = properties.get("action", "exit")
-			
+
 			# Normalize
 			if typeof(action) == TYPE_STRING:
 				action = action.to_lower()
-			
+
 			# Show/hide fields based on action
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
@@ -1401,7 +1516,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = (action == "save" or action == "load")
 						"screenshot_path":
 							child.visible = (action == "screenshot")
-		
+
 		"controller", "script_controller":  # Controller
 			var all_states = properties.get("all_states", false)
 			for child in graph_node.get_children():
@@ -1409,14 +1524,14 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 					var prop_name = child.get_meta("property_name")
 					if prop_name == "state_id":
 						child.visible = not all_states
-		
+
 		"rotate_towards_actuator":  # Rotate Towards Actuator
 			var axes = properties.get("axes", "y_only")
 			if typeof(axes) == TYPE_STRING:
 				axes = axes.to_lower().split("(")[0].strip_edges().replace(" ", "_")
 			var clamp_x = properties.get("clamp_x", false)
 			var show_clamp = (axes in ["x_only", "both"])
-			
+
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
 					var prop_name = child.get_meta("property_name")
@@ -1425,17 +1540,17 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = show_clamp
 						"clamp_x_min", "clamp_x_max":
 							child.visible = show_clamp and clamp_x
-		
+
 		"input_map_sensor":  # Input Map Sensor
 			var input_mode = properties.get("input_mode", "pressed")
-			
+
 			# Normalize
 			if typeof(input_mode) == TYPE_STRING:
 				input_mode = input_mode.to_lower().replace(" ", "_")
-			
+
 			var is_button = input_mode in ["pressed", "just_pressed", "just_released"]
 			var is_axis = (input_mode == "axis")
-			
+
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
 					var prop_name = child.get_meta("property_name")
@@ -1498,10 +1613,10 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
 	# Handle enum property changes from OptionButton
 	if not graph_node.has_meta("brick_data"):
 		return
-	
+
 	var brick_data = graph_node.get_meta("brick_data")
 	var brick_instance = brick_data["brick_instance"]
-	
+
 	# Get the hint_string from the brick's property definitions to derive the value
 	var prop_defs = brick_instance.get_property_definitions()
 	var hint_string = ""
@@ -1509,10 +1624,10 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
 		if prop_def["name"] == property_name:
 			hint_string = prop_def.get("hint_string", "")
 			break
-	
+
 	if hint_string.is_empty():
 		return
-	
+
 	# Get the actual OptionButton control to access its metadata
 	var option_button: OptionButton = null
 	for child in graph_node.get_children():
@@ -1521,28 +1636,27 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
 			if control and control is OptionButton:
 				option_button = control
 				break
-	
+
 	var value
-	
+
 	# Special handling for dynamic lists (they store actual values in metadata)
-	if hint_string in ["__ANIMATION_LIST__", "__ANIMATION_PLAYER_LIST__", "__STATE_LIST__"] and option_button:
+	if hint_string in ["__ANIMATION_LIST__", "__ANIMATION_PLAYER_LIST__", "__STATE_LIST__", "__ANIM_TREE_CONDITION_LIST__"] and option_button:
 		# Get the value directly from the item metadata
 		value = option_button.get_item_metadata(index)
-		#print("Logic Bricks: Special list - got value from metadata: '%s'" % value)
 	else:
 		# Parse the enum value the same way the UI setup does (regular enums)
 		var enum_parts = hint_string.split(",")
 		if index < 0 or index >= enum_parts.size():
 			return
-		
+
 		var part = enum_parts[index].strip_edges()
 		value = part.to_lower().replace(" ", "_")
-		
+
 		# Check if it has an explicit value (like "Display:value")
 		if ":" in part:
 			var split = part.split(":")
 			value = split[1]
-		
+
 		# Convert to correct type
 		if property_type == TYPE_INT:
 			# Use the raw index directly — converting the enum label string to int
@@ -1550,14 +1664,14 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
 			value = index
 		else:
 			value = str(value)
-	
+
 	brick_instance.set_property(property_name, value)
-	
+
 	# Update controller title to reflect state changes
 	var brick_class = brick_data.get("brick_class", "")
 	if brick_data.get("brick_type", "") == "controller" and property_name in ["state_id", "all_states", "logic_mode"]:
 		_update_controller_title(graph_node, brick_instance)
-	
+
 	# When a screen shake preset is selected, populate the value fields
 	if brick_class == "ScreenShakeActuator" and property_name == "preset":
 		if brick_instance.has_method("get_preset_values"):
@@ -1574,10 +1688,9 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
 							if ctrl and ctrl is LineEdit:
 								ctrl.text = fval
 							break
-	
+
 	panel._save_graph_to_metadata()
-	#print("Logic Bricks: Property '%s' changed to: '%s'" % [property_name, value])
-	
+
 	# Update conditional visibility for fields that depend on this enum
 	_update_conditional_visibility(graph_node, brick_instance)
 
@@ -1625,17 +1738,17 @@ func _on_file_picker_pressed(graph_node: GraphNode, property_name: String, filte
 	file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	file_dialog.access = FileDialog.ACCESS_RESOURCES
 	file_dialog.use_native_dialog = false
-	
+
 	# Set filters from hint_string (e.g., "*.tscn,*.scn")
 	if not filter.is_empty():
 		file_dialog.filters = PackedStringArray([filter])
-	
+
 	# When file is selected, update the property
 	file_dialog.file_selected.connect(func(path: String):
 		if graph_node.has_meta("brick_data"):
 			var brick_data = graph_node.get_meta("brick_data")
 			brick_data["brick_instance"].set_property(property_name, path)
-			
+
 			# Update the LineEdit to show just the filename
 			for child in graph_node.get_children():
 				if child.has_meta("property_name") and child.get_meta("property_name") == property_name:
@@ -1644,17 +1757,16 @@ func _on_file_picker_pressed(graph_node: GraphNode, property_name: String, filte
 						line_edit.text = path.get_file()
 						line_edit.tooltip_text = path
 					break
-			
+
 			panel._save_graph_to_metadata()
-			#print("Logic Bricks: Property '%s' set to: %s" % [property_name, path])
 		file_dialog.queue_free()
 	)
-	
+
 	# Close dialog if cancelled
 	file_dialog.canceled.connect(func():
 		file_dialog.queue_free()
 	)
-	
+
 	# Add to scene tree and show
 	panel.add_child(file_dialog)
 	file_dialog.popup_centered_ratio(0.6)

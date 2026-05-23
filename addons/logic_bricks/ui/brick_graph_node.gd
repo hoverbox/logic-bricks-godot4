@@ -14,11 +14,11 @@ func _init() -> void:
 	resizable = false
 	draggable = true
 	selectable = true
-	
+
 	# Create main container
 	var vbox = VBoxContainer.new()
 	add_child(vbox)
-	
+
 	# Properties container
 	properties_container = VBoxContainer.new()
 	vbox.add_child(properties_container)
@@ -26,14 +26,14 @@ func _init() -> void:
 
 func setup(brick) -> void:
 	brick_instance = brick
-	
+
 	if not brick_instance:
 		return
-	
+
 	# Clear existing properties
 	for child in properties_container.get_children():
 		child.queue_free()
-	
+
 	# Create property editors
 	var property_defs = brick_instance.get_property_definitions()
 	for prop_def in property_defs:
@@ -44,16 +44,16 @@ func _create_property_editor(prop_def: Dictionary) -> void:
 	var prop_name = prop_def["name"]
 	var prop_type = prop_def["type"]
 	var current_value = brick_instance.get_property(prop_name, prop_def.get("default"))
-	
+
 	# Create label
 	var hbox = HBoxContainer.new()
 	properties_container.add_child(hbox)
-	
+
 	var label = Label.new()
 	label.text = prop_name.capitalize() + ":"
 	label.custom_minimum_size = Vector2(80, 0)
 	hbox.add_child(label)
-	
+
 	# Create editor based on type
 	match prop_type:
 		TYPE_BOOL:
@@ -61,7 +61,7 @@ func _create_property_editor(prop_def: Dictionary) -> void:
 			check_box.button_pressed = current_value
 			check_box.toggled.connect(func(pressed): _on_property_changed(prop_name, pressed))
 			hbox.add_child(check_box)
-		
+
 		TYPE_INT:
 			if prop_def.get("hint") == PROPERTY_HINT_ENUM:
 				var option_button = OptionButton.new()
@@ -91,7 +91,7 @@ func _create_property_editor(prop_def: Dictionary) -> void:
 				spin_box.custom_minimum_size = Vector2(80, 0)
 				spin_box.value_changed.connect(func(value): _on_property_changed(prop_name, int(value)))
 				hbox.add_child(spin_box)
-		
+
 		TYPE_FLOAT:
 			var spin_box = SpinBox.new()
 			spin_box.value = current_value
@@ -101,7 +101,7 @@ func _create_property_editor(prop_def: Dictionary) -> void:
 			spin_box.custom_minimum_size = Vector2(80, 0)
 			spin_box.value_changed.connect(func(value): _on_property_changed(prop_name, value))
 			hbox.add_child(spin_box)
-		
+
 		TYPE_STRING:
 			if prop_def.get("hint") == PROPERTY_HINT_ENUM:
 				var option_button = OptionButton.new()

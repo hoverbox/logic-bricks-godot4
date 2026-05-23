@@ -79,7 +79,7 @@ func get_tooltip_definitions() -> Dictionary:
 		"action_name": "Input Map action name (e.g. 'jump', 'ui_accept'). Ignored by Any modes.",
 		"negative_action": "Input Map action for the -1 direction.\nExample: 'move_left', 'move_forward', 'look_down'\nMust match an action in Project > Input Map.",
 		"positive_action": "Input Map action for the +1 direction.\nExample: 'move_right', 'move_back', 'look_up'\nMust match an action in Project > Input Map.",
-		"invert": "Invert the sensor result.\nButton modes: active when action is NOT pressed.\nAny modes: active when no Input Map action matches.\nAxis mode: flips the axis value.",
+		"invert": "Invert the sensor result.\nButton modes: active when action is NOT pressed.\nAny modes: active when no Input Map action matches.\nAxis mode: active when the axis is NOT moved past the deadzone.",
 		"store_in": "Variable name to store the axis value (-1.0 to 1.0).\nCreate this variable in the Variables tab.\nThen use it in a Motion actuator field (e.g. 'up * speed').",
 		"deadzone": "Ignore stick values smaller than this.\nPrevents drift from loose joysticks.\n0.1 is a good default.",
 	}
@@ -158,16 +158,18 @@ func _generate_axis_code() -> Dictionary:
 		return {"sensor_code": "var sensor_active = false  # Axis: actions not set"}
 
 	var axis_expr = "Input.get_axis(\"%s\", \"%s\")" % [neg_action, pos_action]
-	if invert:
-		axis_expr = "-(%s)" % axis_expr
-
 	var code_lines: Array[String] = []
 
-	# Store in variable if specified
+	# Axis invert must invert the final boolean sensor result, not the numeric axis.
+	# Negating the axis value does not make the sensor inactive because absf(-axis) == absf(axis).
+	# This matters for idle logic such as: NOT horizontal AND NOT vertical.
 	if not store_var.is_empty():
 		code_lines.append("%s = %s" % [store_var, axis_expr])
 		code_lines.append("var sensor_active = absf(%s) > %.3f" % [store_var, deadzone])
 	else:
 		code_lines.append("var sensor_active = absf(%s) > %.3f" % [axis_expr, deadzone])
+
+	if invert:
+		code_lines.append("sensor_active = not sensor_active")
 
 	return {"sensor_code": "\n".join(code_lines)}

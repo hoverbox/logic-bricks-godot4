@@ -100,7 +100,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if variable_name.is_empty():
 				code_lines.append("\tpush_warning(\"Text Actuator: No variable name specified\")")
 			else:
-				# Direct variable access — works with local vars, @export vars, 
+				# Direct variable access — works with local vars, @export vars,
 				# and global proxy vars (getter reads from GlobalVars automatically)
 				code_lines.append("\tvar _value = str(%s)" % variable_name)
 
