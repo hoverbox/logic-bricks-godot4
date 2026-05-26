@@ -93,6 +93,7 @@ const ACTUATOR_SIGNATURES: Array = [
 	["# Apply initial velocity",           "EditObjectActuator"],
 	["# Object Pool",                      "ObjectPoolActuator"],
 	["# Object Flash Actuator",            "ObjectFlashActuator"],
+	["# Object Shake Actuator",            "ObjectShakeActuator"],
 	["# Parent",                           "ParentActuator"],
 	["# Search for node by name",          "ParentActuator"],
 	["# Restart current scene",            "SceneActuator"],

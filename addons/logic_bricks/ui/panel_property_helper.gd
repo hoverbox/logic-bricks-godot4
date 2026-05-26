@@ -1672,22 +1672,28 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
 	if brick_data.get("brick_type", "") == "controller" and property_name in ["state_id", "all_states", "logic_mode"]:
 		_update_controller_title(graph_node, brick_instance)
 
-	# When a screen shake preset is selected, populate the value fields
-	if brick_class == "ScreenShakeActuator" and property_name == "preset":
-		if brick_instance.has_method("get_preset_values"):
-			var preset_vals = brick_instance.get_preset_values(str(value))
-			if preset_vals.size() == 4:
-				var field_names = ["trauma", "max_offset", "decay", "noise_speed"]
-				for i in field_names.size():
-					var fname = field_names[i]
-					var fval = preset_vals[i]
-					brick_instance.set_property(fname, fval)
-					for child in graph_node.get_children():
-						if child.has_meta("property_name") and child.get_meta("property_name") == fname:
-							var ctrl = child.find_child("PropertyControl_" + fname, true, false)
-							if ctrl and ctrl is LineEdit:
-								ctrl.text = fval
-							break
+	# When a preset is selected, populate the related value fields.
+	# Presets only write to the editable fields below them; the fields can still be numbers or variable names.
+	if ((property_name == "preset") or (brick_class == "ObjectShakeActuator" and property_name == "shake_type")) and brick_instance.has_method("get_preset_values"):
+		var selected_preset = str(value) if property_name == "preset" else str(brick_instance.get_property("preset"))
+		var preset_vals = brick_instance.get_preset_values(selected_preset)
+		var field_names = []
+		if brick_class == "ScreenShakeActuator" and preset_vals.size() == 4:
+			field_names = ["trauma", "max_offset", "decay", "noise_speed"]
+		elif brick_class == "ObjectShakeActuator" and preset_vals.size() == 3:
+			field_names = ["x", "y", "z"]
+
+		if field_names.size() == preset_vals.size():
+			for i in field_names.size():
+				var fname = field_names[i]
+				var fval = preset_vals[i]
+				brick_instance.set_property(fname, fval)
+				for child in graph_node.get_children():
+					if child.has_meta("property_name") and child.get_meta("property_name") == fname:
+						var ctrl = child.find_child("PropertyControl_" + fname, true, false)
+						if ctrl and ctrl is LineEdit:
+							ctrl.text = fval
+						break
 
 	panel._save_graph_to_metadata()
 

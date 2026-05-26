@@ -374,6 +374,7 @@ func _create_add_menu() -> void:
 			"items": [
 				["Screen Flash", 335, "ScreenFlashActuator", "Flash a color over the screen.\n⚠ Adds @export in Inspector — assign a full-screen ColorRect."],
 				["Object Flash", 348, "ObjectFlashActuator", "Flash a named object or mesh with a color overlay.\nType a node name, not a path. Use self to flash the current object."],
+				["Object Shake", 352, "ObjectShakeActuator", "Shake a named child object by rotation, translation, or scale, then return it to its starting value.\nType a node name, not a path. Add multiple actuators for multiple shake effects."],
 				["Rumble", 336, "RumbleActuator", "Trigger controller haptic vibration."],
 			]
 		},
@@ -1862,6 +1863,8 @@ func _create_brick_instance(brick_class: String):
 			script_path = "res://addons/logic_bricks/bricks/actuators/3d/screen_flash_actuator.gd"
 		"ObjectFlashActuator":
 			script_path = "res://addons/logic_bricks/bricks/actuators/3d/object_flash_actuator.gd"
+		"ObjectShakeActuator":
+			script_path = "res://addons/logic_bricks/bricks/actuators/3d/object_shake_actuator.gd"
 		"RumbleActuator":
 			script_path = "res://addons/logic_bricks/bricks/actuators/3d/rumble_actuator.gd"
 		"ShaderParamActuator":
