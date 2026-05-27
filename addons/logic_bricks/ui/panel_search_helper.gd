@@ -52,6 +52,7 @@ const SEARCH_BRICKS: Array = [
 	["Screen Flash", "actuator", "ScreenFlashActuator"],
 	["Object Flash", "actuator", "ObjectFlashActuator"],
 	["Object Shake", "actuator", "ObjectShakeActuator"],
+	["Hit Stop", "actuator", "HitStopActuator"],
 	["Rumble", "actuator", "RumbleActuator"],
 	["Text", "actuator", "TextActuator"],
 	["Modulate", "actuator", "ModulateActuator"],

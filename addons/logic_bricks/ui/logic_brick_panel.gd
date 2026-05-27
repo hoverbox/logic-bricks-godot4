@@ -356,7 +356,6 @@ func _create_add_menu() -> void:
 				["Set Camera", 302, "SetCameraActuator", "Makes the assigned Camera3D the active camera for the viewport.\n⚠ Adds @export in Inspector — assign your Camera3D."],
 				["Smooth Follow Camera", 345, "SmoothFollowCameraActuator", "Camera smoothly follows this node, maintaining its initial offset.\nSupports per-axis position/rotation follow, dead zones, and independent speeds.\n⚠ Adds @export in Inspector — assign your Camera3D."],
 				["Camera Zoom", 332, "CameraZoomActuator", "Change camera FOV (3D) or zoom (2D) with optional lerp.\n⚠ Adds @export in Inspector — assign your camera."],
-				["Screen Shake", 333, "ScreenShakeActuator", "Trauma-based camera shake. Attach to your Camera3D node."],
 				["3rd Person Camera", 338, "ThirdPersonCameraActuator", "Mouse and/or joystick orbit camera for third-person games.\nAssign a SpringArm3D or pivot node as the camera mount."],
 				["Split Screen", 344, "SplitScreenActuator", "Positions SubViewportContainers for 2-4 player split screen.\n⚠ Adds @export slots in Inspector — assign your SubViewportContainers."],
 			]
@@ -373,8 +372,10 @@ func _create_add_menu() -> void:
 			"label": "Game Feel",
 			"items": [
 				["Screen Flash", 335, "ScreenFlashActuator", "Flash a color over the screen.\n⚠ Adds @export in Inspector — assign a full-screen ColorRect."],
+				["Screen Shake", 333, "ScreenShakeActuator", "Trauma-based camera shake. Attach to your Camera3D node."],
 				["Object Flash", 348, "ObjectFlashActuator", "Flash a named object or mesh with a color overlay.\nType a node name, not a path. Use self to flash the current object."],
 				["Object Shake", 352, "ObjectShakeActuator", "Shake a named child object by rotation, translation, or scale, then return it to its starting value.\nType a node name, not a path. Add multiple actuators for multiple shake effects."],
+				["Hit Stop", 353, "HitStopActuator", "Briefly pauses or slows game time when an impact lands. Also called hit pause or impact freeze."],
 				["Rumble", 336, "RumbleActuator", "Trigger controller haptic vibration."],
 			]
 		},
@@ -1865,6 +1866,8 @@ func _create_brick_instance(brick_class: String):
 			script_path = "res://addons/logic_bricks/bricks/actuators/3d/object_flash_actuator.gd"
 		"ObjectShakeActuator":
 			script_path = "res://addons/logic_bricks/bricks/actuators/3d/object_shake_actuator.gd"
+		"HitStopActuator":
+			script_path = "res://addons/logic_bricks/bricks/actuators/3d/hit_stop_actuator.gd"
 		"RumbleActuator":
 			script_path = "res://addons/logic_bricks/bricks/actuators/3d/rumble_actuator.gd"
 		"ShaderParamActuator":

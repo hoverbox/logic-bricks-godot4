@@ -94,6 +94,8 @@ const ACTUATOR_SIGNATURES: Array = [
 	["# Object Pool",                      "ObjectPoolActuator"],
 	["# Object Flash Actuator",            "ObjectFlashActuator"],
 	["# Object Shake Actuator",            "ObjectShakeActuator"],
+	["# Hit Stop Actuator",              "HitStopActuator"],
+	["_hit_stop_active_",                "HitStopActuator"],
 	["# Parent",                           "ParentActuator"],
 	["# Search for node by name",          "ParentActuator"],
 	["# Restart current scene",            "SceneActuator"],
@@ -604,16 +606,20 @@ func _parse_mouse_sensor_props(segment: String) -> Dictionary:
 	if "MOUSE_BUTTON_LEFT" in segment: props["mouse_button"] = "left"
 	elif "MOUSE_BUTTON_RIGHT" in segment: props["mouse_button"] = "right"
 	elif "MOUSE_BUTTON_MIDDLE" in segment: props["mouse_button"] = "middle"
-	elif "MOUSE_BUTTON_WHEEL_UP" in segment: props["mouse_button"] = "wheel_up"
-	elif "MOUSE_BUTTON_WHEEL_DOWN" in segment: props["mouse_button"] = "wheel_down"
-	if "# Mouse movement detection" in segment: props["mouse_event"] = "movement"
-	elif "# Hover over this object" in segment: props["mouse_event"] = "hover_object"
-	elif "# Hover over any object" in segment: props["mouse_event"] = "hover_any"
-	elif "was_pressed" in segment and "not _is_pressed" in segment: props["mouse_event"] = "just_released"
-	elif "was_pressed" in segment: props["mouse_event"] = "just_pressed"
-	elif "Input.is_mouse_button_pressed(" in segment: props["mouse_event"] = "pressed"
+	elif "MOUSE_BUTTON_WHEEL_UP" in segment: props["wheel_direction"] = "up"
+	elif "MOUSE_BUTTON_WHEEL_DOWN" in segment: props["wheel_direction"] = "down"
+	if "# Mouse movement detection" in segment: props["detection_type"] = "movement"
+	elif "# Hover over target object" in segment or "# Hover over this object" in segment: props["detection_type"] = "hover_object"
+	elif "# Hover over any object" in segment: props["detection_type"] = "hover_any"
+	elif "MOUSE_BUTTON_WHEEL_UP" in segment or "MOUSE_BUTTON_WHEEL_DOWN" in segment: props["detection_type"] = "wheel"
+	elif "Input.is_mouse_button_pressed(" in segment: props["detection_type"] = "button"
+	if "was_pressed" in segment and "not _is_pressed" in segment: props["button_state"] = "released"
+	elif "was_pressed" in segment: props["button_state"] = "pressed"
+	elif "Input.is_mouse_button_pressed(" in segment: props["button_state"] = "held"
 	var rx := RegEx.new(); rx.compile(r'length\(\)\s*>\s*([0-9.]+)')
 	var m := rx.search(segment); if m: props["movement_threshold"] = m.get_string(1)
+	var target_rx := RegEx.new(); target_rx.compile(r'var _hover_target = get_node_or_null\("([^"]+)"\)')
+	var tm := target_rx.search(segment); if tm: props["target_node_name"] = tm.get_string(1)
 	return props
 
 

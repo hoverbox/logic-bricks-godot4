@@ -18,7 +18,7 @@ func _initialize_properties() -> void:
 		"button_state": "pressed",      # pressed, released, held (for button type)
 		"wheel_direction": "up",        # up, down (for wheel type)
 		"movement_threshold": 0.1,      # Minimum movement to trigger (for movement type)
-		"area_node_name": "MouseArea"   # Area3D child for hover detection
+		"target_node_name": "self"      # Node to test for Hover Object; self or child node name
 	}
 
 
@@ -58,9 +58,9 @@ func get_property_definitions() -> Array:
 			"default": 0.1
 		},
 		{
-			"name": "area_node_name",
+			"name": "target_node_name",
 			"type": TYPE_STRING,
-			"default": "MouseArea"
+			"default": "self"
 		}
 	]
 
@@ -71,7 +71,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var button_state = properties.get("button_state", "pressed")
 	var wheel_direction = properties.get("wheel_direction", "up")
 	var movement_threshold = properties.get("movement_threshold", 0.1)
-	var area_node_name = properties.get("area_node_name", "MouseArea")
+	var target_node_name = properties.get("target_node_name", "self")
+	# Backward compatibility for older bricks that saved the old Area3D-specific field.
+	# Treat the old default as self, but preserve any custom name the user typed.
+	if not properties.has("target_node_name") and properties.has("area_node_name"):
+		var old_area_name = str(properties.get("area_node_name", "")).strip_edges()
+		if not old_area_name.is_empty() and old_area_name != "MouseArea" and old_area_name != "Mouse Area":
+			target_node_name = old_area_name
 
 	# Normalize
 	if typeof(detection_type) == TYPE_STRING:
@@ -158,22 +164,27 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("%s = _current_pos" % last_pos_var)
 
 		"hover_object":
-			code_lines.append("# Hover over this object detection")
+			code_lines.append("# Hover over target object detection")
 			code_lines.append("var sensor_active = false")
-			code_lines.append("if has_node(\"%s\"):" % area_node_name)
-			code_lines.append("\tvar _area = get_node(\"%s\")" % area_node_name)
-			code_lines.append("\tif _area is Area3D:")
-			code_lines.append("\t\tvar _camera = get_viewport().get_camera_3d()")
-			code_lines.append("\t\tif _camera:")
-			code_lines.append("\t\t\tvar _mouse_pos = get_viewport().get_mouse_position()")
-			code_lines.append("\t\t\tvar _from = _camera.project_ray_origin(_mouse_pos)")
-			code_lines.append("\t\t\tvar _to = _from + _camera.project_ray_normal(_mouse_pos) * 1000.0")
-			code_lines.append("\t\t\t")
-			code_lines.append("\t\t\tvar _space_state = get_world_3d().direct_space_state")
-			code_lines.append("\t\t\tvar _query = PhysicsRayQueryParameters3D.create(_from, _to)")
-			code_lines.append("\t\t\tvar _result = _space_state.intersect_ray(_query)")
-			code_lines.append("\t\t\t")
-			code_lines.append("\t\t\tif _result and _result.collider == self:")
+			var escaped_target = str(target_node_name).replace("\"", "\\\"").strip_edges()
+			if escaped_target.is_empty() or escaped_target == "self":
+				code_lines.append("var _hover_target = self")
+			else:
+				code_lines.append("var _hover_target = get_node_or_null(\"%s\")" % escaped_target)
+			code_lines.append("if _hover_target:")
+			code_lines.append("\tvar _camera = get_viewport().get_camera_3d()")
+			code_lines.append("\tif _camera:")
+			code_lines.append("\t\tvar _mouse_pos = get_viewport().get_mouse_position()")
+			code_lines.append("\t\tvar _from = _camera.project_ray_origin(_mouse_pos)")
+			code_lines.append("\t\tvar _to = _from + _camera.project_ray_normal(_mouse_pos) * 1000.0")
+			code_lines.append("\t\t")
+			code_lines.append("\t\tvar _space_state = get_world_3d().direct_space_state")
+			code_lines.append("\t\tvar _query = PhysicsRayQueryParameters3D.create(_from, _to)")
+			code_lines.append("\t\tvar _result = _space_state.intersect_ray(_query)")
+			code_lines.append("\t\t")
+			code_lines.append("\t\tif _result:")
+			code_lines.append("\t\t\tvar _hover_collider = _result.collider")
+			code_lines.append("\t\t\tif _hover_collider == _hover_target or _hover_target.is_ancestor_of(_hover_collider):")
 			code_lines.append("\t\t\t\tsensor_active = true")
 
 		"hover_any":

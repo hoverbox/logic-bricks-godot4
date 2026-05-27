@@ -56,9 +56,13 @@ const TOOLTIPS = {
 	},
 
 	"MouseSensor": {
-		"_description": "Detects mouse button presses and releases.",
-		"button": "Which mouse button to detect: Left, Right, or Middle.",
-		"input_type": "When to activate: Pressed (held), Just Pressed (single frame), or Just Released.",
+		"_description": "Detects mouse buttons, wheel movement, mouse motion, and mouse hover ray hits.",
+		"detection_type": "What mouse event to detect: Button, Wheel, Movement, Hover Object, or Hover Any.",
+		"mouse_button": "Which mouse button to detect: Left, Right, or Middle.",
+		"button_state": "When to activate: Pressed, Released, or Held.",
+		"wheel_direction": "Which wheel direction to detect.",
+		"movement_threshold": "Minimum mouse movement before the sensor activates.",
+		"target_node_name": "For Hover Object: self, or the name/path of a child node to detect under the mouse. The target or one of its child collision objects must be hit by the ray.",
 	},
 
 	"MovementSensor": {
@@ -258,16 +262,23 @@ const TOOLTIPS = {
 	},
 
 	"MouseActuator": {
-		"_description": "Controls mouse-based camera rotation.\nApplies mouse movement to rotate the node or a camera.",
-		"sensitivity_x": "Horizontal mouse sensitivity. Higher = faster turning.",
-		"sensitivity_y": "Vertical mouse sensitivity. Higher = faster looking up/down.",
+		"_description": "Controls cursor visibility, mouse-look rotation, and mouse cursor world interactions.",
+		"mode": "Cursor Visibility: show/hide the OS cursor.\nMouse Look: rotate from mouse movement.\nLook Towards: face the world point under the cursor.\nMove Towards Cursor: continuously move toward the world point under the cursor.\nMove To Mouse Click: store the clicked world point and move to it.",
+		"cursor_visible": "Show or hide the OS mouse cursor.",
+		"x_sensitivity": "Horizontal mouse-look sensitivity. Higher = faster turning.",
+		"y_sensitivity": "Vertical mouse-look sensitivity. Higher = faster looking up/down.",
 		"x_threshold": "Minimum horizontal mouse movement to register.",
 		"y_threshold": "Minimum vertical mouse movement to register.",
-		"invert_x": "Invert horizontal mouse direction.",
-		"invert_y": "Invert vertical mouse direction.",
-		"clamp_y_min": "Minimum vertical angle in degrees (looking down limit).",
-		"clamp_y_max": "Maximum vertical angle in degrees (looking up limit).",
-		"camera_node": "Path to the camera node for vertical rotation (pitch).",
+		"x_invert": "Invert horizontal mouse-look direction.",
+		"y_invert": "Invert vertical mouse-look direction.",
+		"mouse_target": "Node to rotate or move. Use self, or a child node path/name.",
+		"mouse_velocity": "Movement speed in units per second. Accepts numbers, variables, or expressions.",
+		"mouse_acceleration": "Acceleration rate. 0 = instant full speed. Accepts numbers, variables, or expressions.",
+		"mouse_turn_speed": "Rotation speed in degrees/sec. 0 = instant. Accepts numbers, variables, or expressions.",
+		"mouse_arrival_distance": "Distance at which the move-to point is considered reached.",
+		"mouse_facing_axis": "Which local axis points toward the cursor world point.",
+		"mouse_lock_y": "Keep movement/aiming flat on the XZ plane.",
+		"click_button": "Mouse button that stores the Move To Mouse Click destination.",
 	},
 
 	"MoveTowardsActuator": {
@@ -387,6 +398,16 @@ const TOOLTIPS = {
 		"fade_in_time": "Fade in duration in seconds. 0 = instant.",
 		"fade_out_time": "Fade out duration in seconds. 0 = instant.",
 	},
+
+
+	"HitStopActuator": {
+		"_description": "Briefly pauses or slows game time when an impact lands.\nUse for attacks, damage, blocks, heavy landings, and breaks.\nThis is also called hit pause or impact freeze.",
+		"preset": "Starting feel for the hit stop.\nTiny: subtle tap.\nLight: small hit.\nMedium: normal attack impact.\nHeavy: big hit or explosion.\nCustom: use your own Duration and Time Scale values.",
+		"duration": "How long the stop lasts in real seconds.\nTypical values are 0.03 to 0.12 seconds.\nAccepts a number, variable, or expression.",
+		"time_scale": "How frozen the game becomes during hit stop.\n0.0 = full freeze.\n0.05 = almost frozen.\n0.2 = slow motion instead of a hard freeze.\nAccepts a number, variable, or expression.",
+		"restart_if_active": "Off: ignore repeated triggers while hit stop is already running.\nOn: a new hit can restart/replace the current hit stop.",
+	},
+
 
 	"StateActuator": {
 		"_description": "Changes the logic brick state (1-30).\nOnly chains assigned to the active state will run.",

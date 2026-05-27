@@ -1170,6 +1170,7 @@ func _logic_brick_actuator_is_timing_sensitive_non_physics(brick_type: String) -
 		"CameraZoomActuator",
 		"EnvironmentActuator",
 		"GameActuator",
+		"HitStopActuator",
 		"MusicActuator",
 		"ObjectFlashActuator",
 		"ObjectShakeActuator",
@@ -1240,6 +1241,7 @@ const BRICK_SCRIPT_REGISTRY: Dictionary = {
 	"ForceActuator":             "res://addons/logic_bricks/bricks/actuators/3d/force_actuator.gd",
 	"GameActuator":              "res://addons/logic_bricks/bricks/actuators/3d/game_actuator.gd",
 	"GravityActuator":           "res://addons/logic_bricks/bricks/actuators/3d/gravity_actuator.gd",
+	"HitStopActuator":          "res://addons/logic_bricks/bricks/actuators/3d/hit_stop_actuator.gd",
 	"ImpulseActuator":           "res://addons/logic_bricks/bricks/actuators/3d/impulse_actuator.gd",
 	"JumpActuator":              "res://addons/logic_bricks/bricks/actuators/3d/jump_actuator.gd",  # Legacy
 	"LightActuator":             "res://addons/logic_bricks/bricks/actuators/3d/light_actuator.gd",

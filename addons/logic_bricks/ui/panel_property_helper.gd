@@ -1273,8 +1273,10 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = (detection_type == "wheel")
 						"movement_threshold":
 							child.visible = (detection_type == "movement")
-						"area_node_name":
+						"target_node_name":
 							child.visible = (detection_type == "hover_object")
+						"area_node_name":
+							child.visible = false
 
 		"mouse_actuator":  # Mouse Actuator
 			var mode = properties.get("mode", "cursor_visibility")
@@ -1290,8 +1292,16 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 					match prop_name:
 						"cursor_visible":
 							child.visible = (mode == "cursor_visibility")
-						"use_x_axis", "use_y_axis", "x_sensitivity", "y_sensitivity", "x_threshold", "y_threshold", "x_min_degrees", "x_max_degrees", "y_min_degrees", "y_max_degrees", "x_rotation_axis", "y_rotation_axis", "x_use_local", "y_use_local", "recenter_cursor":
+						"use_x_axis", "use_y_axis", "x_target", "y_target", "x_sensitivity", "y_sensitivity", "x_invert", "y_invert", "x_threshold", "y_threshold", "x_min_degrees", "x_max_degrees", "y_min_degrees", "y_max_degrees", "x_rotation_axis", "y_rotation_axis", "x_use_local", "y_use_local", "recenter_cursor":
 							child.visible = (mode == "mouse_look")
+						"mouse_turn_speed", "mouse_facing_axis":
+							child.visible = (mode == "look_towards")
+						"mouse_target", "mouse_lock_y":
+							child.visible = (mode in ["look_towards", "move_towards_cursor", "move_to_mouse_click"])
+						"mouse_velocity", "mouse_acceleration", "mouse_arrival_distance":
+							child.visible = (mode in ["move_towards_cursor", "move_to_mouse_click"])
+						"click_button":
+							child.visible = (mode == "move_to_mouse_click")
 
 		"edit_object_actuator":  # Edit Object Actuator
 			var edit_type = properties.get("edit_type", "end")
@@ -1680,6 +1690,8 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
 		var field_names = []
 		if brick_class == "ScreenShakeActuator" and preset_vals.size() == 4:
 			field_names = ["trauma", "max_offset", "decay", "noise_speed"]
+		elif brick_class == "HitStopActuator" and preset_vals.size() == 2:
+			field_names = ["duration", "time_scale"]
 		elif brick_class == "ObjectShakeActuator" and preset_vals.size() == 3:
 			field_names = ["x", "y", "z"]
 
