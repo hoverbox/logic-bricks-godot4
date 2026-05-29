@@ -2,7 +2,7 @@
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Animation Tree Sensor - Monitors an AnimationTree's state and parameters
-## The AnimationTree is assigned via @export (drag and drop in inspector)
+## The AnimationTree is found by typed node name
 ##
 ## Modes:
 ##   Current State: True when the state machine is in a specific state
@@ -18,6 +18,7 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
+		"animation_tree_node_name": "AnimationTree",
 		"mode": "current_state",       # current_state, condition, parameter_compare
 		# Current State mode
 		"state_name": "",              # State to check for
@@ -34,6 +35,12 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
+		{
+			"name": "animation_tree_node_name",
+			"type": TYPE_STRING,
+			"default": "AnimationTree",
+			"placeholder": "AnimationTree node name"
+		},
 		{
 			"name": "mode",
 			"type": TYPE_STRING,
@@ -82,6 +89,7 @@ func get_property_definitions() -> Array:
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
+	var animation_tree_node_name = str(properties.get("animation_tree_node_name", "AnimationTree")).strip_edges()
 	var mode = properties.get("mode", "current_state")
 	if typeof(mode) == TYPE_STRING:
 		mode = mode.to_lower().replace(" ", "_")
@@ -90,10 +98,21 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var member_vars: Array[String] = []
 	var code_lines: Array[String] = []
 
-	member_vars.append("@export var %s: AnimationTree" % anim_tree_var)
+	member_vars.append("var %s: AnimationTree = null" % anim_tree_var)
+	_append_find_node_helpers(member_vars)
 
 	code_lines.append("# Animation Tree sensor")
 	code_lines.append("var sensor_active = false")
+	code_lines.append("var _node_name_%s = \"%s\"" % [chain_name, _gd_string(animation_tree_node_name)])
+	code_lines.append("if _node_name_%s.is_empty():" % chain_name)
+	code_lines.append("\tpush_warning(\"Animation Tree Sensor: No node name set\")")
+	code_lines.append("\t" + anim_tree_var + " = null")
+	code_lines.append("elif " + anim_tree_var + " == null or " + anim_tree_var + ".name != _node_name_%s:" % chain_name)
+	code_lines.append("\tvar _found_node_%s = _lb_find_node_in_current_scene(_node_name_%s)" % [chain_name, chain_name])
+	code_lines.append("\tif _found_node_%s is AnimationTree:" % chain_name)
+	code_lines.append("\t\t" + anim_tree_var + " = _found_node_%s" % chain_name)
+	code_lines.append("\telif _found_node_%s:" % chain_name)
+	code_lines.append("\t\tpush_warning(\"Animation Tree Sensor: node '\" + str(_node_name_%s) + \"' is not a AnimationTree\")" % chain_name)
 	code_lines.append("if %s:" % anim_tree_var)
 
 	match mode:
@@ -157,3 +176,28 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"sensor_code": "\n".join(code_lines),
 		"member_vars": member_vars
 	}
+
+
+func _append_find_node_helpers(member_vars: Array[String]) -> void:
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_by_name_recursive(node: Node, target_name: String) -> Node:")
+	member_vars.append("\tif node == null or target_name.is_empty():")
+	member_vars.append("\t\treturn null")
+	member_vars.append("\tif node.name == target_name:")
+	member_vars.append("\t\treturn node")
+	member_vars.append("\tfor child in node.get_children():")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(child, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn null")
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_in_current_scene(target_name: String) -> Node:")
+	member_vars.append("\tvar scene_root = get_tree().current_scene")
+	member_vars.append("\tif scene_root:")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(scene_root, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn _lb_find_node_by_name_recursive(get_tree().root, target_name)")
+
+func _gd_string(value: String) -> String:
+	return value.replace("\\", "\\\\").replace("\"", "\\\"")

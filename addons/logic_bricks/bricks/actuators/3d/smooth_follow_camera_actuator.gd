@@ -5,7 +5,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ## Smooth Follow Camera Actuator
 ## Camera smoothly follows this node while maintaining its initial offset.
 ## Supports per-axis position and rotation follow, dead zones, and independent speeds.
-## Assign your Camera3D via the @export in the Inspector.
+## Type your Camera3D node name.
 ##
 ## The offset is captured lazily on the first execution frame (not in _ready) so
 ## that other actuators which reposition nodes in their first frame have already
@@ -20,6 +20,7 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
+		"camera_node_name": "Camera3D",
 		"follow_speed": 5.0,
 		"dead_zone_x": 0.0,
 		"dead_zone_y": 0.0,
@@ -36,6 +37,12 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
+		{
+			"name": "camera_node_name",
+			"type": TYPE_STRING,
+			"default": "Camera3D",
+			"placeholder": "Camera3D node name"
+		},
 		{
 			"name": "follow_speed",
 			"type": TYPE_FLOAT,
@@ -112,6 +119,7 @@ func get_tooltip_definitions() -> Dictionary:
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
+	var camera_node_name = str(properties.get("camera_node_name", "Camera3D")).strip_edges()
 	var follow_speed   = properties.get("follow_speed",   5.0)
 	var follow_pos_x   = properties.get("follow_pos_x",   true)
 	var follow_pos_y   = properties.get("follow_pos_y",   true)
@@ -137,7 +145,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var init_flag_var  = "_%s_ready"    % _base
 
 	var member_vars: Array[String] = []
-	member_vars.append("@export var %s: Camera3D" % camera_var)
+	member_vars.append("var %s: Camera3D = null" % camera_var)
+	_append_find_node_helpers(member_vars)
 	member_vars.append("var %s: Vector3 = Vector3.ZERO" % offset_var)
 	member_vars.append("var %s: Vector3 = Vector3.ZERO" % rot_offset_var)
 	member_vars.append("var %s: bool = false" % init_flag_var)
@@ -145,6 +154,16 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var lines: Array[String] = []
 
 	lines.append("# Smooth Follow Camera — tracks this node while maintaining initial offset")
+	lines.append("var _node_name_%s = \"%s\"" % [chain_name, _gd_string(camera_node_name)])
+	lines.append("if _node_name_%s.is_empty():" % chain_name)
+	lines.append("\tpush_warning(\"Smooth Follow Camera: No node name set\")")
+	lines.append("\t" + camera_var + " = null")
+	lines.append("elif " + camera_var + " == null or " + camera_var + ".name != _node_name_%s:" % chain_name)
+	lines.append("\tvar _found_node_%s = _lb_find_node_in_current_scene(_node_name_%s)" % [chain_name, chain_name])
+	lines.append("\tif _found_node_%s is Camera3D:" % chain_name)
+	lines.append("\t\t" + camera_var + " = _found_node_%s" % chain_name)
+	lines.append("\telif _found_node_%s:" % chain_name)
+	lines.append("\t\tpush_warning(\"Smooth Follow Camera: node '\" + str(_node_name_%s) + \"' is not a Camera3D\")" % chain_name)
 	lines.append("if not %s:" % camera_var)
 	lines.append("\tpush_warning(\"Smooth Follow Camera: No Camera3D assigned to '%s' — drag one into the inspector\")" % camera_var)
 	lines.append("else:")
@@ -249,3 +268,28 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"actuator_code": "\n".join(lines),
 		"member_vars": member_vars
 	}
+
+
+func _append_find_node_helpers(member_vars: Array[String]) -> void:
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_by_name_recursive(node: Node, target_name: String) -> Node:")
+	member_vars.append("\tif node == null or target_name.is_empty():")
+	member_vars.append("\t\treturn null")
+	member_vars.append("\tif node.name == target_name:")
+	member_vars.append("\t\treturn node")
+	member_vars.append("\tfor child in node.get_children():")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(child, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn null")
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_in_current_scene(target_name: String) -> Node:")
+	member_vars.append("\tvar scene_root = get_tree().current_scene")
+	member_vars.append("\tif scene_root:")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(scene_root, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn _lb_find_node_by_name_recursive(get_tree().root, target_name)")
+
+func _gd_string(value: String) -> String:
+	return value.replace("\\", "\\\\").replace("\"", "\\\"")

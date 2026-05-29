@@ -3,7 +3,7 @@
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Camera Actuator - Control camera behavior
-## Camera is assigned via @export variable in the inspector (drag and drop)
+## Camera is found by typed node name
 ## Modes: Set Active, Smooth Follow (with dead zone and per-axis control)
 ## The camera maintains its initial offset (distance and angle) from the target
 ## Rotation follow orbits the camera around the target, keeping it looking at the object
@@ -17,6 +17,7 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
+		"camera_node_name": "Camera3D",
 		"mode": "smooth_follow",        # set_active, smooth_follow
 		"follow_speed": 5.0,            # Position interpolation speed
 		# Dead zone — camera won't move until target exceeds this distance from offset position
@@ -38,6 +39,12 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
+		{
+			"name": "camera_node_name",
+			"type": TYPE_STRING,
+			"default": "Camera3D",
+			"placeholder": "Camera3D node name"
+		},
 		{
 			"name": "mode",
 			"type": TYPE_STRING,
@@ -111,6 +118,7 @@ func get_tooltip_definitions() -> Dictionary:
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
+	var camera_node_name = str(properties.get("camera_node_name", "Camera3D")).strip_edges()
 	var mode = properties.get("mode", "smooth_follow")
 
 	# Normalize
@@ -125,7 +133,19 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var code_lines: Array[String] = []
 
 	# Exported Camera3D variable — user assigns via inspector drag-and-drop
-	member_vars.append("@export var %s: Camera3D" % camera_var)
+	member_vars.append("var %s: Camera3D = null" % camera_var)
+	_append_find_node_helpers(member_vars)
+
+	code_lines.append("var _node_name_%s = \"%s\"" % [chain_name, _gd_string(camera_node_name)])
+	code_lines.append("if _node_name_%s.is_empty():" % chain_name)
+	code_lines.append("\tpush_warning(\"Camera Actuator: No node name set\")")
+	code_lines.append("\t" + camera_var + " = null")
+	code_lines.append("elif " + camera_var + " == null or " + camera_var + ".name != _node_name_%s:" % chain_name)
+	code_lines.append("\tvar _found_node_%s = _lb_find_node_in_current_scene(_node_name_%s)" % [chain_name, chain_name])
+	code_lines.append("\tif _found_node_%s is Camera3D:" % chain_name)
+	code_lines.append("\t\t" + camera_var + " = _found_node_%s" % chain_name)
+	code_lines.append("\telif _found_node_%s:" % chain_name)
+	code_lines.append("\t\tpush_warning(\"Camera Actuator: node '\" + str(_node_name_%s) + \"' is not a Camera3D\")" % chain_name)
 
 	match mode:
 		"set_active":
@@ -296,3 +316,28 @@ func _generate_smooth_follow_code(camera_var: String, offset_var: String, rot_of
 		lines.append("\t%s.global_rotation = _new_rot" % camera_var)
 
 	return lines
+
+
+func _append_find_node_helpers(member_vars: Array[String]) -> void:
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_by_name_recursive(node: Node, target_name: String) -> Node:")
+	member_vars.append("\tif node == null or target_name.is_empty():")
+	member_vars.append("\t\treturn null")
+	member_vars.append("\tif node.name == target_name:")
+	member_vars.append("\t\treturn node")
+	member_vars.append("\tfor child in node.get_children():")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(child, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn null")
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_in_current_scene(target_name: String) -> Node:")
+	member_vars.append("\tvar scene_root = get_tree().current_scene")
+	member_vars.append("\tif scene_root:")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(scene_root, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn _lb_find_node_by_name_recursive(get_tree().root, target_name)")
+
+func _gd_string(value: String) -> String:
+	return value.replace("\\", "\\\\").replace("\"", "\\\"")

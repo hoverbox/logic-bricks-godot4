@@ -24,6 +24,10 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
+		"camera_1_node_name": "Camera3D",
+		"camera_2_node_name": "Camera3D2",
+		"camera_3_node_name": "Camera3D3",
+		"camera_4_node_name": "Camera3D4",
 		"player_count": "2",
 		"layout_2": "vertical",
 		"layout_3": "top_wide",
@@ -34,6 +38,10 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	var layouts = "Vertical,Horizontal,2x2 Grid,Top Wide,Bottom Wide"
 	return [
+		{ "name": "camera_1_node_name", "type": TYPE_STRING, "default": "Camera3D", "placeholder": "Player 1 Camera3D node name" },
+		{ "name": "camera_2_node_name", "type": TYPE_STRING, "default": "Camera3D2", "placeholder": "Player 2 Camera3D node name" },
+		{ "name": "camera_3_node_name", "type": TYPE_STRING, "default": "Camera3D3", "placeholder": "Player 3 Camera3D node name" },
+		{ "name": "camera_4_node_name", "type": TYPE_STRING, "default": "Camera3D4", "placeholder": "Player 4 Camera3D node name" },
 		{
 			"name": "player_count",
 			"type": TYPE_STRING,
@@ -92,21 +100,24 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var layout4 = _parse_layout(str(properties.get("layout_4", "grid_2x2")))
 	var layouts = {2: layout2, 3: layout3, 4: layout4}
 
-	var cn = chain_name
+	var cn = _safe_identifier_part(chain_name)
 	var stable_name = instance_name.to_lower().replace(" ", "_") if not instance_name.is_empty() else "ss"
 	var canvas_name = "_ss_canvas_%s" % stable_name
 
 	# --- Member vars ---
 	var member_vars: Array[String] = []
-	var containers_var = "_%s_containers" % cn
-	var viewports_var  = "_%s_viewports"  % cn
-	var canvas_var     = "_%s_canvas"     % cn
+	var containers_var = "%s_containers" % cn
+	var viewports_var  = "%s_viewports"  % cn
+	var proxy_cameras_var = "%s_proxy_cameras" % cn
+	var canvas_var     = "%s_canvas"     % cn
 	member_vars.append("var %s: Array" % containers_var)
 	member_vars.append("var %s: Array"  % viewports_var)
+	member_vars.append("var %s: Array" % proxy_cameras_var)
 	member_vars.append("var %s: CanvasLayer" % canvas_var)
 	member_vars.append("var split_screen_players: int = %d" % default_player_count)
 	for i in range(4):
-		member_vars.append("@export var camera_%d: Camera3D" % (i + 1))
+		member_vars.append("var camera_%d: Camera3D = null" % (i + 1))
+	_append_find_node_helpers(member_vars)
 	if not _pc_is_literal:
 		member_vars.append("# split_screen_players is driven by: %s" % _pc_raw)
 
@@ -116,9 +127,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# with SubViewport serialization. Creating them in _ready() means they
 	# never exist in the .tscn file, so the serializer never touches them.
 	var ready_lines: Array[String] = []
+	ready_lines.append("# Split Screen: wait until the scene tree is no longer busy before adding/reparenting nodes")
+	ready_lines.append("await get_tree().process_frame")
 	ready_lines.append("# Split Screen: create SubViewports at runtime (not stored in .tscn)")
 	ready_lines.append("%s.clear()" % containers_var)
 	ready_lines.append("%s.clear()"  % viewports_var)
+	ready_lines.append("%s.clear()" % proxy_cameras_var)
 	ready_lines.append("if %s:" % canvas_var)
 	ready_lines.append("\t%s.queue_free()" % canvas_var)
 	ready_lines.append("\t%s = null" % canvas_var)
@@ -146,19 +160,61 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		ready_lines.append("%s.append(_ss_svc_%d)" % [containers_var, i])
 		ready_lines.append("var _ss_svp_%d = SubViewport.new()" % i)
 		ready_lines.append("_ss_svp_%d.name = \"%s\"" % [i, vp_name])
-		ready_lines.append("_ss_svp_%d.size = Vector2i(max(1, _ss_sw / 2), max(1, _ss_sh / 2))" % i)
+		ready_lines.append("_ss_svp_%d.size = Vector2i(int(max(1.0, _ss_sw / 2.0)), int(max(1.0, _ss_sh / 2.0)))" % i)
 		ready_lines.append("_ss_svp_%d.render_target_update_mode = SubViewport.UPDATE_DISABLED" % i)
 		ready_lines.append("_ss_svc_%d.add_child(_ss_svp_%d)" % [i, i])
 		ready_lines.append("%s.append(_ss_svp_%d)" % [viewports_var, i])
-		# Reparent user-assigned camera into this SubViewport
+		# Resolve camera by typed node name before reparenting
+		var cam_node_name = str(properties.get("camera_%d_node_name" % (i + 1), "Camera3D" if i == 0 else "Camera3D%d" % (i + 1))).strip_edges()
+		ready_lines.append("var _ss_cam_name_%d = \"%s\"" % [i + 1, _gd_string(cam_node_name)])
+		ready_lines.append("if camera_%d == null or camera_%d.name != _ss_cam_name_%d:" % [i + 1, i + 1, i + 1])
+		ready_lines.append("\tvar _ss_found_cam_%d = _lb_find_node_in_current_scene(_ss_cam_name_%d)" % [i + 1, i + 1])
+		ready_lines.append("\tif _ss_found_cam_%d is Camera3D:" % (i + 1))
+		ready_lines.append("\t\tcamera_%d = _ss_found_cam_%d" % [i + 1, i + 1])
+
+		# Do not reparent the real player camera. Moving scene-owned cameras into
+		# SubViewports during startup can collide with Godot's blocked parent setup.
+		# Instead, create a viewport-local proxy camera and sync it from the real
+		# camera every frame.
+		ready_lines.append("_ss_svp_%d.world_3d = get_tree().root.world_3d" % i)
+		ready_lines.append("var _ss_proxy_cam_%d = Camera3D.new()" % i)
+		ready_lines.append("_ss_proxy_cam_%d.name = \"_ss_proxy_camera_%d\"" % [i, i + 1])
+		ready_lines.append("_ss_svp_%d.add_child(_ss_proxy_cam_%d)" % [i, i])
+		ready_lines.append("%s.append(_ss_proxy_cam_%d)" % [proxy_cameras_var, i])
 		ready_lines.append("if camera_%d:" % (i + 1))
-		ready_lines.append("\tvar _ss_cam_parent_%d = camera_%d.get_parent()" % [i, i + 1])
-		ready_lines.append("\tif _ss_cam_parent_%d:" % i)
-		ready_lines.append("\t\t_ss_cam_parent_%d.remove_child(camera_%d)" % [i, i + 1])
-		ready_lines.append("\t_ss_svp_%d.add_child(camera_%d)" % [i, i + 1])
+		ready_lines.append("\t_ss_sync_camera_to_proxy(camera_%d, _ss_proxy_cam_%d)" % [i + 1, i])
 	ready_lines.append("await get_tree().process_frame")
 	ready_lines.append("for _ss_vp in %s:" % viewports_var)
 	ready_lines.append("\t_ss_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS")
+
+	# Move the generated split-screen setup out of _ready().
+	# Godot can still have the parent node blocked while _ready() is running,
+	# especially when this generated script is attached to a node whose children
+	# are still being constructed. Wrapping the setup in a deferred helper keeps
+	# add_child/remove_child/reparent operations out of the blocked setup pass.
+	member_vars.append("")
+	member_vars.append("func _ss_sync_camera_to_proxy(source: Camera3D, proxy: Camera3D) -> void:")
+	member_vars.append("\tif source == null or proxy == null:")
+	member_vars.append("\t\treturn")
+	member_vars.append("\tproxy.global_transform = source.global_transform")
+	member_vars.append("\tproxy.projection = source.projection")
+	member_vars.append("\tproxy.fov = source.fov")
+	member_vars.append("\tproxy.size = source.size")
+	member_vars.append("\tproxy.near = source.near")
+	member_vars.append("\tproxy.far = source.far")
+	member_vars.append("\tproxy.h_offset = source.h_offset")
+	member_vars.append("\tproxy.v_offset = source.v_offset")
+	member_vars.append("\tproxy.current = true")
+
+	var setup_func_name = "_lb_setup_split_screen_%s" % cn
+	member_vars.append("")
+	member_vars.append("func %s() -> void:" % setup_func_name)
+	for _ss_ready_line in ready_lines:
+		member_vars.append("\t" + _ss_ready_line)
+	ready_lines = [
+		"# Split Screen: defer runtime viewport/camera setup until the scene tree is no longer blocked",
+		"call_deferred(\"%s\")" % setup_func_name,
+	]
 
 	# --- Actuator code (runs every frame) ---
 	var code_lines: Array[String] = []
@@ -187,9 +243,27 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("var _ss_size = get_tree().root.get_viewport().get_visible_rect().size")
 	code_lines.append("var _ss_w = _ss_size.x")
 	code_lines.append("var _ss_h = _ss_size.y")
+	for i in range(4):
+		var cam_name = str(properties.get("camera_%d_node_name" % (i + 1), "Camera3D" if i == 0 else "Camera3D%d" % (i + 1))).strip_edges()
+		code_lines.append("var _ss_cam_name_%d = \"%s\"" % [i + 1, _gd_string(cam_name)])
+		code_lines.append("if camera_%d == null or camera_%d.name != _ss_cam_name_%d:" % [i + 1, i + 1, i + 1])
+		code_lines.append("\tvar _ss_found_cam_%d = _lb_find_node_in_current_scene(_ss_cam_name_%d)" % [i + 1, i + 1])
+		code_lines.append("\tif _ss_found_cam_%d is Camera3D:" % (i + 1))
+		code_lines.append("\t\tcamera_%d = _ss_found_cam_%d" % [i + 1, i + 1])
+
+	code_lines.append("for _ss_i in range(min(%s.size(), 4)):" % proxy_cameras_var)
+	code_lines.append("\tvar _ss_source_cam: Camera3D = null")
+	code_lines.append("\tmatch _ss_i:")
+	code_lines.append("\t\t0: _ss_source_cam = camera_1")
+	code_lines.append("\t\t1: _ss_source_cam = camera_2")
+	code_lines.append("\t\t2: _ss_source_cam = camera_3")
+	code_lines.append("\t\t3: _ss_source_cam = camera_4")
+	code_lines.append("\tif _ss_source_cam:")
+	code_lines.append("\t\t_ss_sync_camera_to_proxy(_ss_source_cam, %s[_ss_i])" % proxy_cameras_var)
+
 	code_lines.append("var _svc_list = %s" % containers_var)
 	code_lines.append("var _svp_list = %s"  % viewports_var)
-	code_lines.append("for _ss_i in _svc_list.size():")
+	code_lines.append("for _ss_i in range(_svc_list.size()):")
 	code_lines.append("\t_svc_list[_ss_i].visible = (_ss_i < _ss_active)")
 	code_lines.append("\tif _ss_i < _svp_list.size():")
 	code_lines.append("\t\t_svp_list[_ss_i].render_target_update_mode = SubViewport.UPDATE_ALWAYS if (_ss_i < _ss_active) else SubViewport.UPDATE_DISABLED")
@@ -269,3 +343,41 @@ func _emit_bottom_wide(lines: Array[String], count: int) -> void:
 			"(_ss_w / %d.0) * %d" % [tc, i], "0",
 			"_ss_w / %d.0" % tc, "_ss_h / 2.0")
 	_set_slot(lines, count - 1, "0", "_ss_h / 2.0", "_ss_w", "_ss_h / 2.0")
+
+
+func _append_find_node_helpers(member_vars: Array[String]) -> void:
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_by_name_recursive(node: Node, target_name: String) -> Node:")
+	member_vars.append("\tif node == null or target_name.is_empty():")
+	member_vars.append("\t\treturn null")
+	member_vars.append("\tif node.name == target_name:")
+	member_vars.append("\t\treturn node")
+	member_vars.append("\tfor child in node.get_children():")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(child, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn null")
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_in_current_scene(target_name: String) -> Node:")
+	member_vars.append("\tvar scene_root = get_tree().current_scene")
+	member_vars.append("\tif scene_root:")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(scene_root, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn _lb_find_node_by_name_recursive(get_tree().root, target_name)")
+
+
+func _safe_identifier_part(value: String) -> String:
+	var out := "ss"
+	for i in value.length():
+		var ch := value.substr(i, 1)
+		if (ch >= "a" and ch <= "z") or (ch >= "A" and ch <= "Z") or (ch >= "0" and ch <= "9"):
+			out += ch
+		elif ch == "_":
+			out += ch
+		else:
+			out += "_"
+	return out
+
+func _gd_string(value: String) -> String:
+	return value.replace("\\", "\\\\").replace("\"", "\\\"")

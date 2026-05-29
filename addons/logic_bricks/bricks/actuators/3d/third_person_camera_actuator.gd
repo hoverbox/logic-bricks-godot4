@@ -4,7 +4,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Third Person Camera Actuator
 ## Rotates a pivot Node3D with mouse/joystick input, and positions a Camera3D
-## at the pivot's location each frame. Both are assigned via @export in the Inspector,
+## at the pivot's location each frame. Both are found by typed node names,
 ## so neither node needs to be in any particular place in the hierarchy — the camera
 ## can live inside a SubViewport (for split screen) or anywhere else and it will still work.
 
@@ -17,6 +17,8 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
+		"camera_node_name": "Camera3D",
+		"pivot_node_name": "CameraPivot",
 		"input_mode":         "mouse",   # mouse, joystick, both
 		"rotate_character":   true,      # true = yaw turns character, false = yaw turns pivot only
 		"align_mode":         "instant", # instant, smooth
@@ -45,6 +47,18 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
+		{
+			"name": "camera_node_name",
+			"type": TYPE_STRING,
+			"default": "Camera3D",
+			"placeholder": "Camera3D node name"
+		},
+		{
+			"name": "pivot_node_name",
+			"type": TYPE_STRING,
+			"default": "CameraPivot",
+			"placeholder": "Camera pivot Node3D node name"
+		},
 		# ── Setup ──
 		{"name": "setup_group", "type": TYPE_NIL, "hint": 999, "hint_string": "Setup"},
 		{
@@ -129,6 +143,8 @@ func get_tooltip_definitions() -> Dictionary:
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
+	var pivot_node_name = str(properties.get("pivot_node_name", "CameraPivot")).strip_edges()
+	var camera_node_name = str(properties.get("camera_node_name", "Camera3D")).strip_edges()
 	var input_mode       = str(properties.get("input_mode", "mouse")).to_lower()
 	var rotate_character = properties.get("rotate_character", true)
 	var align_mode       = str(properties.get("align_mode", "instant")).to_lower()
@@ -176,8 +192,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var code_lines:  Array[String] = []
 
 	# ── @export vars: pivot and camera assigned in the Inspector ──
-	member_vars.append("@export var %s: Node3D"   % pivot_var)
-	member_vars.append("@export var %s: Camera3D" % camera_var)
+	member_vars.append("var %s: Node3D = null" % pivot_var)
+	member_vars.append("var %s: Camera3D = null" % camera_var)
+	_append_find_node_helpers(member_vars)
 
 	# Sensitivity
 	if export_sens:
@@ -201,7 +218,18 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	member_vars.append("var %s: Vector3 = Vector3.ZERO" % cam_offset_var)
 
 	# ── _ready ──
-	ready_lines.append("# 3rd Person Camera: validate pivot and camera")
+	ready_lines.append("# 3rd Person Camera: resolve pivot and camera")
+	ready_lines.append("var _pivot_name_%s = \"%s\"" % [chain_name, _gd_string(pivot_node_name)])
+	ready_lines.append("if " + pivot_var + " == null or " + pivot_var + ".name != _pivot_name_%s:" % chain_name)
+	ready_lines.append("\tvar _found_pivot_%s = _lb_find_node_in_current_scene(_pivot_name_%s)" % [chain_name, chain_name])
+	ready_lines.append("\tif _found_pivot_%s is Node3D:" % chain_name)
+	ready_lines.append("\t\t" + pivot_var + " = _found_pivot_%s" % chain_name)
+	ready_lines.append("var _camera_name_%s = \"%s\"" % [chain_name, _gd_string(camera_node_name)])
+	ready_lines.append("if " + camera_var + " == null or " + camera_var + ".name != _camera_name_%s:" % chain_name)
+	ready_lines.append("\tvar _found_camera_%s = _lb_find_node_in_current_scene(_camera_name_%s)" % [chain_name, chain_name])
+	ready_lines.append("\tif _found_camera_%s is Camera3D:" % chain_name)
+	ready_lines.append("\t\t" + camera_var + " = _found_camera_%s" % chain_name)
+	
 	ready_lines.append("if not %s:" % pivot_var)
 	ready_lines.append("\tpush_warning(\"3rd Person Camera: pivot not assigned — drag a Node3D into '%s' in the Inspector\")" % pivot_var)
 	ready_lines.append("if not %s:" % camera_var)
@@ -285,3 +313,28 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"member_vars":   member_vars,
 		"ready_code":    ready_lines,
 	}
+
+
+func _append_find_node_helpers(member_vars: Array[String]) -> void:
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_by_name_recursive(node: Node, target_name: String) -> Node:")
+	member_vars.append("\tif node == null or target_name.is_empty():")
+	member_vars.append("\t\treturn null")
+	member_vars.append("\tif node.name == target_name:")
+	member_vars.append("\t\treturn node")
+	member_vars.append("\tfor child in node.get_children():")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(child, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn null")
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_in_current_scene(target_name: String) -> Node:")
+	member_vars.append("\tvar scene_root = get_tree().current_scene")
+	member_vars.append("\tif scene_root:")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(scene_root, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn _lb_find_node_by_name_recursive(get_tree().root, target_name)")
+
+func _gd_string(value: String) -> String:
+	return value.replace("\\", "\\\\").replace("\"", "\\\"")

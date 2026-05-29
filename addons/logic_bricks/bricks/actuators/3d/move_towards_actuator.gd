@@ -14,6 +14,7 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
+		"navigation_agent_node_name": "NavigationAgent3D",
 		"behavior": "seek",                    # "seek", "flee", "path_follow"
 		"target_mode": "group",                # "group", "node_name"
 		"target_name": "",                     # Group name or node name of target
@@ -31,6 +32,12 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
+		{
+			"name": "navigation_agent_node_name",
+			"type": TYPE_STRING,
+			"default": "NavigationAgent3D",
+			"placeholder": "NavigationAgent3D node name"
+		},
 		{
 			"name": "behavior",
 			"type": TYPE_STRING,
@@ -102,7 +109,7 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Moves toward or away from a target.\nSeek: move directly toward target\nFlee: move away from target\nPath Follow: use NavigationAgent3D to pathfind toward target.\n\n⚠ Path Follow adds an @export in the Inspector — assign your NavigationAgent3D there.",
+		"_description": "Moves toward or away from a target.\nSeek: move directly toward target\nFlee: move away from target\nPath Follow: use NavigationAgent3D to pathfind toward target.\n\n⚠ Path Follow finds the NavigationAgent3D by typed node name.",
 		"behavior": "Seek: move directly toward nearest target\nFlee: move directly away from nearest target\nPath Follow: use NavigationAgent3D to navigate around obstacles",
 		"target_mode": "How to find the target:\nGroup: find the nearest node in the named group\nNode Name: find a node anywhere in the scene tree by name",
 		"target_name": "Group name or node name to target.\nFor Group: the nearest node in this group will be used.\nFor Node Name: finds a node anywhere in the scene tree.",
@@ -144,6 +151,7 @@ func _literal_gt_zero(val) -> bool:
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
+	var navigation_agent_node_name = str(properties.get("navigation_agent_node_name", "NavigationAgent3D")).strip_edges()
 	var behavior = properties.get("behavior", "seek")
 	var target_mode = properties.get("target_mode", "group")
 	var target_name = properties.get("target_name", properties.get("target_group", ""))  # fallback for legacy
@@ -176,7 +184,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# For path_follow, add an @export for the NavigationAgent3D and stuck-detection state
 	var nav_var = "_nav_agent_%s" % chain_name
 	if behavior == "path_follow":
-		member_vars.append("@export var %s: NavigationAgent3D" % nav_var)
+		member_vars.append("var %s: NavigationAgent3D = null" % nav_var)
+		_append_find_node_helpers(member_vars)
 		member_vars.append("var _mt_stuck_offset_%s: Vector3 = Vector3.ZERO" % nav_var)
 
 	# Get instance name for arrived flag — empty string means no flag written
@@ -187,7 +196,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append(_generate_direct_movement(behavior, target_mode, target_name, arrival_distance, vel, acceleration, turn_speed, face_target, facing_axis, lock_y_velocity, self_terminate))
 
 		"path_follow":
-			code_lines.append(_generate_pathfinding_movement(target_mode, target_name, nav_var, arrival_distance, vel, acceleration, turn_speed, face_target, facing_axis, use_navmesh_normal, lock_y_velocity, self_terminate))
+			code_lines.append(_generate_pathfinding_movement(chain_name, target_mode, target_name, nav_var, navigation_agent_node_name, arrival_distance, vel, acceleration, turn_speed, face_target, facing_axis, use_navmesh_normal, lock_y_velocity, self_terminate))
 
 		_:
 			code_lines.append("pass  # Unknown behavior")
@@ -277,13 +286,23 @@ func _generate_direct_movement(behavior: String, target_mode: String, target_nam
 	return "\n".join(lines)
 
 
-func _generate_pathfinding_movement(target_mode: String, target_name: String, nav_var: String, arrival_dist, vel, accel, turn, face: bool, axis: String, use_normal: bool, lock_y: bool, terminate: bool) -> String:
+func _generate_pathfinding_movement(chain_name: String, target_mode: String, target_name: String, nav_var: String, nav_node_name: String, arrival_dist, vel, accel, turn, face: bool, axis: String, use_normal: bool, lock_y: bool, terminate: bool) -> String:
 	var lines: Array[String] = []
 	var escaped = target_name.replace("\"", "\\\"")
 
-	# Check nav agent export
+	# Resolve NavigationAgent3D by typed node name
+	lines.append("var _nav_name_%s = \"%s\"" % [chain_name, _gd_string(nav_node_name)])
+	lines.append("if _nav_name_%s.is_empty():" % chain_name)
+	lines.append("\tpush_warning(\"Move Towards: No NavigationAgent3D node name set\")")
+	lines.append("elif " + nav_var + " == null or " + nav_var + ".name != _nav_name_%s:" % chain_name)
+	lines.append("\tvar _found_nav_%s = _lb_find_node_in_current_scene(_nav_name_%s)" % [chain_name, chain_name])
+	lines.append("\tif _found_nav_%s is NavigationAgent3D:" % chain_name)
+	lines.append("\t\t" + nav_var + " = _found_nav_%s" % chain_name)
+	lines.append("\telif _found_nav_%s:" % chain_name)
+	lines.append("\t\tpush_warning(\"Move Towards: node '\" + str(_nav_name_%s) + \"' is not a NavigationAgent3D\")" % chain_name)
+
 	lines.append("if not %s:" % nav_var)
-	lines.append("\tpush_warning(\"Move Towards: No NavigationAgent3D assigned to '%s' — drag one into the inspector\")" % nav_var)
+	lines.append("\tpush_warning(\"Move Towards: No NavigationAgent3D found for '%s'\")" % nav_var)
 	lines.append("else:")
 
 	# Find target based on mode
@@ -394,3 +413,28 @@ func _generate_look_at_code(target_pos: String, axis: String, turn_speed) -> Str
 		lines.append("\tlook_at(global_position + _look_dir, Vector3.UP)")
 
 	return "\n".join(lines)
+
+
+func _append_find_node_helpers(member_vars: Array[String]) -> void:
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_by_name_recursive(node: Node, target_name: String) -> Node:")
+	member_vars.append("\tif node == null or target_name.is_empty():")
+	member_vars.append("\t\treturn null")
+	member_vars.append("\tif node.name == target_name:")
+	member_vars.append("\t\treturn node")
+	member_vars.append("\tfor child in node.get_children():")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(child, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn null")
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_in_current_scene(target_name: String) -> Node:")
+	member_vars.append("\tvar scene_root = get_tree().current_scene")
+	member_vars.append("\tif scene_root:")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(scene_root, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn _lb_find_node_by_name_recursive(get_tree().root, target_name)")
+
+func _gd_string(value: String) -> String:
+	return value.replace("\\", "\\\\").replace("\"", "\\\"")

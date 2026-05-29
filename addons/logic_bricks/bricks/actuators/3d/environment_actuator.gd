@@ -3,7 +3,7 @@
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Environment Actuator - Modify WorldEnvironment properties at runtime
-## Assign a WorldEnvironment node via @export (drag and drop in inspector)
+## WorldEnvironment is found by typed node name
 ## All numeric/color fields accept a literal value OR a variable name / expression
 
 
@@ -15,6 +15,7 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
+		"environment_node_name": "WorldEnvironment",
 		# --- FOG ---
 		"fog_enabled":            false,
 		"fog_density":            "0.01",
@@ -82,6 +83,12 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
+		{
+			"name": "environment_node_name",
+			"type": TYPE_STRING,
+			"default": "WorldEnvironment",
+			"placeholder": "WorldEnvironment node name"
+		},
 		# === FOG GROUP ===
 		{ "name": "_group_fog",           "type": TYPE_NIL, "hint": 999, "hint_string": "Fog" },
 		{ "name": "fog_enabled",          "type": TYPE_BOOL, "default": false },
@@ -271,6 +278,7 @@ func _get_env_path(prop_name: String) -> Array:
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
+	var environment_node_name = str(properties.get("environment_node_name", "WorldEnvironment")).strip_edges()
 	var transition = properties.get("transition", false)
 	var speed_raw = properties.get("transition_speed", "1.0")
 	var speed = _to_expr(speed_raw)
@@ -288,9 +296,20 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var member_vars: Array[String] = []
 	var code_lines: Array[String] = []
 
-	member_vars.append("@export var %s: WorldEnvironment" % env_var)
+	member_vars.append("var %s: WorldEnvironment = null" % env_var)
+	_append_find_node_helpers(member_vars)
 
 	code_lines.append("# Environment Actuator")
+	code_lines.append("var _node_name_%s = \"%s\"" % [chain_name, _gd_string(environment_node_name)])
+	code_lines.append("if _node_name_%s.is_empty():" % chain_name)
+	code_lines.append("\tpush_warning(\"Environment Actuator: No node name set\")")
+	code_lines.append("\t" + env_var + " = null")
+	code_lines.append("elif " + env_var + " == null or " + env_var + ".name != _node_name_%s:" % chain_name)
+	code_lines.append("\tvar _found_node_%s = _lb_find_node_in_current_scene(_node_name_%s)" % [chain_name, chain_name])
+	code_lines.append("\tif _found_node_%s is WorldEnvironment:" % chain_name)
+	code_lines.append("\t\t" + env_var + " = _found_node_%s" % chain_name)
+	code_lines.append("\telif _found_node_%s:" % chain_name)
+	code_lines.append("\t\tpush_warning(\"Environment Actuator: node '\" + str(_node_name_%s) + \"' is not a WorldEnvironment\")" % chain_name)
 	code_lines.append("if %s and %s.environment:" % [env_var, env_var])
 
 	var any_prop = false
@@ -376,3 +395,28 @@ func _is_color(val) -> bool:
 		return true
 	var s = str(val).strip_edges()
 	return s.begins_with("Color(")
+
+
+func _append_find_node_helpers(member_vars: Array[String]) -> void:
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_by_name_recursive(node: Node, target_name: String) -> Node:")
+	member_vars.append("\tif node == null or target_name.is_empty():")
+	member_vars.append("\t\treturn null")
+	member_vars.append("\tif node.name == target_name:")
+	member_vars.append("\t\treturn node")
+	member_vars.append("\tfor child in node.get_children():")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(child, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn null")
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_in_current_scene(target_name: String) -> Node:")
+	member_vars.append("\tvar scene_root = get_tree().current_scene")
+	member_vars.append("\tif scene_root:")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(scene_root, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn _lb_find_node_by_name_recursive(get_tree().root, target_name)")
+
+func _gd_string(value: String) -> String:
+	return value.replace("\\", "\\\\").replace("\"", "\\\"")

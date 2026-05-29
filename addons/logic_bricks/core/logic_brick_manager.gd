@@ -760,10 +760,15 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 						continue
 					if _vname not in _chain_export_vars:
 						_chain_export_vars.append(_vname)
-	for _ad in actuators:
+	for _actuator_index in range(actuators.size()):
+		var _ad = actuators[_actuator_index]
 		var _ab = _instantiate_brick(_ad)
 		if _ab:
-			var _ag = _ab.generate_code(node, chain_name)
+			# Must match the namespace used when member vars and actuator code are generated.
+			# Otherwise guards can reference an export var that was never declared,
+			# e.g. _screen_shake_<chain> instead of _screen_shake_<chain>_0.
+			var _actuator_code_name := "%s_%d" % [chain_name, _actuator_index]
+			var _ag = _ab.generate_code(node, _actuator_code_name)
 			for _mv in _ag.get("member_vars", []):
 				if _mv.begins_with("@export var "):
 					var _parts = _mv.replace("@export var ", "").split(":")

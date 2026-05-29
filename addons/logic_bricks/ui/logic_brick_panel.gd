@@ -312,8 +312,8 @@ func _create_add_menu() -> void:
 				["Motion", 309, "MotionActuator", "Move or rotate a node.\\nCharacter Velocity, Translate, or Position modes."],
 				["Character", 303, "CharacterActuator", "CharacterBody3D gravity, fall speed, snap, slope, acceleration, friction, bounce, and move_and_slide().\nPair with the Jump Actuator to handle jumping."],
 				["Jump", 350, "JumpActuator", "Apply a jump impulse to a CharacterBody3D.\nTrigger from any sensor — InputMap, Proximity, Message, etc.\nRequires a Character Actuator in another chain for gravity."],
-				["Look At Movement", 306, "LookAtMovementActuator", "Rotates a node to face the direction of movement.\n⚠ Adds @export in Inspector — assign the mesh/Node3D to rotate."],
-				["Look At Input", 307, "LookAtInputActuator", "Rotates a node to face combined Input Map direction.\nUseful for icy movement where facing and sliding differ.\n⚠ Adds @export in Inspector — assign the mesh/Node3D to rotate."],
+				["Look At Movement", 306, "LookAtMovementActuator", "Rotates a Node3D to face the direction of movement.\nType the Node3D node name to choose what rotates."],
+				["Look At Input", 307, "LookAtInputActuator", "Rotates a Node3D to face combined Input Map direction.\nUseful for icy movement where facing and sliding differ.\nType the Node3D node name to choose what rotates."],
 				["Rotate Towards", 342, "RotateTowardsActuator", "Rotates to face a target node found by name or group.\nUseful for turrets and enemies tracking the player."],
 				["Waypoint Path", 343, "WaypointPathActuator", "Moves a node through a series of waypoints placed in the 3D viewport.\nDrag the handles to position each point. Supports Loop, Ping Pong, and Once."],
 				["Move Towards", 311, "MoveTowardsActuator", "Seek, flee, or path-follow toward a target node.\n⚠ Path Follow adds @export in Inspector — assign your NavigationAgent3D."],
@@ -372,7 +372,7 @@ func _create_add_menu() -> void:
 			"label": "Game Feel",
 			"items": [
 				["Screen Flash", 335, "ScreenFlashActuator", "Flash a color over the screen.\n⚠ Adds @export in Inspector — assign a full-screen ColorRect."],
-				["Screen Shake", 333, "ScreenShakeActuator", "Trauma-based camera shake. Attach to your Camera3D node."],
+				["Screen Shake", 333, "ScreenShakeActuator", "Trauma-based camera shake. Type a Camera3D node name; works from any 3D node."],
 				["Object Flash", 348, "ObjectFlashActuator", "Flash a named object or mesh with a color overlay.\nType a node name, not a path. Use self to flash the current object."],
 				["Object Shake", 352, "ObjectShakeActuator", "Shake a named child object by rotation, translation, or scale, then return it to its starting value.\nType a node name, not a path. Add multiple actuators for multiple shake effects."],
 				["Hit Stop", 353, "HitStopActuator", "Briefly pauses or slows game time when an impact lands. Also called hit pause or impact freeze."],
@@ -2225,20 +2225,11 @@ func _on_apply_code_pressed() -> void:
 		push_error("Logic Bricks: No script path available!")
 		return
 
-	# Save the scene before hot-reload only when ScreenFlashActuator is present,
-	# because it creates nodes that reference SubViewport NodePaths — Godot can
-	# hit "common_parent is null" in get_path_to() if those paths aren't on disk
-	# before the script reloads. All other actuator types are safe without a save.
-	var needs_pre_save := false
-	for chain in chains:
-		for actuator in chain.get("actuators", []):
-			if actuator.get("type", "") == "ScreenFlashActuator":
-				needs_pre_save = true
-				break
-		if needs_pre_save:
-			break
-	if needs_pre_save:
-		editor_interface.save_scene()
+	# Do not save the scene here. Apply Code should only regenerate/reload the
+	# script and create required helper nodes in the live editor scene. Saving the
+	# whole scene on every click is expensive in larger projects and makes Apply
+	# Code feel slow. The minimize/restore refresh below is intentionally kept; it
+	# is still the reliable way to make Godot refresh the script/export state.
 
 	# Force filesystem to update
 	var filesystem = editor_interface.get_resource_filesystem()
@@ -2301,20 +2292,10 @@ func _on_apply_code_pressed() -> void:
 		restore_mode = prev_window_mode
 
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)
-	# A single process frame is enough for the OS to register the minimize.
-	await get_tree().process_frame
-	DisplayServer.window_set_mode(restore_mode)
-
-	# Restore all secondary windows that were hidden above.
-	for w in other_windows:
-		if is_instance_valid(w):
-			w.show()
-
-	if was_popout_open and _popout_window:
-		_popout_window.show()
-
-	# Open the script in the script editor
-	editor_interface.edit_script(reloaded_script, 1)
+	# Restore on the next idle step instead of awaiting a full process frame here.
+	# This keeps the refresh hack, but makes the visible minimize/restore snap back
+	# faster and lets Apply Code finish without blocking on the window animation.
+	call_deferred("_finish_apply_window_refresh", restore_mode, other_windows, was_popout_open, reloaded_script)
 
 
 
@@ -3387,6 +3368,22 @@ func _apply_scene_setup_create(node: Node, chains: Array) -> void:
 	for cl in stale_flash:
 		cl.free()
 
+
+
+func _finish_apply_window_refresh(restore_mode: int, other_windows: Array, was_popout_open: bool, reloaded_script: Script) -> void:
+	DisplayServer.window_set_mode(restore_mode)
+
+	# Restore all secondary windows that were hidden above.
+	for w in other_windows:
+		if is_instance_valid(w):
+			w.show()
+
+	if was_popout_open and _popout_window:
+		_popout_window.show()
+
+	# Open the script in the script editor after the refresh snap-back.
+	if is_instance_valid(reloaded_script):
+		editor_interface.edit_script(reloaded_script, 1)
 
 func _apply_scene_setup_assign(node: Node, chains: Array) -> void:
 	# Phase 2 of Apply Code scene setup: assign @export vars to the pre-created nodes.

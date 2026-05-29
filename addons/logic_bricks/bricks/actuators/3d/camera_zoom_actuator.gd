@@ -3,7 +3,7 @@
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Camera Zoom Actuator - Change FOV (Camera3D) or zoom size (Camera2D/OrthographicCamera)
-## Assign a Camera3D or Camera2D via @export
+## Camera is found by typed node name
 
 
 func _init() -> void:
@@ -14,6 +14,7 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
+		"camera_node_name": "Camera3D",
 		"camera_type": "camera_3d",  # camera_3d, camera_2d
 		"fov":         "75.0",
 		"zoom":        "1.0",
@@ -24,6 +25,12 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
+		{
+			"name": "camera_node_name",
+			"type": TYPE_STRING,
+			"default": "Camera3D",
+			"placeholder": "Camera3D or Camera2D node name"
+		},
 		{
 			"name": "camera_type",
 			"type": TYPE_STRING,
@@ -66,6 +73,7 @@ func get_tooltip_definitions() -> Dictionary:
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
+	var camera_node_name = str(properties.get("camera_node_name", "Camera3D")).strip_edges()
 	var camera_type = properties.get("camera_type", "camera_3d")
 	var fov         = _to_expr(properties.get("fov",   "75.0"))
 	var zoom        = _to_expr(properties.get("zoom",  "1.0"))
@@ -89,7 +97,19 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var code_lines: Array[String] = []
 
 	if camera_type == "camera_3d":
-		member_vars.append("@export var %s: Camera3D" % cam_var)
+		member_vars.append("var %s: Camera3D = null" % cam_var)
+		_append_find_node_helpers(member_vars)
+		code_lines.append("var _node_name_%s = \"%s\"" % [chain_name, _gd_string(camera_node_name)])
+		code_lines.append("if _node_name_%s.is_empty():" % chain_name)
+		code_lines.append("\tpush_warning(\"Camera Zoom Actuator: No node name set\")")
+		code_lines.append("\t" + cam_var + " = null")
+		code_lines.append("elif " + cam_var + " == null or " + cam_var + ".name != _node_name_%s:" % chain_name)
+		code_lines.append("\tvar _found_node_%s = _lb_find_node_in_current_scene(_node_name_%s)" % [chain_name, chain_name])
+		code_lines.append("\tif _found_node_%s is Camera3D:" % chain_name)
+		code_lines.append("\t\t" + cam_var + " = _found_node_%s" % chain_name)
+		code_lines.append("\telif _found_node_%s:" % chain_name)
+		code_lines.append("\t\tpush_warning(\"Camera Zoom Actuator: node '\" + str(_node_name_%s) + \"' is not a Camera3D\")" % chain_name)
+
 		code_lines.append("# Camera Zoom Actuator (3D)")
 		code_lines.append("if %s:" % cam_var)
 		if transition:
@@ -99,7 +119,19 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("else:")
 		code_lines.append("\tpush_warning(\"Camera Zoom Actuator: No Camera3D assigned to '%s'\")" % cam_var)
 	else:
-		member_vars.append("@export var %s: Camera2D" % cam_var)
+		member_vars.append("var %s: Camera2D = null" % cam_var)
+		_append_find_node_helpers(member_vars)
+		code_lines.append("var _node_name_%s = \"%s\"" % [chain_name, _gd_string(camera_node_name)])
+		code_lines.append("if _node_name_%s.is_empty():" % chain_name)
+		code_lines.append("\tpush_warning(\"Camera Zoom Actuator: No node name set\")")
+		code_lines.append("\t" + cam_var + " = null")
+		code_lines.append("elif " + cam_var + " == null or " + cam_var + ".name != _node_name_%s:" % chain_name)
+		code_lines.append("\tvar _found_node_%s = _lb_find_node_in_current_scene(_node_name_%s)" % [chain_name, chain_name])
+		code_lines.append("\tif _found_node_%s is Camera2D:" % chain_name)
+		code_lines.append("\t\t" + cam_var + " = _found_node_%s" % chain_name)
+		code_lines.append("\telif _found_node_%s:" % chain_name)
+		code_lines.append("\t\tpush_warning(\"Camera Zoom Actuator: node '\" + str(_node_name_%s) + \"' is not a Camera2D\")" % chain_name)
+
 		code_lines.append("# Camera Zoom Actuator (2D)")
 		code_lines.append("if %s:" % cam_var)
 		if transition:
@@ -120,3 +152,28 @@ func _to_expr(val) -> String:
 	if s.is_empty(): return "0.0"
 	if s.is_valid_float() or s.is_valid_int(): return s
 	return s
+
+
+func _append_find_node_helpers(member_vars: Array[String]) -> void:
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_by_name_recursive(node: Node, target_name: String) -> Node:")
+	member_vars.append("\tif node == null or target_name.is_empty():")
+	member_vars.append("\t\treturn null")
+	member_vars.append("\tif node.name == target_name:")
+	member_vars.append("\t\treturn node")
+	member_vars.append("\tfor child in node.get_children():")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(child, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn null")
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_in_current_scene(target_name: String) -> Node:")
+	member_vars.append("\tvar scene_root = get_tree().current_scene")
+	member_vars.append("\tif scene_root:")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(scene_root, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn _lb_find_node_by_name_recursive(get_tree().root, target_name)")
+
+func _gd_string(value: String) -> String:
+	return value.replace("\\", "\\\\").replace("\"", "\\\"")
