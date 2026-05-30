@@ -46,7 +46,9 @@ func add_chain(node: Node, chain_name: String = "") -> Dictionary:
 
 	var new_chain = {
 		"name": chain_name,
-		"bricks": []
+		"sensors": [],
+		"controllers": [],
+		"actuators": []
 	}
 
 	chains.append(new_chain)
@@ -85,36 +87,6 @@ func rename_chain(node: Node, chain_index: int, new_name: String) -> void:
 		save_chains(node, chains)
 		regenerate_script(node)
 
-
-## Add a brick to a chain
-func add_brick_to_chain(node: Node, chain_index: int, brick: LogicBrick) -> void:
-	var chains = get_chains(node)
-	if chain_index >= 0 and chain_index < chains.size():
-		chains[chain_index]["bricks"].append(brick.serialize())
-		save_chains(node, chains)
-		regenerate_script(node)
-
-
-## Remove a brick from a chain
-func remove_brick_from_chain(node: Node, chain_index: int, brick_index: int) -> void:
-	var chains = get_chains(node)
-	if chain_index >= 0 and chain_index < chains.size():
-		var bricks = chains[chain_index]["bricks"]
-		if brick_index >= 0 and brick_index < bricks.size():
-			bricks.remove_at(brick_index)
-			save_chains(node, chains)
-			regenerate_script(node)
-
-
-## Update a brick's properties
-func update_brick_properties(node: Node, chain_index: int, brick_index: int, properties: Dictionary) -> void:
-	var chains = get_chains(node)
-	if chain_index >= 0 and chain_index < chains.size():
-		var bricks = chains[chain_index]["bricks"]
-		if brick_index >= 0 and brick_index < bricks.size():
-			bricks[brick_index]["properties"] = properties.duplicate()
-			save_chains(node, chains)
-			regenerate_script(node)
 
 
 ## Regenerate the script for a node based on its brick chains
@@ -196,6 +168,8 @@ func _read_global_vars_from_script() -> Array[Dictionary]:
 			"type": type_str,
 			"value": str(value) if value != null else VariableUtils.get_default_value_for_variable_type(type_str)
 		})
+		if tmp is Node:
+			tmp.free()
 	return result
 
 
@@ -226,17 +200,6 @@ func _get_selected_global_vars(node: Node) -> Array[Dictionary]:
 	return selected
 
 
-func _get_default_value_for_variable_type(var_type: String) -> String:
-	return VariableUtils.get_default_value_for_variable_type(var_type)
-
-
-func _coerce_variable_value_for_type(value, var_type: String) -> String:
-	return VariableUtils.coerce_variable_value_for_type(value, var_type)
-
-
-func _to_gdscript_value_literal(value, var_type: String) -> String:
-	return VariableUtils.to_gdscript_value_literal(value, var_type)
-
 
 func _get_variables_code_from_metadata(node: Node) -> String:
 	var variables_data = []
@@ -259,7 +222,7 @@ func _get_variables_code_from_metadata(node: Node) -> String:
 	for var_data in variables_data:
 		var var_name = var_data.get("name", "")
 		var var_type = VariableUtils.normalize_type(str(var_data.get("type", "float")), "float")
-		var var_value = _to_gdscript_value_literal(var_data.get("value", _get_default_value_for_variable_type(var_type)), var_type)
+		var var_value = VariableUtils.to_gdscript_value_literal(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_type)), var_type)
 		var exported = var_data.get("exported", false)
 		var is_global = var_data.get("global", false)
 
@@ -365,6 +328,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	var extra_methods: Array[String] = []
 	var input_handler_bodies: Array[String] = []  # Body lines for shared _input()
 	var message_handler_calls: Array[String] = []  # Call lines for shared _on_message_received()
+	var generation_cache: Dictionary = {}  # namespace+brick data -> { brick, generated }
 
 	# Check if any actuator has an instance name — if so, we need the flags dict
 	# and must clear it at the start of every frame so stale values don't linger.
@@ -398,16 +362,18 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			chain_state_id = str(ctrl_props.get("state_id", "")).strip_edges()
 			# Fall back to instantiated properties for older/oddly-shaped metadata.
 			if chain_state_id.is_empty():
-				var ctrl_brick = _instantiate_brick(controllers[0])
+				var ctrl_record = _get_cached_brick_record(generation_cache, node, controllers[0], chain["name"])
+				var ctrl_brick = ctrl_record.get("brick", null)
 				if ctrl_brick:
 					is_all_states_chain = bool(ctrl_brick.properties.get("all_states", is_all_states_chain))
 					chain_state_id = str(ctrl_brick.properties.get("state_id", "")).strip_edges()
 
 		# Collect from direct sensors and sensors nested inside controller inputs.
 		for sensor_data in _collect_all_sensors_for_chain(chain):
-			var sensor_brick = _instantiate_brick(sensor_data)
+			var sensor_record = _get_cached_brick_record(generation_cache, node, sensor_data, chain["name"])
+			var sensor_brick = sensor_record.get("brick", null)
 			if sensor_brick:
-				var generated = sensor_brick.generate_code(node, chain["name"])
+				var generated = sensor_record.get("generated", {})
 				if generated.has("member_vars"):
 					_append_member_var_items(member_vars, generated["member_vars"])
 					# Only collect resets for state-specific chains
@@ -460,9 +426,10 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		# Collect from controllers — ScriptController emits a cached instance member var
 		# and ready_code to load it once. Standard controllers emit nothing here.
 		for controller_data in chain.get("controllers", []):
-			var controller_brick = _instantiate_brick(controller_data)
+			var controller_record = _get_cached_brick_record(generation_cache, node, controller_data, chain["name"])
+			var controller_brick = controller_record.get("brick", null)
 			if controller_brick:
-				var generated = controller_brick.generate_code(node, chain["name"])
+				var generated = controller_record.get("generated", {})
 				if generated.has("member_vars"):
 					_append_member_var_items(member_vars, generated["member_vars"])
 				if generated.has("ready_code"):
@@ -476,10 +443,11 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		var actuator_list = chain.get("actuators", [])
 		for actuator_index in range(actuator_list.size()):
 			var actuator_data = actuator_list[actuator_index]
-			var actuator_brick = _instantiate_brick(actuator_data)
+			var actuator_code_name := "%s_%d" % [chain["name"], actuator_index]
+			var actuator_record = _get_cached_brick_record(generation_cache, node, actuator_data, actuator_code_name)
+			var actuator_brick = actuator_record.get("brick", null)
 			if actuator_brick:
-				var actuator_code_name := "%s_%d" % [chain["name"], actuator_index]
-				var generated = actuator_brick.generate_code(node, actuator_code_name)
+				var generated = actuator_record.get("generated", {})
 				if generated.has("member_vars"):
 					_append_member_var_items(member_vars, generated["member_vars"])
 					# Only collect resets for state-specific chains
@@ -521,7 +489,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	if member_vars.size() > 0:
 		for mv in member_vars:
 			code_lines.append(mv)
-		code_lines.append("")
+	code_lines.append("")
 
 	code_lines.append("")
 
@@ -544,26 +512,26 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 				export_checks.append("if not %s:" % var_name)
 				export_checks.append("\tpush_warning(\"Logic Bricks: '%s' is not assigned! Drag a node into the inspector.\")" % label)
 
-	if ready_code.size() > 0 or export_checks.size() > 0 or true:
-		code_lines.append("func _ready() -> void:")
-		code_lines.append("	_logic_brick_init_states()")
-		# Defer export validation by one frame so all nodes are in the scene tree.
-		# Accessing @export node references before the tree is ready triggers
-		# "Cannot get path of node as it is not in a scene tree" errors.
-		if export_checks.size() > 0:
-			code_lines.append("\tawait get_tree().process_frame")
-			for ec in export_checks:
-				# Use is_instance_valid instead of plain truthiness —
-				# a plain "if not node:" can also trigger the path error.
-				var safe_ec = ec.replace("if not ", "if not is_instance_valid(").replace(":", "):")
-				if "is_instance_valid" in safe_ec:
-					code_lines.append("\t" + safe_ec)
-				else:
-					code_lines.append("\t" + ec)
-		# Other ready code runs immediately (not deferred)
-		for rc in ready_code:
-			code_lines.append("\t" + rc)
-		code_lines.append("")
+	# Always emit _ready() so the generated script initializes logic-brick state.
+	code_lines.append("func _ready() -> void:")
+	code_lines.append("	_logic_brick_init_states()")
+	# Defer export validation by one frame so all nodes are in the scene tree.
+	# Accessing @export node references before the tree is ready triggers
+	# "Cannot get path of node as it is not in a scene tree" errors.
+	if export_checks.size() > 0:
+		code_lines.append("\tawait get_tree().process_frame")
+		for ec in export_checks:
+			# Use is_instance_valid instead of plain truthiness —
+			# a plain "if not node:" can also trigger the path error.
+			var safe_ec = ec.replace("if not ", "if not is_instance_valid(").replace(":", "):")
+			if "is_instance_valid" in safe_ec:
+				code_lines.append("\t" + safe_ec)
+			else:
+				code_lines.append("\t" + ec)
+	# Other ready code runs immediately (not deferred)
+	for rc in ready_code:
+		code_lines.append("\t" + rc)
+	code_lines.append("")
 
 	# Runtime state
 	code_lines.append("var _logic_brick_state: String = \"\"")
@@ -622,7 +590,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 				"Logic Bricks: Chain '%s' on node '%s' mixes physics movement with timing-sensitive actuators. The entire chain will run in _physics_process, which may cause incorrect timing for animation, UI, audio, or other time-based actuators. Split only those timing-sensitive actuators into a separate chain." \
 				% [chain["name"], node.name]
 			)
-		var chain_code = _generate_chain_function(node, chain)
+		var chain_code = _generate_chain_function(node, chain, generation_cache)
 		if not chain_code.is_empty():
 			generated_chain_functions[chain["name"]] = chain_code
 
@@ -661,7 +629,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			code_lines.append("	")
 			for pc in post_process_code:
 				code_lines.append("	" + pc)
-		code_lines.append("")
+	code_lines.append("")
 
 	if has_physics_process:
 		code_lines.append("func _physics_process(delta: float) -> void:")
@@ -683,7 +651,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			code_lines.append("	")
 			for pc in physics_post_process_code:
 				code_lines.append("	" + pc)
-		code_lines.append("")
+	code_lines.append("")
 
 	# Emit assembled _input() if any sensors contributed handler bodies
 	if input_handler_bodies.size() > 0:
@@ -691,7 +659,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		for _body_block in input_handler_bodies:
 			for _body_line in _body_block.split("\n"):
 				code_lines.append(_body_line)
-		code_lines.append("")
+	code_lines.append("")
 
 	# Emit single _on_message_received dispatcher that forwards to each chain's
 	# scoped handler. This avoids duplicate-function errors when multiple Message
@@ -700,24 +668,24 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		code_lines.append("func _on_message_received(subject: String, body: String, sender: Node) -> void:")
 		for call_line in message_handler_calls:
 			code_lines.append("\t" + call_line)
-		code_lines.append("")
+	code_lines.append("")
 
 	# Append generated chain functions
 	for chain in chains:
 		if generated_chain_functions.has(chain["name"]):
 			code_lines.append(generated_chain_functions[chain["name"]])
-			code_lines.append("")
+		code_lines.append("")
 
 	# Append extra methods (e.g. message handlers)
 	for method in extra_methods:
 		code_lines.append(method)
-		code_lines.append("")
+	code_lines.append("")
 
 	return "\n".join(code_lines)
 
 
 ## Generate code for a single chain
-func _generate_chain_function(node: Node, chain: Dictionary) -> String:
+func _generate_chain_function(node: Node, chain: Dictionary, generation_cache: Dictionary = {}) -> String:
 	# Always sanitize at generation time — guards against hand-edited scene metadata
 	# or chains saved by older versions of the addon before sanitization was enforced.
 	var chain_name = _sanitize_chain_name(chain["name"])
@@ -748,9 +716,10 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 	var _guard_primitive_types = ["float", "int", "bool", "String", "Vector2", "Vector3", "Color", "Basis", "Transform3D"]
 	var _chain_export_vars: Array[String] = []
 	for _sd in _collect_all_sensors_for_chain(chain):
-		var _sb = _instantiate_brick(_sd)
+		var _sr = _get_cached_brick_record(generation_cache, node, _sd, chain_name)
+		var _sb = _sr.get("brick", null)
 		if _sb:
-			var _sg = _sb.generate_code(node, chain_name)
+			var _sg = _sr.get("generated", {})
 			for _mv in _sg.get("member_vars", []):
 				if _mv.begins_with("@export var "):
 					var _parts = _mv.replace("@export var ", "").split(":")
@@ -762,13 +731,14 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 						_chain_export_vars.append(_vname)
 	for _actuator_index in range(actuators.size()):
 		var _ad = actuators[_actuator_index]
-		var _ab = _instantiate_brick(_ad)
+		# Must match the namespace used when member vars and actuator code are generated.
+		# Otherwise guards can reference an export var that was never declared,
+		# e.g. _screen_shake_<chain> instead of _screen_shake_<chain>_0.
+		var _actuator_code_name := "%s_%d" % [chain_name, _actuator_index]
+		var _ar = _get_cached_brick_record(generation_cache, node, _ad, _actuator_code_name)
+		var _ab = _ar.get("brick", null)
 		if _ab:
-			# Must match the namespace used when member vars and actuator code are generated.
-			# Otherwise guards can reference an export var that was never declared,
-			# e.g. _screen_shake_<chain> instead of _screen_shake_<chain>_0.
-			var _actuator_code_name := "%s_%d" % [chain_name, _actuator_index]
-			var _ag = _ab.generate_code(node, _actuator_code_name)
+			var _ag = _ar.get("generated", {})
 			for _mv in _ag.get("member_vars", []):
 				if _mv.begins_with("@export var "):
 					var _parts = _mv.replace("@export var ", "").split(":")
@@ -789,14 +759,14 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 	var sensor_index = 0
 
 	for sensor_data in sensors:
-		var sensor_var = _emit_sensor_eval(lines, node, chain_name, sensor_data, "sensor_%d_active" % sensor_index)
+		var sensor_var = _emit_sensor_eval(lines, node, chain_name, sensor_data, "sensor_%d_active" % sensor_index, generation_cache)
 		if not sensor_var.is_empty():
 			sensor_vars.append(sensor_var)
 			sensor_index += 1
 
 	var nested_index = 0
 	for nested_controller in controller_inputs:
-		var nested_var = _emit_nested_controller_eval(lines, node, chain_name, nested_controller, "controller_%d" % nested_index)
+		var nested_var = _emit_nested_controller_eval(lines, node, chain_name, nested_controller, "controller_%d" % nested_index, generation_cache)
 		if not nested_var.is_empty():
 			sensor_vars.append(nested_var)
 		nested_index += 1
@@ -812,7 +782,8 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 	lines.append("\t")
 	lines.append("\t# Controller logic")
 	if controller_data:
-		var controller_brick = _instantiate_brick(controller_data)
+		var controller_record = _get_cached_brick_record(generation_cache, node, controller_data, chain_name)
+		var controller_brick = controller_record.get("brick", null)
 		if controller_brick:
 			# ── Script Controller ───────────────────────────────────────────────
 			if controller_data["type"] == "ScriptController":
@@ -870,10 +841,11 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 		var actuator_lines_written = 0
 		for actuator_index in range(actuators.size()):
 			var actuator_data = actuators[actuator_index]
-			var actuator_brick = _instantiate_brick(actuator_data)
+			var actuator_code_name := "%s_%d" % [chain_name, actuator_index]
+			var actuator_record = _get_cached_brick_record(generation_cache, node, actuator_data, actuator_code_name)
+			var actuator_brick = actuator_record.get("brick", null)
 			if actuator_brick:
-				var actuator_code_name := "%s_%d" % [chain_name, actuator_index]
-				var generated = actuator_brick.generate_code(node, actuator_code_name)
+				var generated = actuator_record.get("generated", {})
 				if generated.has("actuator_code"):
 					var actuator_code = generated["actuator_code"]
 					var code_lines_array = actuator_code.split("\n")
@@ -921,11 +893,12 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 
 
 
-func _emit_sensor_eval(lines: Array[String], node: Node, chain_name: String, sensor_data: Dictionary, fallback_var: String) -> String:
-	var sensor_brick = _instantiate_brick(sensor_data)
+func _emit_sensor_eval(lines: Array[String], node: Node, chain_name: String, sensor_data: Dictionary, fallback_var: String, generation_cache: Dictionary = {}) -> String:
+	var sensor_record = _get_cached_brick_record(generation_cache, node, sensor_data, chain_name)
+	var sensor_brick = sensor_record.get("brick", null)
 	if not sensor_brick:
 		return ""
-	var generated = sensor_brick.generate_code(node, chain_name)
+	var generated = sensor_record.get("generated", {})
 	if not generated.has("sensor_code"):
 		return ""
 
@@ -949,7 +922,7 @@ func _emit_sensor_eval(lines: Array[String], node: Node, chain_name: String, sen
 	return sensor_var
 
 
-func _emit_nested_controller_eval(lines: Array[String], node: Node, chain_name: String, controller_tree: Dictionary, prefix: String) -> String:
+func _emit_nested_controller_eval(lines: Array[String], node: Node, chain_name: String, controller_tree: Dictionary, prefix: String, generation_cache: Dictionary = {}) -> String:
 	if bool(controller_tree.get("cycle", false)):
 		var cycle_var = "%s_cycle_active" % prefix
 		lines.append("\tvar %s = false  # Controller chain cycle ignored" % cycle_var)
@@ -958,14 +931,14 @@ func _emit_nested_controller_eval(lines: Array[String], node: Node, chain_name: 
 	var input_vars: Array[String] = []
 	var sensor_index := 0
 	for sensor_data in controller_tree.get("sensors", []):
-		var sensor_var = _emit_sensor_eval(lines, node, chain_name, sensor_data, "%s_sensor_%d_active" % [prefix, sensor_index])
+		var sensor_var = _emit_sensor_eval(lines, node, chain_name, sensor_data, "%s_sensor_%d_active" % [prefix, sensor_index], generation_cache)
 		if not sensor_var.is_empty():
 			input_vars.append(sensor_var)
 		sensor_index += 1
 
 	var nested_index := 0
 	for nested_tree in controller_tree.get("controller_inputs", []):
-		var nested_var = _emit_nested_controller_eval(lines, node, chain_name, nested_tree, "%s_controller_%d" % [prefix, nested_index])
+		var nested_var = _emit_nested_controller_eval(lines, node, chain_name, nested_tree, "%s_controller_%d" % [prefix, nested_index], generation_cache)
 		if not nested_var.is_empty():
 			input_vars.append(nested_var)
 		nested_index += 1
@@ -976,7 +949,8 @@ func _emit_nested_controller_eval(lines: Array[String], node: Node, chain_name: 
 		lines.append("\tvar %s = false" % out_var)
 		return out_var
 
-	var controller_brick = _instantiate_brick(controller_data)
+	var controller_record = _get_cached_brick_record(generation_cache, node, controller_data, chain_name)
+	var controller_brick = controller_record.get("brick", null)
 	if controller_brick and controller_data.get("type", "") == "ScriptController":
 		lines.append("\tvar %s = %s" % [out_var, controller_brick.get_condition(input_vars) if input_vars.size() > 0 else "true"])
 		return out_var
@@ -1075,35 +1049,9 @@ func _function_signature_key(signature_line: String) -> String:
 	return text.substr(0, paren_index)
 
 
-## Check if a chain is complete enough to generate code for
-## Requires at least one sensor and one controller.
-## ScriptController chains do not require actuators; all others do.
-func _chain_is_complete(chain: Dictionary) -> bool:
-	if chain.get("sensors", []).is_empty() and chain.get("controller_inputs", []).is_empty():
-		return false
 
-	var controllers = chain.get("controllers", [])
-	# Legacy: try singular key
-	if controllers.is_empty():
-		if not chain.has("controller") or chain.get("controller") == null:
-			return false
-
-	# ScriptController chains don't require actuators
-	var is_script_controller = false
-	if controllers.size() > 0:
-		is_script_controller = controllers[0].get("type", "") == "ScriptController"
-
-	if not is_script_controller and chain.get("actuators", []).is_empty():
-		return false
-
-	return true
-
-
-## Check if a chain needs physics process (has force/torque actuators)
+## Check if a chain needs physics process (has physics-dependent sensors or physics actuators)
 func _chain_needs_physics_process(chain: Dictionary) -> bool:
-	# Physics-dependent sensors must also run in _physics_process.
-	# Example: PhysicsSensor uses is_on_floor()/is_on_wall()/is_on_ceiling(),
-	# which are only reliable after physics movement has been resolved.
 	var sensors = _collect_all_sensors_for_chain(chain)
 	for sensor_data in sensors:
 		var sensor_type = sensor_data.get("type", "")
@@ -1112,16 +1060,8 @@ func _chain_needs_physics_process(chain: Dictionary) -> bool:
 
 	var actuators = chain.get("actuators", [])
 	for actuator_data in actuators:
-		var brick_type = actuator_data.get("type", "")
-		if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator"]:
+		if _logic_brick_actuator_requires_physics(actuator_data):
 			return true
-		if brick_type == "MotionActuator":
-			var props = actuator_data.get("properties", {})
-			var motion_type = str(props.get("motion_type", "location")).to_lower().replace(" ", "_")
-			var movement_method = str(props.get("movement_method", "character_velocity")).to_lower().replace(" ", "_")
-			var call_move_and_slide = props.get("call_move_and_slide", false) == true
-			if motion_type == "location" or movement_method == "character_velocity" or call_move_and_slide:
-				return true
 	return false
 
 
@@ -1182,10 +1122,21 @@ func _logic_brick_actuator_is_timing_sensitive_non_physics(brick_type: String) -
 		"ProgressBarActuator",
 		"ScreenShakeActuator",
 		"SpriteFramesActuator",
-		"TextActuator",
-		"TimerActuator",
-		"UIActuator"
+		"TextActuator"
 	]
+
+
+func _get_cached_brick_record(cache: Dictionary, node: Node, brick_data: Dictionary, code_name: String) -> Dictionary:
+	var cache_key = "%s|%s" % [code_name, JSON.stringify(brick_data)]
+	if cache.has(cache_key):
+		return cache[cache_key]
+
+	var brick = _instantiate_brick(brick_data)
+	var record = {"brick": brick, "generated": {}}
+	if brick:
+		record["generated"] = brick.generate_code(node, code_name)
+	cache[cache_key] = record
+	return record
 
 
 ## Instantiate a brick from serialized data
@@ -1266,7 +1217,6 @@ const BRICK_SCRIPT_REGISTRY: Dictionary = {
 	"ParentActuator":            "res://addons/logic_bricks/bricks/actuators/3d/parent_actuator.gd",
 	"PhysicsActuator":           "res://addons/logic_bricks/bricks/actuators/3d/physics_actuator.gd",
 	"PreloadActuator":           "res://addons/logic_bricks/bricks/actuators/3d/preload_actuator.gd",
-	"PrintActuator":             "res://addons/logic_bricks/bricks/actuators/3d/print_actuator.gd",
 	"ProgressBarActuator":       "res://addons/logic_bricks/bricks/actuators/3d/progress_bar_actuator.gd",
 	"PropertyActuator":          "res://addons/logic_bricks/bricks/actuators/3d/property_actuator.gd",
 	"RandomActuator":            "res://addons/logic_bricks/bricks/actuators/3d/random_actuator.gd",
@@ -1354,13 +1304,20 @@ func _create_script_with_markers(existing_code: String, generated_code: String, 
 	var insert_pos = existing_code.length()
 	var lines_scan = existing_code.split("\n")
 	var char_offset = 0
+	var previous_annotation_offset = -1
 	for line in lines_scan:
 		var stripped = line.strip_edges()
-		# A real func declaration: starts with "func " or "@annotation\nfunc"
-		# Here we only need to catch bare top-level func lines.
-		if stripped.begins_with("func ") or stripped.begins_with("static func "):
-			insert_pos = char_offset
+		if stripped.begins_with("@"):
+			previous_annotation_offset = char_offset
+			var inline_annotation_func = stripped.find(" func ") != -1 or stripped.find(" static func ") != -1
+			if inline_annotation_func:
+				insert_pos = previous_annotation_offset
+				break
+		elif stripped.begins_with("func ") or stripped.begins_with("static func "):
+			insert_pos = previous_annotation_offset if previous_annotation_offset != -1 else char_offset
 			break
+		elif not stripped.is_empty() and not stripped.begins_with("#"):
+			previous_annotation_offset = -1
 		char_offset += line.length() + 1  # +1 for the "\n" that split consumed
 
 	var before = existing_code.substr(0, insert_pos)

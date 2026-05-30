@@ -16,6 +16,7 @@ var _drag_actuator_idx: int = -1     # Which actuator is being dragged
 var _drag_wp_idx: int = -1           # Which waypoint within that actuator
 var _drag_plane: Plane = Plane()     # World-space drag plane
 var _editor_camera: Camera3D = null  # Cached from _forward_3d_gui_input each frame
+var _drag_start_chains: Array = []    # Deep copy of logic_bricks metadata for undoable waypoint drags
 
 
 func _enter_tree() -> void:
@@ -212,6 +213,7 @@ func _forward_3d_gui_input(viewport_camera: Camera3D, event: InputEvent) -> int:
 
 						if event.position.distance_to(screen_pos) < 12.0:
 							# Start drag
+							_drag_start_chains = _wp_node.get_meta("logic_bricks", []).duplicate(true) if _wp_node.has_meta("logic_bricks") else []
 							_dragging_handle = true
 							_drag_actuator_idx = act_idx
 							_drag_wp_idx = wp_idx
@@ -225,7 +227,8 @@ func _forward_3d_gui_input(viewport_camera: Camera3D, event: InputEvent) -> int:
 					_drag_actuator_idx = -1
 					_drag_wp_idx = -1
 					# Persist the new waypoint positions back to the graph metadata
-					_save_waypoints_to_graph()
+					_save_waypoints_to_graph(true, _drag_start_chains)
+					_drag_start_chains = []
 					update_overlays()
 					return EditorPlugin.AFTER_GUI_INPUT_STOP
 
@@ -266,7 +269,7 @@ func _forward_3d_gui_input(viewport_camera: Camera3D, event: InputEvent) -> int:
 
 
 ## Write dragged waypoint positions back into the chain metadata so they persist
-func _save_waypoints_to_graph() -> void:
+func _save_waypoints_to_graph(use_undo: bool = false, old_chains: Array = []) -> void:
 	if not is_instance_valid(_wp_node) or not _wp_node.has_meta("logic_bricks"):
 		return
 
@@ -293,13 +296,23 @@ func _save_waypoints_to_graph() -> void:
 			actuator_data["properties"] = {}
 		actuator_data["properties"]["waypoints"] = brick.properties.get("waypoints", []).duplicate()
 
-	_wp_node.set_meta("logic_bricks", chains)
+	var new_chains = chains.duplicate(true)
+	if use_undo and not old_chains.is_empty():
+		var undo_redo = get_undo_redo()
+		undo_redo.create_action("Move Logic Brick Waypoint")
+		undo_redo.add_do_method(self, "_apply_waypoint_chains", _wp_node, new_chains)
+		undo_redo.add_undo_method(self, "_apply_waypoint_chains", _wp_node, old_chains.duplicate(true))
+		undo_redo.commit_action()
+	else:
+		_apply_waypoint_chains(_wp_node, new_chains)
 
-	# Also trigger a code regeneration so the generated script stays in sync
+
+func _apply_waypoint_chains(node: Node, chains: Array) -> void:
+	if not is_instance_valid(node):
+		return
+	node.set_meta("logic_bricks", chains.duplicate(true))
 	if manager:
-		manager.regenerate_script(_wp_node)
-
-	# Mark scene modified
+		manager.regenerate_script(node)
 	get_editor_interface().mark_scene_as_unsaved()
 
 
