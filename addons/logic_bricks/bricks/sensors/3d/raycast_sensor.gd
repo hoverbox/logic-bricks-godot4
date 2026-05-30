@@ -16,9 +16,9 @@ func _init() -> void:
 func _initialize_properties() -> void:
 	properties = {
 		"raycast_node_name": "RayCast3D",
-		"detect_mode": "any",       # any, group
+		"detect_mode": "any",       # any, group, nothing
 		"group_filter": "",         # Comma-separated groups (group mode)
-		"invert": false,            # Invert result (true when ray hits nothing)
+		"invert": false,            # Optional final invert
 	}
 
 
@@ -34,7 +34,7 @@ func get_property_definitions() -> Array:
 			"name": "detect_mode",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Any,Group",
+			"hint_string": "Any,Group,Nothing",
 			"default": "any"
 		},
 		{
@@ -52,10 +52,10 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Detects objects along a ray from this node.\nAssign a RayCast3D via the inspector (drag and drop).\nThe ray's direction and length are set on the RayCast3D node itself.",
-		"detect_mode": "Any: active when the ray hits anything\nGroup: active when the ray hits an object in the specified group(s).",
+		"_description": "Detects along a RayCast3D. This can be used for objects, groups, walls, ground, or ledges.\nThe RayCast3D's direction, length, and collision mask are set on the RayCast3D node itself.",
+		"detect_mode": "Any: active when the ray hits anything on its collision mask. Use this for walls, ground, obstacles, etc.\nGroup: active when the ray hits an object in the specified group(s).\nNothing: active when the ray hits nothing. Use this for ledge / cliff detection.",
 		"group_filter": "Comma-separated list of group names to filter by.\nExample: 'enemy, obstacle'\nOnly used in Group mode.",
-		"invert": "Invert the result.\nAny mode: active when the ray hits nothing.\nGroup mode: active when the hit object is NOT in the group.",
+		"invert": "Optional final invert. Usually leave this off now that Nothing mode exists.",
 	}
 
 
@@ -99,6 +99,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\t%s.force_raycast_update()" % raycast_var)
 
 	match detect_mode:
+		"nothing":
+			code_lines.append("\tsensor_active = not %s.is_colliding()" % raycast_var)
+
 		"group":
 			if groups.size() > 0:
 				code_lines.append("\tif %s.is_colliding():" % raycast_var)
@@ -109,24 +112,18 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					group_checks.append("_ray_collider.is_in_group(\"%s\")" % g)
 				var condition = " or ".join(group_checks)
 
-				if invert:
-					code_lines.append("\t\tsensor_active = not (%s)" % condition)
-				else:
-					code_lines.append("\t\tsensor_active = %s" % condition)
+				code_lines.append("\t\tsensor_active = %s" % condition)
 				code_lines.append("\telse:")
-				if invert:
-					code_lines.append("\t\tsensor_active = true")
-				else:
-					code_lines.append("\t\tsensor_active = false")
+				code_lines.append("\t\tsensor_active = false")
 			else:
 				# Group mode with no groups specified — always false
-				code_lines.append("\tsensor_active = %s" % ("true" if invert else "false"))
+				code_lines.append("\tsensor_active = false")
 
 		_:  # "any"
-			if invert:
-				code_lines.append("\tsensor_active = not %s.is_colliding()" % raycast_var)
-			else:
-				code_lines.append("\tsensor_active = %s.is_colliding()" % raycast_var)
+			code_lines.append("\tsensor_active = %s.is_colliding()" % raycast_var)
+
+	if invert:
+		code_lines.append("\tsensor_active = not sensor_active")
 
 	code_lines.append("else:")
 	code_lines.append("\tsensor_active = false")
