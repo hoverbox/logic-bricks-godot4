@@ -6,6 +6,7 @@ extends VBoxContainer
 
 const BrickGraphNode    = preload("res://addons/logic_bricks/ui/brick_graph_node.gd")
 const VariableUtils = preload("res://addons/logic_bricks/core/logic_brick_variable_utils.gd")
+const BrickRegistry = preload("res://addons/logic_bricks/core/brick_registry.gd")
 
 var manager = null
 var editor_interface = null
@@ -195,12 +196,10 @@ func _init() -> void:
 
 
 func _create_add_menu() -> void:
-	# Main menu
 	add_menu = PopupMenu.new()
-	add_menu.name = "AddNodeMenu"
+	add_menu.name = "AddMenu"
 	add_child(add_menu)
 
-	# Create submenus
 	sensors_menu = PopupMenu.new()
 	sensors_menu.name = "SensorsMenu"
 	add_menu.add_child(sensors_menu)
@@ -216,7 +215,6 @@ func _create_add_menu() -> void:
 	add_menu.add_child(actuators_menu)
 	actuators_menu.id_pressed.connect(_on_add_menu_item_selected)
 
-	# Add submenu items to main menu
 	add_menu.add_submenu_item("Sensors", "SensorsMenu", 0)
 	add_menu.add_submenu_item("Controllers", "ControllersMenu", 1)
 	add_menu.add_submenu_item("Actuators", "ActuatorsMenu", 2)
@@ -229,212 +227,70 @@ func _create_add_menu() -> void:
 	add_menu.add_item("🗑 Clear Bricks", 6)
 	add_menu.id_pressed.connect(_on_main_menu_id_pressed)
 
-	# Populate Sensors submenu (alphabetical order)
-	sensors_menu.add_item("Actuator", 112)
-	sensors_menu.set_item_metadata(0, {"type": "sensor", "class": "ActuatorSensor"})
-	sensors_menu.set_item_tooltip(0, "Fires TRUE when a named actuator on this node is running.\nThe actuator must have an instance name set.")
-
-	sensors_menu.add_item("Always", 100)
-	sensors_menu.set_item_metadata(1, {"type": "sensor", "class": "AlwaysSensor"})
-	sensors_menu.set_item_tooltip(1, "Always active. Fires every frame.\nUse for continuous actions like gravity or idle animations.")
-
-	sensors_menu.add_item("Animation Tree", 101)
-	sensors_menu.set_item_metadata(2, {"type": "sensor", "class": "AnimationTreeSensor"})
-	sensors_menu.set_item_tooltip(2, "Detects animation tree state changes and conditions.")
-
-	sensors_menu.add_item("Collision", 102)
-	sensors_menu.set_item_metadata(3, {"type": "sensor", "class": "CollisionSensor"})
-	sensors_menu.set_item_tooltip(3, "Detects collisions using an Area3D node.\nRequires an Area3D child or reference.\n⚠ Adds @export in Inspector — assign your Area3D.")
-
-	sensors_menu.add_item("Compare Variable", 103)
-	sensors_menu.set_item_metadata(4, {"type": "sensor", "class": "VariableSensor"})
-	sensors_menu.set_item_tooltip(4, "Compares a logic brick variable against a value.\nTriggers when the comparison is true.")
-
-	sensors_menu.add_item("Delay", 104)
-	sensors_menu.set_item_metadata(5, {"type": "sensor", "class": "DelaySensor"})
-	sensors_menu.set_item_tooltip(5, "Adds a delay before activating.\nStays active for a set duration, can repeat.")
-
-	sensors_menu.add_item("InputMap", 105)
-	sensors_menu.set_item_metadata(6, {"type": "sensor", "class": "InputMapSensor"})
-	sensors_menu.set_item_tooltip(6, "Detects input actions from Project > Input Map.\nWorks with keyboard, gamepad, etc.")
-
-	sensors_menu.add_item("Message", 106)
-	sensors_menu.set_item_metadata(7, {"type": "sensor", "class": "MessageSensor"})
-	sensors_menu.set_item_tooltip(7, "Listens for messages sent by a Message Actuator.\nFilters by subject.")
-
-	sensors_menu.add_item("Mouse", 107)
-	sensors_menu.set_item_metadata(8, {"type": "sensor", "class": "MouseSensor"})
-	sensors_menu.set_item_tooltip(8, "Detects mouse button presses and releases.")
-
-	sensors_menu.add_item("Movement", 108)
-	sensors_menu.set_item_metadata(9, {"type": "sensor", "class": "MovementSensor"})
-	sensors_menu.set_item_tooltip(9, "Detects if the node is moving or stationary.")
-
-	sensors_menu.add_item("Physics", 113)
-	sensors_menu.set_item_metadata(10, {"type": "sensor", "class": "PhysicsSensor"})
-	sensors_menu.set_item_tooltip(10, "Checks CharacterBody contact state: On Floor, On Wall, or On Ceiling.\nUse for jump checks, wall checks, and platformer logic.")
-
-	sensors_menu.add_item("Proximity", 109)
-	sensors_menu.set_item_metadata(11, {"type": "sensor", "class": "ProximitySensor"})
-	sensors_menu.set_item_tooltip(11, "Detects nodes within a certain distance.\nChecks against nodes in a specified group.")
-
-	sensors_menu.add_item("Random", 110)
-	sensors_menu.set_item_metadata(12, {"type": "sensor", "class": "RandomSensor"})
-	sensors_menu.set_item_tooltip(12, "Activates randomly based on a probability.\nUseful for random behaviors or AI variation.")
-
-	sensors_menu.add_item("Raycast", 111)
-	sensors_menu.set_item_metadata(13, {"type": "sensor", "class": "RaycastSensor"})
-	sensors_menu.set_item_tooltip(13, "Casts a ray to detect objects in a direction.\nUseful for line-of-sight or ground detection.")
+	_refresh_add_menu_from_registry(false)
 
 
-	# Populate Controllers submenu
-	controllers_menu.add_item("Controller", 200)
-	controllers_menu.set_item_metadata(0, {"type": "controller", "class": "Controller"})
-	controllers_menu.set_item_tooltip(0, "Logic gate that combines sensor inputs.\nAND, OR, NAND, NOR, XOR modes.")
+func _refresh_add_menu_from_registry(force_rescan: bool = false) -> void:
+	# Rebuild the brick submenus from the registry instead of relying on
+	# hard-coded menu IDs. This keeps the right-click menu in sync with any
+	# .gd files dropped into the bricks/sensors, bricks/controllers, or
+	# bricks/actuators folders.
+	if force_rescan:
+		BrickRegistry.refresh()
+	else:
+		BrickRegistry.ensure_scanned()
 
-	controllers_menu.add_item("Script Controller", 201)
-	controllers_menu.set_item_metadata(1, {"type": "controller", "class": "ScriptController"})
-	controllers_menu.set_item_tooltip(1, "Run custom GDScript or C# code when sensors fire.\nWrite your code directly in the brick's Script Body property.")
+	sensors_menu.clear()
+	controllers_menu.clear()
+	actuators_menu.clear()
 
-	# Populate Actuators submenu — grouped into categories
-	var _actuator_groups = [
-		{
-			"label": "Animation",
-			"items": [
-				["Animation", 300, "AnimationActuator", "Play, stop, pause, queue, ping-pong, or flipper animations.\nAutomatically finds the AnimationPlayer that owns the animation.\n⚠ No @export needed — AnimationPlayer is found automatically."],
-				["Animation Tree", 301, "AnimationTreeActuator", "Controls AnimationTree: travel states, set parameters/conditions.\nNo @export needed — AnimationTree is found automatically."],
-				["Sprite Frames", 346, "SpriteFramesActuator", "Play, stop, or pause Sprite3D / AnimatedSprite3D frame animations.\nLeave Target Node empty to target self.\n⚠ No @export needed — node is found by name automatically."],
-			]
-		},
-		{
-			"label": "Movement",
-			"items": [
-				["Motion", 309, "MotionActuator", "Move or rotate a node.\\nCharacter Velocity, Translate, or Position modes."],
-				["Character", 303, "CharacterActuator", "CharacterBody3D gravity, fall speed, snap, slope, acceleration, friction, bounce, and move_and_slide().\nPair with the Jump Actuator to handle jumping."],
-				["Jump", 350, "JumpActuator", "Apply a jump impulse to a CharacterBody3D.\nTrigger from any sensor — InputMap, Proximity, Message, etc.\nRequires a Character Actuator in another chain for gravity."],
-				["Look At Movement", 306, "LookAtMovementActuator", "Rotates a Node3D to face the direction of movement.\nType the Node3D node name to choose what rotates."],
-				["Look At Input", 307, "LookAtInputActuator", "Rotates a Node3D to face combined Input Map direction.\nUseful for icy movement where facing and sliding differ.\nType the Node3D node name to choose what rotates."],
-				["Rotate Towards", 342, "RotateTowardsActuator", "Rotates to face a target node found by name or group.\nUseful for turrets and enemies tracking the player."],
-				["Waypoint Path", 343, "WaypointPathActuator", "Moves a node through a series of waypoints placed in the 3D viewport.\nDrag the handles to position each point. Supports Loop, Ping Pong, and Once."],
-				["Move Towards", 311, "MoveTowardsActuator", "Seek, flee, or path-follow toward a target node.\n⚠ Path Follow adds @export in Inspector — assign your NavigationAgent3D."],
-				["Teleport", 320, "TeleportActuator", "Instantly move to a target node or coordinates.\n⚠ Target Node mode adds @export in Inspector — assign the destination."],
-				["Mouse", 310, "MouseActuator", "Mouse-based camera rotation with sensitivity and clamping."],
-			]
-		},
-		{
-			"label": "Physics",
-			"items": [
-				["Physics", 313, "PhysicsActuator", "Modify physics properties: gravity scale, mass, friction."],
-				["Gravity", 351, "GravityActuator", "Apply custom gravity to a RigidBody3D physics object.\nCharacterBody3D gravity is handled by the Character Actuator."],
-				["Force", 339, "ForceActuator", "Apply a continuous force to a RigidBody3D.\nUse for gravity-like effects or constant pushes."],
-				["Torque", 340, "TorqueActuator", "Apply a rotational force to a RigidBody3D.\nUse for spinning or angular acceleration."],
-				["Linear Velocity", 341, "LinearVelocityActuator", "Set, add, or average the linear velocity of a RigidBody3D."],
-				["Impulse", 329, "ImpulseActuator", "Apply a one-shot impulse to a RigidBody3D."],
-				["Collision", 322, "CollisionActuator", "Modify collision properties: enable/disable shapes, layers, masks."],
-			]
-		},
-		{
-			"label": "Object",
-			"items": [
-				["Edit Object", 304, "EditObjectActuator", "Add, remove, or replace objects in the scene at runtime."],
-				["Object Pool", 330, "ObjectPoolActuator", "Spawn/recycle objects from a pre-allocated pool for better performance."],
-				["Parent", 312, "ParentActuator", "Change the node's parent in the scene tree."],
-				["Property", 314, "PropertyActuator", "Set any property on a target node (visible, modulate, etc).\n⚠ Adds @export in Inspector — assign the target node."],
-				["Visibility", 328, "VisibilityActuator", "Show, hide, or toggle visibility of this node or an assigned node.\nWorks with Node3D, Control, Sprite2D, and any node with a visible property."],
-			]
-		},
-		{
-			"label": "Environment",
-			"items": [
-				["Environment", 323, "EnvironmentActuator", "Modify WorldEnvironment properties at runtime: fog, glow, SSAO, tone mapping, color correction."],
-				["Light", 337, "LightActuator", "Control OmniLight3D, SpotLight3D, or DirectionalLight3D properties.\nSupports FX presets: Flicker, Strobe, Pulse, Fade In/Out."],
-			]
-		},
-		{
-			"label": "Camera",
-			"items": [
-				["Set Camera", 302, "SetCameraActuator", "Makes the assigned Camera3D the active camera for the viewport.\n⚠ Adds @export in Inspector — assign your Camera3D."],
-				["Smooth Follow Camera", 345, "SmoothFollowCameraActuator", "Camera smoothly follows this node, maintaining its initial offset.\nSupports per-axis position/rotation follow, dead zones, and independent speeds.\n⚠ Adds @export in Inspector — assign your Camera3D."],
-				["Camera Zoom", 332, "CameraZoomActuator", "Change camera FOV (3D) or zoom (2D) with optional lerp.\n⚠ Adds @export in Inspector — assign your camera."],
-				["3rd Person Camera", 338, "ThirdPersonCameraActuator", "Mouse and/or joystick orbit camera for third-person games.\nAssign a SpringArm3D or pivot node as the camera mount."],
-				["Split Screen", 344, "SplitScreenActuator", "Positions SubViewportContainers for 2-4 player split screen.\n⚠ Adds @export slots in Inspector — assign your SubViewportContainers."],
-			]
-		},
-		{
-			"label": "Audio",
-			"items": [
-				["Audio 3D", 318, "SoundActuator", "Play 3D audio with random pitch, buses, and play modes.\n⚠ Adds @export in Inspector — assign your AudioStreamPlayer3D."],
-				["Audio 2D", 324, "Audio2DActuator", "Control an AudioStreamPlayer or AudioStreamPlayer2D.\n⚠ Adds @export in Inspector — assign your audio node."],
-				["Music", 334, "MusicActuator", "Control background music with crossfade support.\n⚠ Adds @export in Inspector — assign AudioStreamPlayer node(s)."],
-			]
-		},
-		{
-			"label": "Game Feel",
-			"items": [
-				["Screen Flash", 335, "ScreenFlashActuator", "Flash a color over the screen.\n⚠ Adds @export in Inspector — assign a full-screen ColorRect."],
-				["Screen Shake", 333, "ScreenShakeActuator", "Trauma-based camera shake. Type a Camera3D node name; works from any 3D node."],
-				["Object Flash", 348, "ObjectFlashActuator", "Flash a named object or mesh with a color overlay.\nType a node name, not a path. Use self to flash the current object."],
-				["Object Shake", 352, "ObjectShakeActuator", "Shake a named child object by rotation, translation, or scale, then return it to its starting value.\nType a node name, not a path. Add multiple actuators for multiple shake effects."],
-				["Hit Stop", 353, "HitStopActuator", "Briefly pauses or slows game time when an impact lands. Also called hit pause or impact freeze."],
-				["Rumble", 336, "RumbleActuator", "Trigger controller haptic vibration."],
-			]
-		},
-		{
-			"label": "UI",
-			"items": [
-				["Text", 321, "TextActuator", "Display text or variable values on a UI Label.\n⚠ Adds @export in Inspector — assign your text node."],
-				["Modulate", 325, "ModulateActuator", "Set or smoothly transition the color/alpha of this node.\nUseful for fades, flashes, and tints."],
-				["Progress Bar", 326, "ProgressBarActuator", "Set the value, min, or max of a ProgressBar, HSlider, or VSlider.\n⚠ Adds @export in Inspector — assign your Range node."],
-				["Tween", 327, "TweenActuator", "Animate any property on a node using Godot's Tween system."],
-			]
-		},
-		{
-			"label": "Logic",
-			"items": [
-				["State", 319, "StateActuator", "Change the logic brick state (1-30)."],
-				["Random", 315, "RandomActuator", "Set a variable to a random value within a range."],
-				["Message", 307, "MessageActuator", "Sends a message to all nodes in a target group."],
-				["Modify Variable", 308, "VariableActuator", "Modify a logic brick variable (assign, add, subtract, etc)."],
-			]
-		},
-		{
-			"label": "Game",
-			"items": [
-				["Game", 305, "GameActuator", "Game-level actions: quit, restart, screenshot."],
-				["Scene", 317, "SceneActuator", "Change or reload scenes."],
-				["Save / Load", 316, "SaveLoadActuator", "Save/load game state to a file.\nThis Node: saves the node the brick is on.\nTarget Node: saves a specific node by name.\nGroup: saves every node in a named group automatically."],
-				["Preload", 347, "PreloadActuator", "Preloads materials, scenes, textures, audio, and meshes into memory before they are needed.\nPrevents runtime hitches and frame drops during gameplay."],
-			]
-		},
-	]
+	for submenu in actuator_submenus.values():
+		if is_instance_valid(submenu):
+			actuators_menu.remove_child(submenu)
+			submenu.queue_free()
+	actuator_submenus.clear()
 
-	for group in _actuator_groups:
-		var group_label: String = group["label"]
-		var group_items: Array = group["items"]
+	_populate_brick_menu_flat(sensors_menu, BrickRegistry.get_bricks_by_type("sensor"))
+	_populate_brick_menu_flat(controllers_menu, BrickRegistry.get_bricks_by_type("controller"))
+	_populate_actuator_menu(BrickRegistry.get_bricks_by_type("actuator"))
 
-		# Single-item groups go directly into the actuators menu, no submenu needed
-		if group_items.size() == 1:
-			var item = group_items[0]
-			actuators_menu.add_item(item[0], item[1])
-			var idx = actuators_menu.get_item_index(item[1])
-			actuators_menu.set_item_metadata(idx, {"type": "actuator", "class": item[2]})
-			actuators_menu.set_item_tooltip(idx, item[3])
+
+func _populate_brick_menu_flat(menu: PopupMenu, bricks: Array) -> void:
+	for info in bricks:
+		var id := int(info.get("menu_id", 0))
+		menu.add_item(str(info.get("name", info.get("class", "Brick"))), id)
+		var idx := menu.get_item_index(id)
+		menu.set_item_metadata(idx, {"type": str(info.get("type", "")), "class": str(info.get("class", ""))})
+		var description := str(info.get("description", ""))
+		if not description.is_empty():
+			menu.set_item_tooltip(idx, description)
+
+
+func _populate_actuator_menu(bricks: Array) -> void:
+	var groups: Dictionary = {}
+	var group_order: Array = []
+	for info in bricks:
+		var category := str(info.get("category", "General"))
+		if category.is_empty():
+			category = "General"
+		if not groups.has(category):
+			groups[category] = []
+			group_order.append(category)
+		groups[category].append(info)
+
+	for category in group_order:
+		var group_items: Array = groups[category]
+		if group_items.size() == 1 and category == "General":
+			_populate_brick_menu_flat(actuators_menu, group_items)
 		else:
-			# Create a submenu for this group
 			var submenu = PopupMenu.new()
-			var submenu_name = "ActuatorSub_" + group_label.replace(" ", "_")
+			var submenu_name = "ActuatorSub_" + category.replace(" ", "_").replace("/", "_")
 			submenu.name = submenu_name
 			actuators_menu.add_child(submenu)
 			submenu.id_pressed.connect(_on_add_menu_item_selected)
 			actuator_submenus[submenu_name] = submenu
-
-			for item in group_items:
-				submenu.add_item(item[0], item[1])
-				var idx = submenu.get_item_index(item[1])
-				submenu.set_item_metadata(idx, {"type": "actuator", "class": item[2]})
-				submenu.set_item_tooltip(idx, item[3])
-
-			actuators_menu.add_submenu_item(group_label, submenu_name)
+			_populate_brick_menu_flat(submenu, group_items)
+			actuators_menu.add_submenu_item(category, submenu_name)
 
 
 func _create_side_panel() -> void:
@@ -1467,6 +1323,10 @@ func _on_popup_request(position: Vector2) -> void:
 	# Store the position accounting for scroll offset
 	# position is in local graph coordinates, we need to add scroll offset
 	last_mouse_position = (position + graph_edit.scroll_offset) / graph_edit.zoom
+	# Rescan before opening so newly added brick scripts appear without
+	# manual registration or hard-coded menu edits.
+	_refresh_add_menu_from_registry(true)
+
 	# Position the menu at the click location in screen coordinates
 	var screen_pos = graph_edit.get_screen_position() + position
 	add_menu.position = screen_pos
@@ -1561,34 +1421,31 @@ func _create_reroute_node(position: Vector2) -> void:
 
 
 func _on_add_menu_item_selected(id: int) -> void:
-	# Determine which menu was used based on ID range
-	var metadata = null
-	if id >= 100 and id < 200:
-		# Sensors menu (100-199)
-		var item_index = sensors_menu.get_item_index(id)
-		metadata = sensors_menu.get_item_metadata(item_index)
-	elif id >= 200 and id < 300:
-		# Controllers menu (200-299)
-		var item_index = controllers_menu.get_item_index(id)
-		metadata = controllers_menu.get_item_metadata(item_index)
-	elif id >= 300 and id < 400:
-		# Actuators — check direct items first, then sub-submenus
-		var item_index = actuators_menu.get_item_index(id)
-		if item_index >= 0:
-			metadata = actuators_menu.get_item_metadata(item_index)
-		else:
-			for submenu in actuator_submenus.values():
-				var sub_index = submenu.get_item_index(id)
-				if sub_index >= 0:
-					metadata = submenu.get_item_metadata(sub_index)
-					break
-
+	var metadata = _get_brick_menu_metadata(id)
 	if metadata:
 		var brick_type = metadata["type"]
 		var brick_class = metadata["class"]
 		var before_snapshot = _take_graph_snapshot()
 		_create_graph_node(brick_type, brick_class, last_mouse_position)
 		_record_undo("Add Logic Brick", before_snapshot, _take_graph_snapshot())
+
+
+func _get_brick_menu_metadata(id: int):
+	# Auto-discovered bricks use registry-assigned IDs, so do not assume
+	# sensors/controllers/actuators live in fixed numeric ranges.
+	for menu in [sensors_menu, controllers_menu, actuators_menu]:
+		var item_index = menu.get_item_index(id)
+		if item_index >= 0:
+			return menu.get_item_metadata(item_index)
+
+	for submenu in actuator_submenus.values():
+		if not is_instance_valid(submenu):
+			continue
+		var sub_index = submenu.get_item_index(id)
+		if sub_index >= 0:
+			return submenu.get_item_metadata(sub_index)
+
+	return null
 
 
 func _create_graph_node(brick_type: String, brick_class: String, position: Vector2) -> void:
@@ -1739,155 +1596,9 @@ func _create_graph_node_from_data(node_data: Dictionary) -> GraphNode:
 
 
 func _create_brick_instance(brick_class: String):
-	var script_path = ""
-
-	match brick_class:
-		"ActuatorSensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/actuator_sensor.gd"
-		"AlwaysSensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/always_sensor.gd"
-		"AnimationTreeSensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/animation_tree_sensor.gd"
-		"DelaySensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/delay_sensor.gd"
-		"KeyboardSensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/keyboard_sensor.gd"  # Legacy
-		"InputMapSensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/input_map_sensor.gd"
-		"MessageSensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/message_sensor.gd"
-		"VariableSensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/variable_sensor.gd"
-		"ProximitySensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/proximity_sensor.gd"
-		"RandomSensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/random_sensor.gd"
-		"RaycastSensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/raycast_sensor.gd"
-		"MovementSensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/movement_sensor.gd"
-		"PhysicsSensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/physics_sensor.gd"
-		"MouseSensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/mouse_sensor.gd"
-		"CollisionSensor":
-			script_path = "res://addons/logic_bricks/bricks/sensors/3d/collision_sensor.gd"
-		"ANDController", "Controller":
-			script_path = "res://addons/logic_bricks/bricks/controllers/controller.gd"
-		"ScriptController":
-			script_path = "res://addons/logic_bricks/bricks/controllers/script_controller.gd"
-		"MotionActuator", "LocationActuator", "RotationActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/motion_actuator.gd"
-		"EditObjectActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/edit_object_actuator.gd"
-		"CharacterActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/character_actuator.gd"
-		"GravityActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/gravity_actuator.gd"  # Legacy
-		"JumpActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/jump_actuator.gd"
-		"MoveTowardsActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/move_towards_actuator.gd"
-		"AnimationActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/animation_actuator.gd"
-		"SpriteFramesActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/sprite_frames_actuator.gd"
-		"AnimationTreeActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/animation_tree_actuator.gd"
-		"MessageActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/message_actuator.gd"
-		"LookAtMovementActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/look_at_movement_actuator.gd"
-		"LookAtInputActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/look_at_input_actuator.gd"
-		"RotateTowardsActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/rotate_towards_actuator.gd"
-		"WaypointPathActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/waypoint_path_actuator.gd"
-		"VariableActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/variable_actuator.gd"
-		"RandomActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/random_actuator.gd"
-		"StateActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/state_actuator.gd"
-		"TeleportActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/teleport_actuator.gd"
-		"PropertyActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/property_actuator.gd"
-		"TextActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/text_actuator.gd"
-		"SoundActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/sound_actuator.gd"
-		"SceneActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/scene_actuator.gd"
-		"SaveLoadActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/save_load_actuator.gd"
-		"PreloadActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/preload_actuator.gd"
-		"SetCameraActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/set_camera_actuator.gd"
-		"SmoothFollowCameraActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/smooth_follow_camera_actuator.gd"
-		"CollisionActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/collision_actuator.gd"
-		"ParentActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/parent_actuator.gd"
-		"MouseActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/mouse_actuator.gd"
-		"GameActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/game_actuator.gd"
-		"EnvironmentActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/environment_actuator.gd"
-		"Audio2DActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/audio_2d_actuator.gd"
-		"ModulateActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/modulate_actuator.gd"
-		"VisibilityActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/visibility_actuator.gd"
-		"ProgressBarActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/progress_bar_actuator.gd"
-		"TweenActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/tween_actuator.gd"
-		"ImpulseActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/impulse_actuator.gd"
-		"ForceActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/force_actuator.gd"
-		"TorqueActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/torque_actuator.gd"
-		"LinearVelocityActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/linear_velocity_actuator.gd"
-		"MusicActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/music_actuator.gd"
-		"ScreenShakeActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/screen_shake_actuator.gd"
-		"ScreenFlashActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/screen_flash_actuator.gd"
-		"ObjectFlashActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/object_flash_actuator.gd"
-		"ObjectShakeActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/object_shake_actuator.gd"
-		"HitStopActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/hit_stop_actuator.gd"
-		"RumbleActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/rumble_actuator.gd"
-		"ShaderParamActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/shader_param_actuator.gd"
-		"LightActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/light_actuator.gd"
-		"ThirdPersonCameraActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/third_person_camera_actuator.gd"
-		"SplitScreenActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/split_screen_actuator.gd"
-		"CameraZoomActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/camera_zoom_actuator.gd"
-		"ObjectPoolActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/object_pool_actuator.gd"
-		"PhysicsActuator":
-			script_path = "res://addons/logic_bricks/bricks/actuators/3d/physics_actuator.gd"
-		"ANDController", "Controller":
-			script_path = "res://addons/logic_bricks/bricks/controllers/controller.gd"
-
+	var script_path: String = BrickRegistry.get_script_path(brick_class)
 	if script_path.is_empty():
+		push_error("Logic Bricks: No script registered for brick class: " + brick_class)
 		return null
 
 	# Ensure the base class is resident in the resource cache before loading

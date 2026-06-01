@@ -1,72 +1,6 @@
 extends RefCounted
 
-const SEARCH_BRICKS: Array = [
-	["Actuator", "sensor", "ActuatorSensor"],
-	["Always", "sensor", "AlwaysSensor"],
-	["Animation Tree", "sensor", "AnimationTreeSensor"],
-	["Collision", "sensor", "CollisionSensor"],
-	["Compare Variable", "sensor", "VariableSensor"],
-	["Delay", "sensor", "DelaySensor"],
-	["InputMap", "sensor", "InputMapSensor"],
-	["Message", "sensor", "MessageSensor"],
-	["Mouse", "sensor", "MouseSensor"],
-	["Movement", "sensor", "MovementSensor"],
-	["Proximity", "sensor", "ProximitySensor"],
-	["Random", "sensor", "RandomSensor"],
-	["Raycast", "sensor", "RaycastSensor"],
-	["Controller", "controller", "Controller"],
-	["Animation", "actuator", "AnimationActuator"],
-	["Animation Tree", "actuator", "AnimationTreeActuator"],
-	["Sprite Frames", "actuator", "SpriteFramesActuator"],
-	["Motion", "actuator", "MotionActuator"],
-	["Character", "actuator", "CharacterActuator"],
-	["Look At Movement", "actuator", "LookAtMovementActuator"],
-	["Rotate Towards", "actuator", "RotateTowardsActuator"],
-	["Waypoint Path", "actuator", "WaypointPathActuator"],
-	["Move Towards", "actuator", "MoveTowardsActuator"],
-	["Teleport", "actuator", "TeleportActuator"],
-	["Mouse", "actuator", "MouseActuator"],
-	["Physics", "actuator", "PhysicsActuator"],
-	["Force", "actuator", "ForceActuator"],
-	["Gravity", "actuator", "GravityActuator"],
-	["Torque", "actuator", "TorqueActuator"],
-	["Linear Velocity", "actuator", "LinearVelocityActuator"],
-	["Impulse", "actuator", "ImpulseActuator"],
-	["Collision", "actuator", "CollisionActuator"],
-	["Edit Object", "actuator", "EditObjectActuator"],
-	["Object Pool", "actuator", "ObjectPoolActuator"],
-	["Parent", "actuator", "ParentActuator"],
-	["Property", "actuator", "PropertyActuator"],
-	["Visibility", "actuator", "VisibilityActuator"],
-	["Environment", "actuator", "EnvironmentActuator"],
-	["Light", "actuator", "LightActuator"],
-	["Set Camera", "actuator", "SetCameraActuator"],
-	["Smooth Follow Camera", "actuator", "SmoothFollowCameraActuator"],
-	["Camera Zoom", "actuator", "CameraZoomActuator"],
-	["Screen Shake", "actuator", "ScreenShakeActuator"],
-	["3rd Person Camera", "actuator", "ThirdPersonCameraActuator"],
-	["Split Screen", "actuator", "SplitScreenActuator"],
-	["Audio 3D", "actuator", "SoundActuator"],
-	["Audio 2D", "actuator", "Audio2DActuator"],
-	["Music", "actuator", "MusicActuator"],
-	["Screen Flash", "actuator", "ScreenFlashActuator"],
-	["Object Flash", "actuator", "ObjectFlashActuator"],
-	["Object Shake", "actuator", "ObjectShakeActuator"],
-	["Hit Stop", "actuator", "HitStopActuator"],
-	["Rumble", "actuator", "RumbleActuator"],
-	["Text", "actuator", "TextActuator"],
-	["Modulate", "actuator", "ModulateActuator"],
-	["Progress Bar", "actuator", "ProgressBarActuator"],
-	["Tween", "actuator", "TweenActuator"],
-	["State", "actuator", "StateActuator"],
-	["Random", "actuator", "RandomActuator"],
-	["Message", "actuator", "MessageActuator"],
-	["Modify Variable", "actuator", "VariableActuator"],
-	["Game", "actuator", "GameActuator"],
-	["Scene", "actuator", "SceneActuator"],
-	["Save / Load", "actuator", "SaveLoadActuator"],
-	["Preload", "actuator", "PreloadActuator"],
-]
+const BrickRegistry = preload("res://addons/logic_bricks/core/brick_registry.gd")
 
 const SEARCH_TYPE_COLORS: Dictionary = {
 	"sensor":     Color(0.2, 0.55, 0.2,  0.9),
@@ -215,7 +149,8 @@ func _search_update_results(query: String) -> void:
 	search_selected_index = -1
 
 	var scored: Array = []
-	for brick in SEARCH_BRICKS:
+	for info in BrickRegistry.get_all_bricks():
+		var brick = [str(info.get("name", "")), str(info.get("type", "")), str(info.get("class", ""))]
 		var s = _search_score(query, brick[0], brick[1])
 		if s > 0.0:
 			scored.append([s, brick])

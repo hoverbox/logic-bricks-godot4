@@ -126,6 +126,7 @@ const ACTUATOR_SIGNATURES: Array = [
 	["_lb_var_",                           "VariableActuator"],
 	["_target.set(",                        "VariableActuator"],
 	["# Property Actuator",                "PropertyActuator"],
+	["# Save game state",                  "SaveGameActuator"],
 	["# Save/Load",                        "SaveLoadActuator"],
 	["_save_load_",                        "SaveLoadActuator"],
 	["# Preload",                          "PreloadActuator"],

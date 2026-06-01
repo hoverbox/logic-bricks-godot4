@@ -166,8 +166,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	member_vars.append("var _moving_platform_velocity: Vector3 = Vector3.ZERO")
 	if has_platform_filter:
 		member_vars.append("var _moving_platform_last_positions: Dictionary = {}")
-	member_vars.append("var _moving_platform_current_id: int = 0")
-	member_vars.append("var _moving_platform_current_node: Node3D = null")
+		member_vars.append("var _moving_platform_current_id: int = 0")
+		member_vars.append("var _moving_platform_current_node: Node3D = null")
 	member_vars.append("var _inherited_platform_velocity: Vector3 = Vector3.ZERO")
 	member_vars.append("var _logic_brick_external_motion_delta: Vector3 = Vector3.ZERO")
 	member_vars.append("var _logic_brick_external_motion_total: Vector3 = Vector3.ZERO")
