@@ -10,7 +10,19 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.ACTUATOR
-	brick_name = "Sound"
+	brick_name = "3D Audio"
+
+
+func get_brick_info() -> Dictionary:
+	return {
+		"class": "SoundActuator",
+		"name": "3D Audio",
+		"type": "actuator",
+		"category": "Audio",
+		"description": "Play, stop, pause, and fade 3D or spatial audio from a file.",
+		"menu_order": 10,
+		"aliases": ["Audio3DActuator", "Audio3dActuator"]
+	}
 
 
 func _initialize_properties() -> void:
