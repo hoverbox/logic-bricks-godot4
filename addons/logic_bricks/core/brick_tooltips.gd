@@ -98,12 +98,6 @@ const TOOLTIPS = {
 		"use_collision_mask": "If true, respect the node's collision mask for ray filtering.",
 	},
 
-	"TimerSensor": {
-		"_description": "Activates after a set time duration.\nCan repeat for periodic triggers.",
-		"duration": "Time in seconds before the sensor activates.",
-		"repeat": "If true, the timer resets and repeats after firing.",
-	},
-
 	"VariableSensor": {
 		"_description": "Compares a logic brick variable against a value.\nUse to trigger actions when variables change.",
 		"variable_name": "Name of the logic brick variable to check (defined in the Variables tab).",

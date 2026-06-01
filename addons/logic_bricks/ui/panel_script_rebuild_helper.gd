@@ -416,8 +416,6 @@ func _parse_sensor_segment(full_block: String, chain_name: String, segment: Stri
 		return {"class": "RandomSensor", "properties": _parse_random_sensor_props(segment)}
 	if "# Raycast sensor" in segment or "force_raycast_update()" in segment or "get_collider()" in segment:
 		return {"class": "RaycastSensor", "properties": _parse_raycast_sensor_props(segment)}
-	if "# Timer sensor" in segment or "_timer_elapsed_" in segment or "_timer_active_" in segment:
-		return {"class": "TimerSensor", "properties": _parse_timer_sensor_props(segment)}
 	if "# Get variable '" in segment or "_lb_get_var_" in segment or "Compare Variable" in segment:
 		return {"class": "VariableSensor", "properties": _parse_variable_sensor_props(segment)}
 
@@ -661,14 +659,6 @@ func _parse_raycast_sensor_props(segment: String) -> Dictionary:
 		props["groups"] = ",".join(groups)
 	else:
 		props["filter_mode"] = "any"
-	return props
-
-
-func _parse_timer_sensor_props(segment: String) -> Dictionary:
-	var props: Dictionary = {}
-	var rx := RegEx.new(); rx.compile(r'>=\s*([0-9.]+)')
-	var m := rx.search(segment); if m: props["duration"] = m.get_string(1)
-	props["repeat"] = "= 0.0" in segment and "sensor_active = true" in segment
 	return props
 
 
