@@ -3,7 +3,7 @@
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Collision Sensor - Detects collisions via an Area3D node
-## The Area3D is located by name at runtime using find_child()
+## The Area3D is located by name at runtime by searching the whole scene tree
 ## Supports body_entered, body_exited, and continuous overlap detection
 
 
@@ -72,7 +72,7 @@ func get_property_definitions() -> Array:
 func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Detects collisions via an Area3D node located by name.\n\nType the node name (not the full path) into 'Area Node Name'.",
-		"area_node_name": "The name of the Area3D node to use for collision detection (e.g. \"HitArea\"). Uses find_child() so the node just needs to exist somewhere under this node.",
+		"area_node_name": "The name of the Area3D node to use for collision detection (e.g. \"HitArea\"). Searches the whole scene tree — the node can live anywhere, not just as a child.",
 		"detection_mode": "Entered: fires once when something enters.\nExited: fires once when something leaves.\nOverlapping: active every frame while overlapping.",
 		"detect_bodies":  "Detect physics bodies (CharacterBody3D, RigidBody3D, etc.).",
 		"detect_areas":   "Detect other Area3D nodes.",
@@ -107,19 +107,20 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var member_vars: Array[String] = []
 	var ready_lines: Array[String] = []
 
-	# Runtime Area3D reference — resolved once in _ready() via find_child()
+	# Runtime Area3D reference — resolved by searching the whole scene tree (like Text Actuator)
 	member_vars.append("var %s: Area3D = null" % area_var)
+	_append_find_node_helpers(member_vars)
 
-	# _ready(): locate the Area3D by name.
+	# _ready(): locate the Area3D by name anywhere in the current scene.
 	# NOTE: We embed `area_var` (unique per chain) in the warning string, not
 	# `area_node_name`, so the manager's ready_code deduplication never strips
 	# the push_warning line from one chain while keeping the `if not` header
 	# from another — which would leave a bodyless `if` in the generated script.
 	var quoted_name = "\"%s\"" % area_node_name
-	ready_lines.append("# Collision Sensor (%s): locate Area3D by name" % chain_name)
-	ready_lines.append("%s = find_child(%s, true, false) as Area3D" % [area_var, quoted_name])
+	ready_lines.append("# Collision Sensor (%s): locate Area3D by name in scene" % chain_name)
+	ready_lines.append("%s = _lb_find_node_in_current_scene(%s) as Area3D" % [area_var, quoted_name])
 	ready_lines.append("if not %s:" % area_var)
-	ready_lines.append("\tpush_warning(\"Collision Sensor [%s]: could not find Area3D named '%s' under '\" + name + \"'\")" % [area_var, area_node_name])
+	ready_lines.append("\tpush_warning(\"Collision Sensor [%s]: could not find Area3D named '%s' anywhere in the scene\")" % [area_var, area_node_name])
 
 	# Name of the per-chain setup helper — called from both _ready() and
 	# _on_logic_brick_state_enter() so signal connections survive state resets.
@@ -276,3 +277,25 @@ func _add_filter_code(lines: Array[String], filter_type: String, filter_value: S
 			lines.append("\treturn _detected.any(func(obj): return obj.name == \"%s\")" % filter_value)
 	else:
 		lines.append("\treturn %s" % ("false" if not invert else "true"))
+
+
+func _append_find_node_helpers(member_vars: Array[String]) -> void:
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_by_name_recursive(node: Node, target_name: String) -> Node:")
+	member_vars.append("\tif node == null or target_name.is_empty():")
+	member_vars.append("\t\treturn null")
+	member_vars.append("\tif node.name == target_name:")
+	member_vars.append("\t\treturn node")
+	member_vars.append("\tfor child in node.get_children():")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(child, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn null")
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_in_current_scene(target_name: String) -> Node:")
+	member_vars.append("\tvar scene_root = get_tree().current_scene")
+	member_vars.append("\tif scene_root:")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(scene_root, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn _lb_find_node_by_name_recursive(get_tree().root, target_name)")

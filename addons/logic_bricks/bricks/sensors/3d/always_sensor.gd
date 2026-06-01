@@ -8,7 +8,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.SENSOR
-	brick_name = "Always Sensor"
+	brick_name = "Always"
 
 
 func _initialize_properties() -> void:

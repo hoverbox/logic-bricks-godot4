@@ -17,8 +17,6 @@ func _init() -> void:
 func _initialize_properties() -> void:
 	properties = {
 		"target_node_name": "",
-		"node_name_source": "literal",
-		"export_node_name": false,
 		"motion_type": "location",  # location, rotation
 
 		# Location properties
@@ -42,18 +40,6 @@ func get_property_definitions() -> Array:
 			"type": TYPE_STRING,
 			"default": "",
 			"placeholder": "blank = self, or child/node name"
-		},
-		{
-			"name": "node_name_source",
-			"type": TYPE_STRING,
-			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Literal Node Name,String Variable",
-			"default": "literal"
-		},
-		{
-			"name": "export_node_name",
-			"type": TYPE_BOOL,
-			"default": false
 		},
 		{
 			"name": "motion_type",
@@ -115,8 +101,6 @@ func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Moves or rotates a target node. Leave Target Node Name blank to affect self. X/Y/Z fields accept numbers, variable names, or math expressions.",
 		"target_node_name": "Leave blank to move/rotate the node that owns this logic brick. Type a node name, such as PlayerMesh or GunPivot, to affect that child/node instead. The actuator first searches under this node, then the current scene.",
-		"node_name_source": "Literal Node Name: use Target Node Name directly. String Variable: treat Target Node Name as a variable name and read that String at runtime.",
-		"export_node_name": "Literal mode only. Adds an @export String to the generated script so the target node name can be edited in the Inspector.",
 		"motion_type": "Location: move by offset, set velocity, or set position\nRotation: rotate by degrees each frame\n\nFor physics forces, torque, or RigidBody velocity,\nuse the Physics actuators in the Physics submenu.",
 		"movement_method": "Character Velocity: set velocity on active axes (CharacterBody3D target)\nTranslate: move by offset each frame\nPosition: set absolute position",
 		"x": "X axis value. Accepts:\n• A number: 5.0\n• A variable: speed\n• An expression: input_x * speed",
@@ -175,21 +159,12 @@ func _is_zero(val) -> bool:
 
 func _append_target_setup(code_lines: Array[String], member_vars: Array[String], chain_name: String) -> String:
 	var target_node_name = str(properties.get("target_node_name", "")).strip_edges()
-	var node_name_source = str(properties.get("node_name_source", "literal")).to_lower().replace(" ", "_")
-	var export_node_name = properties.get("export_node_name", false)
 	var label = _unique_label(chain_name)
 	var target_var = "_motion_target_%s" % label
-	var node_name_var = "_%s_node_name" % label
 
 	member_vars.append("var %s = null" % target_var)
-	if export_node_name and node_name_source != "string_variable":
-		member_vars.append("@export var %s: String = \"%s\"" % [node_name_var, _gd_string(target_node_name)])
 
 	var name_expr = "\"%s\"" % _gd_string(target_node_name)
-	if node_name_source == "string_variable" and not target_node_name.is_empty():
-		name_expr = "str(%s)" % target_node_name
-	elif export_node_name and node_name_source != "string_variable":
-		name_expr = node_name_var
 
 	code_lines.append("# Motion Actuator target")
 	code_lines.append("var _motion_target_name_%s = %s" % [label, name_expr])

@@ -263,7 +263,7 @@ func _descs_from_exact_chains(chains: Array) -> Array[Dictionary]:
 		var controller_info: Dictionary = {}
 		var controllers = chain_data.get("controllers", [])
 		if controllers is Array and controllers.size() > 0 and controllers[0] is Dictionary:
-			controller_info = _brick_info_from_meta(controllers[0], "ANDController")
+			controller_info = _brick_info_from_meta(controllers[0], "Controller")
 		var actuator_infos: Array = []
 		for actuator_data in chain_data.get("actuators", []):
 			if actuator_data is Dictionary:
@@ -342,7 +342,7 @@ func _parse_chains(block: String) -> Array[Dictionary]:
 			"sensor_infos":     sensor_infos,
 			"all_states":       bool(controller_props.get("all_states", _detect_all_states(body))),
 			"state_id":         str(controller_props.get("state_id", _detect_state_id(body))),
-			"controller_meta":   _brick_info_from_meta(controller_meta, "ScriptController" if is_script_controller else "ANDController") if not controller_meta.is_empty() else {},
+			"controller_meta":   _brick_info_from_meta(controller_meta, "ScriptController" if is_script_controller else "Controller") if not controller_meta.is_empty() else {},
 			"actuator_classes": actuator_infos,
 		})
 
@@ -1432,7 +1432,7 @@ func _build_chains_metadata(descs: Array[Dictionary]) -> Array:
 			})
 		else:
 			controllers.append({
-				"type": "ANDController",
+				"type": "Controller",
 				"instance_name": "",
 				"debug_enabled": false,
 				"debug_message": "",
@@ -1513,7 +1513,7 @@ func _build_graph_data(descs: Array[Dictionary]) -> Dictionary:
 		next_id += 1
 
 		var controller_info: Dictionary = desc.get("controller_meta", {})
-		var ctrl_class := str(controller_info.get("class", "")) if not controller_info.is_empty() else ("ScriptController" if desc["is_script_ctrl"] else "ANDController")
+		var ctrl_class := str(controller_info.get("class", "")) if not controller_info.is_empty() else ("ScriptController" if desc["is_script_ctrl"] else "Controller")
 		var ctrl_props: Dictionary
 		if not controller_info.is_empty():
 			ctrl_props = controller_info.get("properties", {})

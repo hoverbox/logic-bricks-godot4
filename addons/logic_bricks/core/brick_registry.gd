@@ -34,20 +34,26 @@ static var _next_menu_id: int = 1000
 
 
 static var _class_overrides: Dictionary = {
-	"audio_2d_actuator.gd": "Audio2DActuator",
-	"ui_focus_actuator.gd": "UIFocusActuator",
 }
 
 static var _legacy_aliases: Dictionary = {
 	"ANDController": "Controller",
 	"LocationActuator": "MotionActuator",
 	"RotationActuator": "MotionActuator",
+	# Ghost classes produced by panel_script_rebuild_helper pattern detection.
+	# These bricks no longer exist; map to the nearest current equivalent so that
+	# "Rebuild from Script" does not write unresolvable class names into metadata.
+	"CameraActuator": "SetCameraActuator",
+	"UIFocusActuator": "PropertyActuator",
+	"ShaderParamActuator": "PropertyActuator",
+	"SaveGameActuator": "SaveLoadActuator",
 }
 
 static var _fallback_categories: Dictionary = {
-	"MotionActuator": "Motion", "CharacterActuator": "Motion", "LookAtMovementActuator": "Motion",
-	"LookAtInputActuator": "Motion", "RotateTowardsActuator": "Motion", "WaypointPathActuator": "Motion",
-	"MoveTowardsActuator": "Motion", "TeleportActuator": "Motion", "MouseActuator": "Motion",
+	"MotionActuator": "Motion", "CharacterActuator": "Motion", "JumpActuator": "Motion",
+	"LookAtMovementActuator": "Motion", "LookAtInputActuator": "Motion", "RotateTowardsActuator": "Motion",
+	"WaypointPathActuator": "Motion", "MoveTowardsActuator": "Motion", "TeleportActuator": "Motion",
+	"MouseActuator": "Motion",
 	"PhysicsActuator": "Physics", "ForceActuator": "Physics", "GravityActuator": "Physics",
 	"TorqueActuator": "Physics", "LinearVelocityActuator": "Physics", "ImpulseActuator": "Physics",
 	"CollisionActuator": "Physics", "EditObjectActuator": "Object", "ObjectPoolActuator": "Object",

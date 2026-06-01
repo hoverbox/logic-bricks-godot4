@@ -35,89 +35,6 @@ func save_chains(node: Node, chains: Array) -> void:
 	_mark_scene_modified(node)
 
 
-## Add a new chain to the node
-func add_chain(node: Node, chain_name: String = "") -> Dictionary:
-	var chains = get_chains(node)
-
-	# Generate unique name if not provided
-	if chain_name.is_empty():
-		chain_name = _generate_unique_chain_name(chains)
-	else:
-		chain_name = _sanitize_chain_name(chain_name)
-
-	var new_chain = {
-		"name": chain_name,
-		"bricks": []
-	}
-
-	chains.append(new_chain)
-	save_chains(node, chains)
-	regenerate_script(node)
-
-	return new_chain
-
-
-## Remove a chain by index
-func remove_chain(node: Node, chain_index: int) -> void:
-	var chains = get_chains(node)
-	if chain_index >= 0 and chain_index < chains.size():
-		chains.remove_at(chain_index)
-		save_chains(node, chains)
-		regenerate_script(node)
-
-
-## Rename a chain
-func rename_chain(node: Node, chain_index: int, new_name: String) -> void:
-	var chains = get_chains(node)
-	if chain_index >= 0 and chain_index < chains.size():
-		var sanitized = _sanitize_chain_name(new_name)
-		# If another chain already uses this sanitized name, make it unique by appending
-		# a numeric suffix — same strategy as _generate_unique_chain_name.
-		var other_chains: Array = []
-		for i in range(chains.size()):
-			if i != chain_index:
-				other_chains.append(chains[i])
-		var candidate = sanitized
-		var counter = 1
-		while _chain_name_exists(other_chains, candidate):
-			candidate = "%s_%d" % [sanitized, counter]
-			counter += 1
-		chains[chain_index]["name"] = candidate
-		save_chains(node, chains)
-		regenerate_script(node)
-
-
-## Add a brick to a chain
-func add_brick_to_chain(node: Node, chain_index: int, brick: LogicBrick) -> void:
-	var chains = get_chains(node)
-	if chain_index >= 0 and chain_index < chains.size():
-		chains[chain_index]["bricks"].append(brick.serialize())
-		save_chains(node, chains)
-		regenerate_script(node)
-
-
-## Remove a brick from a chain
-func remove_brick_from_chain(node: Node, chain_index: int, brick_index: int) -> void:
-	var chains = get_chains(node)
-	if chain_index >= 0 and chain_index < chains.size():
-		var bricks = chains[chain_index]["bricks"]
-		if brick_index >= 0 and brick_index < bricks.size():
-			bricks.remove_at(brick_index)
-			save_chains(node, chains)
-			regenerate_script(node)
-
-
-## Update a brick's properties
-func update_brick_properties(node: Node, chain_index: int, brick_index: int, properties: Dictionary) -> void:
-	var chains = get_chains(node)
-	if chain_index >= 0 and chain_index < chains.size():
-		var bricks = chains[chain_index]["bricks"]
-		if brick_index >= 0 and brick_index < bricks.size():
-			bricks[brick_index]["properties"] = properties.duplicate()
-			save_chains(node, chains)
-			regenerate_script(node)
-
-
 ## Regenerate the script for a node based on its brick chains
 func regenerate_script(node: Node, variables_code: String = "") -> void:
 	var chains = get_chains(node)
@@ -227,18 +144,6 @@ func _get_selected_global_vars(node: Node) -> Array[Dictionary]:
 	return selected
 
 
-func _get_default_value_for_variable_type(var_type: String) -> String:
-	return VariableUtils.get_default_value_for_variable_type(var_type)
-
-
-func _coerce_variable_value_for_type(value, var_type: String) -> String:
-	return VariableUtils.coerce_variable_value_for_type(value, var_type)
-
-
-func _to_gdscript_value_literal(value, var_type: String) -> String:
-	return VariableUtils.to_gdscript_value_literal(value, var_type)
-
-
 func _get_variables_code_from_metadata(node: Node) -> String:
 	var variables_data = []
 	if node.has_meta("logic_bricks_variables"):
@@ -260,7 +165,7 @@ func _get_variables_code_from_metadata(node: Node) -> String:
 	for var_data in variables_data:
 		var var_name = var_data.get("name", "")
 		var var_type = VariableUtils.normalize_type(str(var_data.get("type", "float")), "float")
-		var var_value = _to_gdscript_value_literal(var_data.get("value", _get_default_value_for_variable_type(var_type)), var_type)
+		var var_value = VariableUtils.to_gdscript_value_literal(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_type)), var_type)
 		var exported = var_data.get("exported", false)
 		var is_global = var_data.get("global", false)
 
@@ -367,17 +272,18 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	var input_handler_bodies: Array[String] = []  # Body lines for shared _input()
 	var message_handler_calls: Array[String] = []  # Call lines for shared _on_message_received()
 
-	# Check if any actuator has an instance name — if so, we need the flags dict
-	# and must clear it at the start of every frame so stale values don't linger.
-	var has_named_actuators = false
+	# Check if any chain uses an ActuatorSensor — only then do we need the flags dict
+	# and the per-frame clear(). Generating it for every named actuator regardless
+	# emits an unused member variable and a .clear() call every frame.
+	var has_actuator_sensor = false
 	for chain in chains:
-		for actuator_data in chain.get("actuators", []):
-			if not actuator_data.get("instance_name", "").is_empty():
-				has_named_actuators = true
+		for sensor_data in _collect_all_sensors_for_chain(chain):
+			if sensor_data.get("type", "") == "ActuatorSensor":
+				has_actuator_sensor = true
 				break
-		if has_named_actuators:
+		if has_actuator_sensor:
 			break
-	if has_named_actuators:
+	if has_actuator_sensor:
 		member_vars.append("var _actuator_active_flags: Dictionary = {}  # Actuator Sensor: tracks which actuators fired this frame")
 		pre_process_code.append("_actuator_active_flags.clear()")
 		physics_pre_process_code.append("_actuator_active_flags.clear()")
@@ -627,7 +533,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 				"Logic Bricks: Chain '%s' on node '%s' mixes physics movement with timing-sensitive actuators. The entire chain will run in _physics_process, which may cause incorrect timing for animation, UI, audio, or other time-based actuators. Split only those timing-sensitive actuators into a separate chain." \
 				% [chain["name"], node.name]
 			)
-		var chain_code = _generate_chain_function(node, chain)
+		var chain_code = _generate_chain_function(node, chain, has_actuator_sensor)
 		if not chain_code.is_empty():
 			generated_chain_functions[chain["name"]] = chain_code
 
@@ -722,7 +628,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 
 
 ## Generate code for a single chain
-func _generate_chain_function(node: Node, chain: Dictionary) -> String:
+func _generate_chain_function(node: Node, chain: Dictionary, has_actuator_sensor: bool = false) -> String:
 	# Always sanitize at generation time — guards against hand-edited scene metadata
 	# or chains saved by older versions of the addon before sanitization was enforced.
 	var chain_name = _sanitize_chain_name(chain["name"])
@@ -733,7 +639,8 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 	if controllers.size() > 0:
 		controller_data = controllers[0]
 	else:
-		# Legacy: try singular key
+		# Legacy: try singular key — only present in data saved by very old versions of the addon.
+		# Remove this fallback once the migration window has passed.
 		controller_data = chain.get("controller", null)
 	var actuators = chain.get("actuators", [])
 
@@ -830,15 +737,16 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 				lines.append("\t# Script Controller — custom code")
 				lines.append("\tif controller_active:")
 				lines.append(controller_brick.get_script_body(chain_name))
-				lines.append("\t")
-				lines.append("\t# Actuator Sensor flags")
-				for actuator_data in actuators:
-					var inst_name = actuator_data.get("instance_name", "")
-					if not inst_name.is_empty():
-						lines.append("\tif controller_active:")
-						lines.append("\t\t_actuator_active_flags[\"%s\"] = true" % inst_name)
-						lines.append("\telse:")
-						lines.append("\t\t_actuator_active_flags[\"%s\"] = false" % inst_name)
+				if has_actuator_sensor:
+					lines.append("\t")
+					lines.append("\t# Actuator Sensor flags")
+					for actuator_data in actuators:
+						var inst_name = actuator_data.get("instance_name", "")
+						if not inst_name.is_empty():
+							lines.append("\tif controller_active:")
+							lines.append("\t\t_actuator_active_flags[\"%s\"] = true" % inst_name)
+							lines.append("\telse:")
+							lines.append("\t\t_actuator_active_flags[\"%s\"] = false" % inst_name)
 				return "\n".join(lines)
 
 			# ── Standard Controller ─────────────────────────────────────────────
@@ -923,15 +831,16 @@ func _generate_chain_function(node: Node, chain: Dictionary) -> String:
 	# Write active flags for any named actuators so the Actuator Sensor can read them.
 	# Flags are written both when active (true) and when not (false) so the sensor
 	# always has an up-to-date value regardless of which branch ran.
-	lines.append("\t")
-	lines.append("\t# Actuator Sensor flags")
-	for actuator_data in actuators:
-		var inst_name = actuator_data.get("instance_name", "")
-		if not inst_name.is_empty():
-			lines.append("\tif controller_active:")
-			lines.append("\t\t_actuator_active_flags[\"%s\"] = true" % inst_name)
-			lines.append("\telse:")
-			lines.append("\t\t_actuator_active_flags[\"%s\"] = false" % inst_name)
+	if has_actuator_sensor:
+		lines.append("\t")
+		lines.append("\t# Actuator Sensor flags")
+		for actuator_data in actuators:
+			var inst_name = actuator_data.get("instance_name", "")
+			if not inst_name.is_empty():
+				lines.append("\tif controller_active:")
+				lines.append("\t\t_actuator_active_flags[\"%s\"] = true" % inst_name)
+				lines.append("\telse:")
+				lines.append("\t\t_actuator_active_flags[\"%s\"] = false" % inst_name)
 
 	return "\n".join(lines)
 
@@ -1181,7 +1090,8 @@ func _chain_is_complete(chain: Dictionary) -> bool:
 		return false
 
 	var controllers = chain.get("controllers", [])
-	# Legacy: try singular key
+	# Legacy: try singular key — only present in data saved by very old versions of the addon.
+	# Remove this fallback once the migration window has passed.
 	if controllers.is_empty():
 		if not chain.has("controller") or chain.get("controller") == null:
 			return false

@@ -17,7 +17,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.ACTUATOR
-	brick_name = "Character"
+	brick_name = "Character Physics"
 
 
 func _initialize_properties() -> void:

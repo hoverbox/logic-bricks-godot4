@@ -86,15 +86,7 @@ func serialize() -> Dictionary:
 	var class_name_str = ""
 	for part in parts:
 		# Special handling for acronyms
-		if part == "and":
-			class_name_str += "AND"
-		elif part == "or":
-			class_name_str += "OR"
-		elif part == "nor":
-			class_name_str += "NOR"
-		elif part == "xor":
-			class_name_str += "XOR"
-		elif part == "2d":
+		if part == "2d":
 			class_name_str += "2D"
 		elif part == "3d":
 			class_name_str += "3D"

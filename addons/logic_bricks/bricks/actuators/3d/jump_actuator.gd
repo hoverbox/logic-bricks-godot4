@@ -15,10 +15,20 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ##   Chain 3 (Proximity / Message / etc.):   Jump Actuator  — AI / scripted jump
 
 
+func get_brick_info() -> Dictionary:
+	return {
+		"class": "JumpActuator",
+		"name": "Character Jump",
+		"type": "actuator",
+		"category": "Motion",
+		"description": "Applies a jump impulse to a CharacterBody3D. Pair with the Character Actuator for gravity and ground detection.",
+	}
+
+
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.ACTUATOR
-	brick_name = "Jump"
+	brick_name = "Character Jump"
 
 
 func _initialize_properties() -> void:

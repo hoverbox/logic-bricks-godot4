@@ -161,17 +161,6 @@ const TOOLTIPS = {
 		"condition_value": "Advanced single-value mode. Value to assign to the condition. Use true/false or a bool variable/expression.",
 	},
 
-	"CameraActuator": {
-		"_description": "Controls camera behavior: follow target, orbit, or set position.\nCreates smooth camera movement with configurable offsets.",
-		"camera_path": "Path to the Camera3D node to control.",
-		"mode": "Camera behavior: Follow (track target), Orbit (circle around), or Set Position.",
-		"target_path": "Path to the node the camera should follow or look at.",
-		"offset_x": "Camera offset on X axis (left/right of target).",
-		"offset_y": "Camera offset on Y axis (above/below target).",
-		"offset_z": "Camera offset on Z axis (in front/behind target).",
-		"smooth_speed": "How quickly the camera catches up (higher = faster, 0 = instant).",
-	},
-
 	"SplitScreenActuator": {
 		"_description": "Positions SubViewportContainers for 2-4 player split screen.\nAssign your SubViewportContainers via @export in the Inspector.\nLayout is applied every frame so it adapts to window resizes.",
 		"player_count": "How many players (2, 3, or 4).\nDetermines how many SubViewportContainer @export slots are created.",

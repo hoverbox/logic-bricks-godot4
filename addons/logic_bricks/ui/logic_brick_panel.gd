@@ -1319,7 +1319,6 @@ func _save_graph_to_metadata() -> void:
 
 
 func _on_popup_request(position: Vector2) -> void:
-	pass
 	# Store the position accounting for scroll offset
 	# position is in local graph coordinates, we need to add scroll offset
 	last_mouse_position = (position + graph_edit.scroll_offset) / graph_edit.zoom
@@ -2140,7 +2139,7 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
 	value_label.text = "Value:"
 	row3.add_child(value_label)
 	var value_edit = LineEdit.new()
-	value_edit.text = _value_to_line_edit_text(var_data.get("value", _get_default_value_for_variable_type(var_data.get("type", "int"))))
+	value_edit.text = _value_to_line_edit_text(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_data.get("type", "int"))))
 	value_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	value_edit.text_changed.connect(_on_variable_value_changed.bind(index))
 	row3.add_child(value_edit)
@@ -2210,7 +2209,7 @@ func _on_variable_type_changed(type_index: int, index: int, name_display: Label)
 		var type_names = ["bool", "int", "float", "String"]
 		var new_type = type_names[type_index]
 		variables_data[index]["type"] = new_type
-		variables_data[index]["value"] = _coerce_variable_value_for_type(variables_data[index].get("value", _get_default_value_for_variable_type(new_type)), new_type)
+		variables_data[index]["value"] = VariableUtils.coerce_variable_value_for_type(variables_data[index].get("value", VariableUtils.get_default_value_for_variable_type(new_type)), new_type)
 		# Update the display label
 		name_display.text = "%s: %s" % [variables_data[index]["name"], new_type]
 		_save_variables_to_metadata()
@@ -2302,7 +2301,7 @@ func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
 	value_label.text = "Value:"
 	row3.add_child(value_label)
 	var value_edit = LineEdit.new()
-	value_edit.text = _value_to_line_edit_text(var_data.get("value", _get_default_value_for_variable_type(var_data.get("type", "int"))))
+	value_edit.text = _value_to_line_edit_text(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_data.get("type", "int"))))
 	value_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	value_edit.text_changed.connect(_on_global_variable_value_changed.bind(index))
 	row3.add_child(value_edit)
@@ -2367,7 +2366,7 @@ func _on_global_variable_type_changed(type_index: int, index: int, name_display:
 		var type_names = ["bool", "int", "float", "String"]
 		var new_type = type_names[type_index]
 		global_vars_data[index]["type"] = new_type
-		global_vars_data[index]["value"] = _coerce_variable_value_for_type(global_vars_data[index].get("value", _get_default_value_for_variable_type(new_type)), new_type)
+		global_vars_data[index]["value"] = VariableUtils.coerce_variable_value_for_type(global_vars_data[index].get("value", VariableUtils.get_default_value_for_variable_type(new_type)), new_type)
 		name_display.text = "%s: %s" % [global_vars_data[index].get("name", ""), new_type]
 		_save_global_vars_to_metadata()
 		_refresh_global_vars_ui()
@@ -2562,7 +2561,7 @@ func _update_global_vars_script() -> void:
 	for var_data in merged:
 		var var_name  = var_data.get("name", "")
 		var var_type  = VariableUtils.normalize_type(str(var_data.get("type", "int")))
-		var var_value = _to_gdscript_value_literal(var_data.get("value", _get_default_value_for_variable_type(var_type)), var_type)
+		var var_value = VariableUtils.to_gdscript_value_literal(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_type)), var_type)
 		if not var_name.is_empty():
 			lines.append("var %s: %s = %s" % [var_name, var_type, var_value])
 
@@ -2713,20 +2712,8 @@ func _build_clamp_expr(val_var: String, var_type: String, use_min: bool, min_val
 	return "%s(%s, %s, %s)" % [fn, val_var, lo, hi]
 
 
-func _get_default_value_for_variable_type(var_type: String) -> String:
-	return VariableUtils.get_default_value_for_variable_type(var_type)
-
-
-func _coerce_variable_value_for_type(value, var_type: String) -> String:
-	return VariableUtils.coerce_variable_value_for_type(value, var_type)
-
-
 func _value_to_line_edit_text(value) -> String:
 	return VariableUtils.value_to_line_edit_text(value)
-
-
-func _to_gdscript_value_literal(value, var_type: String) -> String:
-	return VariableUtils.to_gdscript_value_literal(value, var_type)
 
 
 func get_variables_code() -> String:
@@ -2743,7 +2730,7 @@ func get_variables_code() -> String:
 	for var_data in variables_data:
 		var var_name  = var_data.get("name", "")
 		var var_type  = var_data.get("type", "int")
-		var var_value = _to_gdscript_value_literal(var_data.get("value", _get_default_value_for_variable_type(var_type)), var_type)
+		var var_value = VariableUtils.to_gdscript_value_literal(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_type)), var_type)
 		var exported  = var_data.get("exported", false)
 		var use_min   = var_data.get("use_min", false)
 		var min_val   = var_data.get("min_val", "0")
@@ -3117,12 +3104,3 @@ func _find_camera_by_name(root: Node, cam_name: String) -> Camera3D:
 			if found:
 				return found
 	return null
-
-
-## Recursively collect all Camera3D nodes under a root node
-func _collect_cameras(root: Node, result: Array) -> void:
-	for child in root.get_children():
-		if child is Camera3D:
-			result.append(child)
-		elif not child is SubViewport:
-			_collect_cameras(child, result)
