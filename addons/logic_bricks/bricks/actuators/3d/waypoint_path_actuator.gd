@@ -101,7 +101,7 @@ static func sync_waypoint_nodes(owner_node: Node3D, brick_instance) -> void:
 		var child_name = "pos_%d" % i
 		var existing = owner_node.get_node_or_null(child_name)
 		if existing is Node3D:
-			waypoints[i] = serialize_waypoint(existing.position)
+			waypoints[i] = serialize_waypoint(existing.global_position)
 
 	# Remove Node3D children beyond the current waypoint count
 	for child in owner_node.get_children():
@@ -121,8 +121,8 @@ static func sync_waypoint_nodes(owner_node: Node3D, brick_instance) -> void:
 			var stored = parse_waypoint(str(waypoints[i]))
 			if stored == Vector3.ZERO and i == 0:
 				stored = Vector3.ZERO  # leave at origin-relative
-			wp_node.position = stored
 			owner_node.add_child(wp_node)
+			wp_node.global_position = stored
 			wp_node.owner = owner_node.get_tree().edited_scene_root if owner_node.get_tree() else owner_node
 
 	brick_instance.set_property("waypoints", waypoints)
@@ -184,18 +184,18 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	# Movement
 	lines.append("var _wp_dist = global_position.distance_to(_wp_target)")
-	lines.append("var _wp_dir = (_wp_target - global_position).normalized()")
+	lines.append("var _wp_move_dir = (_wp_target - global_position).normalized()")
 	lines.append("var _wp_self: Variant = self")
 	lines.append("if _wp_dist > %.3f:" % arrival_dist)
 	lines.append("\tif _wp_self is CharacterBody3D:")
-	lines.append("\t\t(_wp_self as CharacterBody3D).velocity.x = _wp_dir.x * %.3f" % speed)
-	lines.append("\t\t(_wp_self as CharacterBody3D).velocity.z = _wp_dir.z * %.3f" % speed)
+	lines.append("\t\t(_wp_self as CharacterBody3D).velocity.x = _wp_move_dir.x * %.3f" % speed)
+	lines.append("\t\t(_wp_self as CharacterBody3D).velocity.z = _wp_move_dir.z * %.3f" % speed)
 	lines.append("\t\t(_wp_self as CharacterBody3D).move_and_slide()")
 	lines.append("\telse:")
-	lines.append("\t\tglobal_position += _wp_dir * %.3f * _delta" % speed)
+	lines.append("\t\tglobal_position += _wp_move_dir * %.3f * _delta" % speed)
 
 	if face_dir:
-		lines.append("\tvar _wp_look = Vector3(_wp_dir.x, 0.0, _wp_dir.z)")
+		lines.append("\tvar _wp_look = Vector3(_wp_move_dir.x, 0.0, _wp_move_dir.z)")
 		lines.append("\tif _wp_look.length_squared() > 0.001:")
 		lines.append("\t\tvar _wp_basis = Basis.looking_at(_wp_look.normalized(), Vector3.UP)")
 		lines.append("\t\tbasis = basis.orthonormalized().slerp(_wp_basis, clampf(10.0 * _delta, 0.0, 1.0))")
