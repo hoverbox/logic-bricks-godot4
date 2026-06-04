@@ -192,9 +192,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if persist:
 				ready_lines.append("var _gv = get_node_or_null(\"/root/GlobalVars\")")
 				ready_lines.append("if _gv:")
-				ready_lines.append("\tvar _existing = []")
+				ready_lines.append("\tvar _existing: Array[AudioStreamPlayer] = []")
 				ready_lines.append("\tfor c in _gv.get_children():")
-				ready_lines.append("\t\tif c.is_in_group(\"%s\"):" % group_name)
+				ready_lines.append("\t\tif c is AudioStreamPlayer and c.is_in_group(\"%s\"):" % group_name)
 				ready_lines.append("\t\t\t_existing.append(c)")
 				ready_lines.append("\tif not _existing.is_empty():")
 				ready_lines.append("\t\t%s = _existing" % arr_var)

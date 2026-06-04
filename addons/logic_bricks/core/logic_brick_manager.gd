@@ -697,6 +697,21 @@ func _generate_chain_function(node: Node, chain: Dictionary, has_actuator_sensor
 		for _ev in _chain_export_vars:
 			lines.append("\tif %s != null and not is_instance_valid(%s): return" % [_ev, _ev])
 
+	var state_id := ""
+	var all_states := false
+	if controller_data:
+		state_id = str(controller_data.get("properties", {}).get("state_id", "")).strip_edges()
+		all_states = bool(controller_data.get("properties", {}).get("all_states", false))
+	var state_condition := "_logic_brick_chain_state_matches(%s, %s)" % [_gdscript_string_literal(state_id), "true" if all_states else "false"]
+
+	# Gate the whole chain by state before evaluating sensors.
+	# This prevents inactive-state sensors such as Delay from counting down
+	# immediately at game start and firing later without the intended trigger.
+	lines.append("\tvar _chain_state_active = " + state_condition)
+	lines.append("\tif not _chain_state_active:")
+	lines.append("\t\treturn")
+	lines.append("\t")
+
 	# Generate sensor code for ALL direct and nested controller inputs.
 	lines.append("\t# Sensor and controller input evaluation")
 	var sensor_vars = []
@@ -715,13 +730,6 @@ func _generate_chain_function(node: Node, chain: Dictionary, has_actuator_sensor
 			sensor_vars.append(nested_var)
 		nested_index += 1
 
-	var state_id := ""
-	var all_states := false
-	if controller_data:
-		state_id = str(controller_data.get("properties", {}).get("state_id", "")).strip_edges()
-		all_states = bool(controller_data.get("properties", {}).get("all_states", false))
-	var state_condition := "_logic_brick_chain_state_matches(%s, %s)" % [_gdscript_string_literal(state_id), "true" if all_states else "false"]
-
 	# Generate controller code
 	lines.append("\t")
 	lines.append("\t# Controller logic")
@@ -731,7 +739,7 @@ func _generate_chain_function(node: Node, chain: Dictionary, has_actuator_sensor
 			# ── Script Controller ───────────────────────────────────────────────
 			if controller_data["type"] == "ScriptController":
 				var condition = controller_brick.get_condition(sensor_vars)
-				condition = state_condition + " and (" + condition + ")" if sensor_vars.size() > 0 else state_condition
+				condition = "_chain_state_active and (" + condition + ")" if sensor_vars.size() > 0 else "_chain_state_active"
 				lines.append("\tvar controller_active = " + condition)
 				lines.append("\t")
 				lines.append("\t# Script Controller — custom code")

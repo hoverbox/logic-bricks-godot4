@@ -17,8 +17,8 @@ func _initialize_properties() -> void:
 	properties = {
 		"waypoints": [],          # Array of "x,y,z" strings
 		"loop_mode": "loop",      # "loop", "ping_pong", "once"
-		"speed": 5.0,
-		"arrival_distance": 0.5,
+		"speed": "5.0",
+		"arrival_distance": "0.5",
 		"face_direction": false,
 	}
 
@@ -42,17 +42,15 @@ func get_property_definitions() -> Array:
 		},
 		{
 			"name": "speed",
-			"type": TYPE_FLOAT,
-			"hint": PROPERTY_HINT_RANGE,
-			"hint_string": "0.1,100.0,0.1",
-			"default": 5.0
+			"type": TYPE_STRING,
+			"default": "5.0",
+			"placeholder": "number, variable, or expression"
 		},
 		{
 			"name": "arrival_distance",
-			"type": TYPE_FLOAT,
-			"hint": PROPERTY_HINT_RANGE,
-			"hint_string": "0.01,10.0,0.01",
-			"default": 0.5
+			"type": TYPE_STRING,
+			"default": "0.5",
+			"placeholder": "number, variable, or expression"
 		},
 		{
 			"name": "face_direction",
@@ -67,8 +65,8 @@ func get_tooltip_definitions() -> Dictionary:
 		"_description": "Moves this node through a series of waypoints placed in the 3D viewport.\nDrag the sphere handles in the editor to position each waypoint.",
 		"waypoints": "List of waypoint positions (X,Y,Z).\nAdd with + then drag the handles in the viewport to place them.",
 		"loop_mode": "Loop: repeat from the first waypoint after the last.\nPing Pong: reverse direction at each end.\nOnce: stop at the last waypoint.",
-		"speed": "Movement speed in units per second.",
-		"arrival_distance": "How close the node must get to count as having reached a waypoint.",
+		"speed": "Movement speed in units per second. Accepts a number, variable name, or expression, like the Motion actuator fields.",
+		"arrival_distance": "How close the node must get to count as having reached a waypoint. Accepts a number, variable name, or expression.",
 		"face_direction": "Rotate the node to face the direction of movement.",
 	}
 
@@ -128,6 +126,20 @@ static func sync_waypoint_nodes(owner_node: Node3D, brick_instance) -> void:
 	brick_instance.set_property("waypoints", waypoints)
 
 
+## Convert a value to a code expression.
+## If it is a number (or string of a number), returns a float literal.
+## Otherwise returns it as-is, allowing variable names or expressions.
+func _to_expr(val) -> String:
+	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
+		return "%.3f" % val
+	var s = str(val).strip_edges()
+	if s.is_empty():
+		return "0.0"
+	if s.is_valid_float() or s.is_valid_int():
+		return "%.3f" % float(s)
+	return s
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# Sync positions from Node3D children into the waypoints array before generating.
 	# pos_# nodes are children so child.global_position gives correct world coords.
@@ -139,8 +151,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	properties["waypoints"] = waypoints
 
 	var loop_mode = properties.get("loop_mode", "loop")
-	var speed = float(str(properties.get("speed", 5.0)))
-	var arrival_dist = float(str(properties.get("arrival_distance", 0.5)))
+	var speed_expr = _to_expr(properties.get("speed", "5.0"))
+	var arrival_dist_expr = _to_expr(properties.get("arrival_distance", "0.5"))
 	var face_dir = properties.get("face_direction", false)
 
 	if typeof(loop_mode) == TYPE_STRING:
@@ -154,18 +166,35 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var dir_var  = "_wp_dir_%s"  % cn
 	var done_var = "_wp_done_%s" % cn
 
-	var member_vars: Array[String] = [
-		"var %s: int = 0"       % idx_var,
-		"var %s: int = 1"       % dir_var,
-		"var %s: bool = false"  % done_var,
-	]
+	var points_var = "_wp_points_%s" % cn
+	var init_func = "_wp_init_points_%s" % cn
 
-	# Build waypoints array literal (world-space global positions)
+	# Build waypoints array literal. These are only a fallback. At runtime,
+	# pos_# child Node3Ds are read first so instanced scenes can be moved and
+	# their editable waypoint children can be repositioned per level instance.
 	var wp_literals: Array[String] = []
 	for wp in waypoints:
 		var v = parse_waypoint(str(wp))
 		wp_literals.append("Vector3(%.3f, %.3f, %.3f)" % [v.x, v.y, v.z])
 	var wp_array = "[%s]" % ", ".join(wp_literals)
+
+	var member_vars: Array[String] = [
+		"var %s: int = 0"       % idx_var,
+		"var %s: int = 1"       % dir_var,
+		"var %s: bool = false"  % done_var,
+		"var %s: Array = []"    % points_var,
+		"",
+		"func %s() -> void:" % init_func,
+		"\t%s = %s.duplicate()" % [points_var, wp_array],
+		"\tfor _wp_i in range(%s.size()):" % points_var,
+		"\t\tvar _wp_child = get_node_or_null(\"pos_%d\" % _wp_i)",
+		"\t\tif _wp_child is Node3D:",
+		"\t\t\t%s[_wp_i] = _wp_child.global_position" % points_var,
+	]
+
+	var ready_code: Array[String] = [
+		"%s()" % init_func,
+	]
 
 	var lines: Array[String] = []
 
@@ -174,25 +203,28 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		lines.append("if %s:" % done_var)
 		lines.append("\treturn")
 
-	lines.append("var _wp_points: Array = %s" % wp_array)
+	lines.append("if %s.is_empty():" % points_var)
+	lines.append("\t%s()" % init_func)
 
 	# Clamp index defensively
-	lines.append("%s = clampi(%s, 0, _wp_points.size() - 1)" % [idx_var, idx_var])
+	lines.append("%s = clampi(%s, 0, %s.size() - 1)" % [idx_var, idx_var, points_var])
 
-	# Target is always a world-space position
-	lines.append("var _wp_target: Vector3 = _wp_points[%s]" % idx_var)
+	# Target is a runtime-snapshotted world-space position
+	lines.append("var _wp_target: Vector3 = %s[%s]" % [points_var, idx_var])
 
 	# Movement
 	lines.append("var _wp_dist = global_position.distance_to(_wp_target)")
 	lines.append("var _wp_move_dir = (_wp_target - global_position).normalized()")
 	lines.append("var _wp_self: Variant = self")
-	lines.append("if _wp_dist > %.3f:" % arrival_dist)
+	lines.append("var _wp_speed = float(%s)" % speed_expr)
+	lines.append("var _wp_arrival_distance = float(%s)" % arrival_dist_expr)
+	lines.append("if _wp_dist > _wp_arrival_distance:")
 	lines.append("\tif _wp_self is CharacterBody3D:")
-	lines.append("\t\t(_wp_self as CharacterBody3D).velocity.x = _wp_move_dir.x * %.3f" % speed)
-	lines.append("\t\t(_wp_self as CharacterBody3D).velocity.z = _wp_move_dir.z * %.3f" % speed)
+	lines.append("\t\t(_wp_self as CharacterBody3D).velocity.x = _wp_move_dir.x * _wp_speed")
+	lines.append("\t\t(_wp_self as CharacterBody3D).velocity.z = _wp_move_dir.z * _wp_speed")
 	lines.append("\t\t(_wp_self as CharacterBody3D).move_and_slide()")
 	lines.append("\telse:")
-	lines.append("\t\tglobal_position += _wp_move_dir * %.3f * _delta" % speed)
+	lines.append("\t\tglobal_position += _wp_move_dir * _wp_speed * _delta")
 
 	if face_dir:
 		lines.append("\tvar _wp_look = Vector3(_wp_move_dir.x, 0.0, _wp_move_dir.z)")
@@ -204,14 +236,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	lines.append("else:")
 	match loop_mode:
 		"loop":
-			lines.append("\t%s = (%s + 1) %% _wp_points.size()" % [idx_var, idx_var])
+			lines.append("\t%s = (%s + 1) %% %s.size()" % [idx_var, idx_var, points_var])
 		"ping_pong":
 			lines.append("\t%s += %s" % [idx_var, dir_var])
-			lines.append("\tif %s >= _wp_points.size() or %s < 0:" % [idx_var, idx_var])
-			lines.append("\t\t%s = clampi(%s, 0, _wp_points.size() - 1)" % [idx_var, idx_var])
+			lines.append("\tif %s >= %s.size() or %s < 0:" % [idx_var, points_var, idx_var])
+			lines.append("\t\t%s = clampi(%s, 0, %s.size() - 1)" % [idx_var, idx_var, points_var])
 			lines.append("\t\t%s = -(%s)" % [dir_var, dir_var])
 		"once":
-			lines.append("\tif %s < _wp_points.size() - 1:" % idx_var)
+			lines.append("\tif %s < %s.size() - 1:" % [idx_var, points_var])
 			lines.append("\t\t%s += 1" % idx_var)
 			lines.append("\telse:")
 			lines.append("\t\t%s = true" % done_var)
@@ -219,4 +251,5 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	return {
 		"actuator_code": "\n".join(lines),
 		"member_vars": member_vars,
+		"ready_code": ready_code,
 	}

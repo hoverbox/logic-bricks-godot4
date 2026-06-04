@@ -111,14 +111,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	member_vars.append("var %s: Area3D = null" % area_var)
 	_append_find_node_helpers(member_vars)
 
-	# _ready(): locate the Area3D by name anywhere in the current scene.
-	# NOTE: We embed `area_var` (unique per chain) in the warning string, not
-	# `area_node_name`, so the manager's ready_code deduplication never strips
-	# the push_warning line from one chain while keeping the `if not` header
-	# from another — which would leave a bodyless `if` in the generated script.
+	# _ready(): locate the Area3D by name. Prefer this script's node/subtree first.
+	# This matters for instanced scenes: a global name search can grab another
+	# Area3D with the same name elsewhere in the level, causing this sensor to
+	# fire from the wrong coin/trigger.
 	var quoted_name = "\"%s\"" % area_node_name
-	ready_lines.append("# Collision Sensor (%s): locate Area3D by name in scene" % chain_name)
-	ready_lines.append("%s = _lb_find_node_in_current_scene(%s) as Area3D" % [area_var, quoted_name])
+	ready_lines.append("# Collision Sensor (%s): locate Area3D by name, preferring this instance" % chain_name)
+	ready_lines.append("%s = _lb_find_collision_area_for_sensor(self, %s)" % [area_var, quoted_name])
 	ready_lines.append("if not %s:" % area_var)
 	ready_lines.append("\tpush_warning(\"Collision Sensor [%s]: could not find Area3D named '%s' anywhere in the scene\")" % [area_var, area_node_name])
 
@@ -292,10 +291,23 @@ func _append_find_node_helpers(member_vars: Array[String]) -> void:
 	member_vars.append("\t\t\treturn found")
 	member_vars.append("\treturn null")
 	member_vars.append("")
-	member_vars.append("func _lb_find_node_in_current_scene(target_name: String) -> Node:")
+	member_vars.append("func _lb_find_collision_area_for_sensor(owner_node: Node, target_name: String) -> Area3D:")
+	member_vars.append("\tif target_name.is_empty():")
+	member_vars.append("\t\treturn owner_node as Area3D")
+	member_vars.append("\tif owner_node is Area3D and owner_node.name == target_name:")
+	member_vars.append("\t\treturn owner_node as Area3D")
+	member_vars.append("\tvar found = _lb_find_node_by_name_recursive(owner_node, target_name)")
+	member_vars.append("\tif found is Area3D:")
+	member_vars.append("\t\treturn found as Area3D")
+	member_vars.append("\tvar owner_root = owner_node.get_owner() if is_instance_valid(owner_node) else null")
+	member_vars.append("\tif owner_root and owner_root != owner_node:")
+	member_vars.append("\t\tfound = _lb_find_node_by_name_recursive(owner_root, target_name)")
+	member_vars.append("\t\tif found is Area3D:")
+	member_vars.append("\t\t\treturn found as Area3D")
 	member_vars.append("\tvar scene_root = get_tree().current_scene")
-	member_vars.append("\tif scene_root:")
-	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(scene_root, target_name)")
-	member_vars.append("\t\tif found:")
-	member_vars.append("\t\t\treturn found")
-	member_vars.append("\treturn _lb_find_node_by_name_recursive(get_tree().root, target_name)")
+	member_vars.append("\tif scene_root and scene_root != owner_root and scene_root != owner_node:")
+	member_vars.append("\t\tfound = _lb_find_node_by_name_recursive(scene_root, target_name)")
+	member_vars.append("\t\tif found is Area3D:")
+	member_vars.append("\t\t\treturn found as Area3D")
+	member_vars.append("\tfound = _lb_find_node_by_name_recursive(get_tree().root, target_name)")
+	member_vars.append("\treturn found as Area3D")
