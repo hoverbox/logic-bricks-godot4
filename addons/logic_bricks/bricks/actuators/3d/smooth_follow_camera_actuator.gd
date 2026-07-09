@@ -28,6 +28,7 @@ func _initialize_properties() -> void:
 		"follow_pos_x": true,
 		"follow_pos_y": true,
 		"follow_pos_z": true,
+		"rotation_source_node_name": "",
 		"follow_rot_x": false,
 		"follow_rot_y": false,
 		"follow_rot_z": false,
@@ -79,6 +80,12 @@ func get_property_definitions() -> Array:
 			"default": true
 		},
 		{
+			"name": "rotation_source_node_name",
+			"type": TYPE_STRING,
+			"default": "",
+			"placeholder": "Rotation source node name (blank = self)"
+		},
+		{
 			"name": "follow_rot_x",
 			"type": TYPE_BOOL,
 			"default": false
@@ -111,6 +118,7 @@ func get_tooltip_definitions() -> Dictionary:
 		"follow_pos_x": "Follow the target's X position.",
 		"follow_pos_y": "Follow the target's Y position.",
 		"follow_pos_z": "Follow the target's Z position.",
+		"rotation_source_node_name": "Optional Node3D name to read rotation from.\nLeave blank to use this/root node.\nUse this when a child mesh rotates separately, such as with Look Toward Input.",
 		"follow_rot_x": "Orbit the camera around the target's X rotation axis.",
 		"follow_rot_y": "Orbit the camera around the target's Y rotation axis.",
 		"follow_rot_z": "Orbit the camera around the target's Z rotation axis.",
@@ -120,6 +128,7 @@ func get_tooltip_definitions() -> Dictionary:
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var camera_node_name = str(properties.get("camera_node_name", "Camera3D")).strip_edges()
+	var rotation_source_node_name = str(properties.get("rotation_source_node_name", "")).strip_edges()
 	var follow_speed   = properties.get("follow_speed",   5.0)
 	var follow_pos_x   = properties.get("follow_pos_x",   true)
 	var follow_pos_y   = properties.get("follow_pos_y",   true)
@@ -172,10 +181,27 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		lines.append("\tpass  # No axes enabled — tick at least one Follow Pos or Follow Rot axis")
 		return {"actuator_code": "\n".join(lines), "member_vars": member_vars}
 
+	if has_rotation:
+		lines.append("\t# Optional rotation source — blank uses this/root node")
+		lines.append("\tvar _rot_source_name_%s = \"%s\"" % [chain_name, _gd_string(rotation_source_node_name)])
+		lines.append("\tvar _rot_source: Node3D = self")
+		lines.append("\tif not _rot_source_name_%s.is_empty():" % chain_name)
+		lines.append("\t\tvar _found_rot_source_%s = _lb_find_node_in_current_scene(_rot_source_name_%s)" % [chain_name, chain_name])
+		lines.append("\t\tif _found_rot_source_%s is Node3D:" % chain_name)
+		lines.append("\t\t\t_rot_source = _found_rot_source_%s" % chain_name)
+		lines.append("\t\telif _found_rot_source_%s:" % chain_name)
+		lines.append("\t\t\tpush_warning(\"Smooth Follow Camera: rotation source '\" + str(_rot_source_name_%s) + \"' is not a Node3D\")" % chain_name)
+		lines.append("\t\telse:")
+		lines.append("\t\t\tpush_warning(\"Smooth Follow Camera: rotation source '\" + str(_rot_source_name_%s) + \"' was not found\")" % chain_name)
+		lines.append("\t")
+
 	# Lazy first-frame offset capture
 	lines.append("\tif not %s:" % init_flag_var)
 	lines.append("\t\t%s = %s.global_position - global_position" % [offset_var, camera_var])
-	lines.append("\t\t%s = %s.global_rotation - global_rotation" % [rot_offset_var, camera_var])
+	if has_rotation:
+		lines.append("\t\t%s = %s.global_rotation - _rot_source.global_rotation" % [rot_offset_var, camera_var])
+	else:
+		lines.append("\t\t%s = %s.global_rotation - global_rotation" % [rot_offset_var, camera_var])
 	lines.append("\t\t%s = true" % init_flag_var)
 	lines.append("\t\treturn")
 
@@ -184,14 +210,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	# Build rotation basis for orbit mode
 	if has_rotation:
-		lines.append("\t# Build rotation basis from followed axes of target")
+		lines.append("\t# Build rotation basis from followed axes of rotation source")
 		lines.append("\tvar _rot_basis = Basis.IDENTITY")
 		if follow_rot_x:
-			lines.append("\t_rot_basis = _rot_basis.rotated(Vector3.RIGHT,   global_rotation.x)")
+			lines.append("\t_rot_basis = _rot_basis.rotated(Vector3.RIGHT,   _rot_source.global_rotation.x)")
 		if follow_rot_y:
-			lines.append("\t_rot_basis = _rot_basis.rotated(Vector3.UP,      global_rotation.y)")
+			lines.append("\t_rot_basis = _rot_basis.rotated(Vector3.UP,      _rot_source.global_rotation.y)")
 		if follow_rot_z:
-			lines.append("\t_rot_basis = _rot_basis.rotated(Vector3.FORWARD, global_rotation.z)")
+			lines.append("\t_rot_basis = _rot_basis.rotated(Vector3.FORWARD, _rot_source.global_rotation.z)")
 		lines.append("\t")
 		lines.append("\tvar _desired_pos = global_position + _rot_basis * %s" % offset_var)
 	else:
@@ -252,8 +278,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	if has_rotation:
 		lines.append("\t")
-		lines.append("\t# Smoothly rotate camera toward target rotation + initial offset")
-		lines.append("\tvar _desired_rot = global_rotation + %s" % rot_offset_var)
+		lines.append("\t# Smoothly rotate camera toward rotation source + initial offset")
+		lines.append("\tvar _desired_rot = _rot_source.global_rotation + %s" % rot_offset_var)
 		lines.append("\tvar _cam_rot = %s.global_rotation" % camera_var)
 		lines.append("\tvar _new_rot = _cam_rot")
 		if follow_rot_x:

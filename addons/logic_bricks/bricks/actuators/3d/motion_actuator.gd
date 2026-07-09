@@ -192,6 +192,17 @@ func _indent_lines(lines: Array[String], indent: String = "\t") -> Array[String]
 	return result
 
 
+func _append_character_horizontal_speed_clamp(body_lines: Array[String], velocity_expr: String, indent: String = "\t", suffix: String = "") -> void:
+	var hvel_var = "_logic_brick_character_hvel_%s" % suffix
+	var max_axis_var = "_logic_brick_character_max_axis_speed_%s" % suffix
+	body_lines.append("%svar %s = Vector2(%s.x, %s.z)" % [indent, hvel_var, velocity_expr, velocity_expr])
+	body_lines.append("%svar %s = maxf(absf(%s.x), absf(%s.y))" % [indent, max_axis_var, hvel_var, hvel_var])
+	body_lines.append("%sif %s > 0.0 and %s.length() > %s:" % [indent, max_axis_var, hvel_var, max_axis_var])
+	body_lines.append("%s\t%s = %s.normalized() * %s" % [indent, hvel_var, hvel_var, max_axis_var])
+	body_lines.append("%s\t%s.x = %s.x" % [indent, velocity_expr, hvel_var])
+	body_lines.append("%s\t%s.z = %s.y" % [indent, velocity_expr, hvel_var])
+
+
 func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 	var x = properties.get("x", 0.0)
 	var y = properties.get("y", 0.0)
@@ -210,6 +221,7 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 	var code_lines: Array[String] = []
 	var member_vars: Array[String] = []
 	var target_var = _append_target_setup(code_lines, member_vars, chain_name)
+	var clamp_suffix = _unique_label(chain_name)
 	var body_lines: Array[String] = []
 	var call_mas = properties.get("call_move_and_slide", false)
 	var vx = _to_expr(x)
@@ -260,18 +272,22 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 				body_lines.append("\tif _logic_brick_character_use_acceleration:")
 				body_lines.append("\t\t_logic_brick_character_target_velocity.x += _motion_dir.x")
 				body_lines.append("\t\t_logic_brick_character_target_velocity.z += _motion_dir.z")
+				_append_character_horizontal_speed_clamp(body_lines, "_logic_brick_character_target_velocity", "\t\t", clamp_suffix)
 				body_lines.append("\telse:")
 				body_lines.append("\t\t%s.velocity.x += _motion_dir.x" % target_var)
 				body_lines.append("\t\t%s.velocity.z += _motion_dir.z" % target_var)
+				_append_character_horizontal_speed_clamp(body_lines, "%s.velocity" % target_var, "\t\t", clamp_suffix)
 				body_lines.append("\t# velocity.y intentionally preserved (gravity/jump from Character Actuator)")
 			elif space == "local":
 				body_lines.append("\tvar _motion_dir = %s.global_transform.basis * %s" % [target_var, vec])
 				body_lines.append("\tif _logic_brick_character_use_acceleration:")
 				body_lines.append("\t\t_logic_brick_character_target_velocity.x += _motion_dir.x")
 				body_lines.append("\t\t_logic_brick_character_target_velocity.z += _motion_dir.z")
+				_append_character_horizontal_speed_clamp(body_lines, "_logic_brick_character_target_velocity", "\t\t", clamp_suffix)
 				body_lines.append("\telse:")
 				body_lines.append("\t\t%s.velocity.x += _motion_dir.x" % target_var)
 				body_lines.append("\t\t%s.velocity.z += _motion_dir.z" % target_var)
+				_append_character_horizontal_speed_clamp(body_lines, "%s.velocity" % target_var, "\t\t", clamp_suffix)
 				body_lines.append("\t# velocity.y intentionally preserved (gravity/jump from Character Actuator)")
 			else:
 				if not _is_zero(x):
@@ -286,6 +302,11 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 					body_lines.append("\t\t_logic_brick_character_target_velocity.z = %s" % vz)
 					body_lines.append("\telse:")
 					body_lines.append("\t\t%s.velocity.z = %s" % [target_var, vz])
+				if not _is_zero(x) or not _is_zero(z):
+					body_lines.append("\tif _logic_brick_character_use_acceleration:")
+					_append_character_horizontal_speed_clamp(body_lines, "_logic_brick_character_target_velocity", "\t\t", clamp_suffix)
+					body_lines.append("\telse:")
+					_append_character_horizontal_speed_clamp(body_lines, "%s.velocity" % target_var, "\t\t", clamp_suffix)
 			if call_mas:
 				body_lines.append("\t%s.move_and_slide()" % target_var)
 
@@ -328,6 +349,7 @@ func _generate_rotation_code(node: Node, chain_name: String) -> Dictionary:
 	var code_lines: Array[String] = []
 	var member_vars: Array[String] = []
 	var target_var = _append_target_setup(code_lines, member_vars, chain_name)
+	var clamp_suffix = _unique_label(chain_name)
 	var body_lines: Array[String] = []
 	var vx = _to_expr(x)
 	var vy = _to_expr(y)
