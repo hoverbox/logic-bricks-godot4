@@ -2956,6 +2956,20 @@ func _apply_scene_setup_create(node: Node, chains: Array) -> void:
 	if not scene_root:
 		return
 
+	# ── Waypoint Path: create Path3D helper nodes when Path3D mode is selected ──
+	for chain in chains:
+		for actuator_data in chain.get("actuators", []):
+			if actuator_data.get("type", "") != "WaypointPathActuator":
+				continue
+			var brick_script = load("res://addons/logic_bricks/bricks/actuators/3d/waypoint_path_actuator.gd")
+			if not brick_script:
+				push_warning("Logic Bricks: Could not load waypoint_path_actuator.gd")
+				continue
+			var brick = brick_script.new()
+			brick.deserialize(actuator_data)
+			if node is Node3D:
+				brick_script.sync_path3d_node(node, brick)
+
 	# ── SplitScreen: free stale _ss_canvas_* nodes if the actuator was removed ──
 	var has_split_screen := false
 	for chain in chains:

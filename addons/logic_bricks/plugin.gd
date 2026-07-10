@@ -125,6 +125,9 @@ func _forward_3d_draw_over_viewport(viewport_control: Control) -> void:
 
 	for act_data in _wp_actuator_data:
 		var brick = act_data["brick"]
+		var path_source = str(brick.properties.get("path_source", "node_positions")).to_lower()
+		if path_source == "path3d":
+			continue
 		var waypoints = brick.properties.get("waypoints", [])
 		var space = brick.properties.get("space", "world")
 		if typeof(space) == TYPE_STRING:
@@ -197,6 +200,9 @@ func _forward_3d_gui_input(viewport_camera: Camera3D, event: InputEvent) -> int:
 				# Check if click is on a handle
 				for act_idx in range(_wp_actuator_data.size()):
 					var brick = _wp_actuator_data[act_idx]["brick"]
+					var path_source = str(brick.properties.get("path_source", "node_positions")).to_lower()
+					if path_source == "path3d":
+						continue
 					var waypoints = brick.properties.get("waypoints", [])
 					var space = brick.properties.get("space", "world")
 					if typeof(space) == TYPE_STRING:

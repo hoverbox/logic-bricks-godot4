@@ -900,6 +900,16 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 						"mesh_path":
 							child.visible = (edit_type == "replace_mesh")
 
+		"waypoint_path_actuator":  # Waypoint Path Actuator
+			var path_source = properties.get("path_source", "node_positions")
+			if typeof(path_source) == TYPE_STRING:
+				path_source = path_source.to_lower()
+			for child in graph_node.get_children():
+				if child.has_meta("property_name"):
+					var prop_name = child.get_meta("property_name")
+					if prop_name == "waypoints":
+						child.visible = (path_source != "path3d")
+
 		"move_towards_actuator":  # Move Towards Actuator
 			var behavior = properties.get("behavior", "seek")
 			if typeof(behavior) == TYPE_STRING:
