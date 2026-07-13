@@ -37,6 +37,9 @@ static var _class_overrides: Dictionary = {
 }
 
 static var _legacy_aliases: Dictionary = {
+	# UI Button was briefly serialized from its file name before UI bricks
+	# were taught to serialize with their registry class name.
+	"ButtonSensor": "UIButtonSensor",
 	"ANDController": "Controller",
 	"LocationActuator": "MotionActuator",
 	"RotationActuator": "MotionActuator",
@@ -187,6 +190,7 @@ static func _build_info_from_instance(instance, script_path: String) -> Dictiona
 		"script_path": script_path,
 		"menu_id": int(info.get("menu_id", _allocate_menu_id())),
 		"aliases": info.get("aliases", []),
+		"domain": str(info.get("domain", _infer_domain_from_path(script_path))),
 	}
 
 static func _register_info(info: Dictionary) -> void:
@@ -211,16 +215,32 @@ static func get_brick_info(brick_class: String) -> Dictionary:
 	var resolved = str(_aliases.get(brick_class, brick_class))
 	return _bricks_by_class.get(resolved, _bricks_by_class.get(brick_class, {})).duplicate(true)
 
-static func get_bricks_by_type(brick_type: String) -> Array:
+static func get_bricks_by_type(brick_type: String, domain: String = "") -> Array:
 	ensure_scanned()
-	return _bricks_by_type.get(brick_type, []).duplicate(true)
+	var bricks: Array = _bricks_by_type.get(brick_type, [])
+	if domain.is_empty():
+		return bricks.duplicate(true)
+	var filtered: Array = []
+	for info in bricks:
+		if _is_domain_compatible(str(info.get("domain", "common")), domain):
+			filtered.append(info)
+	return filtered
 
-static func get_all_bricks() -> Array:
+static func get_all_bricks(domain: String = "") -> Array:
 	ensure_scanned()
 	var result: Array = []
 	for t in ["sensor", "controller", "actuator"]:
-		result.append_array(_bricks_by_type.get(t, []))
+		result.append_array(get_bricks_by_type(t, domain))
 	return result
+
+static func _is_domain_compatible(brick_domain: String, target_domain: String) -> bool:
+	if brick_domain.is_empty():
+		brick_domain = "common"
+	if target_domain.is_empty():
+		return true
+	if brick_domain == "common":
+		return true
+	return brick_domain == target_domain
 
 static func _infer_type_from_path(path: String) -> String:
 	if path.find("/sensors/") >= 0:
@@ -230,6 +250,16 @@ static func _infer_type_from_path(path: String) -> String:
 	if path.find("/actuators/") >= 0:
 		return "actuator"
 	return ""
+
+
+static func _infer_domain_from_path(path: String) -> String:
+	if path.find("/ui/") >= 0:
+		return "ui"
+	if path.find("/2d/") >= 0:
+		return "2d"
+	if path.find("/3d/") >= 0:
+		return "3d"
+	return "common"
 
 static func _class_name_from_file(path: String, brick_type: String) -> String:
 	var base := path.get_file().get_basename()

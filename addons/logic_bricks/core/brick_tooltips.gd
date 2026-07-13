@@ -50,8 +50,8 @@ const TOOLTIPS = {
 	},
 
 	"MessageSensor": {
-		"_description": "Listens for messages sent by a Message Actuator.\nThe sending node must target a group that this node belongs to.",
-		"subject": "The message subject to listen for. Must match what the Message Actuator sends.",
+		"_description": "Listens for signals sent by a Signal Actuator.\nThe sending node must target a group that this node belongs to.",
+		"subject": "The signal name to listen for. Must match what the Signal Actuator sends.",
 		"match_mode": "How to match: Exact (full match), Contains (substring), or Starts With (prefix).",
 	},
 
@@ -227,9 +227,9 @@ const TOOLTIPS = {
 	},
 
 	"MessageActuator": {
-		"_description": "Sends a message to all nodes in a target group.\nReceivers need a Message Sensor listening for the same subject.",
-		"target_group": "Group name to send the message to. Receiving nodes must be in this group.",
-		"subject": "Message subject/identifier. The Message Sensor filters by this.",
+		"_description": "Sends a signal to all nodes in a target group.\nReceivers need a Signal Sensor listening for the same subject.",
+		"target_group": "Group name to send the signal to. Receiving nodes must be in this group.",
+		"subject": "Signal name/identifier. The Signal Sensor filters by this.",
 		"body": "Optional message body/data. Can carry extra information.",
 	},
 
@@ -347,7 +347,7 @@ const TOOLTIPS = {
 		"load_mode": "Background: loads on a thread without blocking gameplay (recommended).\nImmediate: blocks the main thread until done — use only on loading screens.",
 		"resource_type": "Filter hint for the file picker. Choose 'Any' to mix resource types freely.",
 		"resources": "List of resource paths to preload. Add as many as needed.",
-		"on_complete_signal": "When all resources finish loading, send a message to a group. Useful to hide loading screens or trigger the next event.",
+		"on_complete_signal": "When all resources finish loading, send a signal to a group. Useful to hide loading screens or trigger the next event.",
 		"signal_group": "The node group that will receive the completion message.",
 		"signal_message": "The message string sent to the group when loading is complete.",
 	},

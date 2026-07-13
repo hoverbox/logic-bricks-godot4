@@ -1,0 +1,195 @@
+@tool
+
+extends "res://addons/logic_bricks/core/logic_brick.gd"
+
+## Input Map Sensor - Detects input via Godot's Input Map actions
+## Works with keyboard, gamepad, mouse buttons, or any device mapped to actions
+## Configure actions in Project > Project Settings > Input Map
+##
+## Modes:
+##   Pressed/Just Pressed/Just Released: Boolean input (button-style)
+##   Any Pressed/Any Just Pressed/Any Just Released: Checks every action in the Input Map
+##   Axis: Reads two opposing actions as a -1 to 1 value and stores it in a variable
+
+
+func _init() -> void:
+	super._init()
+	brick_type = BrickType.SENSOR
+	brick_name = "Input Map"
+
+
+
+func get_brick_info() -> Dictionary:
+	return {
+		"class": "UIInputMapSensor",
+		"name": "Input Map",
+		"type": "sensor",
+		"category": "UI",
+		"description": "Detects Godot Input Map actions for UI logic.",
+		"menu_order": 30,
+		"domain": "ui"
+	}
+
+
+func serialize() -> Dictionary:
+	var data = super.serialize()
+	var info = get_brick_info()
+	if typeof(info) == TYPE_DICTIONARY and info.has("class"):
+		data["type"] = str(info["class"])
+	return data
+
+func _initialize_properties() -> void:
+	properties = {
+		"input_mode": "pressed",     # pressed, just_pressed, just_released, any_pressed, any_just_pressed, any_just_released, axis
+		"action_name": "ui_accept",  # Button modes: Input Map action name
+		"negative_action": "",       # Axis mode: action for -1 direction
+		"positive_action": "",       # Axis mode: action for +1 direction
+		"invert": false,             # Flip the result
+		"store_in": "",              # Variable name to store the value (-1 to 1)
+		"deadzone": 0.1,             # Ignore values smaller than this
+	}
+
+
+func get_property_definitions() -> Array:
+	return [
+		{
+			"name": "input_mode",
+			"type": TYPE_STRING,
+			"hint": PROPERTY_HINT_ENUM,
+			"hint_string": "Pressed,Just Pressed,Just Released,Any Pressed,Any Just Pressed,Any Just Released,Axis",
+			"default": "pressed"
+		},
+		{
+			"name": "action_name",
+			"type": TYPE_STRING,
+			"default": "ui_accept"
+		},
+		{
+			"name": "negative_action",
+			"type": TYPE_STRING,
+			"default": ""
+		},
+		{
+			"name": "positive_action",
+			"type": TYPE_STRING,
+			"default": ""
+		},
+		{
+			"name": "invert",
+			"type": TYPE_BOOL,
+			"default": false
+		},
+		{
+			"name": "store_in",
+			"type": TYPE_STRING,
+			"default": ""
+		},
+		{
+			"name": "deadzone",
+			"type": TYPE_FLOAT,
+			"default": 0.1
+		},
+	]
+
+
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Detects input actions from Project > Input Map.\nSupports button presses, any-action checks, and analog joystick axis input.",
+		"input_mode": "Pressed: active while held\nJust Pressed: one frame on press\nJust Released: one frame on release\nAny Pressed: active when any action in the Input Map is held\nAny Just Pressed: one frame when any Input Map action is pressed\nAny Just Released: one frame when any Input Map action is released\nAxis: joystick/WASD axis value (-1 to 1)",
+		"action_name": "Input Map action name (e.g. 'jump', 'ui_accept'). Ignored by Any modes.",
+		"negative_action": "Input Map action for the -1 direction.\nExample: 'move_left', 'move_forward', 'look_down'\nMust match an action in Project > Input Map.",
+		"positive_action": "Input Map action for the +1 direction.\nExample: 'move_right', 'move_back', 'look_up'\nMust match an action in Project > Input Map.",
+		"invert": "Invert the sensor result.\nButton modes: active when action is NOT pressed.\nAny modes: active when no Input Map action matches.\nAxis mode: active when the axis is NOT moved past the deadzone.",
+		"store_in": "Variable name to store the axis value (-1.0 to 1.0).\nCreate this variable in the Variables tab.\nThen use it in a Motion actuator field (e.g. 'up * speed').",
+		"deadzone": "Ignore stick values smaller than this.\nPrevents drift from loose joysticks.\n0.1 is a good default.",
+	}
+
+
+func generate_code(node: Node, chain_name: String) -> Dictionary:
+	var input_mode = properties.get("input_mode", "pressed")
+
+	# Normalize input_mode
+	if typeof(input_mode) == TYPE_STRING:
+		input_mode = input_mode.to_lower().replace(" ", "_")
+
+	match input_mode:
+		"pressed", "just_pressed", "just_released":
+			return _generate_button_code(input_mode)
+		"any_pressed", "any_just_pressed", "any_just_released":
+			return _generate_any_action_code(input_mode)
+		"axis":
+			return _generate_axis_code()
+		_:
+			return _generate_button_code("pressed")
+
+
+func _generate_button_code(input_mode: String) -> Dictionary:
+	var action_name = properties.get("action_name", "ui_accept")
+	var invert = properties.get("invert", false)
+	var raw = ""
+
+	match input_mode:
+		"pressed":
+			raw = "Input.is_action_pressed(\"%s\")" % action_name
+		"just_pressed":
+			raw = "Input.is_action_just_pressed(\"%s\")" % action_name
+		"just_released":
+			raw = "Input.is_action_just_released(\"%s\")" % action_name
+		_:
+			raw = "Input.is_action_pressed(\"%s\")" % action_name
+
+	var code = "var sensor_active = %s%s" % ["not " if invert else "", raw]
+	return {"sensor_code": code}
+
+
+func _generate_any_action_code(input_mode: String) -> Dictionary:
+	var invert = properties.get("invert", false)
+	var method_name = "is_action_pressed"
+	match input_mode:
+		"any_pressed":
+			method_name = "is_action_pressed"
+		"any_just_pressed":
+			method_name = "is_action_just_pressed"
+		"any_just_released":
+			method_name = "is_action_just_released"
+
+	var code_lines: Array[String] = []
+	code_lines.append("var sensor_active = false")
+	code_lines.append("for _lb_input_action in InputMap.get_actions():")
+	code_lines.append("\tif Input.%s(_lb_input_action):" % method_name)
+	code_lines.append("\t\tsensor_active = true")
+	code_lines.append("\t\tbreak")
+	if invert:
+		code_lines.append("sensor_active = not sensor_active")
+
+	return {"sensor_code": "\n".join(code_lines)}
+
+
+func _generate_axis_code() -> Dictionary:
+	var neg_action = str(properties.get("negative_action", "")).strip_edges()
+	var pos_action = str(properties.get("positive_action", "")).strip_edges()
+	var store_var = str(properties.get("store_in", "")).strip_edges()
+	var invert = properties.get("invert", false)
+	var deadzone = properties.get("deadzone", 0.1)
+	if typeof(deadzone) == TYPE_STRING:
+		deadzone = float(deadzone) if str(deadzone).is_valid_float() else 0.1
+
+	if neg_action.is_empty() or pos_action.is_empty():
+		return {"sensor_code": "var sensor_active = false  # Axis: actions not set"}
+
+	var axis_expr = "Input.get_axis(\"%s\", \"%s\")" % [neg_action, pos_action]
+	var code_lines: Array[String] = []
+
+	# Axis invert must invert the final boolean sensor result, not the numeric axis.
+	# Negating the axis value does not make the sensor inactive because absf(-axis) == absf(axis).
+	# This matters for idle logic such as: NOT horizontal AND NOT vertical.
+	if not store_var.is_empty():
+		code_lines.append("%s = %s" % [store_var, axis_expr])
+		code_lines.append("var sensor_active = absf(%s) > %.3f" % [store_var, deadzone])
+	else:
+		code_lines.append("var sensor_active = absf(%s) > %.3f" % [axis_expr, deadzone])
+
+	if invert:
+		code_lines.append("sensor_active = not sensor_active")
+
+	return {"sensor_code": "\n".join(code_lines)}

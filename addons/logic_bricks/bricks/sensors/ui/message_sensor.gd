@@ -13,6 +13,26 @@ func _init() -> void:
 	brick_name = "Signal"
 
 
+
+func get_brick_info() -> Dictionary:
+	return {
+		"class": "UIMessageSensor",
+		"name": "Signal",
+		"type": "sensor",
+		"category": "UI",
+		"description": "Receives a Logic Bricks message.",
+		"menu_order": 40,
+		"domain": "ui"
+	}
+
+
+func serialize() -> Dictionary:
+	var data = super.serialize()
+	var info = get_brick_info()
+	if typeof(info) == TYPE_DICTIONARY and info.has("class"):
+		data["type"] = str(info["class"])
+	return data
+
 func _initialize_properties() -> void:
 	properties = {
 		"subject": "",           # Signal name to listen for

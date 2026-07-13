@@ -24,6 +24,27 @@ func _init() -> void:
 	vbox.add_child(properties_container)
 
 
+
+
+func _select_line_edit_text_on_focus(line_edit: LineEdit) -> void:
+	if line_edit == null:
+		return
+	line_edit.focus_entered.connect(func():
+		line_edit.call_deferred("select_all")
+	)
+
+
+func _select_spinbox_text_on_focus(spinbox: SpinBox) -> void:
+	if spinbox == null:
+		return
+	var line_edit = spinbox.get_line_edit()
+	_select_line_edit_text_on_focus(line_edit)
+	spinbox.focus_entered.connect(func():
+		var edit = spinbox.get_line_edit()
+		if edit != null:
+			edit.call_deferred("select_all")
+	)
+
 func setup(brick) -> void:
 	brick_instance = brick
 
@@ -84,6 +105,7 @@ func _create_property_editor(prop_def: Dictionary) -> void:
 				hbox.add_child(option_button)
 			else:
 				var spin_box = SpinBox.new()
+				_select_spinbox_text_on_focus(spin_box)
 				spin_box.value = current_value
 				spin_box.min_value = -999999
 				spin_box.max_value = 999999
@@ -94,6 +116,7 @@ func _create_property_editor(prop_def: Dictionary) -> void:
 
 		TYPE_FLOAT:
 			var spin_box = SpinBox.new()
+			_select_spinbox_text_on_focus(spin_box)
 			spin_box.value = current_value
 			spin_box.min_value = -999999
 			spin_box.max_value = 999999
@@ -115,6 +138,7 @@ func _create_property_editor(prop_def: Dictionary) -> void:
 				hbox.add_child(option_button)
 			else:
 				var line_edit = LineEdit.new()
+				_select_line_edit_text_on_focus(line_edit)
 				line_edit.text = str(current_value)
 				line_edit.custom_minimum_size = Vector2(150, 0)
 				line_edit.text_changed.connect(func(text): _on_property_changed(prop_name, text))

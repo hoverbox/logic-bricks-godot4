@@ -12,6 +12,7 @@ var manager = null
 var editor_interface = null
 var plugin = null  # Reference to the EditorPlugin (for autoload registration)
 var current_node: Node = null
+var current_brick_domain: String = ""
 var _clipboard_graph: Dictionary = {}  # Stored graph data for copy/paste (whole node)
 var _clipboard_vars: Array = []  # Stored variables for copy/paste (whole node)
 var _selection_clipboard: Dictionary = {}  # Selected bricks only — survives node switching
@@ -250,9 +251,10 @@ func _refresh_add_menu_from_registry(force_rescan: bool = false) -> void:
 			submenu.queue_free()
 	actuator_submenus.clear()
 
-	_populate_brick_menu_flat(sensors_menu, BrickRegistry.get_bricks_by_type("sensor"))
-	_populate_brick_menu_flat(controllers_menu, BrickRegistry.get_bricks_by_type("controller"))
-	_populate_actuator_menu(BrickRegistry.get_bricks_by_type("actuator"))
+	var domain := current_brick_domain
+	_populate_brick_menu_flat(sensors_menu, BrickRegistry.get_bricks_by_type("sensor", domain))
+	_populate_brick_menu_flat(controllers_menu, BrickRegistry.get_bricks_by_type("controller", domain))
+	_populate_actuator_menu(BrickRegistry.get_bricks_by_type("actuator", domain))
 
 
 func _populate_brick_menu_flat(menu: PopupMenu, bricks: Array) -> void:
@@ -267,6 +269,13 @@ func _populate_brick_menu_flat(menu: PopupMenu, bricks: Array) -> void:
 
 
 func _populate_actuator_menu(bricks: Array) -> void:
+	# UI nodes only have a small set of UI actuators, so keep that menu flat.
+	# The existing categorized submenu layout is still used for 3D nodes where
+	# the actuator list is much larger.
+	if current_brick_domain == "ui":
+		_populate_brick_menu_flat(actuators_menu, bricks)
+		return
+
 	var groups: Dictionary = {}
 	var group_order: Array = []
 	for info in bricks:
@@ -962,7 +971,8 @@ func set_selected_node(node: Node) -> void:
 
 func _update_ui() -> void:
 	if not current_node:
-		node_info_label.text = "No node selected - Select a 3D node in the scene tree"
+		current_brick_domain = ""
+		node_info_label.text = "No node selected - Select a Node3D or UI Control node in the scene tree"
 		graph_edit.visible = false
 		_apply_side_panel_visibility()
 		if _instructions_label:
@@ -971,7 +981,8 @@ func _update_ui() -> void:
 
 	# Check if node is supported
 	if not _is_supported_node(current_node):
-		node_info_label.text = "Unsupported node type: %s - Use Node3D, CharacterBody3D, or RigidBody3D" % current_node.get_class()
+		current_brick_domain = ""
+		node_info_label.text = "Unsupported node type: %s - Use a Node3D, CharacterBody3D, RigidBody3D, or UI Control node" % current_node.get_class()
 		graph_edit.visible = false
 		_apply_side_panel_visibility()
 		if _instructions_label:
@@ -996,7 +1007,9 @@ func _update_ui() -> void:
 	node_info_label.remove_theme_color_override("font_color")
 
 	# Update header
-	node_info_label.text = "✓ Node: %s (%s) - Right-click to add bricks" % [current_node.name, current_node.get_class()]
+	current_brick_domain = _get_selected_node_domain()
+	_refresh_add_menu_from_registry(false)
+	node_info_label.text = "✓ Node: %s (%s) - Right-click to add %s bricks" % [current_node.name, current_node.get_class(), current_brick_domain.to_upper()]
 	graph_edit.visible = true
 	_apply_side_panel_visibility()
 	if _instructions_label:
@@ -1030,7 +1043,15 @@ func _refresh_brick_state_ui() -> void:
 
 
 func _is_supported_node(node: Node) -> bool:
-	return node is Node3D or node is CharacterBody3D or node is RigidBody3D
+	return node is Node3D or node is CharacterBody3D or node is RigidBody3D or node is Control
+
+
+func _get_selected_node_domain() -> String:
+	if current_node is Control:
+		return "ui"
+	if current_node is Node3D or current_node is CharacterBody3D or current_node is RigidBody3D:
+		return "3d"
+	return ""
 
 
 

@@ -149,7 +149,7 @@ func _search_update_results(query: String) -> void:
 	search_selected_index = -1
 
 	var scored: Array = []
-	for info in BrickRegistry.get_all_bricks():
+	for info in BrickRegistry.get_all_bricks(panel.current_brick_domain if panel else ""):
 		var brick = [str(info.get("name", "")), str(info.get("type", "")), str(info.get("class", ""))]
 		var s = _search_score(query, brick[0], brick[1])
 		if s > 0.0:

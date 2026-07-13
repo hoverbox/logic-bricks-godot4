@@ -6,6 +6,27 @@ func setup(target_panel) -> void:
 	panel = target_panel
 
 
+
+
+func _select_line_edit_text_on_focus(line_edit: LineEdit) -> void:
+	if line_edit == null:
+		return
+	line_edit.focus_entered.connect(func():
+		line_edit.call_deferred("select_all")
+	)
+
+
+func _select_spinbox_text_on_focus(spinbox: SpinBox) -> void:
+	if spinbox == null:
+		return
+	var line_edit = spinbox.get_line_edit()
+	_select_line_edit_text_on_focus(line_edit)
+	spinbox.focus_entered.connect(func():
+		var edit = spinbox.get_line_edit()
+		if edit != null:
+			edit.call_deferred("select_all")
+	)
+
 func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 	var properties = brick_instance.get_properties()
 	var prop_definitions = brick_instance.get_property_definitions()
@@ -32,6 +53,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 	name_hbox.add_child(name_label)
 
 	var name_edit = LineEdit.new()
+	_select_line_edit_text_on_focus(name_edit)
 	name_edit.name = "InstanceNameEdit"
 	var inst_name = brick_instance.get_instance_name()
 	name_edit.text = inst_name if inst_name is String else ""
@@ -293,6 +315,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				hbox.add_child(label)
 
 				var spinbox = SpinBox.new()
+				_select_spinbox_text_on_focus(spinbox)
 				spinbox.name = "PropertyControl_" + property_name
 				spinbox.min_value = -10000
 				spinbox.max_value = 10000
@@ -309,6 +332,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				hbox.add_child(label)
 
 				var spinbox = SpinBox.new()
+				_select_spinbox_text_on_focus(spinbox)
 				spinbox.name = "PropertyControl_" + property_name
 				# Parse range from hint_string if provided (format: "min,max,step")
 				if hint == PROPERTY_HINT_RANGE and not hint_string.is_empty():
@@ -334,6 +358,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				hbox.add_child(label)
 
 				var line_edit = LineEdit.new()
+				_select_line_edit_text_on_focus(line_edit)
 				line_edit.name = "PropertyControl_" + property_name
 				# Show just the filename, store full path in metadata
 				var display_text = property_value.get_file() if not property_value.is_empty() else ""
@@ -360,6 +385,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				hbox.add_child(label)
 
 				var line_edit = LineEdit.new()
+				_select_line_edit_text_on_focus(line_edit)
 				line_edit.name = "PropertyControl_" + property_name
 				line_edit.text = str(property_value) if typeof(property_value) != TYPE_STRING else property_value
 				line_edit.placeholder_text = "Enter " + _format_property_name(property_name).to_lower()
@@ -482,6 +508,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				hbox.add_child(label)
 
 				ui_element = SpinBox.new()
+				_select_spinbox_text_on_focus(ui_element)
 				ui_element.min_value = -10000
 				ui_element.max_value = 10000
 				ui_element.value = property_value
@@ -498,6 +525,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				hbox.add_child(label)
 
 				ui_element = SpinBox.new()
+				_select_spinbox_text_on_focus(ui_element)
 				ui_element.step = 0.01
 				ui_element.min_value = -10000
 				ui_element.max_value = 10000
@@ -513,6 +541,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				hbox.add_child(label)
 
 				ui_element = LineEdit.new()
+				_select_line_edit_text_on_focus(ui_element)
 				ui_element.text = property_value
 				ui_element.text_changed.connect(_on_property_changed.bind(graph_node, property_name))
 				hbox.add_child(ui_element)
@@ -546,6 +575,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 	debug_msg_hbox.add_child(debug_msg_label)
 
 	var debug_msg_edit = LineEdit.new()
+	_select_line_edit_text_on_focus(debug_msg_edit)
 	debug_msg_edit.name = "DebugMessageEdit"
 	debug_msg_edit.text = brick_instance.debug_message
 	debug_msg_edit.placeholder_text = "Debug message..."
@@ -653,6 +683,7 @@ func _build_array_property_list(
 
 		if item_hint == PROPERTY_HINT_FILE:
 			var le = LineEdit.new()
+			_select_line_edit_text_on_focus(le)
 			le.text = str(current_arr[idx])
 			le.placeholder_text = "Select file..."
 			le.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -708,6 +739,7 @@ func _build_array_property_list(
 				if typeof(linked_arr) != TYPE_ARRAY: linked_arr = []
 				var linked_val = linked_arr[idx] if idx < linked_arr.size() else linked_default
 				var linked_le = LineEdit.new()
+				_select_line_edit_text_on_focus(linked_le)
 				linked_le.text = str(linked_val)
 				linked_le.placeholder_text = linked_default
 				linked_le.custom_minimum_size = Vector2(64, 0)
@@ -937,6 +969,18 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = (mode in ["assign", "add"])
 						"source_variable":
 							child.visible = (mode == "copy")
+
+		"get_variable_actuator":  # Get Variable Actuator
+			var source = properties.get("source", "node_name")
+			if typeof(source) == TYPE_STRING:
+				source = source.to_lower().replace(" ", "_")
+
+			# Only show Source Node Name when reading from a named node.
+			for child in graph_node.get_children():
+				if child.has_meta("property_name"):
+					var prop_name = child.get_meta("property_name")
+					if prop_name == "source_node_name":
+						child.visible = (source == "node_name")
 
 		"variable_sensor":  # Variable Sensor
 			var eval_type = properties.get("evaluation_type", "equal")
