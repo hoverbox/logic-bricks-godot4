@@ -166,7 +166,7 @@ func _init() -> void:
 	# Instructions label (shown when graph is hidden)
 	_instructions_label = Label.new()
 	_instructions_label.name = "InstructionsLabel"
-	_instructions_label.text = "👆 Select a 3D node in your scene tree to start creating logic bricks"
+	_instructions_label.text = "👆 Select 3D, 2D or UI Node in your scene tree to start creating logic bricks"
 	_instructions_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_instructions_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_instructions_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -972,7 +972,7 @@ func set_selected_node(node: Node) -> void:
 func _update_ui() -> void:
 	if not current_node:
 		current_brick_domain = ""
-		node_info_label.text = "No node selected - Select a Node3D or UI Control node in the scene tree"
+		node_info_label.text = "No node selected - Select a Node3D, Node2D, or UI Control node in the scene tree"
 		graph_edit.visible = false
 		_apply_side_panel_visibility()
 		if _instructions_label:
@@ -982,7 +982,7 @@ func _update_ui() -> void:
 	# Check if node is supported
 	if not _is_supported_node(current_node):
 		current_brick_domain = ""
-		node_info_label.text = "Unsupported node type: %s - Use a Node3D, CharacterBody3D, RigidBody3D, or UI Control node" % current_node.get_class()
+		node_info_label.text = "Unsupported node type: %s - Use a Node3D, Node2D, or UI Control node" % current_node.get_class()
 		graph_edit.visible = false
 		_apply_side_panel_visibility()
 		if _instructions_label:
@@ -1043,13 +1043,15 @@ func _refresh_brick_state_ui() -> void:
 
 
 func _is_supported_node(node: Node) -> bool:
-	return node is Node3D or node is CharacterBody3D or node is RigidBody3D or node is Control
+	return node is Node3D or node is Node2D or node is Control
 
 
 func _get_selected_node_domain() -> String:
 	if current_node is Control:
 		return "ui"
-	if current_node is Node3D or current_node is CharacterBody3D or current_node is RigidBody3D:
+	if current_node is Node2D:
+		return "2d"
+	if current_node is Node3D:
 		return "3d"
 	return ""
 
@@ -3017,7 +3019,7 @@ func _apply_scene_setup_create(node: Node, chains: Array) -> void:
 			if actuator_data.get("type", "") != "ScreenFlashActuator":
 				continue
 
-			var brick_script = load("res://addons/logic_bricks/bricks/actuators/3d/screen_flash_actuator.gd")
+			var brick_script = load("res://addons/logic_bricks/bricks/actuators/common/screen_flash_actuator.gd")
 			if not brick_script:
 				push_warning("Logic Bricks: Could not load screen_flash_actuator.gd")
 				continue

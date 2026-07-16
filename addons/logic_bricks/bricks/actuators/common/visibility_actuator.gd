@@ -4,8 +4,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Visibility Actuator - Show, hide, or toggle a node by name.
 ## Uses the same node-name lookup pattern as the Text Actuator.
-## Type the node name you want affected, such as MeshInstance3D or Bjorn_Mesh.
-## Type "self" to affect the node this generated script is attached to.
+## Type the node name you want affected, or use "self" to affect the node this generated script is attached to.
 
 
 func _init() -> void:
@@ -16,7 +15,7 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"target_node_name": "MeshInstance3D",
+		"target_node_name": "self",
 		"action": "show",   # show, hide, toggle
 	}
 
@@ -26,7 +25,7 @@ func get_property_definitions() -> Array:
 		{
 			"name": "target_node_name",
 			"type": TYPE_STRING,
-			"default": "MeshInstance3D",
+			"default": "self",
 			"placeholder": "Node name"
 		},
 		{
@@ -42,13 +41,13 @@ func get_property_definitions() -> Array:
 func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Shows, hides, or toggles visibility of a node by name. Uses the same current-scene recursive name lookup as the Text Actuator.",
-		"target_node_name": "Type the node name to show/hide/toggle, such as MeshInstance3D or Bjorn_Mesh. Use self for the scripted node.",
+		"target_node_name": "Type the node name to show/hide/toggle. Use \"self\" to affect the scripted node and its children.",
 		"action": "Show: set visible = true\nHide: set visible = false\nToggle: flip current visibility",
 	}
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var target_node_name = str(properties.get("target_node_name", "MeshInstance3D")).strip_edges()
+	var target_node_name = str(properties.get("target_node_name", "self")).strip_edges()
 	var action = properties.get("action", "show")
 
 	if typeof(action) == TYPE_STRING:

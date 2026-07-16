@@ -1123,15 +1123,15 @@ func _chain_needs_physics_process(chain: Dictionary) -> bool:
 	var sensors = _collect_all_sensors_for_chain(chain)
 	for sensor_data in sensors:
 		var sensor_type = sensor_data.get("type", "")
-		if sensor_type in ["PhysicsSensor"]:
+		if sensor_type in ["PhysicsSensor", "Physics2DSensor"]:
 			return true
 
 	var actuators = chain.get("actuators", [])
 	for actuator_data in actuators:
 		var brick_type = actuator_data.get("type", "")
-		if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator"]:
+		if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator", "Force2DActuator", "Impulse2DActuator", "LinearVelocity2DActuator", "Character2DActuator", "Jump2DActuator"]:
 			return true
-		if brick_type == "MotionActuator":
+		if brick_type == "MotionActuator" or brick_type == "Motion2DActuator":
 			var props = actuator_data.get("properties", {})
 			var motion_type = str(props.get("motion_type", "location")).to_lower().replace(" ", "_")
 			var movement_method = str(props.get("movement_method", "character_velocity")).to_lower().replace(" ", "_")
@@ -1169,9 +1169,9 @@ func _chain_has_mixed_actuators(chain: Dictionary) -> bool:
 
 func _logic_brick_actuator_requires_physics(actuator_data: Dictionary) -> bool:
 	var brick_type = actuator_data.get("type", "")
-	if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator"]:
+	if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator", "Force2DActuator", "Impulse2DActuator", "LinearVelocity2DActuator", "Character2DActuator", "Jump2DActuator"]:
 		return true
-	if brick_type == "MotionActuator":
+	if brick_type == "MotionActuator" or brick_type == "Motion2DActuator":
 		var props = actuator_data.get("properties", {})
 		var motion_type = str(props.get("motion_type", "location")).to_lower().replace(" ", "_")
 		var movement_method = str(props.get("movement_method", "character_velocity")).to_lower().replace(" ", "_")
@@ -1181,9 +1181,11 @@ func _logic_brick_actuator_requires_physics(actuator_data: Dictionary) -> bool:
 
 
 func _logic_brick_actuator_is_timing_sensitive_non_physics(brick_type: String) -> bool:
-	# These are the actuators most likely to behave incorrectly if forced into
-	# _physics_process by a movement chain. Other actuators, including
-	# LookAtMovementActuator, are safe/useful in physics chains.
+	# These are actuators that are actually timing-sensitive if forced into
+	# _physics_process by a movement chain. Avoid warning for common frame-safe
+	# pairings like SpriteAnimation2D or SmoothFollowCamera2D, because those are
+	# expected to be used beside CharacterBody2D movement and the warning becomes
+	# noisy rather than helpful.
 	return brick_type in [
 		"AnimationActuator",
 		"AnimationTreeActuator",
@@ -1198,6 +1200,7 @@ func _logic_brick_actuator_is_timing_sensitive_non_physics(brick_type: String) -
 		"ProgressBarActuator",
 		"ScreenShakeActuator",
 		"SpriteFramesActuator",
+		"TweenAnimation2DActuator",
 		"TextActuator",
 		"TimerActuator",
 		"UIActuator"

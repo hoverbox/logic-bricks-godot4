@@ -65,7 +65,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		# Broadcast to ALL nodes in the scene tree that have the handler
 		code_lines.append("# Broadcast signal to all nodes with a message handler")
 		code_lines.append("for _target in get_tree().get_nodes_in_group(\"_logic_bricks_message_listeners\"):")
-		code_lines.append("\tif _target != self and _target.has_method(\"_on_message_received\"):")
+		code_lines.append("\tif _target.has_method(\"_on_message_received\"):")
 		code_lines.append("\t\t_target._on_message_received(\"%s\", %s, self)" % [subject, body_str])
 	else:
 		# Send to specific group

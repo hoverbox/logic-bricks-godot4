@@ -75,23 +75,32 @@ func get_property(property_name: String, default_value: Variant = null) -> Varia
 
 ## Serialize this brick to a dictionary for storage
 func serialize() -> Dictionary:
-	# Get the script filename as the type identifier
-	var script_path = get_script().resource_path
-	var type_name = script_path.get_file().get_basename()
-
-	# Convert snake_case to PascalCase for consistency
-	# keyboard_sensor -> KeyboardSensor
-	# and_controller -> ANDController (special case)
-	var parts = type_name.split("_")
+	# Prefer the explicit registry class from get_brick_info() when a brick
+	# provides one. This prevents UI wrapper bricks such as UISliderActuator
+	# from being saved as their plain filename-derived class SliderActuator.
 	var class_name_str = ""
-	for part in parts:
-		# Special handling for acronyms
-		if part == "2d":
-			class_name_str += "2D"
-		elif part == "3d":
-			class_name_str += "3D"
-		else:
-			class_name_str += part.capitalize()
+	if has_method("get_brick_info"):
+		var info = call("get_brick_info")
+		if typeof(info) == TYPE_DICTIONARY:
+			class_name_str = str(info.get("class", ""))
+
+	if class_name_str.is_empty():
+		# Get the script filename as the type identifier
+		var script_path = get_script().resource_path
+		var type_name = script_path.get_file().get_basename()
+
+		# Convert snake_case to PascalCase for consistency
+		# keyboard_sensor -> KeyboardSensor
+		# and_controller -> ANDController (special case)
+		var parts = type_name.split("_")
+		for part in parts:
+			# Special handling for acronyms
+			if part == "2d":
+				class_name_str += "2D"
+			elif part == "3d":
+				class_name_str += "3D"
+			else:
+				class_name_str += part.capitalize()
 
 	return {
 		"type": class_name_str,

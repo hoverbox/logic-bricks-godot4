@@ -15,10 +15,10 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"node_type":    "node_3d",
+		"node_type":    "Node",
 		"target_node":  "self",  # "self" or a node name to search for in the scene tree
 
-		# --- NODE 3D ---
+		# --- NODE ---
 		"n3d_visible":    "true",
 		"n3d_pos_x":      "",
 		"n3d_pos_y":      "",
@@ -30,27 +30,27 @@ func _initialize_properties() -> void:
 		"n3d_scale_y":    "",
 		"n3d_scale_z":    "",
 
-		# --- MESH INSTANCE 3D ---
+		# --- MESH INSTANCE ---
 		"mesh_visible":     "true",
 		"mesh_cast_shadow": "",
 
-		# --- COLLISION SHAPE 3D ---
+		# --- COLLISION SHAPE ---
 		"col_disabled": "false",
 
-		# --- LIGHT 3D ---
+		# --- LIGHT ---
 		"light_visible":  "true",
 		"light_energy":   "",
 		"light_color":    Color(1, 1, 1, 1),
 		"light_shadow":   "",
 
-		# --- RIGID BODY 3D ---
+		# --- RIGID BODY ---
 		"rb_freeze":        "",
 		"rb_gravity_scale": "",
 		"rb_linear_damp":   "",
 		"rb_angular_damp":  "",
 		"rb_mass":          "",
 
-		# --- CHARACTER BODY 3D ---
+		# --- CHARACTER BODY ---
 		"cb_up_dir_y":           "",
 		"cb_floor_max_angle":    "",
 		"cb_max_slides":         "",
@@ -82,13 +82,13 @@ func _initialize_properties() -> void:
 		"btn_text":     "",
 		"btn_visible":  "true",
 
-		# --- CAMERA 3D ---
+		# --- CAMERA ---
 		"cam_fov":     "",
 		"cam_near":    "",
 		"cam_far":     "",
 		"cam_current": "",
 
-		# --- SPRITE 3D ---
+		# --- SPRITE ---
 		"spr_visible":      "true",
 		"spr_modulate":     Color(1, 1, 1, 1),
 		"spr_flip_h":       "",
@@ -117,8 +117,8 @@ func get_property_definitions() -> Array:
 			"name": "node_type",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Node 3D,Mesh Instance 3D,Collision Shape 3D,Light 3D,Rigid Body 3D,Character Body 3D,Animation Player,Control,Label,Button,Camera 3D,Sprite 3D,Custom",
-			"default": "node_3d"
+			"hint_string": "Node,Mesh Instance,Collision Shape,Light,Rigid Body,Character Body,Animation Player,Control,Label,Button,Camera,Sprite,Custom",
+			"default": "Node"
 		},
 		# Target node path — always visible
 		{
@@ -127,7 +127,7 @@ func get_property_definitions() -> Array:
 			"default": "self"
 		},
 
-		# === NODE 3D ===
+		# === NODE ===
 		{ "name": "_group_n3d_visibility", "type": TYPE_NIL, "hint": 999, "hint_string": "Visibility" },
 		{ "name": "n3d_visible", "type": TYPE_STRING, "default": "true" },
 
@@ -142,16 +142,16 @@ func get_property_definitions() -> Array:
 		{ "name": "n3d_scale_y", "type": TYPE_STRING, "default": "" },
 		{ "name": "n3d_scale_z", "type": TYPE_STRING, "default": "" },
 
-		# === MESH INSTANCE 3D ===
-		{ "name": "_group_mesh_basic", "type": TYPE_NIL, "hint": 999, "hint_string": "Mesh Instance 3D" },
+		# === MESH INSTANCE ===
+		{ "name": "_group_mesh_basic", "type": TYPE_NIL, "hint": 999, "hint_string": "Mesh Instance" },
 		{ "name": "mesh_visible",     "type": TYPE_STRING, "default": "true" },
 		{ "name": "mesh_cast_shadow", "type": TYPE_STRING, "default": "" },
 
-		# === COLLISION SHAPE 3D ===
-		{ "name": "_group_col_basic", "type": TYPE_NIL, "hint": 999, "hint_string": "Collision Shape 3D" },
+		# === COLLISION SHAPE ===
+		{ "name": "_group_col_basic", "type": TYPE_NIL, "hint": 999, "hint_string": "Collision Shape" },
 		{ "name": "col_disabled", "type": TYPE_STRING, "default": "false" },
 
-		# === LIGHT 3D ===
+		# === LIGHT ===
 		{ "name": "_group_light_basic", "type": TYPE_NIL, "hint": 999, "hint_string": "Basic" },
 		{ "name": "light_visible", "type": TYPE_STRING, "default": "true" },
 		{ "name": "light_energy",  "type": TYPE_STRING, "default": "" },
@@ -160,7 +160,7 @@ func get_property_definitions() -> Array:
 		{ "name": "_group_light_shadow", "type": TYPE_NIL, "hint": 999, "hint_string": "Shadow", "collapsed": true },
 		{ "name": "light_shadow",  "type": TYPE_STRING, "default": "" },
 
-		# === RIGID BODY 3D ===
+		# === RIGID BODY ===
 		{ "name": "_group_rb_basic", "type": TYPE_NIL, "hint": 999, "hint_string": "Basic" },
 		{ "name": "rb_freeze",        "type": TYPE_STRING, "default": "" },
 		{ "name": "rb_mass",          "type": TYPE_STRING, "default": "" },
@@ -169,7 +169,7 @@ func get_property_definitions() -> Array:
 		{ "name": "rb_linear_damp",   "type": TYPE_STRING, "default": "" },
 		{ "name": "rb_angular_damp",  "type": TYPE_STRING, "default": "" },
 
-		# === CHARACTER BODY 3D ===
+		# === CHARACTER BODY ===
 		{ "name": "_group_cb_basic", "type": TYPE_NIL, "hint": 999, "hint_string": "Basic" },
 		{ "name": "cb_up_dir_y",        "type": TYPE_STRING, "default": "" },
 		{ "name": "cb_max_slides",      "type": TYPE_STRING, "default": "" },
@@ -208,14 +208,14 @@ func get_property_definitions() -> Array:
 		{ "name": "btn_text",     "type": TYPE_STRING, "default": "" },
 		{ "name": "btn_visible",  "type": TYPE_STRING, "default": "true" },
 
-		# === CAMERA 3D ===
-		{ "name": "_group_cam_basic", "type": TYPE_NIL, "hint": 999, "hint_string": "Camera 3D" },
+		# === CAMERA ===
+		{ "name": "_group_cam_basic", "type": TYPE_NIL, "hint": 999, "hint_string": "Camera" },
 		{ "name": "cam_fov",     "type": TYPE_STRING, "default": "" },
 		{ "name": "cam_near",    "type": TYPE_STRING, "default": "" },
 		{ "name": "cam_far",     "type": TYPE_STRING, "default": "" },
 		{ "name": "cam_current", "type": TYPE_STRING, "default": "" },
 
-		# === SPRITE 3D ===
+		# === SPRITE ===
 		{ "name": "_group_spr_basic", "type": TYPE_NIL, "hint": 999, "hint_string": "Basic" },
 		{ "name": "spr_visible",      "type": TYPE_STRING, "default": "true" },
 		{ "name": "spr_modulate",     "type": TYPE_COLOR,  "default": Color(1, 1, 1, 1) },
@@ -416,6 +416,17 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target_node = str(properties.get("target_node", "self")).strip_edges()
 	if typeof(node_type) == TYPE_STRING:
 		node_type = node_type.to_lower().replace(" ", "_")
+	var node_type_aliases := {
+		"node": "node_3d",
+		"mesh_instance": "mesh_instance_3d",
+		"collision_shape": "collision_shape_3d",
+		"light": "light_3d",
+		"rigid_body": "rigid_body_3d",
+		"character_body": "character_body_3d",
+		"camera": "camera_3d",
+		"sprite": "sprite_3d",
+	}
+	node_type = node_type_aliases.get(node_type, node_type)
 	if target_node.is_empty():
 		target_node = "self"
 

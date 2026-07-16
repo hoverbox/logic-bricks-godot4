@@ -1094,7 +1094,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 						"state_machine_path", "parameter_path":
 							child.visible = false
 
-		"sprite_frames_actuator":  # Sprite Frames Actuator
+		"sprite_frames_actuator", "sprite_animation_2d_actuator":  # Sprite Frames / Sprite Animation 2D Actuator
 			var sf_mode = properties.get("mode", "play").to_lower()
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
@@ -1233,6 +1233,17 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 			var node_type = properties.get("node_type", "node_3d")
 			if typeof(node_type) == TYPE_STRING:
 				node_type = node_type.to_lower().replace(" ", "_")
+				var node_type_aliases := {
+					"node": "node_3d",
+					"mesh_instance": "mesh_instance_3d",
+					"collision_shape": "collision_shape_3d",
+					"light": "light_3d",
+					"rigid_body": "rigid_body_3d",
+					"character_body": "character_body_3d",
+					"camera": "camera_3d",
+					"sprite": "sprite_3d",
+				}
+				node_type = node_type_aliases.get(node_type, node_type)
 
 			# All groups and their node type prefix
 			var group_type_map = {
@@ -1351,6 +1362,31 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 						"mouse_turn_speed", "mouse_facing_axis":
 							child.visible = (mode == "look_towards")
 						"mouse_target", "mouse_lock_y":
+							child.visible = (mode in ["look_towards", "move_towards_cursor", "move_to_mouse_click"])
+						"mouse_velocity", "mouse_acceleration", "mouse_arrival_distance":
+							child.visible = (mode in ["move_towards_cursor", "move_to_mouse_click"])
+						"click_button":
+							child.visible = (mode == "move_to_mouse_click")
+
+		"mouse_2d_actuator":  # Mouse 2D Actuator
+			var mode = properties.get("mode", "cursor_visibility")
+
+			# Normalize
+			if typeof(mode) == TYPE_STRING:
+				mode = mode.to_lower().replace(" ", "_")
+
+			# Show/hide fields based on mode. Keep 3D-only fields out of the 2D actuator.
+			for child in graph_node.get_children():
+				if child.has_meta("property_name"):
+					var prop_name = child.get_meta("property_name")
+					match prop_name:
+						"cursor_visible":
+							child.visible = (mode == "cursor_visibility")
+						"use_x_axis", "use_y_axis", "x_target", "y_target", "x_sensitivity", "y_sensitivity", "x_invert", "y_invert", "x_threshold", "y_threshold", "x_min_degrees", "x_max_degrees", "y_min_degrees", "y_max_degrees", "recenter_cursor":
+							child.visible = (mode == "mouse_look")
+						"mouse_turn_speed", "mouse_facing_axis":
+							child.visible = (mode == "look_towards")
+						"mouse_target":
 							child.visible = (mode in ["look_towards", "move_towards_cursor", "move_to_mouse_click"])
 						"mouse_velocity", "mouse_acceleration", "mouse_arrival_distance":
 							child.visible = (mode in ["move_towards_cursor", "move_to_mouse_click"])

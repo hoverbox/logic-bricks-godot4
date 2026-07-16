@@ -61,10 +61,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if typeof(match_mode) == TYPE_STRING:
 		match_mode = match_mode.to_lower().replace(" ", "_")
 
-	if subject.is_empty():
-		return {
-			"sensor_code": "var sensor_active = false  # Message sensor: no subject specified"
-		}
+	var listens_to_any_subject: bool = str(subject).strip_edges().is_empty()
 
 	var code_lines: Array[String] = []
 	var member_vars: Array[String] = []
@@ -108,11 +105,20 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	match match_mode:
 		"exact":
-			handler_code.append("\tif subject == \"%s\":" % subject)
+			if listens_to_any_subject:
+				handler_code.append("\tif true:")
+			else:
+				handler_code.append("\tif subject == \"%s\":" % subject)
 		"contains":
-			handler_code.append("\tif \"%s\" in subject:" % subject)
+			if listens_to_any_subject:
+				handler_code.append("\tif true:")
+			else:
+				handler_code.append("\tif \"%s\" in subject:" % subject)
 		"starts_with":
-			handler_code.append("\tif subject.begins_with(\"%s\"):" % subject)
+			if listens_to_any_subject:
+				handler_code.append("\tif true:")
+			else:
+				handler_code.append("\tif subject.begins_with(\"%s\"):" % subject)
 
 	if response_delay > 0.0:
 		var msg_pending_var = "_msg_pending_%s" % chain_name

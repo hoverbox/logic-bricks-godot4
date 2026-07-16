@@ -37,9 +37,45 @@ static var _class_overrides: Dictionary = {
 }
 
 static var _legacy_aliases: Dictionary = {
+	# Legacy 2D shared bricks now resolve to the common implementation.
+	"Always2DSensor": "AlwaysSensor",
+	"Delay2DSensor": "DelaySensor",
+	"InputMap2DSensor": "InputMapSensor",
+	"Message2DSensor": "MessageSensor",
+	"Mouse2DSensor": "MouseSensor",
+	"Mouse2DActuator": "Mouse2DActuator",
+	"Random2DSensor": "RandomSensor",
+	"Variable2DSensor": "VariableSensor",
+	"Animation2DActuator": "SpriteAnimation2DActuator",
+	"Audio2D2DActuator": "Audio2DActuator",
+	"Game2DActuator": "GameActuator",
+	"HitStop2DActuator": "HitStopActuator",
+	"Message2DActuator": "MessageActuator",
+	"Modulate2DActuator": "ModulateActuator",
+	"Music2DActuator": "MusicActuator",
+	"Preload2DActuator": "PreloadActuator",
+	"Property2DActuator": "PropertyActuator",
+	"Random2DActuator": "RandomActuator",
+	"Rumble2DActuator": "RumbleActuator",
+	"Scene2DActuator": "SceneActuator",
+	"ScreenFlash2DActuator": "ScreenFlashActuator",
+	"State2DActuator": "StateActuator",
+	"Tween2DActuator": "TweenAnimation2DActuator",
+	"Variable2DActuator": "VariableActuator",
+	"Visibility2DActuator": "VisibilityActuator",
 	# UI Button was briefly serialized from its file name before UI bricks
 	# were taught to serialize with their registry class name.
 	"ButtonSensor": "UIButtonSensor",
+	# UI actuator files serialize from their file names unless the base class
+	# uses get_brick_info(). Keep these aliases so saved scenes and metadata
+	# written as FocusActuator/ButtonActuator/etc. resolve correctly.
+	"FocusActuator": "UIFocusActuator",
+	"ButtonActuator": "UIButtonActuator",
+	"PopupActuator": "UIPopupActuator",
+	"ScrollActuator": "UIScrollActuator",
+	"TabActuator": "UITabActuator",
+	"SliderActuator": "UISliderActuator",
+	"WindowActuator": "UIWindowActuator",
 	"ANDController": "Controller",
 	"LocationActuator": "MotionActuator",
 	"RotationActuator": "MotionActuator",
@@ -47,22 +83,47 @@ static var _legacy_aliases: Dictionary = {
 	# These bricks no longer exist; map to the nearest current equivalent so that
 	# "Rebuild from Script" does not write unresolvable class names into metadata.
 	"CameraActuator": "SetCameraActuator",
-	"UIFocusActuator": "PropertyActuator",
+	"Set2DCameraActuator": "SetCamera2DActuator",
 	"ShaderParamActuator": "PropertyActuator",
 	"SaveGameActuator": "SaveLoadActuator",
 }
+
+static var _ui_actuator_whitelist: Array[String] = [
+	"AnimationActuator",
+	"UIAudio2DActuator",
+	"MusicActuator",
+	"MessageActuator",
+	"StateActuator",
+	"PropertyActuator",
+	"UIVisibilityActuator",
+	"UITextActuator",
+	"UIProgressBarActuator",
+	"UIModulateActuator",
+	"UITweenActuator",
+	"UIScreenFlashActuator",
+	"GetVariableActuator",
+	"VariableActuator",
+	"UIFocusActuator",
+	"UIButtonActuator",
+	"UIPopupActuator",
+	"UIScrollActuator",
+	"UITabActuator",
+	"UISliderActuator",
+	"UIWindowActuator",
+]
 
 static var _fallback_categories: Dictionary = {
 	"MotionActuator": "Motion", "CharacterActuator": "Motion", "JumpActuator": "Motion",
 	"LookAtMovementActuator": "Motion", "LookAtInputActuator": "Motion", "RotateTowardsActuator": "Motion",
 	"WaypointPathActuator": "Motion", "MoveTowardsActuator": "Motion", "TeleportActuator": "Motion",
-	"MouseActuator": "Motion",
+	"MouseActuator": "Motion", "Mouse2DActuator": "Motion",
 	"PhysicsActuator": "Physics", "ForceActuator": "Physics", "GravityActuator": "Physics",
 	"TorqueActuator": "Physics", "LinearVelocityActuator": "Physics", "ImpulseActuator": "Physics",
 	"CollisionActuator": "Physics", "EditObjectActuator": "Object", "ObjectPoolActuator": "Object",
 	"ParentActuator": "Object", "PropertyActuator": "Object", "VisibilityActuator": "Object",
 	"EnvironmentActuator": "Environment", "LightActuator": "Environment", "SetCameraActuator": "Camera",
 	"SmoothFollowCameraActuator": "Camera", "CameraZoomActuator": "Camera", "ThirdPersonCameraActuator": "Camera",
+	"SetCamera2DActuator": "Camera", "SmoothFollowCamera2DActuator": "Camera", "CameraZoom2DActuator": "Camera",
 	"SplitScreenActuator": "Camera", "SoundActuator": "Audio", "Audio2DActuator": "Audio",
 	"MusicActuator": "Audio", "ScreenFlashActuator": "Game Feel", "ScreenShakeActuator": "Game Feel",
 	"ObjectFlashActuator": "Game Feel", "ObjectShakeActuator": "Game Feel", "HitStopActuator": "Game Feel",
@@ -70,7 +131,7 @@ static var _fallback_categories: Dictionary = {
 	"ProgressBarActuator": "UI", "TweenActuator": "UI", "StateActuator": "Logic",
 	"RandomActuator": "Logic", "MessageActuator": "Logic", "VariableActuator": "Logic",
 	"GameActuator": "Game", "SceneActuator": "Game", "SaveLoadActuator": "Game", "PreloadActuator": "Game",
-	"AnimationActuator": "Animation", "AnimationTreeActuator": "Animation", "SpriteFramesActuator": "Animation"
+	"AnimationActuator": "Animation", "AnimationTreeActuator": "Animation", "SpriteFramesActuator": "Animation", "SpriteAnimation2DActuator": "Animation", "TweenAnimation2DActuator": "Animation"
 }
 
 static func refresh() -> void:
@@ -198,6 +259,22 @@ static func _register_info(info: Dictionary) -> void:
 	var brick_type := str(info.get("type", ""))
 	if brick_class_name.is_empty() or brick_type.is_empty():
 		return
+
+	# The registry scans every .gd file under bricks/. During refactors, users can
+	# temporarily have both an old domain-specific file and the new common file
+	# with the same brick class, which used to create duplicate right-click menu
+	# entries. Keep the most recently registered script for the class, but remove
+	# the older menu entry first. This keeps legacy files from showing duplicate
+	# bricks while still allowing saved graphs to resolve through aliases.
+	if _bricks_by_class.has(brick_class_name):
+		var previous: Dictionary = _bricks_by_class.get(brick_class_name, {})
+		var previous_type := str(previous.get("type", ""))
+		if _bricks_by_type.has(previous_type):
+			var list: Array = _bricks_by_type[previous_type]
+			for i in range(list.size() - 1, -1, -1):
+				if str(list[i].get("class", "")) == brick_class_name:
+					list.remove_at(i)
+
 	_bricks_by_class[brick_class_name] = info
 	if _bricks_by_type.has(brick_type):
 		_bricks_by_type[brick_type].append(info)
@@ -222,6 +299,17 @@ static func get_bricks_by_type(brick_type: String, domain: String = "") -> Array
 		return bricks.duplicate(true)
 	var filtered: Array = []
 	for info in bricks:
+		var brick_class := str(info.get("class", ""))
+		# 2D uses Sprite Animation and Tween Animation instead of the generic
+		# AnimationPlayer/Tween entries from the common folder.
+		if domain == "2d" and ["AnimationActuator", "TweenActuator"].has(brick_class):
+			continue
+		# UI nodes should only restrict the actuator list. Sensors and controllers
+		# still need their normal common/UI-compatible entries.
+		# This also removes duplicate common/UI actuator entries such as Visibility,
+		# Screen Flash, 2D Audio, Modulate, and Tween.
+		if brick_type == "actuator" and domain == "ui" and not _ui_actuator_whitelist.has(brick_class):
+			continue
 		if _is_domain_compatible(str(info.get("domain", "common")), domain):
 			filtered.append(info)
 	return filtered
