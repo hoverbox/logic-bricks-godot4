@@ -73,6 +73,17 @@ func _build_variable_item_ui(item_panel: PanelContainer, index: int, var_data: D
 		name_display.name = "NameDisplay"
 	header.add_child(name_display)
 
+	var debug_btn = Button.new()
+	debug_btn.text = "🐞"
+	debug_btn.toggle_mode = true
+	debug_btn.button_pressed = _is_debug_watch_enabled(var_data.get("debug_watch", false))
+	debug_btn.custom_minimum_size = Vector2(30, 0)
+	debug_btn.tooltip_text = "Show in Runtime Debug Overlay"
+	if panel and panel.has_method("_style_debug_watch_button"):
+		panel._style_debug_watch_button(debug_btn, debug_btn.button_pressed)
+	debug_btn.toggled.connect(_on_variable_debug_watch_toggled.bind(index, is_global))
+	header.add_child(debug_btn)
+
 	var delete_btn = Button.new()
 	delete_btn.text = "×"
 	delete_btn.custom_minimum_size = Vector2(24, 0)
@@ -111,16 +122,7 @@ func _build_variable_item_ui(item_panel: PanelContainer, index: int, var_data: D
 	type_option.item_selected.connect(_on_variable_type_changed.bind(index, name_display, is_global))
 	row2.add_child(type_option)
 
-	var row3 = HBoxContainer.new()
-	details.add_child(row3)
-	var value_label = Label.new()
-	value_label.text = "Value:"
-	row3.add_child(value_label)
-	var value_edit = LineEdit.new()
-	value_edit.text = var_data.get("value", "0")
-	value_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	value_edit.text_changed.connect(_on_variable_value_changed.bind(index, is_global))
-	row3.add_child(value_edit)
+	_create_value_editor(details, index, var_data, is_global)
 
 	if is_global:
 		var row_use = HBoxContainer.new()
@@ -179,6 +181,80 @@ func _build_variable_item_ui(item_panel: PanelContainer, index: int, var_data: D
 	details.visible = not is_collapsed
 	collapse_btn.text = "▶" if is_collapsed else "▼"
 	collapse_btn.pressed.connect(_on_variable_collapse_toggled.bind(index, is_global, collapse_btn, details))
+
+
+func _vector_components_from_value(value, dimensions: int) -> Array[String]:
+	var result: Array[String] = []
+	var text := str(value).strip_edges()
+	if text == "Vector2.ZERO" or text == "Vector3.ZERO" or text.is_empty():
+		text = "0, 0" if dimensions == 2 else "0, 0, 0"
+	elif text.begins_with("Vector2(") or text.begins_with("Vector3("):
+		text = text.substr(text.find("(") + 1)
+		if text.ends_with(")"):
+			text = text.left(-1)
+	var parts := text.split(",", false)
+	for i in range(dimensions):
+		var component := "0"
+		if i < parts.size():
+			component = str(parts[i]).strip_edges()
+			if not component.is_valid_float():
+				component = "0"
+		result.append(component)
+	return result
+
+
+func _create_value_editor(parent: VBoxContainer, index: int, var_data: Dictionary, is_global: bool) -> void:
+	var var_type := str(var_data.get("type", "int"))
+	if var_type != "Vector2" and var_type != "Vector3":
+		var row = HBoxContainer.new()
+		parent.add_child(row)
+		var label = Label.new()
+		label.text = "Value:"
+		row.add_child(label)
+		var edit = LineEdit.new()
+		edit.text = str(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_type)))
+		edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		edit.text_changed.connect(_on_variable_value_changed.bind(index, is_global))
+		row.add_child(edit)
+		return
+	var dimensions := 2 if var_type == "Vector2" else 3
+	var components := _vector_components_from_value(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_type)), dimensions)
+	var label = Label.new()
+	label.text = "Value:"
+	parent.add_child(label)
+	var edits: Array[LineEdit] = []
+	for axis_index in range(dimensions):
+		var axis_row = HBoxContainer.new()
+		parent.add_child(axis_row)
+		var axis_label = Label.new()
+		axis_label.text = ["X:", "Y:", "Z:"][axis_index]
+		axis_label.custom_minimum_size = Vector2(24, 0)
+		axis_row.add_child(axis_label)
+		var edit = LineEdit.new()
+		edit.text = components[axis_index]
+		edit.placeholder_text = "0"
+		edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		edits.append(edit)
+		axis_row.add_child(edit)
+	for edit in edits:
+		edit.text_changed.connect(_on_vector_axis_value_changed.bind(index, var_type, edits, is_global))
+
+
+func _on_vector_axis_value_changed(_new_text: String, index: int, var_type: String, edits: Array[LineEdit], is_global: bool) -> void:
+	var data = panel.global_vars_data if is_global else panel.variables_data
+	if index < 0 or index >= data.size():
+		return
+	var values: Array[String] = []
+	for edit in edits:
+		var component := edit.text.strip_edges()
+		if component.is_empty() or not component.is_valid_float():
+			component = "0"
+		values.append(component)
+	data[index]["value"] = "%s(%s)" % [var_type, ", ".join(values)]
+	if is_global:
+		panel._save_global_vars_to_metadata()
+	else:
+		panel._save_variables_to_metadata()
 
 
 func _get_type_index(type_name: String) -> int:
@@ -320,3 +396,24 @@ func _on_delete_variable_pressed(index: int, is_global: bool) -> void:
 	panel.variables_data.remove_at(index)
 	refresh_local_variables_ui()
 	panel._save_variables_to_metadata()
+
+
+func _is_debug_watch_enabled(value: Variant) -> bool:
+	if value is bool:
+		return value
+	if value is String:
+		return value.strip_edges().to_lower() == "true"
+	if value is int:
+		return value == 1
+	return false
+
+
+func _on_variable_debug_watch_toggled(enabled: bool, index: int, is_global: bool) -> void:
+	var data = panel.global_vars_data if is_global else panel.variables_data
+	if index < 0 or index >= data.size():
+		return
+	data[index]["debug_watch"] = enabled
+	if is_global:
+		panel._save_global_vars_to_metadata()
+	else:
+		panel._save_variables_to_metadata()

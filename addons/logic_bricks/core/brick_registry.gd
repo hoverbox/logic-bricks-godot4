@@ -79,6 +79,7 @@ static var _legacy_aliases: Dictionary = {
 	"ANDController": "Controller",
 	"LocationActuator": "MotionActuator",
 	"RotationActuator": "MotionActuator",
+	"ScaleActuator": "TransformsActuator",
 	# Ghost classes produced by panel_script_rebuild_helper pattern detection.
 	# These bricks no longer exist; map to the nearest current equivalent so that
 	# "Rebuild from Script" does not write unresolvable class names into metadata.
@@ -120,7 +121,7 @@ static var _fallback_categories: Dictionary = {
 	"PhysicsActuator": "Physics", "ForceActuator": "Physics", "GravityActuator": "Physics",
 	"TorqueActuator": "Physics", "LinearVelocityActuator": "Physics", "ImpulseActuator": "Physics",
 	"CollisionActuator": "Physics", "EditObjectActuator": "Object", "ObjectPoolActuator": "Object",
-	"ParentActuator": "Object", "PropertyActuator": "Object", "VisibilityActuator": "Object",
+	"ParentActuator": "Object", "PropertyActuator": "Object", "GetTransformsActuator": "Object", "TransformsActuator": "Object", "VisibilityActuator": "Object",
 	"EnvironmentActuator": "Environment", "LightActuator": "Environment", "SetCameraActuator": "Camera",
 	"SmoothFollowCameraActuator": "Camera", "CameraZoomActuator": "Camera", "ThirdPersonCameraActuator": "Camera",
 	"SetCamera2DActuator": "Camera", "SmoothFollowCamera2DActuator": "Camera", "CameraZoom2DActuator": "Camera",

@@ -15,10 +15,11 @@ func _init() -> void:
 func _initialize_properties() -> void:
 	properties = {
 		"target_node_name": "Target",
-		"mode": "target_node",     # target_node, coordinates
+		"mode": "target_node",     # target_node, coordinates, vector_variable
 		"x": 0.0,
 		"y": 0.0,
 		"z": 0.0,
+		"vector_variable": "",
 		"copy_rotation": false,    # Also copy the target's rotation (target_node mode)
 	}
 
@@ -35,7 +36,7 @@ func get_property_definitions() -> Array:
 			"name": "mode",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Target Node,Coordinates",
+			"hint_string": "Target Node,Coordinates,Vector Variable",
 			"default": "target_node"
 		},
 		{
@@ -52,6 +53,12 @@ func get_property_definitions() -> Array:
 			"name": "z",
 			"type": TYPE_FLOAT,
 			"default": 0.0
+		},
+		{
+			"name": "vector_variable",
+			"type": TYPE_STRING,
+			"default": "",
+			"visible_if": {"mode": "vector_variable"}
 		},
 		{
 			"name": "copy_rotation",
@@ -74,6 +81,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var x = float(properties.get("x", 0.0))
 	var y = float(properties.get("y", 0.0))
 	var z = float(properties.get("z", 0.0))
+	var vector_variable = _sanitize_identifier(str(properties.get("vector_variable", "")))
 	var copy_rotation = properties.get("copy_rotation", false)
 
 	if typeof(mode) == TYPE_STRING:
@@ -125,6 +133,25 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("if 'velocity' in self:")
 			code_lines.append("\tset('velocity', Vector3.ZERO)")
 
+		"vector_variable":
+			if vector_variable.is_empty():
+				code_lines.append("push_warning(\"Teleport Actuator: Vector Variable mode requires a Vector3 variable name in this actuator.\")")
+				return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
+			code_lines.append("# Teleport to a Vector3 variable")
+			code_lines.append("var _teleport_value = null")
+			code_lines.append("if \"%s\" in self:" % vector_variable)
+			code_lines.append("\t_teleport_value = get(\"%s\")" % vector_variable)
+			code_lines.append("else:")
+			code_lines.append("\tvar _teleport_globals = get_node_or_null(\"/root/GlobalVars\")")
+			code_lines.append("\tif _teleport_globals and \"%s\" in _teleport_globals:" % vector_variable)
+			code_lines.append("\t\t_teleport_value = _teleport_globals.get(\"%s\")" % vector_variable)
+			code_lines.append("if _teleport_value is Vector3:")
+			code_lines.append("\tglobal_position = _teleport_value")
+			code_lines.append("\tif 'velocity' in self:")
+			code_lines.append("\t\tset('velocity', Vector3.ZERO)")
+			code_lines.append("else:")
+			code_lines.append("\tpush_warning(\"Teleport Actuator: variable '%s' was not found or is not a Vector3\")" % vector_variable)
+
 		_:
 			code_lines.append("pass  # Unknown teleport mode")
 
@@ -157,3 +184,15 @@ func _append_find_node_helpers(member_vars: Array[String]) -> void:
 
 func _gd_string(value: String) -> String:
 	return value.replace("\\", "\\\\").replace("\"", "\\\"")
+
+
+func _sanitize_identifier(value: String) -> String:
+	var sanitized := value.strip_edges().replace(" ", "_")
+	var regex := RegEx.new()
+	regex.compile("[^a-zA-Z0-9_]")
+	sanitized = regex.sub(sanitized, "", true)
+	if sanitized.is_empty():
+		return ""
+	if sanitized.substr(0, 1).is_valid_int():
+		sanitized = "var_" + sanitized
+	return sanitized

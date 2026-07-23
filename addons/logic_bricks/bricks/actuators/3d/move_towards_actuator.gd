@@ -16,8 +16,9 @@ func _initialize_properties() -> void:
 	properties = {
 		"navigation_agent_node_name": "NavigationAgent3D",
 		"behavior": "seek",                    # "seek", "flee", "path_follow"
-		"target_mode": "group",                # "group", "node_name"
+		"target_mode": "group",                # "group", "node_name", "vector_variable"
 		"target_name": "",                     # Group name or node name of target
+		"target_variable": "",     # Vector3 variable target
 		"arrival_distance": "1.0",               # Distance at which target is considered reached
 		"velocity": "5.0",                       # Movement speed; accepts numbers, variables, or expressions
 		"acceleration": "0.0",                   # Acceleration (0 = instant, >0 = gradual); accepts expressions
@@ -49,13 +50,19 @@ func get_property_definitions() -> Array:
 			"name": "target_mode",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Group,Node Name",
+			"hint_string": "Group,Node Name,Vector Variable",
 			"default": "group"
 		},
 		{
 			"name": "target_name",
 			"type": TYPE_STRING,
 			"default": ""
+		},
+		{
+			"name": "target_variable",
+			"type": TYPE_STRING,
+			"default": "",
+			"visible_if": {"target_mode": "vector_variable"}
 		},
 		{
 			"name": "arrival_distance",
@@ -113,6 +120,7 @@ func get_tooltip_definitions() -> Dictionary:
 		"behavior": "Seek: move directly toward nearest target\nFlee: move directly away from nearest target\nPath Follow: use NavigationAgent3D to navigate around obstacles",
 		"target_mode": "How to find the target:\nGroup: find the nearest node in the named group\nNode Name: find a node anywhere in the scene tree by name",
 		"target_name": "Group name or node name to target.\nFor Group: the nearest node in this group will be used.\nFor Node Name: finds a node anywhere in the scene tree.",
+		"target_variable": "Name of a local or GlobalVars Vector3 variable containing the destination position.",
 		"arrival_distance": "Distance at which the target is considered reached. Accepts numbers, variable names, or math expressions.",
 		"velocity": "Movement speed. Accepts numbers, variable names, or math expressions.",
 		"acceleration": "Acceleration rate. 0 = instant full speed. Accepts numbers, variable names, or math expressions.",
@@ -155,6 +163,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var behavior = properties.get("behavior", "seek")
 	var target_mode = properties.get("target_mode", "group")
 	var target_name = properties.get("target_name", properties.get("target_group", ""))  # fallback for legacy
+	var target_variable = _sanitize_identifier(str(properties.get("target_variable", "")))
 	var arrival_distance = properties.get("arrival_distance", "1.0")
 	var vel = properties.get("velocity", "5.0")
 	var acceleration = properties.get("acceleration", "0.0")
@@ -176,8 +185,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var code_lines: Array[String] = []
 	var member_vars: Array[String] = []
 
-	# Early exit if no target name
-	if target_name.is_empty():
+	# Early exit if the selected target source is empty
+	if target_mode == "vector_variable" and target_variable.is_empty():
+		code_lines.append("push_warning(\"Move Towards Actuator: Vector Variable target mode requires a Vector3 variable name in this actuator.\")")
+		return {"actuator_code": "\n".join(code_lines)}
+	if target_mode != "vector_variable" and str(target_name).is_empty():
 		code_lines.append("pass  # No target name set")
 		return {"actuator_code": "\n".join(code_lines)}
 
@@ -193,10 +205,16 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	match behavior:
 		"seek", "flee":
-			code_lines.append(_generate_direct_movement(behavior, target_mode, target_name, arrival_distance, vel, acceleration, turn_speed, face_target, facing_axis, lock_y_velocity, self_terminate))
+			if target_mode == "vector_variable":
+				code_lines.append(_generate_vector_direct_movement(behavior, target_variable, arrival_distance, vel, acceleration, turn_speed, face_target, facing_axis, lock_y_velocity, self_terminate))
+			else:
+				code_lines.append(_generate_direct_movement(behavior, target_mode, target_name, arrival_distance, vel, acceleration, turn_speed, face_target, facing_axis, lock_y_velocity, self_terminate))
 
 		"path_follow":
-			code_lines.append(_generate_pathfinding_movement(chain_name, target_mode, target_name, nav_var, navigation_agent_node_name, arrival_distance, vel, acceleration, turn_speed, face_target, facing_axis, use_navmesh_normal, lock_y_velocity, self_terminate))
+			if target_mode == "vector_variable":
+				code_lines.append(_generate_vector_pathfinding_movement(chain_name, target_variable, nav_var, navigation_agent_node_name, arrival_distance, vel, acceleration, turn_speed, face_target, facing_axis, use_navmesh_normal, lock_y_velocity, self_terminate))
+			else:
+				code_lines.append(_generate_pathfinding_movement(chain_name, target_mode, target_name, nav_var, navigation_agent_node_name, arrival_distance, vel, acceleration, turn_speed, face_target, facing_axis, use_navmesh_normal, lock_y_velocity, self_terminate))
 
 		_:
 			code_lines.append("pass  # Unknown behavior")
@@ -438,3 +456,112 @@ func _append_find_node_helpers(member_vars: Array[String]) -> void:
 
 func _gd_string(value: String) -> String:
 	return value.replace("\\", "\\\\").replace("\"", "\\\"")
+
+
+func _generate_vector_resolve_lines(variable_name: String, value_name: String, indent: String = "") -> Array[String]:
+	var lines: Array[String] = []
+	lines.append("%svar %s = null" % [indent, value_name])
+	lines.append("%sif \"%s\" in self:" % [indent, variable_name])
+	lines.append("%s\t%s = get(\"%s\")" % [indent, value_name, variable_name])
+	lines.append("%selse:" % indent)
+	lines.append("%s\tvar _move_globals = get_node_or_null(\"/root/GlobalVars\")" % indent)
+	lines.append("%s\tif _move_globals and \"%s\" in _move_globals:" % [indent, variable_name])
+	lines.append("%s\t\t%s = _move_globals.get(\"%s\")" % [indent, value_name, variable_name])
+	return lines
+
+
+func _generate_vector_direct_movement(behavior: String, variable_name: String, arrival_dist, vel, accel, turn, face: bool, axis: String, lock_y: bool, terminate: bool) -> String:
+	var lines := _generate_vector_resolve_lines(variable_name, "_target_position")
+	lines.append("if _target_position is Vector3:")
+	var indent := "\t"
+	var arrival_expr = _to_expr(arrival_dist)
+	var vel_expr = _to_expr(vel)
+	var accel_expr = _to_expr(accel)
+	lines.append("%svar _nearest_dist = global_position.distance_to(_target_position)" % indent)
+	if terminate:
+		lines.append("%sif _nearest_dist <= (%s):" % [indent, arrival_expr])
+		lines.append("%s\treturn" % indent)
+	lines.append("%svar _to_target = _target_position - global_position" % indent)
+	lines.append("%svar _move_dir = %s_to_target.normalized()" % [indent, "-" if behavior == "flee" else ""])
+	if lock_y:
+		lines.append("%s_move_dir.y = 0.0" % indent)
+		lines.append("%s_move_dir = _move_dir.normalized()" % indent)
+	if _literal_gt_zero(accel):
+		lines.append("%svar _target_vel = _move_dir * (%s)" % [indent, vel_expr])
+		lines.append("%svar _current_vel = Vector3.ZERO" % indent)
+		lines.append("%svar _cb3d = (self as Node) as CharacterBody3D" % indent)
+		lines.append("%sif _cb3d:" % indent)
+		lines.append("%s\t_current_vel = Vector3(_cb3d.velocity.x, 0.0, _cb3d.velocity.z)" % indent)
+		lines.append("%svar _new_vel = _current_vel.move_toward(_target_vel, (%s) * _delta)" % [indent, accel_expr])
+	else:
+		lines.append("%svar _new_vel = _move_dir * (%s)" % [indent, vel_expr])
+	if face:
+		var face_pos = "_target_position" if behavior == "seek" else "global_position - _to_target"
+		for line in _generate_look_at_code(face_pos, axis, turn).split("\n"):
+			lines.append(indent + line)
+	if not _literal_gt_zero(accel):
+		lines.append("%svar _cb3d = (self as Node) as CharacterBody3D" % indent)
+	lines.append("%sif _cb3d:" % indent)
+	lines.append("%s\t_cb3d.velocity.x = _new_vel.x" % indent)
+	lines.append("%s\t_cb3d.velocity.z = _new_vel.z" % indent)
+	lines.append("%selse:" % indent)
+	lines.append("%s\tglobal_position += _new_vel * _delta" % indent)
+	lines.append("else:")
+	lines.append("\tpush_warning(\"Move Towards: variable '%s' was not found or is not a Vector3\")" % variable_name)
+	return "\n".join(lines)
+
+
+func _generate_vector_pathfinding_movement(chain_name: String, variable_name: String, nav_var: String, nav_node_name: String, arrival_dist, vel, accel, turn, face: bool, axis: String, use_normal: bool, lock_y: bool, terminate: bool) -> String:
+	var lines: Array[String] = []
+	lines.append("var _nav_name_%s = \"%s\"" % [chain_name, _gd_string(nav_node_name)])
+	lines.append("if %s == null or %s.name != _nav_name_%s:" % [nav_var, nav_var, chain_name])
+	lines.append("\tvar _found_nav_%s = _lb_find_node_in_current_scene(_nav_name_%s)" % [chain_name, chain_name])
+	lines.append("\tif _found_nav_%s is NavigationAgent3D:" % chain_name)
+	lines.append("\t\t%s = _found_nav_%s" % [nav_var, chain_name])
+	lines.append_array(_generate_vector_resolve_lines(variable_name, "_target_position"))
+	lines.append("if %s and _target_position is Vector3:" % nav_var)
+	var indent := "\t"
+	var arrival_expr = _to_expr(arrival_dist)
+	var vel_expr = _to_expr(vel)
+	var accel_expr = _to_expr(accel)
+	if terminate:
+		lines.append("%sif global_position.distance_to(_target_position) <= (%s):" % [indent, arrival_expr])
+		lines.append("%s\treturn" % indent)
+	lines.append("%s%s.target_position = _target_position + _mt_stuck_offset_%s" % [indent, nav_var, nav_var])
+	lines.append("%sif not %s.is_navigation_finished():" % [indent, nav_var])
+	lines.append("%s\tvar _next_pos = %s.get_next_path_position()" % [indent, nav_var])
+	lines.append("%s\tvar _move_dir = (_next_pos - global_position).normalized()" % indent)
+	if lock_y:
+		lines.append("%s\t_move_dir.y = 0.0" % indent)
+		lines.append("%s\t_move_dir = _move_dir.normalized()" % indent)
+	if _literal_gt_zero(accel):
+		lines.append("%s\tvar _target_vel = _move_dir * (%s)" % [indent, vel_expr])
+		lines.append("%s\tvar _cb3d = (self as Node) as CharacterBody3D" % indent)
+		lines.append("%s\tvar _current_vel = _cb3d.velocity if _cb3d else Vector3.ZERO" % indent)
+		lines.append("%s\tvar _new_vel = _current_vel.move_toward(_target_vel, (%s) * _delta)" % [indent, accel_expr])
+	else:
+		lines.append("%s\tvar _new_vel = _move_dir * (%s)" % [indent, vel_expr])
+		lines.append("%s\tvar _cb3d = (self as Node) as CharacterBody3D" % indent)
+	if face:
+		for line in _generate_look_at_code("_next_pos", axis, turn).split("\n"):
+			lines.append("%s\t%s" % [indent, line])
+	lines.append("%s\tif _cb3d:" % indent)
+	lines.append("%s\t\t_cb3d.velocity.x = _new_vel.x" % indent)
+	lines.append("%s\t\t_cb3d.velocity.z = _new_vel.z" % indent)
+	lines.append("%s\telse:" % indent)
+	lines.append("%s\t\tglobal_position += _new_vel * _delta" % indent)
+	lines.append("else:")
+	lines.append("\tpush_warning(\"Move Towards: NavigationAgent3D or Vector3 variable '%s' is unavailable\")" % variable_name)
+	return "\n".join(lines)
+
+
+func _sanitize_identifier(value: String) -> String:
+	var sanitized := value.strip_edges().replace(" ", "_")
+	var regex := RegEx.new()
+	regex.compile("[^a-zA-Z0-9_]")
+	sanitized = regex.sub(sanitized, "", true)
+	if sanitized.is_empty():
+		return ""
+	if sanitized.substr(0, 1).is_valid_int():
+		sanitized = "var_" + sanitized
+	return sanitized

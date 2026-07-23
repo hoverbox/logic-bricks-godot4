@@ -2,7 +2,7 @@
 extends RefCounted
 class_name LogicBrickVariableUtils
 
-const SUPPORTED_TYPES = ["bool", "int", "float", "String"]
+const SUPPORTED_TYPES = ["bool", "int", "float", "String", "Vector2", "Vector3"]
 const DEFAULT_LOCAL_NAME = "new_variable"
 const DEFAULT_GLOBAL_NAME = "new_global"
 
@@ -73,6 +73,10 @@ static func gdscript_type_name_from_variant_type(type_int: int) -> String:
 			return "float"
 		TYPE_STRING:
 			return "String"
+		TYPE_VECTOR2:
+			return "Vector2"
+		TYPE_VECTOR3:
+			return "Vector3"
 		_:
 			return ""
 
@@ -87,6 +91,10 @@ static func get_default_value_for_variable_type(var_type: String) -> String:
 			return "0.0"
 		"String":
 			return ""
+		"Vector2":
+			return "Vector2.ZERO"
+		"Vector3":
+			return "Vector3.ZERO"
 		_:
 			return "0"
 
@@ -128,6 +136,22 @@ static func coerce_variable_value_for_type(value, var_type: String) -> String:
 			return "0.0"
 		"String":
 			return text_value
+		"Vector2":
+			var text := text_value.strip_edges()
+			if text.begins_with("Vector2(") and text.ends_with(")"):
+				return text
+			var parts := text.split(",", false)
+			if parts.size() == 2 and str(parts[0]).strip_edges().is_valid_float() and str(parts[1]).strip_edges().is_valid_float():
+				return "Vector2(%s, %s)" % [str(parts[0]).strip_edges(), str(parts[1]).strip_edges()]
+			return "Vector2.ZERO"
+		"Vector3":
+			var text := text_value.strip_edges()
+			if text.begins_with("Vector3(") and text.ends_with(")"):
+				return text
+			var parts := text.split(",", false)
+			if parts.size() == 3 and str(parts[0]).strip_edges().is_valid_float() and str(parts[1]).strip_edges().is_valid_float() and str(parts[2]).strip_edges().is_valid_float():
+				return "Vector3(%s, %s, %s)" % [str(parts[0]).strip_edges(), str(parts[1]).strip_edges(), str(parts[2]).strip_edges()]
+			return "Vector3.ZERO"
 		_:
 			return text_value
 
@@ -147,6 +171,8 @@ static func to_gdscript_value_literal(value, var_type: String) -> String:
 		"int":
 			return coerced_value
 		"float":
+			return coerced_value
+		"Vector2", "Vector3":
 			return coerced_value
 		_:
 			return coerced_value
@@ -169,6 +195,8 @@ static func parse_gdscript_value_literal(value_literal: String, var_type: String
 		"int":
 			return coerce_variable_value_for_type(text, normalized_type)
 		"float":
+			return coerce_variable_value_for_type(text, normalized_type)
+		"Vector2", "Vector3":
 			return coerce_variable_value_for_type(text, normalized_type)
 		_:
 			return text

@@ -7,6 +7,7 @@ extends VBoxContainer
 const BrickGraphNode    = preload("res://addons/logic_bricks/ui/brick_graph_node.gd")
 const VariableUtils = preload("res://addons/logic_bricks/core/logic_brick_variable_utils.gd")
 const BrickRegistry = preload("res://addons/logic_bricks/core/brick_registry.gd")
+const TutorialWindow = preload("res://addons/logic_bricks/ui/tutorial_window.gd")
 
 var manager = null
 var editor_interface = null
@@ -22,9 +23,12 @@ var _instance_panel: PanelContainer = null  # The instance warning/choice panel
 
 var node_info_label: Label
 var lock_button: Button
-var _copy_button: Button
-var _paste_button: Button
+var _template_save_dialog: FileDialog
+var _template_load_dialog: FileDialog
+var _graph_image_dialog: FileDialog
+var options_menu: PopupMenu
 var _popout_button: Button         # Toggles floating window
+var _tutorial_window: Window = null
 var _popout_window: Window = null  # The detached floating window (null when docked)
 var _main_hsplit: HSplitContainer  # The bottom-panel hsplit (kept as member for re-docking)
 var _toolbar_separator: HSeparator  # Separator above the toolbar (moved with toolbar)
@@ -64,6 +68,7 @@ var frames_list: ItemList
 var states_panel: VBoxContainer
 var states_data: Array[Dictionary] = []
 var states_list: VBoxContainer
+var state_debug_button: Button
 var frame_settings_container: VBoxContainer
 var selected_frame: GraphFrame = null
 var _frames_helper = preload("res://addons/logic_bricks/ui/panel_frames_helper.gd").new()
@@ -89,6 +94,14 @@ func _init() -> void:
 	var header_hbox = HBoxContainer.new()
 	add_child(header_hbox)
 
+	# Keep the tutorial entry at the far left so it stays separate from
+	# frequently used node and window controls on the right.
+	var tutorial_button = Button.new()
+	tutorial_button.text = "Tutorial"
+	tutorial_button.tooltip_text = "Open the Logic Bricks getting-started tutorial"
+	tutorial_button.pressed.connect(_on_tutorial_pressed)
+	header_hbox.add_child(tutorial_button)
+
 	var title_label = Label.new()
 	title_label.text = "Logic Bricks - Node Graph"
 	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -108,17 +121,7 @@ func _init() -> void:
 	lock_button.pressed.connect(_on_lock_toggled)
 	header_hbox.add_child(lock_button)
 
-	_copy_button = Button.new()
-	_copy_button.text = "C"
-	_copy_button.tooltip_text = "Copy selected bricks (Ctrl+C)\nIf nothing is selected, copies the entire node setup."
-	_copy_button.pressed.connect(_on_copy_bricks_pressed)
-	header_hbox.add_child(_copy_button)
-
-	_paste_button = Button.new()
-	_paste_button.text = "P"
-	_paste_button.tooltip_text = "Paste copied bricks into this node (Ctrl+V)\nIf bricks were copied, pastes those. Otherwise pastes the whole node setup."
-	_paste_button.pressed.connect(_on_paste_bricks_pressed)
-	header_hbox.add_child(_paste_button)
+	_create_template_dialogs()
 
 	_popout_button = Button.new()
 	_popout_button.text = "⧉"
@@ -196,6 +199,65 @@ func _init() -> void:
 	_toolbar.add_child(apply_code_button)
 
 
+func _on_tutorial_pressed() -> void:
+	if not is_instance_valid(_tutorial_window):
+		_tutorial_window = TutorialWindow.new()
+		add_child(_tutorial_window)
+	_tutorial_window.open_tutorial()
+
+
+func _create_template_dialogs() -> void:
+	_template_save_dialog = FileDialog.new()
+	_template_save_dialog.title = "Save Logic Bricks Template"
+	_template_save_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
+	_template_save_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	_template_save_dialog.filters = PackedStringArray(["*.lbtemplate ; Logic Bricks Template"])
+	_template_save_dialog.current_file = "logic_bricks_template.lbtemplate"
+	_template_save_dialog.file_selected.connect(_on_template_save_path_selected)
+	add_child(_template_save_dialog)
+
+	_template_load_dialog = FileDialog.new()
+	_template_load_dialog.title = "Load Logic Bricks Template"
+	_template_load_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	_template_load_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	_template_load_dialog.filters = PackedStringArray(["*.lbtemplate ; Logic Bricks Template"])
+	_template_load_dialog.file_selected.connect(_on_template_load_path_selected)
+	add_child(_template_load_dialog)
+
+	_graph_image_dialog = FileDialog.new()
+	_graph_image_dialog.title = "Export Logic Bricks Graph Image"
+	_graph_image_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
+	_graph_image_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	_graph_image_dialog.filters = PackedStringArray(["*.png ; PNG Image"])
+	_graph_image_dialog.current_file = "logic_bricks_graph.png"
+	_graph_image_dialog.file_selected.connect(_on_graph_image_path_selected)
+	add_child(_graph_image_dialog)
+
+
+func _on_save_template_pressed() -> void:
+	if not current_node:
+		push_warning("Logic Bricks: Select a node before saving a template.")
+		return
+	_template_save_dialog.popup_centered_ratio(0.65)
+
+
+func _on_load_template_pressed() -> void:
+	if not current_node:
+		push_warning("Logic Bricks: Select a node before loading a template.")
+		return
+	if _is_part_of_instance(current_node):
+		push_warning("Logic Bricks: Cannot load a template into an instanced node.")
+		return
+	_template_load_dialog.popup_centered_ratio(0.65)
+
+
+func _on_template_save_path_selected(path: String) -> void:
+	_clipboard_helper.save_template_to_file(path)
+
+
+func _on_template_load_path_selected(path: String) -> void:
+	await _clipboard_helper.load_template_from_file(path)
+
 func _create_add_menu() -> void:
 	add_menu = PopupMenu.new()
 	add_menu.name = "AddMenu"
@@ -223,9 +285,22 @@ func _create_add_menu() -> void:
 	add_menu.add_item("🔍 Search…", 4)
 	add_menu.add_item("Reroute", 3)
 	add_menu.add_separator()
-	add_menu.add_item("Rebuild from Script", 5)
-	add_menu.add_separator()
-	add_menu.add_item("🗑 Clear Bricks", 6)
+
+	options_menu = PopupMenu.new()
+	options_menu.name = "OptionsMenu"
+	add_menu.add_child(options_menu)
+	options_menu.add_item("Copy", 100)
+	options_menu.add_item("Paste", 101)
+	options_menu.add_item("Duplicate", 102)
+	options_menu.add_separator()
+	options_menu.add_item("Save Template", 103)
+	options_menu.add_item("Load Template", 104)
+	options_menu.add_separator()
+	options_menu.add_item("Export Graph Image", 105)
+	options_menu.add_item("Rebuild from Script", 106)
+	options_menu.add_item("Clear Bricks", 107)
+	options_menu.id_pressed.connect(_on_options_menu_id_pressed)
+	add_menu.add_submenu_item("Options", "OptionsMenu", 7)
 	add_menu.id_pressed.connect(_on_main_menu_id_pressed)
 
 	_refresh_add_menu_from_registry(false)
@@ -422,7 +497,7 @@ func _select_side_tab(index: int) -> void:
 			btn.remove_theme_color_override("font_color")
 			var inactive_sb = _make_inactive_nav_stylebox()
 			btn.add_theme_stylebox_override("normal", inactive_sb)
-			btn.add_theme_stylebox_override("hover", _make_hover_nav_stylebox())
+			btn.add_theme_stylebox_override("hover", inactive_sb)
 			btn.add_theme_stylebox_override("pressed", inactive_sb)
 			btn.add_theme_stylebox_override("focus", inactive_sb)
 
@@ -672,8 +747,9 @@ func _create_frames_tab() -> void:
 	frames_list.custom_minimum_size = Vector2(0, 150)
 	frames_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	frames_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	frames_list.tooltip_text = "Double-click a frame to center and fit it in the graph."
 	frames_list.item_selected.connect(_on_frame_list_item_selected)
-	frames_list.item_activated.connect(_on_frame_list_item_activated)  # Double-click to rename
+	frames_list.item_activated.connect(_on_frame_list_item_activated)  # Double-click to navigate to frame
 	list_container.add_child(frames_list)
 
 	# Separator
@@ -704,6 +780,20 @@ func _create_frames_tab() -> void:
 	name_edit.text_changed.connect(_on_frame_name_changed)
 	frame_settings_container.add_child(name_edit)
 
+	# Optional frame comment / description
+	var comment_label = Label.new()
+	comment_label.text = "Comment:"
+	frame_settings_container.add_child(comment_label)
+
+	var comment_edit = TextEdit.new()
+	comment_edit.name = "FrameCommentEdit"
+	comment_edit.placeholder_text = "Describe what this frame does..."
+	comment_edit.custom_minimum_size = Vector2(0, 90)
+	comment_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	comment_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	comment_edit.text_changed.connect(_on_frame_comment_changed)
+	frame_settings_container.add_child(comment_edit)
+
 	# Frame color picker
 	var color_label = Label.new()
 	color_label.text = "Color:"
@@ -712,6 +802,30 @@ func _create_frames_tab() -> void:
 	var color_picker = ColorPickerButton.new()
 	color_picker.name = "FrameColorPicker"
 	color_picker.edit_alpha = true
+	color_picker.custom_minimum_size = Vector2(96, 40)
+	color_picker.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	color_picker.tooltip_text = "Current frame color. Click to choose a different color."
+
+	# Give the color swatch a clear control outline so it cannot be mistaken
+	# for a separator in the frame settings panel.
+	var swatch_style = StyleBoxFlat.new()
+	swatch_style.bg_color = Color(0, 0, 0, 0)
+	swatch_style.border_width_left = 2
+	swatch_style.border_width_top = 2
+	swatch_style.border_width_right = 2
+	swatch_style.border_width_bottom = 2
+	swatch_style.border_color = get_theme_color("contrast_color_2", "Editor")
+	swatch_style.corner_radius_top_left = 4
+	swatch_style.corner_radius_top_right = 4
+	swatch_style.corner_radius_bottom_left = 4
+	swatch_style.corner_radius_bottom_right = 4
+	color_picker.add_theme_stylebox_override("normal", swatch_style)
+
+	var swatch_hover_style = swatch_style.duplicate()
+	swatch_hover_style.border_color = get_theme_color("accent_color", "Editor")
+	color_picker.add_theme_stylebox_override("hover", swatch_hover_style)
+	color_picker.add_theme_stylebox_override("pressed", swatch_hover_style)
+
 	color_picker.color_changed.connect(_on_frame_color_changed)
 	frame_settings_container.add_child(color_picker)
 
@@ -779,6 +893,16 @@ func _create_states_tab() -> void:
 		title.add_theme_font_override("font", title_font)
 	header.add_child(title)
 
+	state_debug_button = Button.new()
+	var state_debug_enabled := false
+	if current_node and is_instance_valid(current_node):
+		state_debug_enabled = bool(current_node.get_meta("logic_bricks_debug_watch_state", false))
+	state_debug_button.button_pressed = state_debug_enabled
+	_style_debug_watch_button(state_debug_button, state_debug_enabled)
+	state_debug_button.tooltip_text = "Show this node's current state in the Runtime Debug Overlay"
+	state_debug_button.toggled.connect(_on_state_debug_watch_toggled.bind(state_debug_button))
+	header.add_child(state_debug_button)
+
 	var add_state_button = Button.new()
 	add_state_button.text = "+ Add"
 	add_state_button.pressed.connect(_on_add_state_pressed)
@@ -834,8 +958,19 @@ func _load_states_from_metadata(suppress_graph_save: bool = false) -> void:
 	if current_node and current_node.has_meta("logic_bricks_states"):
 		var saved = current_node.get_meta("logic_bricks_states")
 		if saved is Array:
+			var migrate_state_watch := false
 			for state_data in saved:
-				states_data.append(state_data.duplicate(true))
+				var copied_state: Dictionary = state_data.duplicate(true)
+				if bool(copied_state.get("debug_watch", false)):
+					migrate_state_watch = true
+				copied_state.erase("debug_watch")
+				states_data.append(copied_state)
+			if migrate_state_watch:
+				current_node.set_meta("logic_bricks_debug_watch_state", true)
+	if state_debug_button and is_instance_valid(state_debug_button):
+		var state_watch_enabled := bool(current_node.get_meta("logic_bricks_debug_watch_state", false)) if current_node else false
+		state_debug_button.set_pressed_no_signal(state_watch_enabled)
+		_style_debug_watch_button(state_debug_button, state_watch_enabled)
 	if states_data.is_empty():
 		states_data = _get_default_states()
 		# Guard: do not flush a stale graph_edit into this node's metadata when
@@ -884,12 +1019,21 @@ func _create_state_item_ui(index: int, state_data: Dictionary) -> void:
 	name_edit.text_changed.connect(_on_state_name_changed.bind(index))
 	header.add_child(name_edit)
 
+
 	var delete_btn = Button.new()
 	delete_btn.text = "×"
 	delete_btn.custom_minimum_size = Vector2(24, 0)
 	delete_btn.tooltip_text = "Delete state"
 	delete_btn.pressed.connect(_on_delete_state_pressed.bind(index))
 	header.add_child(delete_btn)
+
+
+func _on_state_debug_watch_toggled(enabled: bool, button: Button) -> void:
+	if not current_node or not is_instance_valid(current_node):
+		return
+	current_node.set_meta("logic_bricks_debug_watch_state", enabled)
+	_style_debug_watch_button(button, enabled)
+	_mark_scene_modified()
 
 
 func _on_add_state_pressed() -> void:
@@ -937,13 +1081,7 @@ func get_state_display_name(state_id: String) -> String:
 	return state_id
 
 func _enter_tree() -> void:
-	# Set editor icons now that the theme is available
-	if _copy_button:
-		_copy_button.icon = get_theme_icon("ActionCopy", "EditorIcons")
-		_copy_button.text = ""
-	if _paste_button:
-		_paste_button.icon = get_theme_icon("ActionPaste", "EditorIcons")
-		_paste_button.text = ""
+	# Apply editor icons now that the theme is available.
 	_apply_side_tab_icons()
 
 
@@ -1323,22 +1461,25 @@ func _take_graph_snapshot() -> Dictionary:
 ## Restore a graph snapshot: write it back to metadata and rebuild the visual graph.
 ## The metadata write is synchronous; the visual rebuild is deferred one frame.
 func _restore_graph_snapshot(snapshot: Dictionary) -> void:
-	_clipboard_helper.restore_graph_snapshot(snapshot)
+	_restore_graph_snapshot_for_node(current_node, snapshot)
+
+func _restore_graph_snapshot_for_node(target_node: Node, snapshot: Dictionary) -> void:
+	_clipboard_helper.restore_graph_snapshot(target_node, snapshot)
 
 
 ## Called deferred after a snapshot restore so the visual graph rebuilds cleanly
-func _reload_graph_deferred() -> void:
-	await _clipboard_helper.reload_graph_deferred()
+func _reload_graph_deferred(target_node: Node = current_node) -> void:
+	await _clipboard_helper.reload_graph_deferred(target_node)
 
 
 ## Record an undoable graph action.
 ## Call BEFORE making changes (before_snapshot) and AFTER (after_snapshot).
-func _record_undo(action_name: String, before_snapshot: Dictionary, after_snapshot: Dictionary) -> void:
-	_clipboard_helper.record_undo(action_name, before_snapshot, after_snapshot)
+func _record_undo(action_name: String, before_snapshot: Dictionary, after_snapshot: Dictionary, target_node: Node = current_node, merge: bool = false) -> void:
+	_clipboard_helper.record_undo(action_name, before_snapshot, after_snapshot, target_node, merge)
 
 
-func _save_graph_to_metadata() -> void:
-	_clipboard_helper.save_graph_to_metadata()
+func _save_graph_to_metadata(action_name: String = "Edit Logic Bricks", record_change: bool = true, merge: bool = true) -> void:
+	_clipboard_helper.save_graph_to_metadata(action_name, record_change, merge)
 
 
 func _on_popup_request(position: Vector2) -> void:
@@ -1360,10 +1501,26 @@ func _on_main_menu_id_pressed(id: int) -> void:
 		_create_reroute_node(last_mouse_position)
 	elif id == 4:
 		_open_search_popup(add_menu.position)
-	elif id == 5:
-		_on_rebuild_from_script_pressed()
-	elif id == 6:
-		_on_clear_bricks_pressed()
+
+
+func _on_options_menu_id_pressed(id: int) -> void:
+	match id:
+		100:
+			_on_copy_bricks_pressed()
+		101:
+			await _on_paste_bricks_pressed()
+		102:
+			await _on_duplicate_bricks_pressed()
+		103:
+			_on_save_template_pressed()
+		104:
+			_on_load_template_pressed()
+		105:
+			_on_export_graph_image_pressed()
+		106:
+			await _on_rebuild_from_script_pressed()
+		107:
+			await _on_clear_bricks_pressed()
 
 
 func _on_clear_bricks_pressed() -> void:
@@ -1374,7 +1531,7 @@ func _on_clear_bricks_pressed() -> void:
 	# standard undo stack (metadata removal is not tracked by UndoRedo).
 	var confirm = ConfirmationDialog.new()
 	confirm.title = "Clear Bricks"
-	confirm.dialog_text = "Remove all bricks from \"%s\"?\n\nThis cannot be undone." % current_node.name
+	confirm.dialog_text = "Remove all bricks from \"%s\"?\n\nYou can undo this action." % current_node.name
 	confirm.ok_button_text = "Clear"
 	add_child(confirm)
 	confirm.popup_centered()
@@ -1395,13 +1552,15 @@ func _on_clear_bricks_pressed() -> void:
 
 	# Remove all logic-brick metadata keys from the node
 	for key in ["logic_bricks", "logic_bricks_graph", "logic_bricks_states",
-				"logic_bricks_variables", "logic_bricks_global_usage"]:
+				"logic_bricks_variables", "logic_bricks_global_usage",
+				"logic_bricks_debug_watch_state"]:
 		if current_node.has_meta(key):
 			current_node.remove_meta(key)
 
 	# Persist the now-empty graph so downstream saves don't resurrect old data
-	_save_graph_to_metadata()
+	_save_graph_to_metadata("Clear Logic Bricks", false)
 	_mark_scene_modified()
+	_record_undo("Clear Logic Bricks", before_snapshot, _take_graph_snapshot())
 
 	# Reset state UI to defaults
 	_load_states_from_metadata(true)
@@ -1439,7 +1598,7 @@ func _create_reroute_node(position: Vector2) -> void:
 	graph_node.dragged.connect(_on_reroute_dragged.bind(graph_node))
 
 	graph_edit.add_child(graph_node)
-	_save_graph_to_metadata()
+	_save_graph_to_metadata("Add Reroute", true, false)
 
 
 func _on_add_menu_item_selected(id: int) -> void:
@@ -1519,7 +1678,7 @@ func _create_graph_node(brick_type: String, brick_class: String, position: Vecto
 	graph_node.dragged.connect(_on_brick_node_dragged.bind(graph_node))
 
 	graph_edit.add_child(graph_node)
-	_save_graph_to_metadata()
+	_save_graph_to_metadata("Add Logic Brick", false)
 
 
 
@@ -1724,13 +1883,13 @@ func _on_connection_request(from_node: String, from_port: int, to_node: String, 
 					# Connect sensor → controller → actuator
 					graph_edit.connect_node(from_node, from_port, controller_node.name, 0)
 					graph_edit.connect_node(controller_node.name, 0, to_node, to_port)
-					_save_graph_to_metadata()
+					_save_graph_to_metadata("Connect Logic Bricks", false)
 					_record_undo("Connect Logic Bricks", before_snapshot, _take_graph_snapshot())
 				return
 
 	# Normal connection (sensor→controller or controller→actuator)
 	graph_edit.connect_node(from_node, from_port, to_node, to_port)
-	_save_graph_to_metadata()
+	_save_graph_to_metadata("Connect Logic Bricks", false)
 	_record_undo("Connect Logic Bricks", before_snapshot, _take_graph_snapshot())
 
 
@@ -1767,7 +1926,7 @@ func _duplicate_selected_nodes() -> void:
 func _on_disconnection_request(from_node: String, from_port: int, to_node: String, to_port: int) -> void:
 	var before_snapshot = _take_graph_snapshot()
 	graph_edit.disconnect_node(from_node, from_port, to_node, to_port)
-	_save_graph_to_metadata()
+	_save_graph_to_metadata("Disconnect Logic Bricks", false)
 	_record_undo("Disconnect Logic Bricks", before_snapshot, _take_graph_snapshot())
 
 
@@ -1815,6 +1974,245 @@ func _on_paste_bricks_pressed() -> void:
 ## can paste the same set multiple times or switch nodes and paste again.
 func _paste_selection(clipboard: Dictionary) -> void:
 	await _clipboard_helper.paste_selection(clipboard)
+
+
+
+
+func _on_duplicate_bricks_pressed() -> void:
+	var selected_nodes: Array = []
+	for child in graph_edit.get_children():
+		if child is GraphNode and child.selected:
+			selected_nodes.append(child)
+	if selected_nodes.is_empty():
+		push_warning("Logic Bricks: Select one or more bricks to duplicate.")
+		return
+	var duplicate_data := _capture_selection(selected_nodes)
+	await _paste_selection(duplicate_data)
+
+
+func _on_export_graph_image_pressed() -> void:
+	if not current_node:
+		push_warning("Logic Bricks: Select a node before exporting the graph.")
+		return
+	_graph_image_dialog.popup_centered_ratio(0.65)
+
+
+func _on_graph_image_path_selected(path: String) -> void:
+	await _export_graph_image(path)
+
+
+func _export_graph_image(path: String) -> void:
+	if not path.to_lower().ends_with(".png"):
+		path += ".png"
+
+	var selected_names: Dictionary = {}
+	var export_items: Array[GraphElement] = []
+	var bounds := Rect2()
+	var has_bounds := false
+
+	for child in graph_edit.get_children():
+		if child is GraphNode and child.selected:
+			selected_names[child.name] = true
+
+	var selection_only := not selected_names.is_empty()
+	var included_frame_names: Dictionary = {}
+	if selection_only:
+		for frame_name in frame_node_mapping.keys():
+			var members: Array = frame_node_mapping.get(frame_name, [])
+			for member_name in members:
+				if selected_names.has(str(member_name)):
+					included_frame_names[str(frame_name)] = true
+					break
+
+	for child in graph_edit.get_children():
+		if not (child is GraphNode or child is GraphFrame):
+			continue
+		if selection_only:
+			if child is GraphNode and not selected_names.has(child.name):
+				continue
+			if child is GraphFrame and not included_frame_names.has(child.name):
+				continue
+		export_items.append(child)
+		var item_rect := Rect2(child.position_offset, child.size)
+		bounds = item_rect if not has_bounds else bounds.merge(item_rect)
+		has_bounds = true
+
+	if not has_bounds:
+		push_warning("Logic Bricks: There are no bricks to export.")
+		return
+
+	# Render cloned graph elements on a standalone canvas. GraphEdit is not used
+	# here because it clamps scrolling and applies viewport transforms that can
+	# crop or offset an off-screen export.
+	var render_scale := 2.0
+	var margin := 50.0
+	var export_origin := bounds.position - Vector2(margin, margin)
+	var export_size := bounds.size + Vector2(margin * 2.0, margin * 2.0)
+	var output_width := maxi(1, int(ceil(export_size.x * render_scale)))
+	var output_height := maxi(1, int(ceil(export_size.y * render_scale)))
+
+	var export_viewport := SubViewport.new()
+	export_viewport.name = "LogicBricksGraphExportViewport"
+	export_viewport.size = Vector2i(output_width, output_height)
+	export_viewport.disable_3d = true
+	export_viewport.transparent_bg = false
+	export_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	add_child(export_viewport)
+
+	var canvas := Control.new()
+	canvas.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	export_viewport.add_child(canvas)
+
+	var background := ColorRect.new()
+	background.color = Color.WHITE
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	background.z_index = -100
+	canvas.add_child(background)
+
+	# Draw frames first so they sit behind connections and bricks. GraphFrame is
+	# designed to live inside GraphEdit, so render a publication-friendly frame
+	# directly on the standalone canvas instead of cloning the editor control.
+	for item in export_items:
+		if item is GraphFrame:
+			_add_export_frame(canvas, item as GraphFrame, export_origin, render_scale)
+
+	# Draw connections after frames so cloned bricks appear above them.
+	var exported_node_names: Dictionary = {}
+	for item in export_items:
+		if item is GraphNode:
+			exported_node_names[item.name] = true
+
+	for conn in graph_edit.get_connection_list():
+		if not exported_node_names.has(conn["from_node"]) or not exported_node_names.has(conn["to_node"]):
+			continue
+		var from_node := graph_edit.get_node_or_null(NodePath(str(conn["from_node"]))) as GraphNode
+		var to_node := graph_edit.get_node_or_null(NodePath(str(conn["to_node"]))) as GraphNode
+		if from_node == null or to_node == null:
+			continue
+		var from_port := int(conn["from_port"])
+		var to_port := int(conn["to_port"])
+		var start_point := (from_node.position_offset + from_node.get_output_port_position(from_port) - export_origin) * render_scale
+		var end_point := (to_node.position_offset + to_node.get_input_port_position(to_port) - export_origin) * render_scale
+		var connection_color := from_node.get_output_port_color(from_port)
+		_add_export_connection(canvas, start_point, end_point, connection_color, render_scale)
+
+	for item in export_items:
+		if not item is GraphNode:
+			continue
+		var node_copy := item.duplicate(Node.DUPLICATE_USE_INSTANTIATION) as GraphNode
+		if node_copy == null:
+			continue
+		node_copy.position = (item.position_offset - export_origin) * render_scale
+		node_copy.scale = Vector2.ONE * render_scale
+		node_copy.selected = false
+		node_copy.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		node_copy.z_index = 10
+		canvas.add_child(node_copy)
+
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await RenderingServer.frame_post_draw
+
+	var exported: Image = export_viewport.get_texture().get_image()
+	if exported.get_format() != Image.FORMAT_RGBA8:
+		exported.convert(Image.FORMAT_RGBA8)
+	var result := exported.save_png(path)
+	export_viewport.queue_free()
+
+	if result != OK:
+		push_error("Logic Bricks: Failed to export graph image to %s (error %s)." % [path, result])
+	else:
+		print("Logic Bricks: Exported graph image to ", path)
+
+
+
+func _add_export_frame(canvas: Control, frame: GraphFrame, export_origin: Vector2, render_scale: float) -> void:
+	var panel := PanelContainer.new()
+	panel.position = (frame.position_offset - export_origin) * render_scale
+	panel.size = frame.size * render_scale
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.z_index = -10
+
+	# GraphFrame displays its tint composited over the GraphEdit background.
+	# Recreate that visible result as an opaque export color so a white export
+	# background does not make translucent frame colors appear brighter.
+	var tint: Color = frame.tint_color if frame.tint_color_enabled else Color(0.3, 0.5, 0.7, 0.5)
+	var graph_background := Color(0.06, 0.06, 0.06, 1.0)
+	var graph_panel := graph_edit.get_theme_stylebox("panel")
+	if graph_panel is StyleBoxFlat:
+		graph_background = (graph_panel as StyleBoxFlat).bg_color
+	var fill := Color(
+		lerpf(graph_background.r, tint.r, tint.a),
+		lerpf(graph_background.g, tint.g, tint.a),
+		lerpf(graph_background.b, tint.b, tint.a),
+		1.0
+	)
+	var border := Color(tint.r, tint.g, tint.b, 1.0)
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = fill
+	style.border_color = border
+	style.set_border_width_all(maxi(2, int(round(2.0 * render_scale))))
+	style.corner_radius_top_left = int(round(6.0 * render_scale))
+	style.corner_radius_top_right = int(round(6.0 * render_scale))
+	style.corner_radius_bottom_left = int(round(6.0 * render_scale))
+	style.corner_radius_bottom_right = int(round(6.0 * render_scale))
+	style.content_margin_left = 12.0 * render_scale
+	style.content_margin_right = 12.0 * render_scale
+	style.content_margin_top = 8.0 * render_scale
+	style.content_margin_bottom = 8.0 * render_scale
+	panel.add_theme_stylebox_override("panel", style)
+	canvas.add_child(panel)
+
+	var text_box := VBoxContainer.new()
+	text_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(text_box)
+
+	var title_label := Label.new()
+	title_label.text = str(frame_titles.get(frame.name, frame.title))
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var editor_title_size := frame.get_theme_font_size("title_font_size")
+	if editor_title_size <= 0:
+		editor_title_size = 18
+	var editor_title_color := frame.get_theme_color("title_color")
+	if editor_title_color.a <= 0.0:
+		editor_title_color = Color.WHITE
+	title_label.add_theme_font_size_override("font_size", maxi(16, int(round(float(editor_title_size) * render_scale))))
+	title_label.add_theme_color_override("font_color", editor_title_color)
+	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	text_box.add_child(title_label)
+
+	var comment: String = str(frame_comments.get(frame.name, "")).strip_edges()
+	if not comment.is_empty():
+		var comment_label := Label.new()
+		comment_label.text = comment
+		comment_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		comment_label.add_theme_font_size_override("font_size", maxi(11, int(round(12.0 * render_scale))))
+		comment_label.add_theme_color_override("font_color", Color(0.18, 0.18, 0.18, 1.0))
+		comment_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		text_box.add_child(comment_label)
+
+func _add_export_connection(canvas: Control, start_point: Vector2, end_point: Vector2, color: Color, render_scale: float) -> void:
+	var line := Line2D.new()
+	line.width = 3.0 * render_scale
+	line.default_color = color
+	line.antialiased = true
+	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	line.joint_mode = Line2D.LINE_JOINT_ROUND
+	line.z_index = 0
+	canvas.add_child(line)
+
+	var horizontal_distance := absf(end_point.x - start_point.x)
+	var handle_length := maxf(40.0 * render_scale, horizontal_distance * 0.5)
+	var control_1 := start_point + Vector2(handle_length, 0.0)
+	var control_2 := end_point - Vector2(handle_length, 0.0)
+	var segments := 32
+	for index in range(segments + 1):
+		var amount := float(index) / float(segments)
+		line.add_point(start_point.bezier_interpolate(control_1, control_2, end_point, amount))
 
 
 func _on_view_chain_code(controller_node: GraphNode) -> void:
@@ -2088,6 +2486,55 @@ func _refresh_global_vars_ui() -> void:
 		_create_global_variable_ui(i, global_vars_data[i])
 
 
+func _is_debug_watch_enabled(value: Variant) -> bool:
+	if value is bool:
+		return value
+	if value is String:
+		return value.strip_edges().to_lower() == "true"
+	if value is int:
+		return value == 1
+	return false
+
+
+func _style_debug_watch_button(button: Button, active: bool) -> void:
+	button.text = "🐞"
+	button.toggle_mode = true
+	button.custom_minimum_size = Vector2(34, 28)
+	button.tooltip_text = "Show in Runtime Debug Overlay"
+	var normal := StyleBoxFlat.new()
+	normal.corner_radius_top_left = 4
+	normal.corner_radius_top_right = 4
+	normal.corner_radius_bottom_left = 4
+	normal.corner_radius_bottom_right = 4
+	normal.border_width_left = 1
+	normal.border_width_top = 1
+	normal.border_width_right = 1
+	normal.border_width_bottom = 1
+	if active:
+		normal.bg_color = Color(1.0, 0.72, 0.12, 1.0)
+		normal.border_color = Color(1.0, 0.9, 0.35, 1.0)
+		button.add_theme_color_override("font_color", Color(0.08, 0.06, 0.0, 1.0))
+		button.add_theme_color_override("font_pressed_color", Color(0.08, 0.06, 0.0, 1.0))
+	else:
+		normal.bg_color = Color(0.18, 0.18, 0.18, 1.0)
+		normal.border_color = Color(0.36, 0.36, 0.36, 1.0)
+		button.add_theme_color_override("font_color", Color(0.62, 0.62, 0.62, 1.0))
+		button.add_theme_color_override("font_pressed_color", Color(0.62, 0.62, 0.62, 1.0))
+	# Keep the persistent on/off appearance unchanged under the mouse.
+	# Toggle buttons use hover_pressed while both active and hovered, so all
+	# interactive states must explicitly share the same style.
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("pressed", normal)
+	button.add_theme_stylebox_override("hover", normal)
+	button.add_theme_stylebox_override("hover_pressed", normal)
+	button.add_theme_stylebox_override("focus", normal)
+	button.add_theme_stylebox_override("disabled", normal)
+	var icon_color := Color(0.08, 0.06, 0.0, 1.0) if active else Color(0.62, 0.62, 0.62, 1.0)
+	button.add_theme_color_override("font_hover_color", icon_color)
+	button.add_theme_color_override("font_hover_pressed_color", icon_color)
+	button.add_theme_color_override("font_focus_color", icon_color)
+
+
 func _create_variable_ui(index: int, var_data: Dictionary) -> void:
 	var panel = PanelContainer.new()
 	variables_list.add_child(panel)
@@ -2109,6 +2556,12 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
 	name_display.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_display.name = "NameDisplay"
 	header.add_child(name_display)
+
+	var debug_btn = Button.new()
+	debug_btn.button_pressed = _is_debug_watch_enabled(var_data.get("debug_watch", false))
+	_style_debug_watch_button(debug_btn, debug_btn.button_pressed)
+	debug_btn.toggled.connect(_on_local_variable_debug_watch_toggled.bind(index, debug_btn))
+	header.add_child(debug_btn)
 
 	var delete_btn = Button.new()
 	delete_btn.text = "×"
@@ -2141,31 +2594,16 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
 	row2.add_child(type_label)
 	var type_option = OptionButton.new()
 	type_option.name = "TypeOption"
-	type_option.add_item("bool", 0)
-	type_option.add_item("int", 1)
-	type_option.add_item("float", 2)
-	type_option.add_item("String", 3)
-	var type_index = 1
-	match var_data["type"]:
-		"bool": type_index = 0
-		"int":  type_index = 1
-		"float": type_index = 2
-		"String": type_index = 3
+	var type_names = VariableUtils.get_supported_types()
+	for type_i in range(type_names.size()):
+		type_option.add_item(type_names[type_i], type_i)
+	var type_index = VariableUtils.get_type_index(var_data.get("type", "int"))
 	type_option.selected = type_index
 	type_option.item_selected.connect(_on_variable_type_changed.bind(index, name_display))
 	row2.add_child(type_option)
 
 	# Value
-	var row3 = HBoxContainer.new()
-	details.add_child(row3)
-	var value_label = Label.new()
-	value_label.text = "Value:"
-	row3.add_child(value_label)
-	var value_edit = LineEdit.new()
-	value_edit.text = _value_to_line_edit_text(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_data.get("type", "int"))))
-	value_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	value_edit.text_changed.connect(_on_variable_value_changed.bind(index))
-	row3.add_child(value_edit)
+	_create_local_variable_value_editor(details, index, var_data)
 
 	# Export
 	var row4 = HBoxContainer.new()
@@ -2229,7 +2667,9 @@ func _on_variable_name_changed(new_name: String, index: int, name_display: Label
 func _on_variable_type_changed(type_index: int, index: int, name_display: Label) -> void:
 	# Handle variable type change
 	if index < variables_data.size():
-		var type_names = ["bool", "int", "float", "String"]
+		var type_names = VariableUtils.get_supported_types()
+		if type_index < 0 or type_index >= type_names.size():
+			return
 		var new_type = type_names[type_index]
 		variables_data[index]["type"] = new_type
 		variables_data[index]["value"] = VariableUtils.coerce_variable_value_for_type(variables_data[index].get("value", VariableUtils.get_default_value_for_variable_type(new_type)), new_type)
@@ -2238,6 +2678,92 @@ func _on_variable_type_changed(type_index: int, index: int, name_display: Label)
 		_save_variables_to_metadata()
 		# Refresh so min/max rows show/hide correctly for the new type
 		_refresh_variables_ui()
+
+
+func _vector_components_from_value(value, dimensions: int) -> Array[String]:
+	var result: Array[String] = []
+	var text := str(value).strip_edges()
+	if text == "Vector2.ZERO" or text == "Vector3.ZERO" or text.is_empty():
+		text = "0, 0" if dimensions == 2 else "0, 0, 0"
+	elif text.begins_with("Vector2(") or text.begins_with("Vector3("):
+		text = text.substr(text.find("(") + 1)
+		if text.ends_with(")"):
+			text = text.left(-1)
+	var parts := text.split(",", false)
+	for i in range(dimensions):
+		var component := "0"
+		if i < parts.size():
+			component = str(parts[i]).strip_edges()
+			if not component.is_valid_float():
+				component = "0"
+		result.append(component)
+	return result
+
+
+func _create_axis_value_editor(parent: VBoxContainer, index: int, var_data: Dictionary, is_global: bool) -> void:
+	var var_type := str(var_data.get("type", "int"))
+	if var_type != "Vector2" and var_type != "Vector3":
+		var row = HBoxContainer.new()
+		parent.add_child(row)
+		var label = Label.new()
+		label.text = "Value:"
+		row.add_child(label)
+		var edit = LineEdit.new()
+		edit.text = _value_to_line_edit_text(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_type)))
+		edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if is_global:
+			edit.text_changed.connect(_on_global_variable_value_changed.bind(index))
+		else:
+			edit.text_changed.connect(_on_variable_value_changed.bind(index))
+		row.add_child(edit)
+		return
+
+	var dimensions := 2 if var_type == "Vector2" else 3
+	var components := _vector_components_from_value(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_type)), dimensions)
+	var value_label = Label.new()
+	value_label.text = "Value:"
+	parent.add_child(value_label)
+	var edits: Array[LineEdit] = []
+	for axis_index in range(dimensions):
+		var axis_row = HBoxContainer.new()
+		parent.add_child(axis_row)
+		var axis_label = Label.new()
+		axis_label.text = ["X:", "Y:", "Z:"][axis_index]
+		axis_label.custom_minimum_size = Vector2(24, 0)
+		axis_row.add_child(axis_label)
+		var axis_edit = LineEdit.new()
+		axis_edit.text = components[axis_index]
+		axis_edit.placeholder_text = "0"
+		axis_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		edits.append(axis_edit)
+		axis_row.add_child(axis_edit)
+	for axis_edit in edits:
+		axis_edit.text_changed.connect(_on_vector_axis_value_changed.bind(index, var_type, edits, is_global))
+
+
+func _create_local_variable_value_editor(parent: VBoxContainer, index: int, var_data: Dictionary) -> void:
+	_create_axis_value_editor(parent, index, var_data, false)
+
+
+func _create_global_variable_value_editor(parent: VBoxContainer, index: int, var_data: Dictionary) -> void:
+	_create_axis_value_editor(parent, index, var_data, true)
+
+
+func _on_vector_axis_value_changed(_new_text: String, index: int, var_type: String, edits: Array[LineEdit], is_global: bool) -> void:
+	var data = global_vars_data if is_global else variables_data
+	if index < 0 or index >= data.size():
+		return
+	var values: Array[String] = []
+	for edit in edits:
+		var component := edit.text.strip_edges()
+		if component.is_empty() or not component.is_valid_float():
+			component = "0"
+		values.append(component)
+	data[index]["value"] = "%s(%s)" % [var_type, ", ".join(values)]
+	if is_global:
+		_save_global_vars_to_metadata()
+	else:
+		_save_variables_to_metadata()
 
 
 func _on_variable_value_changed(new_value: String, index: int) -> void:
@@ -2274,6 +2800,12 @@ func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
 	name_display.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(name_display)
 
+	var debug_btn = Button.new()
+	debug_btn.button_pressed = _is_debug_watch_enabled(var_data.get("debug_watch", false))
+	_style_debug_watch_button(debug_btn, debug_btn.button_pressed)
+	debug_btn.toggled.connect(_on_global_variable_debug_watch_toggled.bind(index, debug_btn))
+	header.add_child(debug_btn)
+
 	var delete_btn = Button.new()
 	delete_btn.text = "×"
 	delete_btn.custom_minimum_size = Vector2(24, 0)
@@ -2303,31 +2835,16 @@ func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
 	type_label.text = "Type:"
 	row2.add_child(type_label)
 	var type_option = OptionButton.new()
-	type_option.add_item("bool", 0)
-	type_option.add_item("int", 1)
-	type_option.add_item("float", 2)
-	type_option.add_item("String", 3)
-	var type_index = 1
-	match var_data.get("type", "int"):
-		"bool":   type_index = 0
-		"int":    type_index = 1
-		"float":  type_index = 2
-		"String": type_index = 3
+	var type_names = VariableUtils.get_supported_types()
+	for type_i in range(type_names.size()):
+		type_option.add_item(type_names[type_i], type_i)
+	var type_index = VariableUtils.get_type_index(var_data.get("type", "int"))
 	type_option.selected = type_index
 	type_option.item_selected.connect(_on_global_variable_type_changed.bind(index, name_display))
 	row2.add_child(type_option)
 
 	# Value
-	var row3 = HBoxContainer.new()
-	details.add_child(row3)
-	var value_label = Label.new()
-	value_label.text = "Value:"
-	row3.add_child(value_label)
-	var value_edit = LineEdit.new()
-	value_edit.text = _value_to_line_edit_text(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_data.get("type", "int"))))
-	value_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	value_edit.text_changed.connect(_on_global_variable_value_changed.bind(index))
-	row3.add_child(value_edit)
+	_create_global_variable_value_editor(details, index, var_data)
 
 	# Per-script usage
 	var row_use = HBoxContainer.new()
@@ -2377,6 +2894,22 @@ func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
 	collapse_btn.pressed.connect(_on_global_variable_collapse_toggled.bind(index, collapse_btn, details))
 
 
+func _on_local_variable_debug_watch_toggled(enabled: bool, index: int, button: Button) -> void:
+	if index < 0 or index >= variables_data.size():
+		return
+	variables_data[index]["debug_watch"] = enabled
+	_style_debug_watch_button(button, enabled)
+	_save_variables_to_metadata()
+
+
+func _on_global_variable_debug_watch_toggled(enabled: bool, index: int, button: Button) -> void:
+	if index < 0 or index >= global_vars_data.size():
+		return
+	global_vars_data[index]["debug_watch"] = enabled
+	_style_debug_watch_button(button, enabled)
+	_save_global_vars_to_metadata()
+
+
 func _on_global_variable_name_changed(new_name: String, index: int, name_display: Label) -> void:
 	if index < global_vars_data.size():
 		global_vars_data[index]["name"] = new_name
@@ -2386,7 +2919,9 @@ func _on_global_variable_name_changed(new_name: String, index: int, name_display
 
 func _on_global_variable_type_changed(type_index: int, index: int, name_display: Label) -> void:
 	if index < global_vars_data.size():
-		var type_names = ["bool", "int", "float", "String"]
+		var type_names = VariableUtils.get_supported_types()
+		if type_index < 0 or type_index >= type_names.size():
+			return
 		var new_type = type_names[type_index]
 		global_vars_data[index]["type"] = new_type
 		global_vars_data[index]["value"] = VariableUtils.coerce_variable_value_for_type(global_vars_data[index].get("value", VariableUtils.get_default_value_for_variable_type(new_type)), new_type)
@@ -2503,31 +3038,34 @@ func _on_delete_variable_pressed(index: int) -> void:
 		_save_variables_to_metadata()
 
 
-func _save_variables_to_metadata() -> void:
+func _save_variables_to_metadata(record_change: bool = true, action_name: String = "Edit Logic Brick Variable") -> void:
 	if not current_node:
 		return
 	if _is_part_of_instance(current_node) and not _instance_override:
 		return
-
-	# Save only local (non-global) variables on this node
-	current_node.set_meta("logic_bricks_variables", variables_data.duplicate())
+	var target_node = current_node
+	var before_snapshot = _take_graph_snapshot()
+	target_node.set_meta("logic_bricks_variables", variables_data.duplicate(true))
 	_mark_scene_modified()
 	_update_global_vars_script()
+	if record_change:
+		_record_undo(action_name, before_snapshot, _take_graph_snapshot(), target_node, true)
 
 
-func _save_global_vars_to_metadata() -> void:
+func _save_global_vars_to_metadata(record_change: bool = true, action_name: String = "Edit Global Logic Brick Variable") -> void:
 	if not editor_interface:
 		return
-
 	_ensure_global_var_ids()
-	# Global variables live on the scene root — single source of truth, no duplication
 	var scene_root = editor_interface.get_edited_scene_root()
 	if not scene_root:
 		return
-
-	scene_root.set_meta("logic_bricks_global_vars", global_vars_data.duplicate())
+	var target_node = current_node
+	var before_snapshot = _take_graph_snapshot() if target_node else {}
+	scene_root.set_meta("logic_bricks_global_vars", global_vars_data.duplicate(true))
 	_mark_scene_modified()
 	_update_global_vars_script()
+	if record_change and target_node:
+		_record_undo(action_name, before_snapshot, _take_graph_snapshot(), target_node, true)
 
 
 func _update_global_vars_script() -> void:
@@ -2809,6 +3347,7 @@ func get_variables_code() -> String:
 ## Frame tracking: maps frame names to arrays of node names
 var frame_node_mapping: Dictionary = {}  # {"frame_name": ["node1", "node2", ...]}
 var frame_titles: Dictionary = {}  # {"frame_name": "Custom Title"}
+var frame_comments: Dictionary = {}  # {"frame_name": "Optional multiline comment"}
 
 
 ## Add a new frame to the graph
@@ -2908,8 +3447,8 @@ func _update_frames_list() -> void:
 	_frames_helper.update_frames_list(self)
 
 
-func _save_frames_to_metadata() -> void:
-	_frames_helper.save_frames_to_metadata(self)
+func _save_frames_to_metadata(record_change: bool = true, action_name: String = "Edit Logic Brick Frame") -> void:
+	_frames_helper.save_frames_to_metadata(self, record_change, action_name)
 
 
 func _update_frame_settings_ui() -> void:
@@ -2926,6 +3465,9 @@ func _on_frame_list_item_selected(index: int) -> void:
 
 func _on_frame_name_changed(new_name: String) -> void:
 	_frames_helper.on_frame_name_changed(self, new_name)
+
+func _on_frame_comment_changed() -> void:
+	_frames_helper.on_frame_comment_changed(self)
 
 func _on_frame_color_changed(new_color: Color) -> void:
 	_frames_helper.on_frame_color_changed(self, new_color)

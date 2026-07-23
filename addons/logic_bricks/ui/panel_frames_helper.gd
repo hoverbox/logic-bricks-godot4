@@ -15,6 +15,7 @@ func on_add_frame_pressed(panel) -> void:
 	frame.tint_color = Color(0.3, 0.5, 0.7, 0.5)
 
 	panel.frame_titles[frame.name] = "New Frame"
+	panel.frame_comments[frame.name] = ""
 
 	if not selected_nodes.is_empty():
 		fit_frame_to_nodes(panel, frame, selected_nodes)
@@ -36,6 +37,11 @@ func on_add_frame_pressed(panel) -> void:
 
 func create_frame_ui(panel, frame: GraphFrame) -> void:
 	frame.title = panel.frame_titles.get(frame.name, "New Frame")
+	_apply_frame_comment_tooltip(panel, frame)
+
+func _apply_frame_comment_tooltip(panel, frame: GraphFrame) -> void:
+	var comment: String = str(panel.frame_comments.get(frame.name, "")).strip_edges()
+	frame.tooltip_text = comment if not comment.is_empty() else frame.title
 
 func fit_frame_to_nodes(panel, frame: GraphFrame, nodes: Array[Node]) -> void:
 	if nodes.is_empty():
@@ -118,24 +124,29 @@ func check_node_frame_membership(panel, moved_node: GraphNode) -> void:
 				auto_resize_frame(panel, frame)
 				save_frames_to_metadata(panel)
 
-func save_frames_to_metadata(panel) -> void:
+func save_frames_to_metadata(panel, record_change: bool = true, action_name: String = "Edit Logic Brick Frame") -> void:
 	if not panel.current_node or not is_instance_valid(panel.current_node):
 		return
 
+	var target_node = panel.current_node
+	var before_snapshot = panel._take_graph_snapshot()
 	var frames_data = []
 	for child in panel.graph_edit.get_children():
 		if child is GraphFrame and not child.is_queued_for_deletion():
 			frames_data.append({
 				"name": child.name,
 				"title": panel.frame_titles.get(child.name, "Frame"),
+				"comment": panel.frame_comments.get(child.name, ""),
 				"position": child.position_offset,
 				"size": child.size,
 				"color": child.tint_color,
 				"nodes": panel.frame_node_mapping.get(child.name, [])
 			})
 
-	panel.current_node.set_meta("logic_bricks_frames", frames_data)
+	target_node.set_meta("logic_bricks_frames", frames_data)
 	panel._mark_scene_modified()
+	if record_change:
+		panel._record_undo(action_name, before_snapshot, panel._take_graph_snapshot(), target_node, true)
 
 func load_frames_from_metadata(panel) -> void:
 	if not panel.graph_edit:
@@ -151,6 +162,7 @@ func load_frames_from_metadata(panel) -> void:
 
 	panel.frame_node_mapping.clear()
 	panel.frame_titles.clear()
+	panel.frame_comments.clear()
 
 	if panel.current_node and panel.current_node.has_meta("logic_bricks_frames"):
 		var frames_data = panel.current_node.get_meta("logic_bricks_frames")
@@ -165,6 +177,7 @@ func load_frames_from_metadata(panel) -> void:
 			frame.draggable = true
 
 			panel.frame_titles[frame.name] = frame_data.get("title", "Frame")
+			panel.frame_comments[frame.name] = frame_data.get("comment", "")
 			panel.frame_node_mapping[frame.name] = frame_data.get("nodes", [])
 
 			create_frame_ui(panel, frame)
@@ -193,12 +206,15 @@ func update_frame_settings_ui(panel) -> void:
 		return
 
 	var name_edit = panel.frame_settings_container.find_child("FrameNameEdit", true, false)
+	var comment_edit = panel.frame_settings_container.find_child("FrameCommentEdit", true, false)
 	var color_picker = panel.frame_settings_container.find_child("FrameColorPicker", true, false)
 	var width_spin = panel.frame_settings_container.find_child("FrameWidthSpin", true, false)
 	var height_spin = panel.frame_settings_container.find_child("FrameHeightSpin", true, false)
 
 	if name_edit:
 		name_edit.text = panel.frame_titles.get(panel.selected_frame.name, panel.selected_frame.name)
+	if comment_edit:
+		comment_edit.text = panel.frame_comments.get(panel.selected_frame.name, "")
 	if color_picker:
 		color_picker.color = panel.selected_frame.tint_color
 	if width_spin:
@@ -212,6 +228,19 @@ func on_frame_name_changed(panel, new_name: String) -> void:
 
 	panel.frame_titles[panel.selected_frame.name] = new_name
 	panel.selected_frame.title = new_name
+	update_frames_list(panel)
+	save_frames_to_metadata(panel)
+
+func on_frame_comment_changed(panel) -> void:
+	if not panel.selected_frame:
+		return
+
+	var comment_edit = panel.frame_settings_container.find_child("FrameCommentEdit", true, false)
+	if not comment_edit:
+		return
+
+	panel.frame_comments[panel.selected_frame.name] = comment_edit.text
+	_apply_frame_comment_tooltip(panel, panel.selected_frame)
 	update_frames_list(panel)
 	save_frames_to_metadata(panel)
 
@@ -253,6 +282,7 @@ func on_frame_delete_pressed(panel) -> void:
 	panel.selected_frame = null
 	panel.frame_node_mapping.erase(frame_name)
 	panel.frame_titles.erase(frame_name)
+	panel.frame_comments.erase(frame_name)
 
 	if is_instance_valid(frame_to_delete):
 		var parent = frame_to_delete.get_parent()
@@ -274,7 +304,10 @@ func update_frames_list(panel) -> void:
 		if child is GraphFrame and not child.is_queued_for_deletion():
 			var display_name = panel.frame_titles.get(child.name, child.name)
 			panel.frames_list.add_item(display_name)
-			panel.frames_list.set_item_metadata(panel.frames_list.get_item_count() - 1, child.name)
+			var item_index: int = panel.frames_list.get_item_count() - 1
+			panel.frames_list.set_item_metadata(item_index, child.name)
+			var comment: String = str(panel.frame_comments.get(child.name, "")).strip_edges()
+			panel.frames_list.set_item_tooltip(item_index, comment if not comment.is_empty() else display_name)
 
 func select_frame_in_side_panel(panel, frame: GraphFrame) -> void:
 	if not frame:
@@ -288,7 +321,31 @@ func select_frame_in_side_panel(panel, frame: GraphFrame) -> void:
 			break
 
 func on_frame_list_item_activated(panel, index: int) -> void:
-	on_frame_rename_button_pressed(panel)
+	# Double-clicking a frame in the side panel navigates directly to it.
+	on_frame_list_item_selected(panel, index)
+	center_graph_on_frame(panel, panel.selected_frame)
+
+func center_graph_on_frame(panel, frame: GraphFrame) -> void:
+	if not is_instance_valid(frame) or not is_instance_valid(panel.graph_edit):
+		return
+
+	var viewport_size: Vector2 = panel.graph_edit.size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return
+
+	# Fit the complete frame in view while leaving a comfortable margin.
+	var margin := Vector2(100.0, 100.0)
+	var available_size := Vector2(
+		maxf(viewport_size.x - margin.x, 1.0),
+		maxf(viewport_size.y - margin.y, 1.0)
+	)
+	var frame_size := Vector2(maxf(frame.size.x, 1.0), maxf(frame.size.y, 1.0))
+	var target_zoom: float = minf(available_size.x / frame_size.x, available_size.y / frame_size.y)
+	target_zoom = clampf(target_zoom, panel.graph_edit.zoom_min, panel.graph_edit.zoom_max)
+	panel.graph_edit.zoom = target_zoom
+
+	var frame_center: Vector2 = frame.position_offset + frame.size * 0.5
+	panel.graph_edit.scroll_offset = frame_center * target_zoom - viewport_size * 0.5
 
 func on_frame_rename_button_pressed(panel) -> void:
 	if not panel.selected_frame:

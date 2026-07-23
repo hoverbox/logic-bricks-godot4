@@ -32,6 +32,7 @@ func _enter_tree() -> void:
 
 	# Ensure the GlobalVars autoload is registered so generated code can reference it
 	ensure_global_vars_autoload("res://addons/logic_bricks/global_vars.gd")
+	ensure_debugger_autoload("res://addons/logic_bricks/logic_bricks_debugger.gd")
 
 	print("Logic Bricks Plugin: Enabled")
 
@@ -327,3 +328,19 @@ func ensure_global_vars_autoload(script_path: String) -> void:
 			add_autoload_singleton("GlobalVars", script_path)
 			print("Logic Bricks: Updated GlobalVars autoload path (was: %s)" % existing_path)
 
+
+
+## Register the standalone runtime debugger autoload.
+## It observes watched metadata and script properties without changing generated scripts.
+func ensure_debugger_autoload(script_path: String) -> void:
+	const AUTOLOAD_NAME := "LogicBricksDebugger"
+	if not ProjectSettings.has_setting("autoload/" + AUTOLOAD_NAME):
+		add_autoload_singleton(AUTOLOAD_NAME, script_path)
+		print("Logic Bricks: Registered runtime debugger autoload")
+		return
+	var existing = str(ProjectSettings.get_setting("autoload/" + AUTOLOAD_NAME, ""))
+	var existing_path = existing.trim_prefix("*")
+	if existing_path != script_path:
+		remove_autoload_singleton(AUTOLOAD_NAME)
+		add_autoload_singleton(AUTOLOAD_NAME, script_path)
+		print("Logic Bricks: Updated runtime debugger autoload path")
