@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <meta content="Advanced Logic Bricks practices for larger projects, reusable systems, timing, and maintainable graphs." name="description"/>
+  <title>
+   Advanced | Logic Bricks Documentation
+  </title>
+  <link href="assets/css/site.css" rel="stylesheet"/>
+   <link href="assets/images/favicon.svg" rel="icon" type="image/svg+xml"/>
+  <meta content="#08101d" name="theme-color"/>
+</head>
+ <body class="general" data-page="advanced.html">
+  <div data-site-header="">
+  </div>
+  <div class="layout">
+   <aside data-site-sidebar="">
+   </aside>
+   <main class="content">
+    <nav aria-label="Breadcrumb" class="breadcrumb">
+     <a href="index.html">
+      Home
+     </a>
+     <span aria-hidden="true">
+      ›
+     </span>
+     <span aria-current="page">
+      Advanced
+     </span>
+    </nav>
+    <section class="hero">
+     <div aria-hidden="true" class="hero-category-mark">
+      Logic Bricks Manual
+     </div>
+     <div class="eyebrow">
+      Larger-project guidance
+     </div>
+     <h1>
+      Advanced
+     </h1>
+     <p class="lead">
+      Build larger Logic Bricks projects that remain organized, predictable, and easy to maintain.
+     </p>
+     <div aria-label="Page information" class="page-reading-meta">
+      <span>
+       ◷ 3 min read
+      </span>
+      <span>
+       Project architecture
+      </span>
+     </div>
+    </section>
+    <section>
+     <h2 id="separate-responsibilities">
+      Separate responsibilities
+     </h2>
+     <p>
+      Keep each logic chain focused on one job. Movement, animation, audio, interface updates, and state changes are easier to test when they are not all placed in one long chain.
+     </p>
+     <div class="callout tip">
+      <strong>
+       Recommended practice
+      </strong>
+      Use several small, clearly named chains instead of one chain that controls an entire object.
+     </div>
+    </section>
+    <section>
+     <h2 id="states-and-frames">
+      Use states and frames intentionally
+     </h2>
+     <p>
+      Use states to control which logic is active at runtime. Use frames only to organize the graph visually. A frame does not enable, disable, or sequence the bricks inside it.
+     </p>
+    </section>
+    <section>
+     <h2 id="variables">
+      Plan variables before expanding the graph
+     </h2>
+     <p>
+      Choose local variables for values owned by one object and global variables for values that truly need to be shared. Use clear names that describe the value rather than the brick that created it.
+     </p>
+     <div class="card-grid">
+      <div class="card">
+       <strong>
+        Local example
+       </strong>
+       <p>
+        <code>
+         movement_speed
+        </code>
+        on a player object.
+       </p>
+      </div>
+      <div class="card">
+       <strong>
+        Global example
+       </strong>
+       <p>
+        <code>
+         current_level
+        </code>
+        shared across scenes.
+       </p>
+      </div>
+     </div>
+    </section>
+    <section>
+     <h2 id="timing-and-physics">
+      Keep timing and physics logic separate
+     </h2>
+     <p>
+      Physics movement should remain in physics-focused chains. Animation, interface, audio, delays, and other timing-sensitive actions should be placed in separate chains when possible. This prevents timing-sensitive behavior from being forced into the physics update cycle.
+     </p>
+    </section>
+    <section>
+     <h2 id="templates">
+      Reuse proven graph patterns
+     </h2>
+     <p>
+      Save templates for logic patterns you expect to use again, such as interaction prompts, health systems, camera behavior, or reusable movement controls. After loading a template, verify node paths, variables, groups, and state names before running it.
+     </p>
+    </section>
+    <section>
+     <h2 id="custom-scripts">
+      Use Script Controllers for focused extensions
+     </h2>
+     <p>
+      When a behavior cannot be expressed cleanly with existing bricks, a Script Controller can bridge to a small custom module. Keep that module narrow in scope and treat it as an extension point rather than moving the entire system into one script.
+     </p>
+    </section>
+    <section class="related-topics">
+     <span class="section-kicker">
+      Keep learning
+     </span>
+     <h2>
+      Related topics
+     </h2>
+     <div class="related-topic-grid">
+      <a class="related-topic-card" href="variables-states.html">
+       <strong>
+        Variables, States &amp; Frames
+       </strong>
+       <span>
+        Organize data, active logic, and graph layout.
+       </span>
+      </a>
+      <a class="related-topic-card" href="debugging.html">
+       <strong>
+        Debugging
+       </strong>
+       <span>
+        Inspect active bricks, states, and variables at runtime.
+       </span>
+      </a>
+      <a class="related-topic-card" href="graph-export.html">
+       <strong>
+        Graph Export
+       </strong>
+       <span>
+        Create clear images for lessons and documentation.
+       </span>
+      </a>
+     </div>
+    </section>
+    <div class="page-nav">
+     <a class="page-nav-card previous" href="actuators-ui.html">
+      <span class="page-nav-label">
+       ← Previous
+      </span>
+      <strong>
+       UI Actuators
+      </strong>
+     </a>
+     <a class="page-nav-card next" href="debugging.html">
+      <span class="page-nav-label">
+       Next →
+      </span>
+      <strong>
+       Debugging
+      </strong>
+     </a>
+    </div>
+   </main>
+   <aside aria-label="On this page" class="page-toc">
+    <div class="toc-box">
+     <h3>
+      On this page
+     </h3>
+     <ul>
+      <li>
+       <a data-toc-target="separate-responsibilities" href="#separate-responsibilities">
+        Separate responsibilities
+       </a>
+      </li>
+      <li>
+       <a data-toc-target="states-and-frames" href="#states-and-frames">
+        States and frames
+       </a>
+      </li>
+      <li>
+       <a data-toc-target="variables" href="#variables">
+        Variables
+       </a>
+      </li>
+      <li>
+       <a data-toc-target="timing-and-physics" href="#timing-and-physics">
+        Timing and physics
+       </a>
+      </li>
+      <li>
+       <a data-toc-target="templates" href="#templates">
+        Templates
+       </a>
+      </li>
+      <li>
+       <a data-toc-target="custom-scripts" href="#custom-scripts">
+        Custom scripts
+       </a>
+      </li>
+     </ul>
+    </div>
+   </aside>
+  </div>
+  <div data-site-footer="">
+  </div>
+  <div data-shortcut-dialog="">
+  </div>
+  <script src="assets/js/site-shell.js">
+  </script>
+  <script src="assets/js/site.js">
+  </script>
+  <button aria-label="Back to top" class="back-to-top" title="Back to top" type="button">
+   ↑
+  </button>
+ </body>
+</html>

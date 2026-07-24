@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <meta content="Resolve missing bricks, inactive chains, target errors, and processing warnings." name="description"/>
+  <title>
+   Troubleshooting | Logic Bricks Documentation
+  </title>
+  <link href="assets/css/site.css" rel="stylesheet"/>
+   <link href="assets/images/favicon.svg" rel="icon" type="image/svg+xml"/>
+  <meta content="#08101d" name="theme-color"/>
+</head>
+ <body class="general" data-page="troubleshooting.html">
+  <div data-site-header="">
+  </div>
+  <div class="layout">
+   <aside data-site-sidebar="">
+   </aside>
+   <main class="content">
+    <nav aria-label="Breadcrumb" class="breadcrumb">
+     <a href="index.html">
+      Home
+     </a>
+     <span aria-hidden="true">
+      ›
+     </span>
+     <span aria-current="page">
+      Troubleshooting
+     </span>
+    </nav>
+    <section class="hero">
+     <div aria-hidden="true" class="hero-category-mark">
+      Logic Bricks Manual
+     </div>
+     <div class="eyebrow">
+      Audited against addon source
+     </div>
+     <h1>
+      Troubleshooting
+     </h1>
+     <p class="lead">
+      Resolve missing bricks, inactive chains, target errors, and processing warnings.
+     </p>
+     <div aria-label="Page information" class="page-reading-meta">
+      <span>
+       ◷ 1 min read
+      </span>
+      <span>
+       Phase 5 enhanced
+      </span>
+     </div>
+    </section>
+    <section>
+     <h2 id="a-brick-is-missing">
+      A brick is missing
+     </h2>
+     <p>
+      Brick menus are built from the runtime registry and may be filtered by the selected node domain. Confirm that the correct 3D, 2D, or UI node is selected.
+     </p>
+    </section>
+    <section>
+     <h2 id="a-chain-does-not-run">
+      A chain does not run
+     </h2>
+     <ol>
+      <li>
+       Confirm the
+       <span aria-label="sensor: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
+        sensor
+       </span>
+       can become active.
+      </li>
+      <li>
+       Check the
+       <span aria-label="Controller: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
+        Controller
+       </span>
+       logic mode and
+       <span aria-label="state: A named mode that can enable one group of logic while disabling another." class="glossary-term" data-tooltip="A named mode that can enable one group of logic while disabling another." tabindex="0">
+        state
+       </span>
+       assignment.
+      </li>
+      <li>
+       Confirm the
+       <span aria-label="actuator: A brick that performs an action after a sensor and optional controller succeed." class="glossary-term" data-tooltip="A brick that performs an action after a sensor and optional controller succeed." tabindex="0">
+        actuator
+       </span>
+       targets a valid node and uses the correct node type.
+      </li>
+      <li>
+       Enable per-brick debugging and inspect the runtime debugger.
+      </li>
+     </ol>
+    </section>
+    <section>
+     <h2 id="timing-and-physics-warnings">
+      Timing and physics warnings
+     </h2>
+     <p>
+      A chain that mixes physics movement with timing-sensitive animation, UI, audio, or other time-based actions can be assigned to physics processing. Split timing-sensitive actions into a separate chain when the addon warns about this combination.
+     </p>
+    </section>
+    <section class="related-topics">
+     <span class="section-kicker">
+      Keep learning
+     </span>
+     <h2>
+      Related topics
+     </h2>
+     <div class="related-topic-grid">
+      <a class="related-topic-card" href="getting-started.html">
+       <strong>
+        Getting Started
+       </strong>
+       <span>
+        Recheck installation and first-use setup.
+       </span>
+      </a>
+      <a class="related-topic-card" href="debugging.html">
+       <strong>
+        Debugging
+       </strong>
+       <span>
+        Use built-in brick and runtime diagnostics.
+       </span>
+      </a>
+      <a class="related-topic-card" href="brick-reference.html">
+       <strong>
+        Brick Reference A-Z
+       </strong>
+       <span>
+        Confirm names, options, and menu locations.
+       </span>
+      </a>
+     </div>
+    </section>
+    <div class="page-nav">
+     <a class="page-nav-card previous" href="graph-export.html">
+      <span class="page-nav-label">
+       ← Previous
+      </span>
+      <strong>
+       Graph Export
+      </strong>
+     </a>
+     <a class="page-nav-card next" href="brick-reference.html">
+      <span class="page-nav-label">
+       Next →
+      </span>
+      <strong>
+       Brick Reference A-Z
+      </strong>
+     </a>
+    </div>
+   </main>
+   <aside aria-label="On this page" class="page-toc">
+    <div class="toc-box">
+     <h3>
+      On this page
+     </h3>
+     <ul>
+      <li>
+       <a data-toc-target="a-brick-is-missing" href="#a-brick-is-missing">
+        A brick is missing
+       </a>
+      </li>
+      <li>
+       <a data-toc-target="a-chain-does-not-run" href="#a-chain-does-not-run">
+        A chain does not run
+       </a>
+      </li>
+      <li>
+       <a data-toc-target="timing-and-physics-warnings" href="#timing-and-physics-warnings">
+        Timing and physics warnings
+       </a>
+      </li>
+     </ul>
+    </div>
+   </aside>
+  </div>
+  <div data-site-footer="">
+  </div>
+  <div data-shortcut-dialog="">
+  </div>
+  <script src="assets/js/site-shell.js">
+  </script>
+  <script src="assets/js/site.js">
+  </script>
+  <button aria-label="Back to top" class="back-to-top" title="Back to top" type="button">
+   ↑
+  </button>
+ </body>
+</html>

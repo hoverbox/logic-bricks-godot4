@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="7 sensors available for UI workflows." name="description"/>
+<title>
+   UI Sensors | Logic Bricks Documentation
+  </title>
+<link href="assets/css/site.css" rel="stylesheet"/>
+<link href="assets/images/favicon.svg" rel="icon" type="image/svg+xml"/>
+<meta content="#08101d" name="theme-color"/>
+</head>
+<body class="sensors-ui" data-page="sensors-ui.html">
+<div data-site-header="">
+</div>
+<div class="layout">
+<aside data-site-sidebar="">
+</aside>
+<main class="content">
+<nav aria-label="Breadcrumb" class="breadcrumb">
+<a href="index.html">
+      Home
+     </a>
+<span aria-hidden="true">
+      ›
+     </span>
+<span aria-current="page">
+      UI Sensors
+     </span>
+</nav>
+<section class="hero">
+<div aria-hidden="true" class="hero-category-mark">
+<span aria-label="Sensor: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
+       Sensor
+      </span>
+      Reference
+     </div>
+<div class="eyebrow">
+      Audited against addon source
+     </div>
+<h1>
+      UI Sensors
+     </h1>
+<p class="lead">
+      7 sensors available for UI workflows.
+     </p>
+<div aria-label="Page information" class="page-reading-meta">
+<span>
+       ◷ 24 min read
+      </span>
+<span>
+       Phase 5 enhanced
+      </span>
+</div>
+</section>
+<div aria-label="Brick guidance controls" class="guidance-toolbar">
+<span>
+      Guidance panels
+     </span>
+<div>
+<button data-guidance-action="expand" type="button">
+       Expand all
+      </button>
+<button data-guidance-action="collapse" type="button">
+       Collapse all
+      </button>
+</div>
+</div>
+<div class="callout note">
+<strong>
+      Source of truth
+     </strong>
+     This page lists only bricks registered by the uploaded addon. Legacy aliases and compatibility script shims are not presented as separate menu entries.
+    </div>
+<section class="chapter-intro">
+<div>
+<span class="section-kicker">
+       Chapter guide
+      </span>
+<h2>
+       How sensors fit into a chain
+      </h2>
+<p>
+       Sensors detect input,
+       <span aria-label="state: A named mode that can enable one group of logic while disabling another." class="glossary-term" data-tooltip="A named mode that can enable one group of logic while disabling another." tabindex="0">
+        state
+       </span>
+       , collisions, timing, and other conditions. They begin a chain but do not perform gameplay actions by themselves.
+      </p>
+</div>
+<ol class="chapter-steps">
+<li>
+       Choose the event or condition to detect.
+      </li>
+<li>
+       Configure filters, thresholds, or stored values.
+      </li>
+<li>
+       Connect the sensor to a
+       <span aria-label="Controller: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
+        Controller
+       </span>
+       , then to one or more Actuators.
+      </li>
+</ol>
+</section>
+<div class="page-tools">
+<input class="search" id="docSearch" placeholder="Filter sensors on this page…" type="search"/>
+</div>
+<section class="brick sensor" data-compatibility="ui" data-search="Always Always active while enabled. General" id="always-ui">
+<div class="brick-heading">
+<span class="badge">
+       sensor • ui
+      </span>
+<h2>
+       Always
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Always active while enabled.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Sensors
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         sensors/ui/always_sensor.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          enabled
+         </code>
+</td>
+<td>
+         Enabled
+         <br/>
+<small>
+          Default:
+          <code>
+           true
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Start a logic chain when always active while enabled.
+         </li>
+<li>
+          Gate an action through a Controller so multiple conditions can be combined.
+         </li>
+<li>
+          Use it as the event or condition at the beginning of a reusable chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Always
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Choose an actuator
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Connect the sensor to a Controller even when only one condition is needed; this keeps the chain easy to expand later.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A sensor only detects a condition. It does not perform an action until it is connected through a Controller to an Actuator.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="sensors-2d.html#always-common">
+         Always
+        </a>
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+<a href="sensors-2d.html#delay-common">
+         Delay
+        </a>
+<a href="sensors-ui.html#delay-ui">
+         Delay
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Always screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/always.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Always screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="ui" data-search="Button Detects when a Button is pressed, toggled, hovered, or focused. General" id="button-ui">
+<div class="brick-heading">
+<span class="badge">
+       sensor • ui
+      </span>
+<h2>
+       Button
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Detects when a Button is pressed, toggled, hovered, or focused.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Sensors
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         sensors/ui/button_sensor.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          target_node_name
+         </code>
+</td>
+<td>
+         Target Node Name
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          event
+         </code>
+</td>
+<td>
+         Event
+         <br/>
+<small>
+          Choices: Just Pressed,Pressed,Just Released,Hovering,Focused,Toggled On,Toggled Off
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           just_pressed
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          store_pressed
+         </code>
+</td>
+<td>
+         Store Pressed
+        </td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Start a logic chain when detects when a Button is pressed, toggled, hovered, or focused.
+         </li>
+<li>
+          Gate an action through a Controller so multiple conditions can be combined.
+         </li>
+<li>
+          Use it as the event or condition at the beginning of a reusable chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Button
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Choose an actuator
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Connect the sensor to a Controller even when only one condition is needed; this keeps the chain easy to expand later.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A sensor only detects a condition. It does not perform an action until it is connected through a Controller to an Actuator.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="sensors-2d.html#input-map-common">
+         Input Map
+        </a>
+<a href="sensors-ui.html#input-map-ui">
+         Input Map
+        </a>
+<a href="sensors-3d.html#movement-3d">
+         Movement
+        </a>
+<a href="sensors-2d.html#movement-2d-2d">
+         Movement 2D
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Button screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/button.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Button screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="ui" data-search="Delay Triggers after a delay or at an interval. General" id="delay-ui">
+<div class="brick-heading">
+<span class="badge">
+       sensor • ui
+      </span>
+<h2>
+       Delay
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Triggers after a delay or at an interval.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Sensors
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         sensors/ui/delay_sensor.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          delay
+         </code>
+</td>
+<td>
+         Delay
+         <br/>
+<small>
+          Default:
+          <code>
+           0.0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          duration
+         </code>
+</td>
+<td>
+         Duration
+         <br/>
+<small>
+          Default:
+          <code>
+           0.0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          repeat
+         </code>
+</td>
+<td>
+         Repeat
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Start a logic chain when triggers after a delay or at an interval.
+         </li>
+<li>
+          Gate an action through a Controller so multiple conditions can be combined.
+         </li>
+<li>
+          Use it as the event or condition at the beginning of a reusable chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Delay
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Choose an actuator
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Connect the sensor to a Controller even when only one condition is needed; this keeps the chain easy to expand later.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A sensor only detects a condition. It does not perform an action until it is connected through a Controller to an Actuator.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="sensors-ui.html#always-ui">
+         Always
+        </a>
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+<a href="sensors-2d.html#delay-common">
+         Delay
+        </a>
+<a href="actuators-3d.html#gravity-3d">
+         Gravity
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Delay screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/delay.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Delay screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="ui" data-search="Input Map Detects Godot Input Map actions for UI logic. General" id="input-map-ui">
+<div class="brick-heading">
+<span class="badge">
+       sensor • ui
+      </span>
+<h2>
+       Input Map
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Detects Godot Input Map actions for UI logic.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Sensors
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         sensors/ui/input_map_sensor.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          input_mode
+         </code>
+</td>
+<td>
+         Input Mode
+         <br/>
+<small>
+          Choices: Pressed,Just Pressed,Just Released,Any Pressed,Any Just Pressed,Any Just Released,Axis
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           pressed
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          action_name
+         </code>
+</td>
+<td>
+         Action Name
+         <br/>
+<small>
+          Default:
+          <code>
+           ui_accept
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          negative_action
+         </code>
+</td>
+<td>
+         Negative Action
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          positive_action
+         </code>
+</td>
+<td>
+         Positive Action
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          invert
+         </code>
+</td>
+<td>
+         Invert
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          store_in
+         </code>
+</td>
+<td>
+         Store In
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          deadzone
+         </code>
+</td>
+<td>
+         Deadzone
+         <br/>
+<small>
+          Default:
+          <code>
+           0.1
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Start a logic chain when detects Godot Input Map actions for UI logic.
+         </li>
+<li>
+          Gate an action through a Controller so multiple conditions can be combined.
+         </li>
+<li>
+          Capture or compare a value as part of variable-driven gameplay logic.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Input Map
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Choose an actuator
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Use Invert when the opposite condition is easier to express than rebuilding the chain with different logic.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A sensor only detects a condition. It does not perform an action until it is connected through a Controller to an Actuator.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="sensors-2d.html#input-map-common">
+         Input Map
+        </a>
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+<a href="sensors-ui.html#signal-ui">
+         Signal
+        </a>
+<a href="sensors-2d.html#always-common">
+         Always
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Input Map screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/input-map.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Input Map screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="ui" data-search="Random Randomly activates based on chance. General" id="random-ui">
+<div class="brick-heading">
+<span class="badge">
+       sensor • ui
+      </span>
+<h2>
+       Random
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Randomly activates based on chance.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Sensors
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         sensors/ui/random_sensor.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          trigger_mode
+         </code>
+</td>
+<td>
+         Trigger Mode
+         <br/>
+<small>
+          Choices: Chance,Value,Range
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           chance
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          chance_percent
+         </code>
+</td>
+<td>
+         Chance Percent
+         <br/>
+<small>
+          Choices: 0.0,100.0,0.1
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           10.0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          target_value
+         </code>
+</td>
+<td>
+         Target Value
+         <br/>
+<small>
+          Default:
+          <code>
+           0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          target_min
+         </code>
+</td>
+<td>
+         Target Min
+         <br/>
+<small>
+          Default:
+          <code>
+           0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          target_max
+         </code>
+</td>
+<td>
+         Target Max
+         <br/>
+<small>
+          Default:
+          <code>
+           100
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          use_seed
+         </code>
+</td>
+<td>
+         Use Seed
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          seed_value
+         </code>
+</td>
+<td>
+         Seed Value
+         <br/>
+<small>
+          Default:
+          <code>
+           0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          store_value
+         </code>
+</td>
+<td>
+         Store Value
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          value_variable
+         </code>
+</td>
+<td>
+         Value Variable
+        </td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Start a logic chain when randomly activates based on chance.
+         </li>
+<li>
+          Gate an action through a Controller so multiple conditions can be combined.
+         </li>
+<li>
+          Capture or compare a value as part of variable-driven gameplay logic.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Random
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Choose an actuator
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Connect the sensor to a Controller even when only one condition is needed; this keeps the chain easy to expand later.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A sensor only detects a condition. It does not perform an action until it is connected through a Controller to an Actuator.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="sensors-2d.html#random-common">
+         Random
+        </a>
+<a href="sensors-ui.html#always-ui">
+         Always
+        </a>
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+<a href="sensors-ui.html#delay-ui">
+         Delay
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Random screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/random.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Random screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="ui" data-search="Signal Receives a Logic Bricks message. General" id="signal-ui">
+<div class="brick-heading">
+<span class="badge">
+       sensor • ui
+      </span>
+<h2>
+       Signal
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Receives a Logic Bricks message.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Sensors
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         sensors/ui/message_sensor.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          subject
+         </code>
+</td>
+<td>
+         Subject
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          match_mode
+         </code>
+</td>
+<td>
+         Match Mode
+         <br/>
+<small>
+          Choices: Exact,Contains,Starts With
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           exact
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          response_delay
+         </code>
+</td>
+<td>
+         Response Delay
+         <br/>
+<small>
+          Default:
+          <code>
+           0.0
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Start a logic chain when receives a Logic Bricks message.
+         </li>
+<li>
+          Gate an action through a Controller so multiple conditions can be combined.
+         </li>
+<li>
+          Use it as the event or condition at the beginning of a reusable chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Signal
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Choose an actuator
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Connect the sensor to a Controller even when only one condition is needed; this keeps the chain easy to expand later.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A sensor only detects a condition. It does not perform an action until it is connected through a Controller to an Actuator.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="sensors-ui.html#input-map-ui">
+         Input Map
+        </a>
+<a href="sensors-2d.html#always-common">
+         Always
+        </a>
+<a href="sensors-ui.html#always-ui">
+         Always
+        </a>
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Signal screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/signal.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Signal screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="ui" data-search="Variable Compares a variable value. General" id="variable-ui">
+<div class="brick-heading">
+<span class="badge">
+       sensor • ui
+      </span>
+<h2>
+       Variable
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Compares a variable value.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Sensors
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         sensors/ui/variable_sensor.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          variable_name
+         </code>
+</td>
+<td>
+         Variable Name
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          evaluation_type
+         </code>
+</td>
+<td>
+         Evaluation Type
+         <br/>
+<small>
+          Choices: Equal,Not Equal,Interval,Changed,Greater Than,Less Than,Greater or Equal,Less or Equal
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           equal
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          value
+         </code>
+</td>
+<td>
+         Value
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          min_value
+         </code>
+</td>
+<td>
+         Min Value
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          max_value
+         </code>
+</td>
+<td>
+         Max Value
+        </td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Start a logic chain when compares a variable value.
+         </li>
+<li>
+          Gate an action through a Controller so multiple conditions can be combined.
+         </li>
+<li>
+          Capture or compare a value as part of variable-driven gameplay logic.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Variable
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Choose an actuator
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Connect the sensor to a Controller even when only one condition is needed; this keeps the chain easy to expand later.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A sensor only detects a condition. It does not perform an action until it is connected through a Controller to an Actuator.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="sensors-2d.html#compare-variable-common">
+         Compare Variable
+        </a>
+<a href="sensors-ui.html#always-ui">
+         Always
+        </a>
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+<a href="sensors-ui.html#delay-ui">
+         Delay
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Variable screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/variable.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Variable screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<div class="page-nav">
+<a class="page-nav-card previous" href="variables-states.html">
+<span class="page-nav-label">
+       ← Previous
+      </span>
+<strong>
+       Variables, States &amp; Frames
+      </strong>
+</a>
+<a class="page-nav-card next" href="controllers.html">
+<span class="page-nav-label">
+       Next →
+      </span>
+<strong>
+       Controllers
+      </strong>
+</a>
+</div>
+</main>
+<aside aria-label="On this page" class="page-toc">
+<div class="toc-box">
+<h3>
+      On this page
+     </h3>
+<p class="muted">
+      Overview
+     </p>
+</div>
+</aside>
+</div>
+<div data-site-footer="">
+</div>
+<div data-shortcut-dialog="">
+</div>
+<script src="assets/js/site-shell.js">
+</script>
+<script src="assets/js/site.js">
+</script>
+<button aria-label="Back to top" class="back-to-top" title="Back to top" type="button">
+   ↑
+  </button>
+</body>
+</html>

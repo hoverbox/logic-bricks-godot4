@@ -1,0 +1,6442 @@
+[
+  {
+    "type": "actuator",
+    "name": "Sprite Animation",
+    "cls": "SpriteAnimation2DActuator",
+    "domain": "2d",
+    "category": "Animation",
+    "description": "Play, stop, or pause AnimatedSprite2D animations.",
+    "props": [
+      [
+        "mode",
+        "Play,Stop,Pause",
+        "play",
+        ""
+      ],
+      [
+        "animation_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "speed_scale",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "target_node",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "actuators/2d/sprite_animation_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Tween Animation",
+    "cls": "TweenAnimation2DActuator",
+    "domain": "2d",
+    "category": "Animation",
+    "description": "Tween a 2D node property such as position, rotation, scale, or modulate.",
+    "props": [],
+    "file": "actuators/2d/tween_animation_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Camera Zoom",
+    "cls": "CameraZoom2DActuator",
+    "domain": "2d",
+    "category": "Camera",
+    "description": "Changes Camera2D zoom. 1.0 = normal, 2.0 = zoomed in, 0.5 = zoomed out.",
+    "props": [
+      [
+        "camera_node_name",
+        "",
+        "Camera2D",
+        "Camera2D node name"
+      ],
+      [
+        "zoom",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "transition",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "transition_speed",
+        "",
+        "3.0",
+        ""
+      ]
+    ],
+    "file": "actuators/2d/camera_zoom_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Set Camera",
+    "cls": "SetCamera2DActuator",
+    "domain": "2d",
+    "category": "Camera",
+    "description": "Makes the named Camera2D the active camera. Use a one-shot sensor when possible so make_current() is not called every frame.",
+    "props": [
+      [
+        "camera_node_name",
+        "",
+        "Camera2D",
+        "Camera2D node name"
+      ]
+    ],
+    "file": "actuators/2d/set_camera_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Smooth Follow Camera",
+    "cls": "SmoothFollowCamera2DActuator",
+    "domain": "2d",
+    "category": "Camera",
+    "description": "Smoothly follows this Node2D with the named Camera2D while maintaining the camera's initial offset from the target.",
+    "props": [
+      [
+        "camera_node_name",
+        "",
+        "Camera2D",
+        "Camera2D node name"
+      ],
+      [
+        "follow_speed",
+        "",
+        "5.0",
+        ""
+      ],
+      [
+        "dead_zone_x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "dead_zone_y",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "follow_pos_x",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "follow_pos_y",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "rotation_source_node_name",
+        "",
+        "",
+        "Blank = this node"
+      ],
+      [
+        "follow_rotation",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "rotation_speed",
+        "",
+        "5.0",
+        ""
+      ]
+    ],
+    "file": "actuators/2d/smooth_follow_camera_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Object Flash",
+    "cls": "ObjectFlash2DActuator",
+    "domain": "2d",
+    "category": "Game Feel",
+    "description": "Flash a 2D object with a temporary color overlay.",
+    "props": [
+      [
+        "object_node_name",
+        "",
+        "self",
+        ""
+      ],
+      [
+        "color",
+        "",
+        "Color(1",
+        ""
+      ],
+      [
+        "effect",
+        "Single Flash,Strobe,Color Strobe",
+        "single_flash",
+        ""
+      ],
+      [
+        "speed",
+        "",
+        "0.08",
+        ""
+      ]
+    ],
+    "file": "actuators/2d/object_flash_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Character Jump 2D",
+    "cls": "Jump2dActuatorActuator",
+    "domain": "2d",
+    "category": "General",
+    "description": "Character Jump 2D logic brick.",
+    "props": [],
+    "file": "actuators/2d/jump_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Force 2D",
+    "cls": "Force2dActuatorActuator",
+    "domain": "2d",
+    "category": "General",
+    "description": "Force 2D logic brick.",
+    "props": [],
+    "file": "actuators/2d/force_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Impulse 2D",
+    "cls": "Impulse2dActuatorActuator",
+    "domain": "2d",
+    "category": "General",
+    "description": "Impulse 2D logic brick.",
+    "props": [],
+    "file": "actuators/2d/impulse_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Linear Velocity 2D",
+    "cls": "LinearVelocity2dActuatorActuator",
+    "domain": "2d",
+    "category": "General",
+    "description": "Linear Velocity 2D logic brick.",
+    "props": [],
+    "file": "actuators/2d/linear_velocity_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Character 2D Physics",
+    "cls": "Character2DActuator",
+    "domain": "2d",
+    "category": "Motion",
+    "description": "Finalizes CharacterBody2D movement once per physics frame. Motion 2D bricks add requested movement; this brick applies gravity, friction, acceleration, snapping, slope limits, bounce, and move_and_slide().",
+    "props": [
+      [
+        "gravity_strength",
+        "",
+        "980.0",
+        ""
+      ],
+      [
+        "max_fall_speed",
+        "",
+        "1000.0",
+        ""
+      ],
+      [
+        "floor_snap_length",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "slope_limit",
+        "",
+        "45.0",
+        ""
+      ],
+      [
+        "use_acceleration",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "acceleration",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "friction",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "bounce",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "ground_groups",
+        "",
+        "",
+        "Enter ground groups"
+      ],
+      [
+        "platform_groups",
+        "",
+        "",
+        "Enter platform groups"
+      ],
+      [
+        "inherit_platform_velocity_on_jump",
+        "",
+        "true",
+        ""
+      ]
+    ],
+    "file": "actuators/2d/character_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Motion 2D",
+    "cls": "Motion2DActuator",
+    "domain": "2d",
+    "category": "Motion",
+    "description": "For CharacterBody2D movement, this only requests/accumulates velocity for the frame. Character 2D Physics should be used once on the character to apply friction, gravity, diagonal normalization, and move_and_slide().",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "",
+        "blank = self, or child/node name"
+      ],
+      [
+        "motion_type",
+        "Location,Rotation",
+        "location",
+        ""
+      ],
+      [
+        "movement_method",
+        "Character Velocity,Translate,Position",
+        "character_velocity",
+        ""
+      ],
+      [
+        "x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "y",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "space",
+        "Local,Global",
+        "local",
+        ""
+      ]
+    ],
+    "file": "actuators/2d/motion_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Mouse",
+    "cls": "Mouse2DActuator",
+    "domain": "2d",
+    "category": "Motion",
+    "description": "Mouse logic brick.",
+    "props": [
+      [
+        "mode",
+        "Cursor Visibility,Mouse Look,Look Towards,Move Towards Cursor,Move To Mouse Click",
+        "cursor_visibility",
+        ""
+      ],
+      [
+        "cursor_visible",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "use_x_axis",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "use_y_axis",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "x_target",
+        "",
+        "self",
+        ""
+      ],
+      [
+        "y_target",
+        "",
+        "self",
+        ""
+      ],
+      [
+        "x_sensitivity",
+        "",
+        "0.1",
+        ""
+      ],
+      [
+        "y_sensitivity",
+        "",
+        "0.1",
+        ""
+      ],
+      [
+        "x_invert",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "y_invert",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "x_threshold",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "y_threshold",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "x_min_degrees",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "x_max_degrees",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "y_min_degrees",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "y_max_degrees",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "recenter_cursor",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "mouse_target",
+        "",
+        "self",
+        ""
+      ],
+      [
+        "mouse_velocity",
+        "",
+        "250.0",
+        ""
+      ],
+      [
+        "mouse_acceleration",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "mouse_turn_speed",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "mouse_arrival_distance",
+        "",
+        "4.0",
+        ""
+      ],
+      [
+        "mouse_facing_axis",
+        "+X,-X,+Y,-Y",
+        "+x",
+        ""
+      ],
+      [
+        "click_button",
+        "Left,Right,Middle",
+        "left",
+        ""
+      ]
+    ],
+    "file": "actuators/2d/mouse_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Teleport 2D",
+    "cls": "Teleport2DActuator",
+    "domain": "2d",
+    "category": "Motion",
+    "description": "Instantly sets position to a target Node2D or coordinates.\\nUseful for respawning, portals, checkpoints, and spawn points.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "Target",
+        "Target Node2D node name"
+      ],
+      [
+        "mode",
+        "Target Node,Coordinates,Vector Variable",
+        "target_node",
+        ""
+      ],
+      [
+        "x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "y",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "vector_variable",
+        "",
+        "",
+        ""
+      ],
+      [
+        "clear_velocity",
+        "",
+        "true",
+        ""
+      ]
+    ],
+    "file": "actuators/2d/teleport_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "3D Audio",
+    "cls": "SoundActuator",
+    "domain": "3d",
+    "category": "Audio",
+    "description": "Play, stop, pause, and fade 3D or spatial audio from a file.",
+    "props": [
+      [
+        "mode",
+        "Play,Stop,Pause,Fade In,Fade Out",
+        "play",
+        ""
+      ],
+      [
+        "sound_file",
+        "*.wav,*.ogg,*.mp3",
+        "",
+        ""
+      ],
+      [
+        "play_mode",
+        "Restart,Overlap,Ignore If Playing",
+        "restart",
+        ""
+      ],
+      [
+        "volume",
+        "-80,24,0.1",
+        "0.0",
+        ""
+      ],
+      [
+        "pitch",
+        "0.01,4.0,0.01",
+        "1.0",
+        ""
+      ],
+      [
+        "pitch_random",
+        "0.0,1.0,0.01",
+        "0.0",
+        ""
+      ],
+      [
+        "loop",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "positional",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "audio_bus",
+        "",
+        "",
+        ""
+      ],
+      [
+        "fade_duration",
+        "0.1,10.0,0.1",
+        "1.0",
+        ""
+      ],
+      [
+        "min_delay",
+        "0.0,5.0,0.05",
+        "0.0",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/sound_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "3rd Person Camera",
+    "cls": "ThirdPersonCameraActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Orbits a Camera3D around the character via a pivot Node3D.\\nAssign both the pivot and the camera in the Inspector.\\nThe camera can live anywhere in the scene \u2014 including inside a SubViewport for split screen.",
+    "props": [
+      [
+        "camera_node_name",
+        "",
+        "Camera3D",
+        "Camera3D node name"
+      ],
+      [
+        "pivot_node_name",
+        "",
+        "CameraPivot",
+        "Camera pivot Node3D node name"
+      ],
+      [
+        "setup_group",
+        "Setup",
+        "",
+        ""
+      ],
+      [
+        "input_mode",
+        "Mouse,Joystick,Both",
+        "mouse",
+        ""
+      ],
+      [
+        "rotate_character",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "align_mode",
+        "Instant,Smooth",
+        "instant",
+        ""
+      ],
+      [
+        "turn_speed",
+        "1.0,30.0,0.5",
+        "10.0",
+        ""
+      ],
+      [
+        "move_actions",
+        "",
+        "ui_up",
+        ""
+      ],
+      [
+        "capture_mouse",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "sensitivity_group",
+        "Sensitivity",
+        "",
+        ""
+      ],
+      [
+        "sensitivity_x",
+        "0.01,5.0,0.01",
+        "0.3",
+        ""
+      ],
+      [
+        "sensitivity_y",
+        "0.01,5.0,0.01",
+        "0.3",
+        ""
+      ],
+      [
+        "export_sensitivity",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "invert_group",
+        "Invert",
+        "",
+        ""
+      ],
+      [
+        "invert_x",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "invert_y",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "export_invert",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "pitch_group",
+        "Vertical Clamp",
+        "",
+        ""
+      ],
+      [
+        "pitch_min",
+        "-90.0,0.0,1.0",
+        "-60.0",
+        ""
+      ],
+      [
+        "pitch_max",
+        "0.0,90.0,1.0",
+        "30.0",
+        ""
+      ],
+      [
+        "joy_group",
+        "Joystick",
+        "",
+        ""
+      ],
+      [
+        "joystick_device",
+        "0,7,1",
+        "0",
+        ""
+      ],
+      [
+        "joy_stick",
+        "Left Stick,Right Stick",
+        "right",
+        ""
+      ],
+      [
+        "joy_deadzone",
+        "0.0,0.9,0.01",
+        "0.15",
+        ""
+      ],
+      [
+        "joy_sensitivity",
+        "10.0,360.0,5.0",
+        "100.0",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/third_person_camera_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Animation State",
+    "cls": "AnimationTreeActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Beginner-friendly AnimationTree control. Use Go To State for normal character animations. Blending comes from the transition Xfade Time inside the AnimationTree.",
+    "props": [
+      [
+        "mode",
+        "Go To State:go_to_state,Set Blend Parameter:set_parameter,Advanced - Set Condition:set_condition_value",
+        "go_to_state",
+        ""
+      ],
+      [
+        "animation_tree_name",
+        "",
+        "AnimationTree",
+        ""
+      ],
+      [
+        "state_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "true_condition_name",
+        "__ANIM_TREE_CONDITION_LIST__",
+        "",
+        ""
+      ],
+      [
+        "false_condition_name",
+        "__ANIM_TREE_CONDITION_LIST__",
+        "",
+        ""
+      ],
+      [
+        "condition_name",
+        "__ANIM_TREE_CONDITION_LIST__",
+        "",
+        ""
+      ],
+      [
+        "condition_value",
+        "true,false",
+        "true",
+        ""
+      ],
+      [
+        "parameter_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "param_type",
+        "Float,Int,Bool,Vector2",
+        "float",
+        ""
+      ],
+      [
+        "param_float",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "param_int",
+        "",
+        "0",
+        ""
+      ],
+      [
+        "param_bool",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "param_x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "param_y",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "state_machine_path",
+        "",
+        "",
+        ""
+      ],
+      [
+        "parameter_path",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/animation_tree_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Camera Zoom",
+    "cls": "CameraZoomActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Changes camera FOV (3D) or zoom (2D).\\nDrag your camera into the inspector slot.",
+    "props": [
+      [
+        "camera_node_name",
+        "",
+        "Camera3D",
+        "Camera3D or Camera2D node name"
+      ],
+      [
+        "camera_type",
+        "Camera 3D,Camera 2D",
+        "camera_3d",
+        ""
+      ],
+      [
+        "fov",
+        "",
+        "75.0",
+        ""
+      ],
+      [
+        "zoom",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "transition",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "transition_speed",
+        "",
+        "3.0",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/camera_zoom_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Character Physics",
+    "cls": "CharacterActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Character Actuator - Unified character controller for CharacterBody3D Handles gravity, ground detection, and move_and_slide() in one brick. Jumping is handled by the separate Jump Actuator. Pair with an Always Sensor so it runs every frame. Horizontal movement is handled by separate Motion / Move Towards Actuators. Execution order (guaranteed): 1. Pre-process: reset horizontal velocity 2. This chain: apply gravity, detect ground 3. Other chains: motion actuators set velocity.x / velocity.z; Jump Actuator sets velocity.y 4. Post-process: move_and_slide()",
+    "props": [
+      [
+        "gravity_strength",
+        "",
+        "9.8",
+        ""
+      ],
+      [
+        "max_fall_speed",
+        "",
+        "50.0",
+        ""
+      ],
+      [
+        "floor_snap_length",
+        "",
+        "0.1",
+        ""
+      ],
+      [
+        "slope_limit",
+        "",
+        "45.0",
+        ""
+      ],
+      [
+        "use_acceleration",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "acceleration",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "friction",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "bounce",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "ground_groups",
+        "",
+        "",
+        ""
+      ],
+      [
+        "platform_groups",
+        "",
+        "",
+        "e.g. moving_platform"
+      ],
+      [
+        "inherit_platform_velocity_on_jump",
+        "",
+        "true",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/character_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Collision",
+    "cls": "CollisionActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Can enable/disable CollisionShape3D nodes, set collision layer/mask bits, and toggle Area3D monitoring. Target node is found by name via find_child().",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "action",
+        "Disable Shape,Enable Shape,Set Layer Bit,Set Mask Bit,Enable Monitoring,Disable Monitoring",
+        "0",
+        ""
+      ],
+      [
+        "layer_value",
+        "",
+        "1",
+        ""
+      ],
+      [
+        "bit_enabled",
+        "",
+        "true",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/collision_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Edit Object",
+    "cls": "EditObjectActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Similar to UPBGE's Edit Object actuator.",
+    "props": [
+      [
+        "edit_type",
+        "Add Object,End Object,Replace Mesh",
+        "End Object",
+        ""
+      ],
+      [
+        "spawn_object",
+        "*.tscn,*.scn",
+        "",
+        ""
+      ],
+      [
+        "spawn_point",
+        "",
+        "NodePath(\"\")",
+        ""
+      ],
+      [
+        "velocity_x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "velocity_y",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "velocity_z",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "velocity_local",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "lifespan",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "end_mode",
+        "Queue Free,Free Immediate",
+        "queue_free",
+        ""
+      ],
+      [
+        "end_delay",
+        "",
+        "0.1",
+        ""
+      ],
+      [
+        "mesh_path",
+        "*.mesh,*.obj",
+        "",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/edit_object_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Environment",
+    "cls": "EnvironmentActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Modifies WorldEnvironment properties at runtime.\\nDrag your WorldEnvironment node into the inspector slot.\\nAll value fields accept a number or a variable name / expression.",
+    "props": [
+      [
+        "environment_node_name",
+        "",
+        "WorldEnvironment",
+        "WorldEnvironment node name"
+      ],
+      [
+        "_group_fog",
+        "Fog",
+        "",
+        ""
+      ],
+      [
+        "fog_enabled",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "fog_density",
+        "",
+        "0.01",
+        ""
+      ],
+      [
+        "fog_light_color",
+        "",
+        "Color(0.518",
+        ""
+      ],
+      [
+        "fog_light_energy",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "fog_sun_scatter",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "fog_height",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "fog_height_density",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "fog_aerial_perspective",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "fog_sky_affect",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "_group_glow",
+        "Glow",
+        "",
+        ""
+      ],
+      [
+        "glow_enabled",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "glow_level_1",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "glow_level_2",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "glow_level_3",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "glow_level_4",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "glow_level_5",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "glow_level_6",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "glow_level_7",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "glow_normalized",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "glow_intensity",
+        "",
+        "0.8",
+        ""
+      ],
+      [
+        "glow_strength",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "glow_mix",
+        "",
+        "0.05",
+        ""
+      ],
+      [
+        "glow_bloom",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "glow_blend_mode",
+        "Additive,Screen,Softlight,Replace,Mix",
+        "2",
+        ""
+      ],
+      [
+        "glow_hdr_luminance_cap",
+        "",
+        "12.0",
+        ""
+      ],
+      [
+        "glow_hdr_threshold",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "glow_hdr_scale",
+        "",
+        "2.0",
+        ""
+      ],
+      [
+        "glow_map_strength",
+        "",
+        "0.8",
+        ""
+      ],
+      [
+        "_group_ssao",
+        "SSAO",
+        "",
+        ""
+      ],
+      [
+        "ssao_enabled",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "ssao_radius",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "ssao_intensity",
+        "",
+        "2.0",
+        ""
+      ],
+      [
+        "ssao_power",
+        "",
+        "1.5",
+        ""
+      ],
+      [
+        "ssao_detail",
+        "",
+        "0.5",
+        ""
+      ],
+      [
+        "ssao_horizon",
+        "",
+        "0.06",
+        ""
+      ],
+      [
+        "ssao_sharpness",
+        "",
+        "0.98",
+        ""
+      ],
+      [
+        "ssao_light_affect",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "_group_ssil",
+        "SSIL",
+        "",
+        ""
+      ],
+      [
+        "ssil_enabled",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "ssil_radius",
+        "",
+        "5.0",
+        ""
+      ],
+      [
+        "ssil_intensity",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "ssil_sharpness",
+        "",
+        "0.98",
+        ""
+      ],
+      [
+        "ssil_normal_rejection",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "_group_tonemap",
+        "Tone Mapping",
+        "",
+        ""
+      ],
+      [
+        "tonemap_mode",
+        "Linear,Reinhardt,Filmic,ACES",
+        "0",
+        ""
+      ],
+      [
+        "tonemap_exposure",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "tonemap_white",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "_group_adjustment",
+        "Color Correction",
+        "",
+        ""
+      ],
+      [
+        "adjustment_enabled",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "adjustment_brightness",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "adjustment_contrast",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "adjustment_saturation",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "_group_transition",
+        "Transition",
+        "",
+        ""
+      ],
+      [
+        "transition",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "transition_speed",
+        "",
+        "1.0",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/environment_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Force",
+    "cls": "ForceActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "NOTE: Only works with RigidBody3D, not CharacterBody3D",
+    "props": [
+      [
+        "x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "y",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "z",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "max_force",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "space",
+        "Local,Global",
+        "local",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/force_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Gravity",
+    "cls": "GravityActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Use this with RigidBody3D objects. CharacterBody3D gravity belongs in the Character Actuator. This actuator writes to RigidBody3D.constant_force instead of using apply_central_force(). That makes gravity keep working after a one-shot trigger such as a Delay sensor.",
+    "props": [
+      [
+        "gravity_strength",
+        "",
+        "9.8",
+        ""
+      ],
+      [
+        "direction_x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "direction_y",
+        "",
+        "-1.0",
+        ""
+      ],
+      [
+        "direction_z",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "use_mass",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "override_world_gravity",
+        "",
+        "true",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/gravity_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Impulse",
+    "cls": "ImpulseActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Applies a one-shot impulse to a RigidBody3D.\\nFires once per activation \u2014 does not accumulate each frame.",
+    "props": [
+      [
+        "impulse_type",
+        "Central,Positional,Torque",
+        "central",
+        ""
+      ],
+      [
+        "x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "y",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "z",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "pos_x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "pos_y",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "pos_z",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "space",
+        "Local,Global",
+        "local",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/impulse_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Light",
+    "cls": "LightActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Control a light node's properties and apply animated FX effects.\\nSelect the light type to expose its specific properties.",
+    "props": [
+      [
+        "light_type_group",
+        "Light Type",
+        "",
+        ""
+      ],
+      [
+        "light_type",
+        "OmniLight3D,SpotLight3D,DirectionalLight3D",
+        "omni",
+        ""
+      ],
+      [
+        "common_group",
+        "Properties",
+        "",
+        ""
+      ],
+      [
+        "set_color",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "color",
+        "",
+        "Color(1",
+        ""
+      ],
+      [
+        "set_energy",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "energy",
+        "0.0,16.0,0.01",
+        "1.0",
+        ""
+      ],
+      [
+        "set_indirect_energy",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "indirect_energy",
+        "0.0,16.0,0.01",
+        "1.0",
+        ""
+      ],
+      [
+        "set_specular",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "specular",
+        "0.0,1.0,0.01",
+        "0.5",
+        ""
+      ],
+      [
+        "set_shadow",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "shadow_enabled",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "set_visible",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "light_visible",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "set_range",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "light_range",
+        "0.0,100.0,0.1",
+        "10.0",
+        ""
+      ],
+      [
+        "set_spot_angle",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "spot_angle",
+        "0.1,90.0,0.1",
+        "45.0",
+        ""
+      ],
+      [
+        "set_spot_attenuation",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "spot_attenuation",
+        "0.0,8.0,0.01",
+        "1.0",
+        ""
+      ],
+      [
+        "fx_group",
+        "FX",
+        "",
+        ""
+      ],
+      [
+        "fx",
+        "Normal,Flicker,Strobe,Pulse,Fade In,Fade Out",
+        "normal",
+        ""
+      ],
+      [
+        "fx_params_group",
+        "FX Parameters",
+        "",
+        ""
+      ],
+      [
+        "flicker_normal_energy",
+        "0.0,16.0,0.01",
+        "1.0",
+        ""
+      ],
+      [
+        "flicker_min",
+        "0.0,16.0,0.01",
+        "0.0",
+        ""
+      ],
+      [
+        "flicker_max",
+        "0.0,16.0,0.01",
+        "0.8",
+        ""
+      ],
+      [
+        "flicker_idle_min",
+        "0.0,30.0,0.1",
+        "1.0",
+        ""
+      ],
+      [
+        "flicker_idle_max",
+        "0.0,30.0,0.1",
+        "4.0",
+        ""
+      ],
+      [
+        "flicker_burst_duration",
+        "0.05,5.0,0.05",
+        "0.3",
+        ""
+      ],
+      [
+        "strobe_frequency",
+        "0.1,60.0,0.1",
+        "10.0",
+        ""
+      ],
+      [
+        "strobe_on_energy",
+        "0.0,16.0,0.01",
+        "1.0",
+        ""
+      ],
+      [
+        "strobe_off_energy",
+        "0.0,16.0,0.01",
+        "0.0",
+        ""
+      ],
+      [
+        "pulse_min",
+        "0.0,16.0,0.01",
+        "0.2",
+        ""
+      ],
+      [
+        "pulse_max",
+        "0.0,16.0,0.01",
+        "1.0",
+        ""
+      ],
+      [
+        "pulse_speed",
+        "0.1,20.0,0.1",
+        "2.0",
+        ""
+      ],
+      [
+        "fade_target",
+        "0.0,16.0,0.01",
+        "1.0",
+        ""
+      ],
+      [
+        "fade_speed",
+        "0.1,20.0,0.1",
+        "2.0",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/light_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Linear Velocity",
+    "cls": "LinearVelocityActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Similar to UPBGE's Linear Velocity actuator",
+    "props": [
+      [
+        "mode",
+        "Set,Add,Average",
+        "set",
+        ""
+      ],
+      [
+        "velocity_x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "velocity_y",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "velocity_z",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "max_speed",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "local",
+        "",
+        "true",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/linear_velocity_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Look At Input",
+    "cls": "LookAtInputActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Rotates a Node3D to face the combined Input Map direction instead of the movement/slide direction. Type the node name; the generated script finds it in the current scene at runtime.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "MeshInstance3D",
+        "Node3D node name"
+      ],
+      [
+        "forward_action",
+        "",
+        "move_forward",
+        "Input Map action"
+      ],
+      [
+        "backward_action",
+        "",
+        "move_backward",
+        "Input Map action"
+      ],
+      [
+        "left_action",
+        "",
+        "move_left",
+        "Input Map action"
+      ],
+      [
+        "right_action",
+        "",
+        "move_right",
+        "Input Map action"
+      ],
+      [
+        "forward_axis",
+        "-Z (Godot Default),+Z,+X,-X",
+        "-z",
+        ""
+      ],
+      [
+        "smoothing",
+        "",
+        "0.1",
+        ""
+      ],
+      [
+        "camera_relative",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "camera_name",
+        "",
+        "",
+        "Optional camera node name"
+      ]
+    ],
+    "file": "actuators/3d/look_at_input_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Look At Movement",
+    "cls": "LookAtMovementActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Rotates a Node3D to face the direction of movement. Type the node name; the generated script finds it in the current scene at runtime.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "MeshInstance3D",
+        "Node3D node name"
+      ],
+      [
+        "forward_axis",
+        "-Z (Godot Default),+Z,+X,-X",
+        "-z",
+        ""
+      ],
+      [
+        "smoothing",
+        "",
+        "0.1",
+        ""
+      ],
+      [
+        "ignore_platform_motion",
+        "",
+        "true",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/look_at_movement_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Motion",
+    "cls": "MotionActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Moves or rotates a target node. Leave Target Node Name blank to affect self. X/Y/Z fields accept numbers, variable names, or math expressions.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "",
+        "blank = self, or child/node name"
+      ],
+      [
+        "motion_type",
+        "Location,Rotation",
+        "location",
+        ""
+      ],
+      [
+        "movement_method",
+        "Character Velocity,Translate,Position",
+        "character_velocity",
+        ""
+      ],
+      [
+        "x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "y",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "z",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "space",
+        "Local,Global",
+        "local",
+        ""
+      ],
+      [
+        "camera_relative",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "camera_name",
+        "",
+        "",
+        "e.g. Camera3D"
+      ],
+      [
+        "call_move_and_slide",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/motion_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Mouse",
+    "cls": "MouseActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Toggle cursor visibility or rotate object based on mouse movement",
+    "props": [
+      [
+        "mode",
+        "Cursor Visibility,Mouse Look,Look Towards,Move Towards Cursor,Move To Mouse Click",
+        "cursor_visibility",
+        ""
+      ],
+      [
+        "cursor_visible",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "use_x_axis",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "use_y_axis",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "x_target",
+        "",
+        "self",
+        ""
+      ],
+      [
+        "y_target",
+        "",
+        "self",
+        ""
+      ],
+      [
+        "x_sensitivity",
+        "",
+        "0.1",
+        ""
+      ],
+      [
+        "y_sensitivity",
+        "",
+        "0.1",
+        ""
+      ],
+      [
+        "x_invert",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "y_invert",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "x_threshold",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "y_threshold",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "x_min_degrees",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "x_max_degrees",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "y_min_degrees",
+        "",
+        "-90.0",
+        ""
+      ],
+      [
+        "y_max_degrees",
+        "",
+        "90.0",
+        ""
+      ],
+      [
+        "x_rotation_axis",
+        "X,Y,Z",
+        "y",
+        ""
+      ],
+      [
+        "y_rotation_axis",
+        "X,Y,Z",
+        "x",
+        ""
+      ],
+      [
+        "x_use_local",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "y_use_local",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "recenter_cursor",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "mouse_target",
+        "",
+        "self",
+        ""
+      ],
+      [
+        "mouse_velocity",
+        "",
+        "5.0",
+        ""
+      ],
+      [
+        "mouse_acceleration",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "mouse_turn_speed",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "mouse_arrival_distance",
+        "",
+        "0.1",
+        ""
+      ],
+      [
+        "mouse_facing_axis",
+        "+X,-X,+Y,-Y,+Z,-Z",
+        "+z",
+        ""
+      ],
+      [
+        "mouse_lock_y",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "click_button",
+        "Left,Right,Middle",
+        "left",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/mouse_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Move Towards",
+    "cls": "MoveTowardsActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Moves toward or away from a target.\\nSeek: move directly toward target\\nFlee: move away from target\\nPath Follow: use NavigationAgent3D to pathfind toward target.\\n\\n\u26a0 Path Follow finds the NavigationAgent3D by typed node name.",
+    "props": [
+      [
+        "navigation_agent_node_name",
+        "",
+        "NavigationAgent3D",
+        "NavigationAgent3D node name"
+      ],
+      [
+        "behavior",
+        "Seek,Flee,Path Follow",
+        "seek",
+        ""
+      ],
+      [
+        "target_mode",
+        "Group,Node Name,Vector Variable",
+        "group",
+        ""
+      ],
+      [
+        "target_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "target_variable",
+        "",
+        "",
+        ""
+      ],
+      [
+        "arrival_distance",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "velocity",
+        "",
+        "5.0",
+        ""
+      ],
+      [
+        "acceleration",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "turn_speed",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "face_target",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "facing_axis",
+        "+X,-X,+Y,-Y,+Z,-Z",
+        "+z",
+        ""
+      ],
+      [
+        "use_navmesh_normal",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "self_terminate",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "lock_y_velocity",
+        "",
+        "true",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/move_towards_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Object Flash",
+    "cls": "ObjectFlashActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Flashes a mesh/object with a temporary color overlay.\\nType a node name, not a path.\\n\\",
+    "props": [
+      [
+        "object_node_name",
+        "",
+        "self",
+        ""
+      ],
+      [
+        "color",
+        "",
+        "Color(1",
+        ""
+      ],
+      [
+        "effect",
+        "Single Flash,Strobe,Color Strobe",
+        "single_flash",
+        ""
+      ],
+      [
+        "speed",
+        "",
+        "0.08",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/object_flash_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Object Pool",
+    "cls": "ObjectPoolActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Spawns objects from reusable pools.\\nFaster than instancing \u2014 reuses inactive nodes.\\nPools are created at startup.",
+    "props": [
+      [
+        "action",
+        "Spawn,Despawn All",
+        "spawn",
+        ""
+      ],
+      [
+        "scenes",
+        "",
+        "[]",
+        ""
+      ],
+      [
+        "spawn_mode",
+        "Random,All",
+        "random",
+        ""
+      ],
+      [
+        "spawn_amount",
+        "",
+        "1",
+        ""
+      ],
+      [
+        "spawn_delay",
+        "0.0,60.0,0.05",
+        "0.0",
+        ""
+      ],
+      [
+        "spawn_at_self",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "spawn_node",
+        "",
+        "",
+        ""
+      ],
+      [
+        "inherit_rotation",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "lifespan",
+        "0.0,600.0,0.1",
+        "0.0",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/object_pool_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Object Shake",
+    "cls": "ObjectShakeActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Shakes a named object by rotation, translation, or scale, then returns it to its starting value.\\nType a node name, not a path. Use multiple Object Shake actuators for multiple effects.",
+    "props": [
+      [
+        "shake_type",
+        "Rotate,Translate,Scale",
+        "rotate",
+        ""
+      ],
+      [
+        "object_node_name",
+        "",
+        "self",
+        ""
+      ],
+      [
+        "preset",
+        "Tiny,Light,Medium,Heavy,Side Hit,Vertical Hit,Scale Pop",
+        "medium",
+        ""
+      ],
+      [
+        "x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "y",
+        "",
+        "8.0",
+        ""
+      ],
+      [
+        "z",
+        "",
+        "0.0",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/object_shake_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Parent",
+    "cls": "ParentActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Similar to UPBGE's Parent actuator",
+    "props": [
+      [
+        "mode",
+        "Set Parent,Remove Parent",
+        "set_parent",
+        ""
+      ],
+      [
+        "parent_node",
+        "",
+        "",
+        ""
+      ],
+      [
+        "keep_transform",
+        "",
+        "true",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/parent_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Physics",
+    "cls": "PhysicsActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Suspend/Resume physics, change mass, gravity, damping, etc.",
+    "props": [
+      [
+        "physics_action",
+        "Suspend Physics,Resume Physics,Set Mass,Set Gravity Scale,Set Linear Damping,Set Angular Damping,Enable Contact Monitor,Disable Contact Monitor",
+        "suspend_physics",
+        ""
+      ],
+      [
+        "mass",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "gravity_scale",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "linear_damp",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "angular_damp",
+        "",
+        "0.0",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/physics_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Progress Bar",
+    "cls": "ProgressBarActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Sets the value, min, or max of a ProgressBar, HSlider, VSlider, or any Range node found by name anywhere in the current scene tree.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "ProgressBar",
+        ""
+      ],
+      [
+        "node_name_source",
+        "Literal Node Name,String Variable",
+        "literal",
+        ""
+      ],
+      [
+        "export_node_name",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "set_value",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "value",
+        "",
+        "100.0",
+        ""
+      ],
+      [
+        "set_min",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "min_value",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "set_max",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "max_value",
+        "",
+        "100.0",
+        ""
+      ],
+      [
+        "transition",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "transition_speed",
+        "",
+        "5.0",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/progress_bar_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Rotate Towards",
+    "cls": "RotateTowardsActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Rotates this node to face a target found by name or group.\\nUseful for turrets, enemies tracking a player, or any look-at behaviour.",
+    "props": [
+      [
+        "target_mode",
+        "Node Name,Group",
+        "node_name",
+        ""
+      ],
+      [
+        "target_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "axes",
+        "Y Only (Horizontal),X Only (Vertical),Both",
+        "y_only",
+        ""
+      ],
+      [
+        "forward_axis",
+        "Positive Z (+Z),Negative Z (-Z)",
+        "positive_z",
+        ""
+      ],
+      [
+        "speed",
+        "0.0,360.0,0.1",
+        "5.0",
+        ""
+      ],
+      [
+        "clamp_x",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "clamp_x_min",
+        "-180.0,0.0,0.1",
+        "-45.0",
+        ""
+      ],
+      [
+        "clamp_x_max",
+        "0.0,180.0,0.1",
+        "45.0",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/rotate_towards_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Save / Load",
+    "cls": "SaveLoadActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Three scopes: This Node   \u2014 saves position, rotation, and variables for the node this brick is on Target Node \u2014 saves position, rotation, and variables for a specific named node Group       \u2014 saves position, rotation, and variables for every node in a named group No custom save()/load() methods required on any node. Pair with an InputMap Sensor or Collision Sensor to trigger",
+    "props": [
+      [
+        "mode",
+        "Save,Load",
+        "save",
+        ""
+      ],
+      [
+        "scope",
+        "This Node,Target Node,Group",
+        "this_node",
+        ""
+      ],
+      [
+        "target",
+        "",
+        "",
+        "Node name or group name"
+      ],
+      [
+        "slot",
+        "",
+        "slot1",
+        ""
+      ],
+      [
+        "save_path",
+        "",
+        "",
+        "e.g. user://saves/mysave.json"
+      ],
+      [
+        "save_position",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "save_rotation",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "save_variables",
+        "",
+        "true",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/save_load_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Screen Shake",
+    "cls": "ScreenShakeActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Trauma-based camera shake.\\nType the Camera3D node name. The generated script searches the whole current scene tree, so this brick can live on any 3D node.",
+    "props": [
+      [
+        "camera_node_name",
+        "",
+        "Camera3D",
+        ""
+      ],
+      [
+        "node_name_source",
+        "Literal Node Name,String Variable",
+        "literal",
+        ""
+      ],
+      [
+        "export_node_name",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "preset",
+        "Light,Medium,Heavy,Explosion,Subtle Idle",
+        "medium",
+        ""
+      ],
+      [
+        "export_params",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "trauma",
+        "",
+        "1.5",
+        ""
+      ],
+      [
+        "max_offset",
+        "",
+        "18.0",
+        ""
+      ],
+      [
+        "decay",
+        "",
+        "1.5",
+        ""
+      ],
+      [
+        "noise_speed",
+        "",
+        "8.0",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/screen_shake_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Set Camera",
+    "cls": "SetCameraActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Makes the assigned Camera3D the active camera.\\nUse a one-shot sensor (e.g. Delay or a state transition) to avoid\\ncalling make_current() every frame unnecessarily.\\n\\n\u26a0 Adds an @export in the Inspector \u2014 assign your Camera3D there.",
+    "props": [
+      [
+        "camera_node_name",
+        "",
+        "Camera3D",
+        "Camera3D node name"
+      ]
+    ],
+    "file": "actuators/3d/set_camera_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Smooth Follow Camera",
+    "cls": "SmoothFollowCameraActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Smoothly follows this node with the assigned Camera3D,\\nmaintaining the camera's initial offset from the target.\\n\\nPosition follow: camera tracks the node's position per axis.\\nRotation follow: camera orbits the node, keeping it in frame.\\nDead zone: camera only moves once the node exceeds the threshold.\\n\\n\u26a0 Adds an @export in the Inspector \u2014 assign your Camera3D there.",
+    "props": [
+      [
+        "camera_node_name",
+        "",
+        "Camera3D",
+        "Camera3D node name"
+      ],
+      [
+        "follow_speed",
+        "",
+        "5.0",
+        ""
+      ],
+      [
+        "dead_zone_x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "dead_zone_y",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "dead_zone_z",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "follow_pos_x",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "follow_pos_y",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "follow_pos_z",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "rotation_source_node_name",
+        "",
+        "",
+        "Rotation source node name (blank = self)"
+      ],
+      [
+        "follow_rot_x",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "follow_rot_y",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "follow_rot_z",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "rotation_speed",
+        "",
+        "5.0",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/smooth_follow_camera_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Split Screen",
+    "cls": "SplitScreenActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Creates a split screen layout.\\nApply Code always builds all 4 SubViewportContainers.\\nEach player count has its own independent layout.\\nChange split_screen_players at runtime to switch counts\\nwithout re-applying code.\\n** Use an Always sensor so the layout updates every frame.",
+    "props": [
+      [
+        "camera_1_node_name",
+        "",
+        "Camera3D",
+        "Player 1 Camera3D node name"
+      ],
+      [
+        "camera_2_node_name",
+        "",
+        "Camera3D2",
+        "Player 2 Camera3D node name"
+      ],
+      [
+        "camera_3_node_name",
+        "",
+        "Camera3D3",
+        "Player 3 Camera3D node name"
+      ],
+      [
+        "camera_4_node_name",
+        "",
+        "Camera3D4",
+        "Player 4 Camera3D node name"
+      ],
+      [
+        "player_count",
+        "",
+        "2",
+        "2  or  player_count"
+      ],
+      [
+        "layout_2",
+        "",
+        "vertical",
+        ""
+      ],
+      [
+        "layout_3",
+        "",
+        "top_wide",
+        ""
+      ],
+      [
+        "layout_4",
+        "",
+        "grid_2x2",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/split_screen_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Sprite Frames",
+    "cls": "SpriteFramesActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Play, stop, or pause Sprite3D / AnimatedSprite3D frame animations.\\nFinds the target by name anywhere in the scene tree.\\nLeave Target Node empty to use the node this script is on.",
+    "props": [
+      [
+        "mode",
+        "Play,Stop,Pause",
+        "play",
+        ""
+      ],
+      [
+        "animation_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "speed_scale",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "loop",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "target_node",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/sprite_frames_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Teleport",
+    "cls": "TeleportActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Instantly sets position to a target node or coordinates.\\nUseful for respawning, portals, checkpoints.\\n\\n\u26a0 Target Node mode adds an @export in the Inspector \u2014 assign the destination node there.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "Target",
+        "Target Node3D node name"
+      ],
+      [
+        "mode",
+        "Target Node,Coordinates,Vector Variable",
+        "target_node",
+        ""
+      ],
+      [
+        "x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "y",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "z",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "vector_variable",
+        "",
+        "",
+        ""
+      ],
+      [
+        "copy_rotation",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/teleport_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Text",
+    "cls": "TextActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Updates a Label, Label3D, or RichTextLabel by node name. Searches the whole current scene tree, so this brick can live on any node.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "Label",
+        ""
+      ],
+      [
+        "node_name_source",
+        "Literal Node Name,String Variable",
+        "literal",
+        ""
+      ],
+      [
+        "export_node_name",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "mode",
+        "Variable,Static",
+        "variable",
+        ""
+      ],
+      [
+        "variable_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "prefix",
+        "",
+        "",
+        ""
+      ],
+      [
+        "suffix",
+        "",
+        "",
+        ""
+      ],
+      [
+        "static_text",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/text_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Torque",
+    "cls": "TorqueActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Applies torque (rotational force) to RigidBody3D objects",
+    "props": [
+      [
+        "x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "y",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "z",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "max_torque",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "space",
+        "Local,Global",
+        "local",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/torque_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Waypoint Path",
+    "cls": "WaypointPathActuatorActuator",
+    "domain": "3d",
+    "category": "General",
+    "description": "Moves this node through a series of waypoints or along an editable Path3D curve.",
+    "props": [
+      [
+        "path_source",
+        "Node3D Positions:node_positions,Path3D:path3d",
+        "node_positions",
+        ""
+      ],
+      [
+        "waypoints",
+        "",
+        "[]",
+        ""
+      ],
+      [
+        "loop_mode",
+        "Loop,Ping Pong,Once",
+        "loop",
+        ""
+      ],
+      [
+        "speed",
+        "",
+        "5.0",
+        "number, variable, or expression"
+      ],
+      [
+        "arrival_distance",
+        "",
+        "0.5",
+        "number, variable, or expression"
+      ],
+      [
+        "face_direction",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "follow_curve_tilt",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/waypoint_path_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Character Jump",
+    "cls": "JumpActuator",
+    "domain": "3d",
+    "category": "Motion",
+    "description": "Applies a jump impulse to a CharacterBody3D. Pair with the Character Actuator for gravity and ground detection.",
+    "props": [
+      [
+        "jump_height",
+        "",
+        "4.5",
+        ""
+      ],
+      [
+        "gravity_strength",
+        "",
+        "9.8",
+        ""
+      ],
+      [
+        "max_jumps",
+        "",
+        "1",
+        ""
+      ],
+      [
+        "inherit_platform_velocity",
+        "",
+        "true",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/jump_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "2D Audio",
+    "cls": "Audio2DActuator",
+    "domain": "common",
+    "category": "Audio",
+    "description": "Play 2D or UI audio from a file.",
+    "props": [
+      [
+        "mode",
+        "Play,Stop,Pause,Fade In,Fade Out",
+        "play",
+        ""
+      ],
+      [
+        "sound_file",
+        "*.wav,*.ogg,*.mp3",
+        "",
+        ""
+      ],
+      [
+        "player_type",
+        "AudioStreamPlayer,AudioStreamPlayer2D",
+        "stream_player",
+        ""
+      ],
+      [
+        "play_mode",
+        "Restart,Overlap,Ignore If Playing",
+        "restart",
+        ""
+      ],
+      [
+        "volume",
+        "-80,24,0.1",
+        "0.0",
+        ""
+      ],
+      [
+        "pitch",
+        "0.01,4.0,0.01",
+        "1.0",
+        ""
+      ],
+      [
+        "pitch_random",
+        "0.0,1.0,0.01",
+        "0.0",
+        ""
+      ],
+      [
+        "loop",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "audio_bus",
+        "",
+        "",
+        ""
+      ],
+      [
+        "fade_duration",
+        "0.1,10.0,0.1",
+        "1.0",
+        ""
+      ]
+    ],
+    "file": "actuators/common/audio_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Animation",
+    "cls": "AnimationActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Play, stop, or control animations by name.\\nAutomatically finds the AnimationPlayer that owns the animation.\\nWorks with AnimationPlayers nested at any depth.",
+    "props": [
+      [
+        "mode",
+        "Play,Stop,Pause,Queue",
+        "play",
+        ""
+      ],
+      [
+        "animation_name",
+        "__ANIMATION_LIST__",
+        "",
+        ""
+      ],
+      [
+        "speed",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "blend_time",
+        "",
+        "-1.0",
+        ""
+      ],
+      [
+        "play_backwards",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "from_end",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "actuators/common/animation_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Game",
+    "cls": "GameActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Exit, restart, pause, and screenshot functionality",
+    "props": [
+      [
+        "action",
+        "Exit,Reload Scene,Pause,Screenshot",
+        "exit",
+        ""
+      ],
+      [
+        "screenshot_path",
+        "",
+        "user://screenshot.png",
+        ""
+      ]
+    ],
+    "file": "actuators/common/game_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Hit Stop",
+    "cls": "HitStopActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Briefly pauses or slows game time when an impact lands.\\nUse for attacks, damage, blocks, heavy landings, and breaks.\\nThis is also called hit pause or impact freeze.",
+    "props": [
+      [
+        "preset",
+        "Tiny,Light,Medium,Heavy,Custom",
+        "medium",
+        ""
+      ],
+      [
+        "duration",
+        "",
+        "0.06",
+        ""
+      ],
+      [
+        "time_scale",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "restart_if_active",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "actuators/common/hit_stop_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Modify Variable",
+    "cls": "VariableActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Modifies a variable's value.\\nWorks with local and global variables.\\nAutomatically uses GlobalVars if not found locally.",
+    "props": [
+      [
+        "variable_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "mode",
+        "Assign,Add,Copy,Toggle",
+        "assign",
+        ""
+      ],
+      [
+        "value",
+        "",
+        "",
+        ""
+      ],
+      [
+        "source_variable",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "actuators/common/variable_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Modulate",
+    "cls": "ModulateActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Sets or smoothly transitions the color/alpha of a UI or 2D node found by name anywhere in the current scene tree.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "node_name_source",
+        "Literal Node Name,String Variable",
+        "literal",
+        ""
+      ],
+      [
+        "export_node_name",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "target_modulate",
+        "Self Modulate,Modulate",
+        "self_modulate",
+        ""
+      ],
+      [
+        "color",
+        "",
+        "Color(1",
+        ""
+      ],
+      [
+        "transition",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "transition_speed",
+        "",
+        "5.0",
+        ""
+      ]
+    ],
+    "file": "actuators/common/modulate_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Music",
+    "cls": "MusicActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Three modes:\\nTracks: define and create music players at startup.\\nSet: set which track is current (and optionally play it).\\nControl: play, stop, pause, resume, or crossfade from current to another track.",
+    "props": [
+      [
+        "music_mode",
+        "Tracks,Set,Control",
+        "tracks",
+        ""
+      ],
+      [
+        "tracks",
+        "",
+        "[]",
+        ""
+      ],
+      [
+        "volume_db",
+        "-80,24,0.1",
+        "0.0",
+        ""
+      ],
+      [
+        "loop",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "audio_bus",
+        "",
+        "",
+        ""
+      ],
+      [
+        "persist",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "set_track",
+        "",
+        "0",
+        ""
+      ],
+      [
+        "set_play",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "control_action",
+        "Play,Stop,Pause,Resume,Crossfade",
+        "play",
+        ""
+      ],
+      [
+        "to_track",
+        "",
+        "1",
+        ""
+      ],
+      [
+        "crossfade_time",
+        "0.1,10.0,0.1",
+        "1.0",
+        ""
+      ]
+    ],
+    "file": "actuators/common/music_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Preload",
+    "cls": "PreloadActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Preloads resources (materials, scenes, textures, audio, meshes) into memory before they are needed, preventing runtime hitches and frame drops.",
+    "props": [
+      [
+        "load_mode",
+        "Background (Threaded),Immediate (Blocking)",
+        "background",
+        ""
+      ],
+      [
+        "resource_type",
+        "Any,Scene,Material,Texture,AudioStream,Mesh,Shader",
+        "Any",
+        ""
+      ],
+      [
+        "resources",
+        "",
+        "[]",
+        ""
+      ],
+      [
+        "on_complete_signal",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "signal_group",
+        "",
+        "",
+        ""
+      ],
+      [
+        "signal_message",
+        "",
+        "preload_done",
+        ""
+      ]
+    ],
+    "file": "actuators/common/preload_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Property",
+    "cls": "PropertyActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Sets properties on a target node.\\nChoose the node type to see its available properties.\\nLeave a field empty to skip setting that property.\\n\u26a0 Adds @export in Inspector \u2014 assign the target node.",
+    "props": [
+      [
+        "node_type",
+        "Node,Mesh Instance,Collision Shape,Light,Rigid Body,Character Body,Animation Player,Control,Label,Button,Camera,Sprite,Custom",
+        "Node",
+        ""
+      ],
+      [
+        "target_node",
+        "",
+        "self",
+        ""
+      ],
+      [
+        "_group_n3d_visibility",
+        "Visibility",
+        "",
+        ""
+      ],
+      [
+        "n3d_visible",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "_group_n3d_transform",
+        "Transform",
+        "",
+        ""
+      ],
+      [
+        "n3d_pos_x",
+        "",
+        "",
+        ""
+      ],
+      [
+        "n3d_pos_y",
+        "",
+        "",
+        ""
+      ],
+      [
+        "n3d_pos_z",
+        "",
+        "",
+        ""
+      ],
+      [
+        "n3d_rot_x",
+        "",
+        "",
+        ""
+      ],
+      [
+        "n3d_rot_y",
+        "",
+        "",
+        ""
+      ],
+      [
+        "n3d_rot_z",
+        "",
+        "",
+        ""
+      ],
+      [
+        "n3d_scale_x",
+        "",
+        "",
+        ""
+      ],
+      [
+        "n3d_scale_y",
+        "",
+        "",
+        ""
+      ],
+      [
+        "n3d_scale_z",
+        "",
+        "",
+        ""
+      ],
+      [
+        "_group_mesh_basic",
+        "Mesh Instance",
+        "",
+        ""
+      ],
+      [
+        "mesh_visible",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "mesh_cast_shadow",
+        "",
+        "",
+        ""
+      ],
+      [
+        "_group_col_basic",
+        "Collision Shape",
+        "",
+        ""
+      ],
+      [
+        "col_disabled",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "_group_light_basic",
+        "Basic",
+        "",
+        ""
+      ],
+      [
+        "light_visible",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "light_energy",
+        "",
+        "",
+        ""
+      ],
+      [
+        "_group_light_color",
+        "Color",
+        "",
+        ""
+      ],
+      [
+        "light_color",
+        "",
+        "Color(1",
+        ""
+      ],
+      [
+        "_group_light_shadow",
+        "Shadow",
+        "",
+        ""
+      ],
+      [
+        "light_shadow",
+        "",
+        "",
+        ""
+      ],
+      [
+        "_group_rb_basic",
+        "Basic",
+        "",
+        ""
+      ],
+      [
+        "rb_freeze",
+        "",
+        "",
+        ""
+      ],
+      [
+        "rb_mass",
+        "",
+        "",
+        ""
+      ],
+      [
+        "_group_rb_damping",
+        "Damping",
+        "",
+        ""
+      ],
+      [
+        "rb_gravity_scale",
+        "",
+        "",
+        ""
+      ],
+      [
+        "rb_linear_damp",
+        "",
+        "",
+        ""
+      ],
+      [
+        "rb_angular_damp",
+        "",
+        "",
+        ""
+      ],
+      [
+        "_group_cb_basic",
+        "Basic",
+        "",
+        ""
+      ],
+      [
+        "cb_up_dir_y",
+        "",
+        "",
+        ""
+      ],
+      [
+        "cb_max_slides",
+        "",
+        "",
+        ""
+      ],
+      [
+        "_group_cb_floor",
+        "Floor",
+        "",
+        ""
+      ],
+      [
+        "cb_floor_max_angle",
+        "",
+        "",
+        ""
+      ],
+      [
+        "cb_stop_on_slope",
+        "",
+        "",
+        ""
+      ],
+      [
+        "cb_block_on_wall",
+        "",
+        "",
+        ""
+      ],
+      [
+        "cb_slide_on_ceiling",
+        "",
+        "",
+        ""
+      ],
+      [
+        "_group_anim_basic",
+        "Animation Player",
+        "",
+        ""
+      ],
+      [
+        "anim_speed_scale",
+        "",
+        "",
+        ""
+      ],
+      [
+        "_group_ctrl_basic",
+        "Basic",
+        "",
+        ""
+      ],
+      [
+        "ctrl_visible",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "ctrl_modulate",
+        "",
+        "Color(1",
+        ""
+      ],
+      [
+        "_group_ctrl_transform",
+        "Transform",
+        "",
+        ""
+      ],
+      [
+        "ctrl_size_x",
+        "",
+        "",
+        ""
+      ],
+      [
+        "ctrl_size_y",
+        "",
+        "",
+        ""
+      ],
+      [
+        "ctrl_pos_x",
+        "",
+        "",
+        ""
+      ],
+      [
+        "ctrl_pos_y",
+        "",
+        "",
+        ""
+      ],
+      [
+        "ctrl_rotation",
+        "",
+        "",
+        ""
+      ],
+      [
+        "ctrl_scale_x",
+        "",
+        "",
+        ""
+      ],
+      [
+        "ctrl_scale_y",
+        "",
+        "",
+        ""
+      ],
+      [
+        "_group_lbl_basic",
+        "Label",
+        "",
+        ""
+      ],
+      [
+        "lbl_text",
+        "",
+        "",
+        ""
+      ],
+      [
+        "lbl_visible",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "lbl_modulate",
+        "",
+        "Color(1",
+        ""
+      ],
+      [
+        "_group_btn_basic",
+        "Button",
+        "",
+        ""
+      ],
+      [
+        "btn_disabled",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "btn_text",
+        "",
+        "",
+        ""
+      ],
+      [
+        "btn_visible",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "_group_cam_basic",
+        "Camera",
+        "",
+        ""
+      ],
+      [
+        "cam_fov",
+        "",
+        "",
+        ""
+      ],
+      [
+        "cam_near",
+        "",
+        "",
+        ""
+      ],
+      [
+        "cam_far",
+        "",
+        "",
+        ""
+      ],
+      [
+        "cam_current",
+        "",
+        "",
+        ""
+      ],
+      [
+        "_group_spr_basic",
+        "Basic",
+        "",
+        ""
+      ],
+      [
+        "spr_visible",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "spr_modulate",
+        "",
+        "Color(1",
+        ""
+      ],
+      [
+        "spr_flip_h",
+        "",
+        "",
+        ""
+      ],
+      [
+        "spr_flip_v",
+        "",
+        "",
+        ""
+      ],
+      [
+        "spr_pixel_size",
+        "",
+        "",
+        ""
+      ],
+      [
+        "_group_spr_display",
+        "Display",
+        "",
+        ""
+      ],
+      [
+        "spr_billboard",
+        "",
+        "",
+        ""
+      ],
+      [
+        "spr_transparent",
+        "",
+        "",
+        ""
+      ],
+      [
+        "spr_shaded",
+        "",
+        "",
+        ""
+      ],
+      [
+        "spr_double_sided",
+        "",
+        "",
+        ""
+      ],
+      [
+        "_group_spr_frames",
+        "Frames",
+        "",
+        ""
+      ],
+      [
+        "spr_frame",
+        "",
+        "",
+        ""
+      ],
+      [
+        "spr_hframes",
+        "",
+        "",
+        ""
+      ],
+      [
+        "spr_vframes",
+        "",
+        "",
+        ""
+      ],
+      [
+        "_group_custom",
+        "Custom Property",
+        "",
+        ""
+      ],
+      [
+        "custom_property",
+        "",
+        "",
+        ""
+      ],
+      [
+        "custom_value",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "actuators/common/property_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Random",
+    "cls": "RandomActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Similar to UPBGE's Random actuator",
+    "props": [
+      [
+        "variable_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "distribution",
+        "Bool Constant,Bool Uniform,Bool Bernoulli,Int Constant,Int Uniform,Int Poisson,Float Constant,Float Uniform,Float Normal,Float Neg Exp",
+        "int_uniform",
+        ""
+      ],
+      [
+        "bool_value",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "bool_probability",
+        "",
+        "0.5",
+        ""
+      ],
+      [
+        "int_value",
+        "",
+        "0",
+        ""
+      ],
+      [
+        "int_min",
+        "",
+        "0",
+        ""
+      ],
+      [
+        "int_max",
+        "",
+        "100",
+        ""
+      ],
+      [
+        "int_lambda",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "float_value",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "float_min",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "float_max",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "float_mean",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "float_stddev",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "float_lambda",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "use_seed",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "seed_value",
+        "",
+        "0",
+        ""
+      ]
+    ],
+    "file": "actuators/common/random_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Rumble",
+    "cls": "RumbleActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Trigger controller haptic vibration.\\nVibrate: manual motor control for a set duration.\\nStop: immediately stop all vibration.\\nPattern: built-in presets that play to completion.\\nThe sensor only needs to fire once \u2014 the pattern finishes even if the sensor stops.",
+    "props": [
+      [
+        "action",
+        "Vibrate,Stop,Pattern",
+        "pattern",
+        ""
+      ],
+      [
+        "weak_motor",
+        "0.0,1.0",
+        "0.5",
+        ""
+      ],
+      [
+        "strong_motor",
+        "0.0,1.0",
+        "0.5",
+        ""
+      ],
+      [
+        "duration",
+        "",
+        "0.5",
+        ""
+      ],
+      [
+        "pattern",
+        "Single Pulse,Double Pulse,Sustained,Ramp Up,Ramp Down,Heartbeat",
+        "single_pulse",
+        ""
+      ],
+      [
+        "intensity",
+        "0.0,1.0",
+        "1.0",
+        ""
+      ],
+      [
+        "device",
+        "",
+        "0",
+        ""
+      ]
+    ],
+    "file": "actuators/common/rumble_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Scene",
+    "cls": "SceneActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Similar to UPBGE's Scene actuator",
+    "props": [
+      [
+        "mode",
+        "Restart,Set Scene",
+        "restart",
+        ""
+      ],
+      [
+        "scene_path",
+        "*.tscn,*.scn",
+        "",
+        ""
+      ]
+    ],
+    "file": "actuators/common/scene_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Screen Flash",
+    "cls": "ScreenFlashActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Flashes a color over the screen.\\nPress \\",
+    "props": [
+      [
+        "color",
+        "",
+        "Color(1",
+        ""
+      ],
+      [
+        "duration",
+        "",
+        "0.3",
+        ""
+      ],
+      [
+        "fade_in",
+        "",
+        "0.05",
+        ""
+      ]
+    ],
+    "file": "actuators/common/screen_flash_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Signal",
+    "cls": "MessageActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Sends a signal to other nodes.\\nReceiving nodes need a Signal Sensor listening for the subject.",
+    "props": [
+      [
+        "target_group",
+        "",
+        "",
+        ""
+      ],
+      [
+        "subject",
+        "",
+        "",
+        ""
+      ],
+      [
+        "body",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "actuators/common/message_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "State",
+    "cls": "StateActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "State logic brick.",
+    "props": [
+      [
+        "state_id",
+        "__STATE_LIST__",
+        "",
+        ""
+      ]
+    ],
+    "file": "actuators/common/state_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Tween",
+    "cls": "TweenActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Animates any property on self or on a node found by name anywhere in the current scene tree.",
+    "props": [
+      [
+        "target_mode",
+        "Self,Node",
+        "self",
+        ""
+      ],
+      [
+        "target_node_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "node_name_source",
+        "Literal Node Name,String Variable",
+        "literal",
+        ""
+      ],
+      [
+        "export_node_name",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "property",
+        "",
+        "modulate:a",
+        ""
+      ],
+      [
+        "target_value",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "duration",
+        "",
+        "0.5",
+        ""
+      ],
+      [
+        "trans_type",
+        "Linear,Sine,Quint,Quart,Quad,Expo,Elastic,Bounce,Back,Spring,Circular,Cubic",
+        "linear",
+        ""
+      ],
+      [
+        "ease_type",
+        "In,Out,In Out,Out In",
+        "in_out",
+        ""
+      ],
+      [
+        "loop",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "actuators/common/tween_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Visibility",
+    "cls": "VisibilityActuatorActuator",
+    "domain": "common",
+    "category": "General",
+    "description": "Shows, hides, or toggles visibility of a node by name. Uses the same current-scene recursive name lookup as the Text Actuator.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "self",
+        "Node name"
+      ],
+      [
+        "action",
+        "Show,Hide,Toggle",
+        "show",
+        ""
+      ]
+    ],
+    "file": "actuators/common/visibility_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Get Variable",
+    "cls": "GetVariableActuator",
+    "domain": "common",
+    "category": "Logic",
+    "description": "Reads a variable from self, another node, or GlobalVars and stores it for later bricks.",
+    "props": [
+      [
+        "source",
+        "Self,Node Name,GlobalVars",
+        "node_name",
+        ""
+      ],
+      [
+        "source_node_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "variable_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "store_as",
+        "",
+        "",
+        ""
+      ],
+      [
+        "fallback_value",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "actuators/common/get_variable_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Get Transforms",
+    "cls": "GetTransformsActuator",
+    "domain": "common",
+    "category": "Object",
+    "description": "Gets position, rotation, and scale from a node or the nearest member of a group and stores the values as variables.",
+    "props": [
+      [
+        "target_mode",
+        "Node Name,Group",
+        "node_name",
+        ""
+      ],
+      [
+        "target_name",
+        "",
+        "",
+        "Node or group name"
+      ],
+      [
+        "get_position",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "position_variable",
+        "",
+        "",
+        ""
+      ],
+      [
+        "get_rotation",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "rotation_variable",
+        "",
+        "",
+        ""
+      ],
+      [
+        "get_scale",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "scale_variable",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "actuators/common/get_transforms_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Set Transforms",
+    "cls": "TransformsActuator",
+    "domain": "common",
+    "category": "Object",
+    "description": "Sets position, rotation, and scale from entered values or variables, instantly or over time.",
+    "props": [],
+    "file": "actuators/common/scale_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "2D Audio",
+    "cls": "UIAudio2DActuator",
+    "domain": "ui",
+    "category": "UI",
+    "description": "Plays UI or 2D audio.",
+    "props": [
+      [
+        "mode",
+        "Play,Stop,Pause,Fade In,Fade Out",
+        "play",
+        ""
+      ],
+      [
+        "sound_file",
+        "*.wav,*.ogg,*.mp3",
+        "",
+        ""
+      ],
+      [
+        "player_type",
+        "AudioStreamPlayer,AudioStreamPlayer2D",
+        "stream_player",
+        ""
+      ],
+      [
+        "play_mode",
+        "Restart,Overlap,Ignore If Playing",
+        "restart",
+        ""
+      ],
+      [
+        "volume",
+        "-80,24,0.1",
+        "0.0",
+        ""
+      ],
+      [
+        "pitch",
+        "0.01,4.0,0.01",
+        "1.0",
+        ""
+      ],
+      [
+        "pitch_random",
+        "0.0,1.0,0.01",
+        "0.0",
+        ""
+      ],
+      [
+        "loop",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "audio_bus",
+        "",
+        "",
+        ""
+      ],
+      [
+        "fade_duration",
+        "0.1,10.0,0.1",
+        "1.0",
+        ""
+      ]
+    ],
+    "file": "actuators/ui/audio_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Button",
+    "cls": "UIButtonActuator",
+    "domain": "ui",
+    "category": "UI",
+    "description": "Triggers, toggles, presses, or releases a Button node.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "self",
+        "self or Button node name"
+      ],
+      [
+        "action",
+        "Emit Pressed,Press,Release,Toggle",
+        "emit_pressed",
+        ""
+      ]
+    ],
+    "file": "actuators/ui/button_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Focus",
+    "cls": "UIFocusActuator",
+    "domain": "ui",
+    "category": "UI",
+    "description": "Grabs or releases keyboard/gamepad focus on a Control node.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "self",
+        "self or Control node name"
+      ],
+      [
+        "action",
+        "Grab Focus,Release Focus",
+        "grab_focus",
+        ""
+      ]
+    ],
+    "file": "actuators/ui/focus_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Modulate",
+    "cls": "UIModulateActuator",
+    "domain": "ui",
+    "category": "UI",
+    "description": "Sets or transitions color/alpha on a Control or CanvasItem node.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "node_name_source",
+        "Literal Node Name,String Variable",
+        "literal",
+        ""
+      ],
+      [
+        "export_node_name",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "target_modulate",
+        "Self Modulate,Modulate",
+        "self_modulate",
+        ""
+      ],
+      [
+        "color",
+        "",
+        "Color(1",
+        ""
+      ],
+      [
+        "transition",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "transition_speed",
+        "",
+        "5.0",
+        ""
+      ]
+    ],
+    "file": "actuators/ui/modulate_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Popup",
+    "cls": "UIPopupActuator",
+    "domain": "ui",
+    "category": "UI",
+    "description": "Shows, hides, toggles, or centers a Popup/Window-like UI node.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "self",
+        "Popup node name"
+      ],
+      [
+        "action",
+        "Show,Hide,Toggle,Popup Centered",
+        "show",
+        ""
+      ]
+    ],
+    "file": "actuators/ui/popup_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Progress Bar",
+    "cls": "UIProgressBarActuator",
+    "domain": "ui",
+    "category": "UI",
+    "description": "Sets the value, min, or max of a ProgressBar, Slider, or Range UI node.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "ProgressBar",
+        ""
+      ],
+      [
+        "node_name_source",
+        "Literal Node Name,String Variable",
+        "literal",
+        ""
+      ],
+      [
+        "export_node_name",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "set_value",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "value",
+        "",
+        "100.0",
+        ""
+      ],
+      [
+        "set_min",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "min_value",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "set_max",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "max_value",
+        "",
+        "100.0",
+        ""
+      ],
+      [
+        "transition",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "transition_speed",
+        "",
+        "5.0",
+        ""
+      ]
+    ],
+    "file": "actuators/ui/progress_bar_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Screen Flash",
+    "cls": "UIScreenFlashActuator",
+    "domain": "ui",
+    "category": "UI",
+    "description": "Flashes a full-screen ColorRect overlay.",
+    "props": [
+      [
+        "color",
+        "",
+        "Color(1",
+        ""
+      ],
+      [
+        "duration",
+        "",
+        "0.3",
+        ""
+      ],
+      [
+        "fade_in",
+        "",
+        "0.05",
+        ""
+      ]
+    ],
+    "file": "actuators/ui/screen_flash_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Scroll",
+    "cls": "UIScrollActuator",
+    "domain": "ui",
+    "category": "UI",
+    "description": "Sets or adds to a ScrollContainer scroll position.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "self",
+        "ScrollContainer node name"
+      ],
+      [
+        "mode",
+        "Set,Add",
+        "set",
+        ""
+      ],
+      [
+        "axis",
+        "Vertical,Horizontal,Both",
+        "vertical",
+        ""
+      ],
+      [
+        "x",
+        "",
+        "0",
+        ""
+      ],
+      [
+        "y",
+        "",
+        "0",
+        ""
+      ]
+    ],
+    "file": "actuators/ui/scroll_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Slider",
+    "cls": "UISliderActuator",
+    "domain": "ui",
+    "category": "UI",
+    "description": "Sets or adds to a Slider or Range value.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "self",
+        "Slider node name"
+      ],
+      [
+        "mode",
+        "Set,Add",
+        "set",
+        ""
+      ],
+      [
+        "value",
+        "",
+        "0.0",
+        ""
+      ]
+    ],
+    "file": "actuators/ui/slider_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Tab",
+    "cls": "UITabActuator",
+    "domain": "ui",
+    "category": "UI",
+    "description": "Changes the active tab on a TabContainer.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "self",
+        "TabContainer node name"
+      ],
+      [
+        "action",
+        "Set,Next,Previous",
+        "set",
+        ""
+      ],
+      [
+        "tab_index",
+        "",
+        "0",
+        ""
+      ]
+    ],
+    "file": "actuators/ui/tab_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Text",
+    "cls": "UITextActuator",
+    "domain": "ui",
+    "category": "UI",
+    "description": "Updates a Label, RichTextLabel, or other text UI node.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "Label",
+        ""
+      ],
+      [
+        "node_name_source",
+        "Literal Node Name,String Variable",
+        "literal",
+        ""
+      ],
+      [
+        "export_node_name",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "mode",
+        "Variable,Static",
+        "variable",
+        ""
+      ],
+      [
+        "variable_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "prefix",
+        "",
+        "",
+        ""
+      ],
+      [
+        "suffix",
+        "",
+        "",
+        ""
+      ],
+      [
+        "static_text",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "actuators/ui/text_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Tween",
+    "cls": "UITweenActuator",
+    "domain": "ui",
+    "category": "UI",
+    "description": "Tweens a UI node property.",
+    "props": [
+      [
+        "target_mode",
+        "Self,Node",
+        "self",
+        ""
+      ],
+      [
+        "target_node_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "node_name_source",
+        "Literal Node Name,String Variable",
+        "literal",
+        ""
+      ],
+      [
+        "export_node_name",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "property",
+        "",
+        "modulate:a",
+        ""
+      ],
+      [
+        "target_value",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "duration",
+        "",
+        "0.5",
+        ""
+      ],
+      [
+        "trans_type",
+        "Linear,Sine,Quint,Quart,Quad,Expo,Elastic,Bounce,Back,Spring,Circular,Cubic",
+        "linear",
+        ""
+      ],
+      [
+        "ease_type",
+        "In,Out,In Out,Out In",
+        "in_out",
+        ""
+      ],
+      [
+        "loop",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "actuators/ui/tween_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Visibility",
+    "cls": "UIVisibilityActuator",
+    "domain": "ui",
+    "category": "UI",
+    "description": "Shows, hides, or toggles a UI node.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "self",
+        "Node name"
+      ],
+      [
+        "action",
+        "Show,Hide,Toggle",
+        "show",
+        ""
+      ]
+    ],
+    "file": "actuators/ui/visibility_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Window",
+    "cls": "UIWindowActuator",
+    "domain": "ui",
+    "category": "UI",
+    "description": "Shows, hides, toggles, or centers a Window node.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "self",
+        "Window node name"
+      ],
+      [
+        "action",
+        "Show,Hide,Toggle,Popup Centered",
+        "show",
+        ""
+      ]
+    ],
+    "file": "actuators/ui/window_actuator.gd"
+  },
+  {
+    "type": "controller",
+    "name": "Controller",
+    "cls": "ControllerController",
+    "domain": "controller.gd",
+    "category": "General",
+    "description": "AND: all connected sensors must be active OR: any connected sensor must be active NAND: NOT all sensors active (fires unless all are true) NOR: NO sensors active (fires only when all are false) XOR: exactly one sensor is active",
+    "props": [
+      [
+        "logic_mode",
+        "AND,OR,NAND,NOR,XOR",
+        "and",
+        ""
+      ],
+      [
+        "all_states",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "state_id",
+        "__STATE_LIST__",
+        "",
+        ""
+      ]
+    ],
+    "file": "controllers/controller.gd"
+  },
+  {
+    "type": "controller",
+    "name": "Script Controller",
+    "cls": "ScriptControllerController",
+    "domain": "script_controller.gd",
+    "category": "General",
+    "description": "Works like UPBGE's Python Controller (module mode): - Point to a .gd file - That file defines a top-level function: func run(node: Node) -> void: - When the sensor fires, run(node) is called \u2014 node is the scene object Example script (my_script.gd): func run(node: Node) -> void: node.health -= 10 print(\"Health: \", node.health) The script does NOT need extends \u2014 it is called as a module, not instantiated.",
+    "props": [
+      [
+        "logic_mode",
+        "AND,OR,NAND,NOR,XOR",
+        "and",
+        ""
+      ],
+      [
+        "script_path",
+        "*.gd",
+        "",
+        ""
+      ],
+      [
+        "all_states",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "state_id",
+        "__STATE_LIST__",
+        "",
+        ""
+      ]
+    ],
+    "file": "controllers/script_controller.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Collision 2D",
+    "cls": "Collision2DSensor",
+    "domain": "2d",
+    "category": "General",
+    "description": "Detects collisions via an Area2D node located by name.\\n\\nType the node name (not the full path) into 'Area Node Name'.",
+    "props": [
+      [
+        "area_node_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "detection_mode",
+        "Entered,Exited,Overlapping",
+        "entered",
+        ""
+      ],
+      [
+        "detect_bodies",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "detect_areas",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "filter_type",
+        "Any,Group,Name",
+        "any",
+        ""
+      ],
+      [
+        "filter_value",
+        "",
+        "",
+        ""
+      ],
+      [
+        "invert",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "sensors/2d/collision_2d_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Movement 2D",
+    "cls": "Movement2DSensor",
+    "domain": "2d",
+    "category": "General",
+    "description": "Detects if a 2D node is moving in specific directions.\\nCheck which directions to monitor.\\nActive when any checked direction moves past the threshold.",
+    "props": [
+      [
+        "all_axis",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "pos_x",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "neg_x",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "pos_y",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "neg_y",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "threshold",
+        "",
+        "0.1",
+        ""
+      ],
+      [
+        "use_local_axes",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "ignore_platform_motion",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "invert",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "sensors/2d/movement_2d_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Physics 2D",
+    "cls": "Physics2DSensor",
+    "domain": "2d",
+    "category": "General",
+    "description": "Checks CharacterBody2D collision state: on floor, on wall, or on ceiling.\\nUse this for jump checks, wall checks, ceiling bumps, and platformer logic.",
+    "props": [
+      [
+        "contact_type",
+        "On Floor,On Wall,On Ceiling",
+        "On Floor",
+        ""
+      ],
+      [
+        "invert",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "require_contact_loss_first",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "sensors/2d/physics_2d_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Proximity 2D",
+    "cls": "Proximity2DSensor",
+    "domain": "2d",
+    "category": "General",
+    "description": "Detects objects within a distance and optional angle.\\nUses groups to filter which objects are detected.",
+    "props": [
+      [
+        "target_group",
+        "",
+        "",
+        ""
+      ],
+      [
+        "distance",
+        "",
+        "10.0",
+        ""
+      ],
+      [
+        "angle",
+        "",
+        "360.0",
+        ""
+      ],
+      [
+        "axis",
+        "All,+X,-X,+Y,-Y,+Z,-Z",
+        "all",
+        ""
+      ],
+      [
+        "detection_mode",
+        "Any,All,None",
+        "any",
+        ""
+      ],
+      [
+        "inverse",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "store_object",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "object_variable",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "sensors/2d/proximity_2d_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Raycast 2D",
+    "cls": "Raycast2DSensor",
+    "domain": "2d",
+    "category": "General",
+    "description": "Detects along a RayCast2D. This can be used for objects, groups, walls, ground, or ledges.\\nThe RayCast2D's direction, length, and collision mask are set on the RayCast2D node itself.",
+    "props": [
+      [
+        "raycast_node_name",
+        "",
+        "RayCast2D",
+        "RayCast2D node name"
+      ],
+      [
+        "detect_mode",
+        "Any,Group,Nothing",
+        "any",
+        ""
+      ],
+      [
+        "group_filter",
+        "",
+        "",
+        ""
+      ],
+      [
+        "invert",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "sensors/2d/raycast_2d_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Actuator",
+    "cls": "ActuatorSensorSensor",
+    "domain": "3d",
+    "category": "General",
+    "description": "Fires TRUE when the named actuator on this node matches the chosen state.\\nThe actuator must have an instance name set.",
+    "props": [
+      [
+        "actuator_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "trigger_on",
+        "Active,Inactive",
+        "active",
+        ""
+      ]
+    ],
+    "file": "sensors/3d/actuator_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Animation Tree",
+    "cls": "AnimationTreeSensorSensor",
+    "domain": "3d",
+    "category": "General",
+    "description": "The AnimationTree is found by typed node name Modes: Current State: True when the state machine is in a specific state Condition: True when a boolean condition matches Parameter Compare: True when a parameter meets a comparison condition",
+    "props": [
+      [
+        "animation_tree_node_name",
+        "",
+        "AnimationTree",
+        "AnimationTree node name"
+      ],
+      [
+        "mode",
+        "Current State,Condition,Parameter Compare",
+        "current_state",
+        ""
+      ],
+      [
+        "state_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "state_machine_path",
+        "",
+        "parameters/playback",
+        ""
+      ],
+      [
+        "condition_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "condition_expected",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "parameter_path",
+        "",
+        "",
+        ""
+      ],
+      [
+        "compare_op",
+        "Equal,Not Equal,Greater,Less,Greater Equal,Less Equal",
+        "equal",
+        ""
+      ],
+      [
+        "compare_value",
+        "",
+        "0.0",
+        ""
+      ]
+    ],
+    "file": "sensors/3d/animation_tree_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Collision",
+    "cls": "CollisionSensorSensor",
+    "domain": "3d",
+    "category": "General",
+    "description": "Detects collisions via an Area3D node located by name.\\n\\nType the node name (not the full path) into 'Area Node Name'.",
+    "props": [
+      [
+        "area_node_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "detection_mode",
+        "Entered,Exited,Overlapping",
+        "entered",
+        ""
+      ],
+      [
+        "detect_bodies",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "detect_areas",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "filter_type",
+        "Any,Group,Name",
+        "any",
+        ""
+      ],
+      [
+        "filter_value",
+        "",
+        "",
+        ""
+      ],
+      [
+        "invert",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "sensors/3d/collision_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Movement",
+    "cls": "MovementSensorSensor",
+    "domain": "3d",
+    "category": "General",
+    "description": "Detects if the node is moving in specific directions.\\nCheck which directions to monitor.\\nActive when any checked direction moves past the threshold.",
+    "props": [
+      [
+        "all_axis",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "pos_x",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "neg_x",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "pos_y",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "neg_y",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "pos_z",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "neg_z",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "threshold",
+        "",
+        "0.1",
+        ""
+      ],
+      [
+        "use_local_axes",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "ignore_platform_motion",
+        "",
+        "true",
+        ""
+      ],
+      [
+        "invert",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "sensors/3d/movement_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Physics",
+    "cls": "PhysicsSensorSensor",
+    "domain": "3d",
+    "category": "General",
+    "description": "Checks CharacterBody3D collision state: on floor, on wall, or on ceiling.\\nUse this for jump checks, wall checks, ceiling bumps, and platformer logic.",
+    "props": [
+      [
+        "contact_type",
+        "On Floor,On Wall,On Ceiling",
+        "On Floor",
+        ""
+      ],
+      [
+        "invert",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "require_contact_loss_first",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "sensors/3d/physics_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Proximity",
+    "cls": "ProximitySensorSensor",
+    "domain": "3d",
+    "category": "General",
+    "description": "Detects objects within a distance and optional angle.\\nUses groups to filter which objects are detected.",
+    "props": [
+      [
+        "target_group",
+        "",
+        "",
+        ""
+      ],
+      [
+        "distance",
+        "",
+        "10.0",
+        ""
+      ],
+      [
+        "angle",
+        "",
+        "360.0",
+        ""
+      ],
+      [
+        "axis",
+        "All,+X,-X,+Y,-Y,+Z,-Z",
+        "all",
+        ""
+      ],
+      [
+        "detection_mode",
+        "Any,All,None",
+        "any",
+        ""
+      ],
+      [
+        "inverse",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "store_object",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "object_variable",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "sensors/3d/proximity_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Raycast",
+    "cls": "RaycastSensorSensor",
+    "domain": "3d",
+    "category": "General",
+    "description": "Detects along a RayCast3D. This can be used for objects, groups, walls, ground, or ledges.\\nThe RayCast3D's direction, length, and collision mask are set on the RayCast3D node itself.",
+    "props": [
+      [
+        "raycast_node_name",
+        "",
+        "RayCast3D",
+        "RayCast3D node name"
+      ],
+      [
+        "detect_mode",
+        "Any,Group,Nothing",
+        "any",
+        ""
+      ],
+      [
+        "group_filter",
+        "",
+        "",
+        ""
+      ],
+      [
+        "invert",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "sensors/3d/raycast_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Always",
+    "cls": "AlwaysSensorSensor",
+    "domain": "common",
+    "category": "General",
+    "description": "Always logic brick.",
+    "props": [
+      [
+        "enabled",
+        "",
+        "true",
+        ""
+      ]
+    ],
+    "file": "sensors/common/always_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Compare Variable",
+    "cls": "VariableSensorSensor",
+    "domain": "common",
+    "category": "General",
+    "description": "Compares a variable's value.\\nWorks with local, exported, and global variables.\\nAutomatically checks GlobalVars if not found locally.",
+    "props": [
+      [
+        "variable_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "evaluation_type",
+        "Equal,Not Equal,Interval,Changed,Greater Than,Less Than,Greater or Equal,Less or Equal",
+        "equal",
+        ""
+      ],
+      [
+        "value",
+        "",
+        "",
+        ""
+      ],
+      [
+        "min_value",
+        "",
+        "",
+        ""
+      ],
+      [
+        "max_value",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "sensors/common/variable_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Delay",
+    "cls": "DelaySensorSensor",
+    "domain": "common",
+    "category": "General",
+    "description": "Waits for Delay seconds, then stays active for Duration seconds.\\nRepeat cycles the whole sequence.",
+    "props": [
+      [
+        "delay",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "duration",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "repeat",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "sensors/common/delay_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Input Map",
+    "cls": "InputMapSensorSensor",
+    "domain": "common",
+    "category": "General",
+    "description": "Detects input actions from Project > Input Map.\\nSupports button presses, any-action checks, and analog joystick axis input.",
+    "props": [
+      [
+        "input_mode",
+        "Pressed,Just Pressed,Just Released,Any Pressed,Any Just Pressed,Any Just Released,Axis",
+        "pressed",
+        ""
+      ],
+      [
+        "action_name",
+        "",
+        "ui_accept",
+        ""
+      ],
+      [
+        "negative_action",
+        "",
+        "",
+        ""
+      ],
+      [
+        "positive_action",
+        "",
+        "",
+        ""
+      ],
+      [
+        "invert",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "store_in",
+        "",
+        "",
+        ""
+      ],
+      [
+        "deadzone",
+        "",
+        "0.1",
+        ""
+      ]
+    ],
+    "file": "sensors/common/input_map_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Mouse",
+    "cls": "MouseSensorSensor",
+    "domain": "common",
+    "category": "General",
+    "description": "Detects mouse buttons, wheel, movement, and object hover",
+    "props": [
+      [
+        "detection_type",
+        "Button,Wheel,Movement,Hover Object,Hover Any",
+        "button",
+        ""
+      ],
+      [
+        "mouse_button",
+        "Left,Right,Middle",
+        "left",
+        ""
+      ],
+      [
+        "button_state",
+        "Pressed,Released,Held",
+        "pressed",
+        ""
+      ],
+      [
+        "wheel_direction",
+        "Up,Down",
+        "up",
+        ""
+      ],
+      [
+        "movement_threshold",
+        "",
+        "0.1",
+        ""
+      ],
+      [
+        "target_node_name",
+        "",
+        "self",
+        ""
+      ]
+    ],
+    "file": "sensors/common/mouse_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Random",
+    "cls": "RandomSensorSensor",
+    "domain": "common",
+    "category": "General",
+    "description": "Activates randomly each time it is evaluated.\\\\nPair with a Delay Sensor to control how often it rolls.\\\\nUseful for random behaviors, AI variation, and loot rolls.",
+    "props": [
+      [
+        "trigger_mode",
+        "Chance,Value,Range",
+        "chance",
+        ""
+      ],
+      [
+        "chance_percent",
+        "0.0,100.0,0.1",
+        "10.0",
+        ""
+      ],
+      [
+        "target_value",
+        "",
+        "0",
+        ""
+      ],
+      [
+        "target_min",
+        "",
+        "0",
+        ""
+      ],
+      [
+        "target_max",
+        "",
+        "100",
+        ""
+      ],
+      [
+        "use_seed",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "seed_value",
+        "",
+        "0",
+        ""
+      ],
+      [
+        "store_value",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "value_variable",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "sensors/common/random_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Signal",
+    "cls": "MessageSensorSensor",
+    "domain": "common",
+    "category": "General",
+    "description": "Detects signals sent by a Signal Actuator.\\nListens for a specific subject.",
+    "props": [
+      [
+        "subject",
+        "",
+        "",
+        ""
+      ],
+      [
+        "match_mode",
+        "Exact,Contains,Starts With",
+        "exact",
+        ""
+      ],
+      [
+        "response_delay",
+        "",
+        "0.0",
+        ""
+      ]
+    ],
+    "file": "sensors/common/message_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Always",
+    "cls": "UIAlwaysSensor",
+    "domain": "ui",
+    "category": "General",
+    "description": "Always active while enabled.",
+    "props": [
+      [
+        "enabled",
+        "",
+        "true",
+        ""
+      ]
+    ],
+    "file": "sensors/ui/always_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Button",
+    "cls": "UIButtonSensor",
+    "domain": "ui",
+    "category": "General",
+    "description": "Detects when a Button is pressed, toggled, hovered, or focused.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "event",
+        "Just Pressed,Pressed,Just Released,Hovering,Focused,Toggled On,Toggled Off",
+        "just_pressed",
+        ""
+      ],
+      [
+        "store_pressed",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "sensors/ui/button_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Delay",
+    "cls": "UIDelaySensor",
+    "domain": "ui",
+    "category": "General",
+    "description": "Triggers after a delay or at an interval.",
+    "props": [
+      [
+        "delay",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "duration",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "repeat",
+        "",
+        "false",
+        ""
+      ]
+    ],
+    "file": "sensors/ui/delay_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Input Map",
+    "cls": "UIInputMapSensor",
+    "domain": "ui",
+    "category": "General",
+    "description": "Detects Godot Input Map actions for UI logic.",
+    "props": [
+      [
+        "input_mode",
+        "Pressed,Just Pressed,Just Released,Any Pressed,Any Just Pressed,Any Just Released,Axis",
+        "pressed",
+        ""
+      ],
+      [
+        "action_name",
+        "",
+        "ui_accept",
+        ""
+      ],
+      [
+        "negative_action",
+        "",
+        "",
+        ""
+      ],
+      [
+        "positive_action",
+        "",
+        "",
+        ""
+      ],
+      [
+        "invert",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "store_in",
+        "",
+        "",
+        ""
+      ],
+      [
+        "deadzone",
+        "",
+        "0.1",
+        ""
+      ]
+    ],
+    "file": "sensors/ui/input_map_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Random",
+    "cls": "UIRandomSensor",
+    "domain": "ui",
+    "category": "General",
+    "description": "Randomly activates based on chance.",
+    "props": [
+      [
+        "trigger_mode",
+        "Chance,Value,Range",
+        "chance",
+        ""
+      ],
+      [
+        "chance_percent",
+        "0.0,100.0,0.1",
+        "10.0",
+        ""
+      ],
+      [
+        "target_value",
+        "",
+        "0",
+        ""
+      ],
+      [
+        "target_min",
+        "",
+        "0",
+        ""
+      ],
+      [
+        "target_max",
+        "",
+        "100",
+        ""
+      ],
+      [
+        "use_seed",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "seed_value",
+        "",
+        "0",
+        ""
+      ],
+      [
+        "store_value",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "value_variable",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "sensors/ui/random_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Signal",
+    "cls": "UIMessageSensor",
+    "domain": "ui",
+    "category": "General",
+    "description": "Receives a Logic Bricks message.",
+    "props": [
+      [
+        "subject",
+        "",
+        "",
+        ""
+      ],
+      [
+        "match_mode",
+        "Exact,Contains,Starts With",
+        "exact",
+        ""
+      ],
+      [
+        "response_delay",
+        "",
+        "0.0",
+        ""
+      ]
+    ],
+    "file": "sensors/ui/message_sensor.gd"
+  },
+  {
+    "type": "sensor",
+    "name": "Variable",
+    "cls": "UIVariableSensor",
+    "domain": "ui",
+    "category": "General",
+    "description": "Compares a variable value.",
+    "props": [
+      [
+        "variable_name",
+        "",
+        "",
+        ""
+      ],
+      [
+        "evaluation_type",
+        "Equal,Not Equal,Interval,Changed,Greater Than,Less Than,Greater or Equal,Less or Equal",
+        "equal",
+        ""
+      ],
+      [
+        "value",
+        "",
+        "",
+        ""
+      ],
+      [
+        "min_value",
+        "",
+        "",
+        ""
+      ],
+      [
+        "max_value",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "file": "sensors/ui/variable_sensor.gd"
+  }
+]

@@ -1,0 +1,9648 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="52 actuators available for 2D workflows." name="description"/>
+<title>
+   2D Actuators | Logic Bricks Documentation
+  </title>
+<link href="assets/css/site.css" rel="stylesheet"/>
+<link href="assets/images/favicon.svg" rel="icon" type="image/svg+xml"/>
+<meta content="#08101d" name="theme-color"/>
+</head>
+<body class="actuator2d" data-page="actuators-2d.html">
+<div data-site-header="">
+</div>
+<div class="layout">
+<aside data-site-sidebar="">
+</aside>
+<main class="content">
+<nav aria-label="Breadcrumb" class="breadcrumb">
+<a href="index.html">
+      Home
+     </a>
+<span aria-hidden="true">
+      ›
+     </span>
+<span>
+      Actuators
+     </span>
+<span aria-hidden="true">
+      ›
+     </span>
+<span aria-current="page">
+      2D Actuators
+     </span>
+</nav>
+<section class="hero">
+<div aria-hidden="true" class="hero-category-mark">
+      2D Workflow
+     </div>
+<div class="eyebrow">
+      Audited against addon source
+     </div>
+<h1>
+      2D Actuators
+     </h1>
+<p class="lead">
+      Setup guidance and the complete
+      <span aria-label="actuator: A brick that performs an action after a sensor and optional controller succeed." class="glossary-term" data-tooltip="A brick that performs an action after a sensor and optional controller succeed." tabindex="0">
+       actuator
+      </span>
+      reference organized exactly like the 2D right-click menu.
+     </p>
+<div aria-label="Page information" class="page-reading-meta">
+<span>
+       ◷ 31 min read
+      </span>
+<span>
+       Phase 5 enhanced
+      </span>
+</div>
+</section>
+<div aria-label="Brick guidance controls" class="guidance-toolbar">
+<span>
+      Guidance panels
+     </span>
+<div>
+<button data-guidance-action="expand" type="button">
+       Expand all
+      </button>
+<button data-guidance-action="collapse" type="button">
+       Collapse all
+      </button>
+</div>
+</div>
+<nav aria-label="Actuator submenu links" class="submenu-jump">
+<a href="#setup">
+<span>
+       2D setup
+      </span>
+<small>
+       Start here
+      </small>
+</a>
+<a href="#animation">
+<span>
+       Animation
+      </span>
+<small>
+       2 actuators
+      </small>
+</a>
+<a href="#audio">
+<span>
+       Audio
+      </span>
+<small>
+       2 actuators
+      </small>
+</a>
+<a href="#camera">
+<span>
+       Camera
+      </span>
+<small>
+       3 actuators
+      </small>
+</a>
+<a href="#game">
+<span>
+       Game
+      </span>
+<small>
+       3 actuators
+      </small>
+</a>
+<a href="#game-feel">
+<span>
+       Game Feel
+      </span>
+<small>
+       4 actuators
+      </small>
+</a>
+<a href="#logic">
+<span>
+       Logic
+      </span>
+<small>
+       5 actuators
+      </small>
+</a>
+<a href="#motion">
+<span>
+       Motion
+      </span>
+<small>
+       5 actuators
+      </small>
+</a>
+<a href="#object">
+<span>
+       Object
+      </span>
+<small>
+       4 actuators
+      </small>
+</a>
+<a href="#physics">
+<span>
+       Physics
+      </span>
+<small>
+       3 actuators
+      </small>
+</a>
+<a href="#ui">
+<span>
+       UI
+      </span>
+<small>
+       1 actuator
+      </small>
+</a>
+<a href="#general-shared">
+<span>
+       General
+      </span>
+<small>
+       20 actuators
+      </small>
+</a>
+</nav>
+<div class="callout note">
+<strong>
+      Source of truth
+     </strong>
+     This page lists only bricks registered by the uploaded addon. Legacy aliases and compatibility script shims are not presented as separate menu entries.
+    </div>
+<section class="chapter-intro">
+<div>
+<span class="section-kicker">
+       Chapter guide
+      </span>
+<h2>
+       Building 2D actions
+      </h2>
+<p>
+       These actuators are grouped exactly like the 2D right-click menu and use 2D node types and Vector2-based values where appropriate.
+      </p>
+</div>
+<ol class="chapter-steps">
+<li>
+       Select a supported 2D node.
+      </li>
+<li>
+       Choose the matching right-click submenu.
+      </li>
+<li>
+       Verify the target node and coordinate values before adding more logic.
+      </li>
+</ol>
+</section>
+<div class="page-tools">
+<input class="search" id="docSearch" placeholder="Filter bricks on this page…" type="search"/>
+</div>
+<section class="domain-setup" id="setup">
+<span class="eyebrow">
+      2D WORKFLOW
+     </span>
+<h2>
+      2D Setup and Actuators
+     </h2>
+<p class="domain-lead">
+      Use this section for Node2D-based scenes. The documentation categories below mirror the actuator submenus displayed when a supported 2D node is selected.
+     </p>
+<div class="setup-grid">
+<article>
+<span class="step-number">
+        1
+       </span>
+<h3>
+        Select a 2D node
+       </h3>
+<p>
+        Select a Node2D, CharacterBody2D, RigidBody2D, Camera2D, AnimatedSprite2D, or another supported 2D node.
+       </p>
+</article>
+<article>
+<span class="step-number">
+        2
+       </span>
+<h3>
+        Open Logic Bricks
+       </h3>
+<p>
+        The editor switches to the 2D brick domain and shows common bricks together with compatible 2D-specific bricks.
+       </p>
+</article>
+<article>
+<span class="step-number">
+        3
+       </span>
+<h3>
+        Use 2D values
+       </h3>
+<p>
+        Position and movement use Vector2 values. Rotation is expressed around the 2D axis, and 2D camera actions target Camera2D nodes.
+       </p>
+</article>
+<article>
+<span class="step-number">
+        4
+       </span>
+<h3>
+        Choose by submenu
+       </h3>
+<p>
+        Use the category links below to jump to the same submenu organization used by the right-click menu.
+       </p>
+</article>
+</div>
+<div class="callout note">
+<strong>
+       How this relates to the menu
+      </strong>
+<p>
+       The 2D menu substitutes its own Sprite Animation and
+       <span aria-label="Tween: A smooth change from one value to another over a specified duration." class="glossary-term" data-tooltip="A smooth change from one value to another over a specified duration." tabindex="0">
+        Tween
+       </span>
+       Animation bricks for incompatible generic animation entries.
+      </p>
+</div>
+</section>
+<section class="actuator-category" id="animation">
+<div class="category-heading">
+<span class="eyebrow">
+       RIGHT-CLICK SUBMENU
+      </span>
+<h2>
+       Animation
+      </h2>
+<p>
+       Right-click → Actuators → Animation
+      </p>
+</div>
+<div class="category-bricks">
+<section class="brick actuator" data-compatibility="2d" data-search="Sprite Animation Play, stop, or pause AnimatedSprite2D animations. Animation" id="sprite-animation-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Sprite Animation
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Play, stop, or pause AnimatedSprite2D animations.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Animation
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/2d/sprite_animation_2d_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            mode
+           </code>
+</td>
+<td>
+           Mode
+           <br/>
+<small>
+            Choices: Play,Stop,Pause
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             play
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            animation_name
+           </code>
+</td>
+<td>
+           Animation Name
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            speed_scale
+           </code>
+</td>
+<td>
+           Speed Scale
+           <br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            target_node
+           </code>
+</td>
+<td>
+           Target Node
+          </td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the animation action described above after a
+            <span aria-label="sensor: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
+             sensor
+            </span>
+            /
+            <span aria-label="controller: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
+             controller
+            </span>
+            chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Target a specific node by configuring the node field before testing the chain.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Sprite Animation
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Confirm the target node name and node type before troubleshooting the rest of the chain.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#sprite-frames-3d">
+           Sprite Frames
+          </a>
+<a href="actuators-2d.html#tween-animation-2d">
+           Tween Animation
+          </a>
+<a href="actuators-3d.html#animation-3d">
+           Animation
+          </a>
+<a href="actuators-3d.html#3d-audio-3d">
+           3D Audio
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Sprite Animation screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/sprite-animation.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Sprite Animation screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Tween Animation Tween a 2D node property such as position, rotation, scale, or modulate. Animation" id="tween-animation-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Tween Animation
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Tween a 2D node property such as position, rotation, scale, or modulate.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Animation
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/2d/tween_animation_2d_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<p class="muted">
+        This brick exposes no configurable properties.
+       </p>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the animation action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Tween Animation
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#sprite-animation-2d">
+           Sprite Animation
+          </a>
+<a href="actuators-2d.html#get-transforms-2d">
+           Get Transforms
+          </a>
+<a href="actuators-3d.html#object-shake-3d">
+           Object Shake
+          </a>
+<a href="actuators-3d.html#save-load-3d">
+           Save / Load
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Tween Animation screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/tween-animation.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Tween Animation screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+</div>
+</section>
+<section class="actuator-category" id="audio">
+<div class="category-heading">
+<span class="eyebrow">
+       RIGHT-CLICK SUBMENU
+      </span>
+<h2>
+       Audio
+      </h2>
+<p>
+       Right-click → Actuators → Audio
+      </p>
+</div>
+<div class="category-bricks">
+<section class="brick actuator" data-compatibility="2d" data-search="2D Audio Play 2D or UI audio from a file. Audio" id="2d-audio-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         2D Audio
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Play 2D or UI audio from a file.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Audio
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/audio_2d_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            mode
+           </code>
+</td>
+<td>
+           Mode
+           <br/>
+<small>
+            Choices: Play,Stop,Pause,Fade In,Fade Out
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             play
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            sound_file
+           </code>
+</td>
+<td>
+           Sound File
+           <br/>
+<small>
+            Choices: *.wav,*.ogg,*.mp3
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            player_type
+           </code>
+</td>
+<td>
+           Player Type
+           <br/>
+<small>
+            Choices: AudioStreamPlayer,AudioStreamPlayer2D
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             stream_player
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            play_mode
+           </code>
+</td>
+<td>
+           Play Mode
+           <br/>
+<small>
+            Choices: Restart,Overlap,Ignore If Playing
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             restart
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            volume
+           </code>
+</td>
+<td>
+           Volume
+           <br/>
+<small>
+            Choices: -80,24,0.1
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            pitch
+           </code>
+</td>
+<td>
+           Pitch
+           <br/>
+<small>
+            Choices: 0.01,4.0,0.01
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            pitch_random
+           </code>
+</td>
+<td>
+           Pitch Random
+           <br/>
+<small>
+            Choices: 0.0,1.0,0.01
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            loop
+           </code>
+</td>
+<td>
+           Loop
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            audio_bus
+           </code>
+</td>
+<td>
+           Audio Bus
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            fade_duration
+           </code>
+</td>
+<td>
+           Fade Duration
+           <br/>
+<small>
+            Choices: 0.1,10.0,0.1
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the audio action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            2D Audio
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#3d-audio-3d">
+           3D Audio
+          </a>
+<a href="actuators-2d.html#music-2d">
+           Music
+          </a>
+<a href="actuators-3d.html#animation-3d">
+           Animation
+          </a>
+<a href="actuators-2d.html#get-transforms-2d">
+           Get Transforms
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="2D Audio screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/2d-audio.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          2D Audio screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Music Three modes:\nTracks: define and create music players at startup.\nSet: set which track is current (and optionally play it).\nControl: play, stop, pause, resume, or crossfade from current to another track. General" id="music-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Music
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Three modes:\nTracks: define and create music players at startup.\nSet: set which track is current (and optionally play it).\nControl: play, stop, pause, resume, or crossfade from current to another track.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Audio
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/music_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            music_mode
+           </code>
+</td>
+<td>
+           Music Mode
+           <br/>
+<small>
+            Choices: Tracks,Set,Control
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             tracks
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            tracks
+           </code>
+</td>
+<td>
+           Tracks
+           <br/>
+<small>
+            Default:
+            <code>
+             []
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            volume_db
+           </code>
+</td>
+<td>
+           Volume Db
+           <br/>
+<small>
+            Choices: -80,24,0.1
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            loop
+           </code>
+</td>
+<td>
+           Loop
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            audio_bus
+           </code>
+</td>
+<td>
+           Audio Bus
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            persist
+           </code>
+</td>
+<td>
+           Persist
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            set_track
+           </code>
+</td>
+<td>
+           Set Track
+           <br/>
+<small>
+            Default:
+            <code>
+             0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            set_play
+           </code>
+</td>
+<td>
+           Set Play
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            control_action
+           </code>
+</td>
+<td>
+           Control Action
+           <br/>
+<small>
+            Choices: Play,Stop,Pause,Resume,Crossfade
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             play
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            to_track
+           </code>
+</td>
+<td>
+           To Track
+           <br/>
+<small>
+            Default:
+            <code>
+             1
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            crossfade_time
+           </code>
+</td>
+<td>
+           Crossfade Time
+           <br/>
+<small>
+            Choices: 0.1,10.0,0.1
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Music
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#animation-3d">
+           Animation
+          </a>
+<a href="actuators-2d.html#hit-stop-2d">
+           Hit Stop
+          </a>
+<a href="actuators-2d.html#rumble-2d">
+           Rumble
+          </a>
+<a href="actuators-3d.html#sprite-frames-3d">
+           Sprite Frames
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Music screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/music.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Music screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+</div>
+</section>
+<section class="actuator-category" id="camera">
+<div class="category-heading">
+<span class="eyebrow">
+       RIGHT-CLICK SUBMENU
+      </span>
+<h2>
+       Camera
+      </h2>
+<p>
+       Right-click → Actuators → Camera
+      </p>
+</div>
+<div class="category-bricks">
+<section class="brick actuator" data-compatibility="2d" data-search="Set Camera Makes the assigned Camera3D the active camera.\nUse a one-shot sensor (e.g. Delay or a state transition) to avoid\ncalling make_current() every frame unnecessarily.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there. General" id="set-camera-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Set Camera
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Makes the assigned Camera3D the active camera.\nUse a one-shot sensor (e.g. Delay or a
+        <span aria-label="state: A named mode that can enable one group of logic while disabling another." class="glossary-term" data-tooltip="A named mode that can enable one group of logic while disabling another." tabindex="0">
+         state
+        </span>
+        transition) to avoid\ncalling make_current() every frame unnecessarily.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Camera
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/3d/set_camera_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            camera_node_name
+           </code>
+</td>
+<td>
+           Camera Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             Camera3D
+            </code>
+</small>
+<br/>
+<small>
+            Camera3D node name
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Target a specific node by configuring the node field before testing the chain.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Set Camera
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Confirm the target node name and node type before troubleshooting the rest of the chain.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#smooth-follow-camera-2d">
+           Smooth Follow Camera
+          </a>
+<a href="actuators-3d.html#teleport-3d">
+           Teleport
+          </a>
+<a href="actuators-3d.html#gravity-3d">
+           Gravity
+          </a>
+<a href="actuators-3d.html#3rd-person-camera-3d">
+           3rd Person Camera
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Set Camera screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/set-camera.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Set Camera screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Camera Zoom Changes camera FOV (3D) or zoom (2D).\nDrag your camera into the inspector slot. General" id="camera-zoom-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Camera Zoom
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Changes camera FOV (3D) or zoom (2D).\nDrag your camera into the inspector slot.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Camera
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/3d/camera_zoom_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            camera_node_name
+           </code>
+</td>
+<td>
+           Camera Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             Camera3D
+            </code>
+</small>
+<br/>
+<small>
+            Camera3D or Camera2D node name
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            camera_type
+           </code>
+</td>
+<td>
+           Camera Type
+           <br/>
+<small>
+            Choices: Camera 3D,Camera 2D
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             camera_3d
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            fov
+           </code>
+</td>
+<td>
+           Fov
+           <br/>
+<small>
+            Default:
+            <code>
+             75.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            zoom
+           </code>
+</td>
+<td>
+           Zoom
+           <br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            transition
+           </code>
+</td>
+<td>
+           Transition
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            transition_speed
+           </code>
+</td>
+<td>
+           Transition Speed
+           <br/>
+<small>
+            Default:
+            <code>
+             3.0
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Target a specific node by configuring the node field before testing the chain.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Camera Zoom
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Confirm the target node name and node type before troubleshooting the rest of the chain.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#environment-3d">
+           Environment
+          </a>
+<a href="actuators-2d.html#set-camera-2d">
+           Set Camera
+          </a>
+<a href="actuators-2d.html#smooth-follow-camera-2d">
+           Smooth Follow Camera
+          </a>
+<a href="actuators-3d.html#3rd-person-camera-3d">
+           3rd Person Camera
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Camera Zoom screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/camera-zoom.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Camera Zoom screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Smooth Follow Camera Smoothly follows this node with the assigned Camera3D,\nmaintaining the camera's initial offset from the target.\n\nPosition follow: camera tracks the node's position per axis.\nRotation follow: camera orbits the node, keeping it in frame.\nDead zone: camera only moves once the node exceeds the threshold.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there. General" id="smooth-follow-camera-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Smooth Follow Camera
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Smoothly follows this node with the assigned Camera3D,\nmaintaining the camera's initial offset from the target.\n\nPosition follow: camera tracks the node's position per axis.\nRotation follow: camera orbits the node, keeping it in frame.\nDead zone: camera only moves once the node exceeds the threshold.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Camera
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/3d/smooth_follow_camera_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            camera_node_name
+           </code>
+</td>
+<td>
+           Camera Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             Camera3D
+            </code>
+</small>
+<br/>
+<small>
+            Camera3D node name
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            follow_speed
+           </code>
+</td>
+<td>
+           Follow Speed
+           <br/>
+<small>
+            Default:
+            <code>
+             5.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            dead_zone_x
+           </code>
+</td>
+<td>
+           Dead Zone X
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            dead_zone_y
+           </code>
+</td>
+<td>
+           Dead Zone Y
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            dead_zone_z
+           </code>
+</td>
+<td>
+           Dead Zone Z
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            follow_pos_x
+           </code>
+</td>
+<td>
+           Follow Pos X
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            follow_pos_y
+           </code>
+</td>
+<td>
+           Follow Pos Y
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            follow_pos_z
+           </code>
+</td>
+<td>
+           Follow Pos Z
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            rotation_source_node_name
+           </code>
+</td>
+<td>
+           Rotation Source Node Name
+           <br/>
+<small>
+            Rotation source node name (blank = self)
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            follow_rot_x
+           </code>
+</td>
+<td>
+           Follow Rot X
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            follow_rot_y
+           </code>
+</td>
+<td>
+           Follow Rot Y
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            follow_rot_z
+           </code>
+</td>
+<td>
+           Follow Rot Z
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            rotation_speed
+           </code>
+</td>
+<td>
+           Rotation Speed
+           <br/>
+<small>
+            Default:
+            <code>
+             5.0
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Target a specific node by configuring the node field before testing the chain.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Smooth Follow Camera
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Confirm the target node name and node type before troubleshooting the rest of the chain.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#set-camera-2d">
+           Set Camera
+          </a>
+<a href="actuators-3d.html#teleport-3d">
+           Teleport
+          </a>
+<a href="actuators-3d.html#move-towards-3d">
+           Move Towards
+          </a>
+<a href="actuators-2d.html#property-2d">
+           Property
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Smooth Follow Camera screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/smooth-follow-camera.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Smooth Follow Camera screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+</div>
+</section>
+<section class="actuator-category" id="game">
+<div class="category-heading">
+<span class="eyebrow">
+       RIGHT-CLICK SUBMENU
+      </span>
+<h2>
+       Game
+      </h2>
+<p>
+       Right-click → Actuators → Game
+      </p>
+</div>
+<div class="category-bricks">
+<section class="brick actuator" data-compatibility="2d" data-search="Game Exit, restart, pause, and screenshot functionality General" id="game-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Game
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Exit, restart, pause, and screenshot functionality
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Game
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/game_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            action
+           </code>
+</td>
+<td>
+           Action
+           <br/>
+<small>
+            Choices: Exit,Reload Scene,Pause,Screenshot
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             exit
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            screenshot_path
+           </code>
+</td>
+<td>
+           Screenshot Path
+           <br/>
+<small>
+            Default:
+            <code>
+             user://screenshot.png
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Game
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#hit-stop-2d">
+           Hit Stop
+          </a>
+<a href="actuators-2d.html#music-2d">
+           Music
+          </a>
+<a href="actuators-3d.html#animation-3d">
+           Animation
+          </a>
+<a href="actuators-2d.html#modify-variable-2d">
+           Modify Variable
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Game screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/game.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Game screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Preload Preloads resources (materials, scenes, textures, audio, meshes) into memory before they are needed, preventing runtime hitches and frame drops. General" id="preload-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Preload
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Preloads resources (materials, scenes, textures, audio, meshes) into memory before they are needed, preventing runtime hitches and frame drops.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Game
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/preload_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            load_mode
+           </code>
+</td>
+<td>
+           Load Mode
+           <br/>
+<small>
+            Choices: Background (Threaded),Immediate (Blocking)
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             background
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            resource_type
+           </code>
+</td>
+<td>
+           Resource Type
+           <br/>
+<small>
+            Choices: Any,Scene,Material,Texture,AudioStream,Mesh,Shader
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             Any
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            resources
+           </code>
+</td>
+<td>
+           Resources
+           <br/>
+<small>
+            Default:
+            <code>
+             []
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            on_complete_signal
+           </code>
+</td>
+<td>
+           On Complete Signal
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            signal_group
+           </code>
+</td>
+<td>
+           Signal Group
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            signal_message
+           </code>
+</td>
+<td>
+           Signal Message
+           <br/>
+<small>
+            Default:
+            <code>
+             preload_done
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Preload
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#environment-3d">
+           Environment
+          </a>
+<a href="actuators-3d.html#split-screen-3d">
+           Split Screen
+          </a>
+<a href="actuators-3d.html#animation-3d">
+           Animation
+          </a>
+<a href="actuators-2d.html#camera-zoom-2d">
+           Camera Zoom
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Preload screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/preload.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Preload screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Scene Similar to UPBGE's Scene actuator General" id="scene-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Scene
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Similar to UPBGE's Scene actuator
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Game
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/scene_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            mode
+           </code>
+</td>
+<td>
+           Mode
+           <br/>
+<small>
+            Choices: Restart,Set Scene
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             restart
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            scene_path
+           </code>
+</td>
+<td>
+           Scene Path
+           <br/>
+<small>
+            Choices: *.tscn,*.scn
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Scene
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#random-2d">
+           Random
+          </a>
+<a href="actuators-3d.html#edit-object-3d">
+           Edit Object
+          </a>
+<a href="actuators-3d.html#linear-velocity-3d">
+           Linear Velocity
+          </a>
+<a href="actuators-2d.html#modulate-2d">
+           Modulate
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Scene screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/scene.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Scene screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+</div>
+</section>
+<section class="actuator-category" id="game-feel">
+<div class="category-heading">
+<span class="eyebrow">
+       RIGHT-CLICK SUBMENU
+      </span>
+<h2>
+       Game Feel
+      </h2>
+<p>
+       Right-click → Actuators → Game Feel
+      </p>
+</div>
+<div class="category-bricks">
+<section class="brick actuator" data-compatibility="2d" data-search="Object Flash Flashes a mesh/object with a temporary color overlay.\nType a node name, not a path.\n\ General" id="object-flash-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Object Flash
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Flashes a mesh/object with a temporary color overlay.\nType a node name, not a path.\n\
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Game Feel
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/3d/object_flash_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            object_node_name
+           </code>
+</td>
+<td>
+           Object Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            color
+           </code>
+</td>
+<td>
+           Color
+           <br/>
+<small>
+            Default:
+            <code>
+             Color(1
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            effect
+           </code>
+</td>
+<td>
+           Effect
+           <br/>
+<small>
+            Choices: Single Flash,Strobe,Color Strobe
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             single_flash
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            speed
+           </code>
+</td>
+<td>
+           Speed
+           <br/>
+<small>
+            Default:
+            <code>
+             0.08
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Object Flash
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#object-shake-3d">
+           Object Shake
+          </a>
+<a href="actuators-3d.html#collision-3d">
+           Collision
+          </a>
+<a href="sensors-2d.html#collision-2d-2d">
+           Collision 2D
+          </a>
+<a href="actuators-3d.html#move-towards-3d">
+           Move Towards
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Object Flash screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/object-flash.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Object Flash screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Hit Stop Briefly pauses or slows game time when an impact lands.\nUse for attacks, damage, blocks, heavy landings, and breaks.\nThis is also called hit pause or impact freeze. General" id="hit-stop-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Hit Stop
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Briefly pauses or slows game time when an impact lands.\nUse for attacks, damage, blocks, heavy landings, and breaks.\nThis is also called hit pause or impact freeze.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Game Feel
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/hit_stop_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            preset
+           </code>
+</td>
+<td>
+           Preset
+           <br/>
+<small>
+            Choices: Tiny,Light,Medium,Heavy,Custom
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             medium
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            duration
+           </code>
+</td>
+<td>
+           Duration
+           <br/>
+<small>
+            Default:
+            <code>
+             0.06
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            time_scale
+           </code>
+</td>
+<td>
+           Time Scale
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            restart_if_active
+           </code>
+</td>
+<td>
+           Restart If Active
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Hit Stop
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#game-2d">
+           Game
+          </a>
+<a href="actuators-2d.html#music-2d">
+           Music
+          </a>
+<a href="actuators-3d.html#animation-3d">
+           Animation
+          </a>
+<a href="actuators-2d.html#rumble-2d">
+           Rumble
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Hit Stop screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/hit-stop.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Hit Stop screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Rumble Trigger controller haptic vibration.\nVibrate: manual motor control for a set duration.\nStop: immediately stop all vibration.\nPattern: built-in presets that play to completion.\nThe sensor only needs to fire once — the pattern finishes even if the sensor stops. General" id="rumble-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Rumble
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Trigger controller haptic vibration.\nVibrate: manual motor control for a set duration.\nStop: immediately stop all vibration.\nPattern: built-in presets that play to completion.\nThe sensor only needs to fire once — the pattern finishes even if the sensor stops.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Game Feel
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/rumble_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            action
+           </code>
+</td>
+<td>
+           Action
+           <br/>
+<small>
+            Choices: Vibrate,Stop,Pattern
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             pattern
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            weak_motor
+           </code>
+</td>
+<td>
+           Weak Motor
+           <br/>
+<small>
+            Choices: 0.0,1.0
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             0.5
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            strong_motor
+           </code>
+</td>
+<td>
+           Strong Motor
+           <br/>
+<small>
+            Choices: 0.0,1.0
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             0.5
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            duration
+           </code>
+</td>
+<td>
+           Duration
+           <br/>
+<small>
+            Default:
+            <code>
+             0.5
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            pattern
+           </code>
+</td>
+<td>
+           Pattern
+           <br/>
+<small>
+            Choices: Single Pulse,Double Pulse,Sustained,Ramp Up,Ramp Down,Heartbeat
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             single_pulse
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            intensity
+           </code>
+</td>
+<td>
+           Intensity
+           <br/>
+<small>
+            Choices: 0.0,1.0
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            device
+           </code>
+</td>
+<td>
+           Device
+           <br/>
+<small>
+            Default:
+            <code>
+             0
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Rumble
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#animation-3d">
+           Animation
+          </a>
+<a href="actuators-2d.html#music-2d">
+           Music
+          </a>
+<a href="actuators-3d.html#gravity-3d">
+           Gravity
+          </a>
+<a href="actuators-2d.html#hit-stop-2d">
+           Hit Stop
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Rumble screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/rumble.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Rumble screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Screen Flash Flashes a color over the screen.\nPress \ General" id="screen-flash-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Screen Flash
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Flashes a color over the screen.\nPress \
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Game Feel
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/screen_flash_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            color
+           </code>
+</td>
+<td>
+           Color
+           <br/>
+<small>
+            Default:
+            <code>
+             Color(1
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            duration
+           </code>
+</td>
+<td>
+           Duration
+           <br/>
+<small>
+            Default:
+            <code>
+             0.3
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            fade_in
+           </code>
+</td>
+<td>
+           Fade In
+           <br/>
+<small>
+            Default:
+            <code>
+             0.05
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Screen Flash
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#object-flash-2d">
+           Object Flash
+          </a>
+<a href="actuators-2d.html#modulate-2d">
+           Modulate
+          </a>
+<a href="actuators-3d.html#3rd-person-camera-3d">
+           3rd Person Camera
+          </a>
+<a href="actuators-3d.html#animation-3d">
+           Animation
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Screen Flash screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/screen-flash.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Screen Flash screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+</div>
+</section>
+<section class="actuator-category" id="logic">
+<div class="category-heading">
+<span class="eyebrow">
+       RIGHT-CLICK SUBMENU
+      </span>
+<h2>
+       Logic
+      </h2>
+<p>
+       Right-click → Actuators → Logic
+      </p>
+</div>
+<div class="category-bricks">
+<section class="brick actuator" data-compatibility="2d" data-search="Get Variable Reads a variable from self, another node, or GlobalVars and stores it for later bricks. Logic" id="get-variable-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Get Variable
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Reads a
+        <span aria-label="variable: A named value that can be read, compared, or changed by Logic Bricks." class="glossary-term" data-tooltip="A named value that can be read, compared, or changed by Logic Bricks." tabindex="0">
+         variable
+        </span>
+        from self, another node, or GlobalVars and stores it for later bricks.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Logic
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/get_variable_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            source
+           </code>
+</td>
+<td>
+           Source
+           <br/>
+<small>
+            Choices: Self,Node Name,GlobalVars
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             node_name
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            source_node_name
+           </code>
+</td>
+<td>
+           Source Node Name
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            variable_name
+           </code>
+</td>
+<td>
+           Variable Name
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            store_as
+           </code>
+</td>
+<td>
+           Store As
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            fallback_value
+           </code>
+</td>
+<td>
+           Fallback Value
+          </td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the logic action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Get Variable
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#get-transforms-2d">
+           Get Transforms
+          </a>
+<a href="actuators-2d.html#modify-variable-2d">
+           Modify Variable
+          </a>
+<a href="actuators-3d.html#motion-3d">
+           Motion
+          </a>
+<a href="actuators-2d.html#music-2d">
+           Music
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Get Variable screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/get-variable.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Get Variable screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Modify Variable Modifies a variable's value.\nWorks with local and global variables.\nAutomatically uses GlobalVars if not found locally. General" id="modify-variable-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Modify Variable
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Modifies a variable's value.\nWorks with
+        <span aria-label="local: Coordinates or values measured relative to a node's parent." class="glossary-term" data-tooltip="Coordinates or values measured relative to a node's parent." tabindex="0">
+         local
+        </span>
+        and global variables.\nAutomatically uses GlobalVars if not found locally.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Logic
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/variable_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            variable_name
+           </code>
+</td>
+<td>
+           Variable Name
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            mode
+           </code>
+</td>
+<td>
+           Mode
+           <br/>
+<small>
+            Choices: Assign,Add,Copy,Toggle
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             assign
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            value
+           </code>
+</td>
+<td>
+           Value
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            source_variable
+           </code>
+</td>
+<td>
+           Source Variable
+          </td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Modify Variable
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-2d.html#compare-variable-common">
+           Compare Variable
+          </a>
+<a href="actuators-3d.html#animation-3d">
+           Animation
+          </a>
+<a href="actuators-3d.html#environment-3d">
+           Environment
+          </a>
+<a href="actuators-2d.html#modulate-2d">
+           Modulate
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Modify Variable screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/modify-variable.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Modify Variable screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Random Similar to UPBGE's Random actuator General" id="random-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Random
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Similar to UPBGE's Random actuator
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Logic
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/random_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            variable_name
+           </code>
+</td>
+<td>
+           Variable Name
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            distribution
+           </code>
+</td>
+<td>
+           Distribution
+           <br/>
+<small>
+            Choices: Bool Constant,Bool Uniform,Bool Bernoulli,Int Constant,Int Uniform,Int Poisson,Float Constant,Float Uniform,Float Normal,Float Neg Exp
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             int_uniform
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            bool_value
+           </code>
+</td>
+<td>
+           Bool Value
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            bool_probability
+           </code>
+</td>
+<td>
+           Bool Probability
+           <br/>
+<small>
+            Default:
+            <code>
+             0.5
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            int_value
+           </code>
+</td>
+<td>
+           Int Value
+           <br/>
+<small>
+            Default:
+            <code>
+             0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            int_min
+           </code>
+</td>
+<td>
+           Int Min
+           <br/>
+<small>
+            Default:
+            <code>
+             0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            int_max
+           </code>
+</td>
+<td>
+           Int Max
+           <br/>
+<small>
+            Default:
+            <code>
+             100
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            int_lambda
+           </code>
+</td>
+<td>
+           Int Lambda
+           <br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            float_value
+           </code>
+</td>
+<td>
+           Float Value
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            float_min
+           </code>
+</td>
+<td>
+           Float Min
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            float_max
+           </code>
+</td>
+<td>
+           Float Max
+           <br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            float_mean
+           </code>
+</td>
+<td>
+           Float Mean
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            float_stddev
+           </code>
+</td>
+<td>
+           Float Stddev
+           <br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            float_lambda
+           </code>
+</td>
+<td>
+           Float Lambda
+           <br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            use_seed
+           </code>
+</td>
+<td>
+           Use Seed
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            seed_value
+           </code>
+</td>
+<td>
+           Seed Value
+           <br/>
+<small>
+            Default:
+            <code>
+             0
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Random
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#scene-2d">
+           Scene
+          </a>
+<a href="actuators-3d.html#edit-object-3d">
+           Edit Object
+          </a>
+<a href="actuators-3d.html#linear-velocity-3d">
+           Linear Velocity
+          </a>
+<a href="actuators-3d.html#parent-3d">
+           Parent
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Random screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/random.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Random screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Signal Sends a signal to other nodes.\nReceiving nodes need a Signal Sensor listening for the subject. General" id="signal-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Signal
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Sends a signal to other nodes.\nReceiving nodes need a Signal Sensor listening for the subject.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Logic
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/message_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_group
+           </code>
+</td>
+<td>
+           Target Group
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            subject
+           </code>
+</td>
+<td>
+           Subject
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            body
+           </code>
+</td>
+<td>
+           Body
+          </td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Signal
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-2d.html#signal-common">
+           Signal
+          </a>
+<a href="actuators-3d.html#animation-3d">
+           Animation
+          </a>
+<a href="actuators-3d.html#character-physics-3d">
+           Character Physics
+          </a>
+<a href="actuators-3d.html#collision-3d">
+           Collision
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Signal screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/signal.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Signal screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="State State logic brick. General" id="state-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         State
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        State logic brick.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Logic
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/state_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            state_id
+           </code>
+</td>
+<td>
+           State Id
+           <br/>
+<small>
+            Choices: __STATE_LIST__
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            State
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-2d.html#always-common">
+           Always
+          </a>
+<a href="actuators-2d.html#character-jump-2d-2d">
+           Character Jump 2D
+          </a>
+<a href="actuators-2d.html#force-2d-2d">
+           Force 2D
+          </a>
+<a href="actuators-2d.html#impulse-2d-2d">
+           Impulse 2D
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="State screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/state.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          State screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+</div>
+</section>
+<section class="actuator-category" id="motion">
+<div class="category-heading">
+<span class="eyebrow">
+       RIGHT-CLICK SUBMENU
+      </span>
+<h2>
+       Motion
+      </h2>
+<p>
+       Right-click → Actuators → Motion
+      </p>
+</div>
+<div class="category-bricks">
+<section class="brick actuator" data-compatibility="2d" data-search="Motion 2D For CharacterBody2D movement, this only requests/accumulates velocity for the frame. Character 2D Physics should be used once on the character to apply friction, gravity, diagonal normalization, and move_and_slide(). Motion" id="motion-2d-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Motion 2D
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        For CharacterBody2D movement, this only requests/accumulates velocity for the frame. Character 2D Physics should be used once on the character to apply friction, gravity, diagonal normalization, and move_and_slide().
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Motion
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/2d/motion_2d_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            blank = self, or child/node name
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            motion_type
+           </code>
+</td>
+<td>
+           Motion Type
+           <br/>
+<small>
+            Choices: Location,Rotation
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             location
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            movement_method
+           </code>
+</td>
+<td>
+           Movement Method
+           <br/>
+<small>
+            Choices: Character Velocity,Translate,Position
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             character_velocity
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            x
+           </code>
+</td>
+<td>
+           X
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            y
+           </code>
+</td>
+<td>
+           Y
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            space
+           </code>
+</td>
+<td>
+           Space
+           <br/>
+<small>
+            Choices: Local,Global
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             local
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the motion action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Target a specific node by configuring the node field before testing the chain.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Motion 2D
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Confirm the target node name and node type before troubleshooting the rest of the chain.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#character-2d-physics-2d">
+           Character 2D Physics
+          </a>
+<a href="actuators-3d.html#character-physics-3d">
+           Character Physics
+          </a>
+<a href="actuators-3d.html#character-jump-3d">
+           Character Jump
+          </a>
+<a href="actuators-3d.html#gravity-3d">
+           Gravity
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Motion 2D screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/motion-2d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Motion 2D screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Character 2D Physics Finalizes CharacterBody2D movement once per physics frame. Motion 2D bricks add requested movement; this brick applies gravity, friction, acceleration, snapping, slope limits, bounce, and move_and_slide(). Motion" id="character-2d-physics-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Character 2D Physics
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Finalizes CharacterBody2D movement once per physics frame. Motion 2D bricks add requested movement; this brick applies gravity, friction, acceleration, snapping, slope limits, bounce, and move_and_slide().
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Motion
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/2d/character_2d_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            gravity_strength
+           </code>
+</td>
+<td>
+           Gravity Strength
+           <br/>
+<small>
+            Default:
+            <code>
+             980.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            max_fall_speed
+           </code>
+</td>
+<td>
+           Max Fall Speed
+           <br/>
+<small>
+            Default:
+            <code>
+             1000.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            floor_snap_length
+           </code>
+</td>
+<td>
+           Floor Snap Length
+           <br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            slope_limit
+           </code>
+</td>
+<td>
+           Slope Limit
+           <br/>
+<small>
+            Default:
+            <code>
+             45.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            use_acceleration
+           </code>
+</td>
+<td>
+           Use Acceleration
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            acceleration
+           </code>
+</td>
+<td>
+           Acceleration
+           <br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            friction
+           </code>
+</td>
+<td>
+           Friction
+           <br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            bounce
+           </code>
+</td>
+<td>
+           Bounce
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            ground_groups
+           </code>
+</td>
+<td>
+           Ground Groups
+           <br/>
+<small>
+            Enter ground groups
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            platform_groups
+           </code>
+</td>
+<td>
+           Platform Groups
+           <br/>
+<small>
+            Enter platform groups
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            inherit_platform_velocity_on_jump
+           </code>
+</td>
+<td>
+           Inherit Platform Velocity On Jump
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the motion action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Character 2D Physics
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#motion-2d-2d">
+           Motion 2D
+          </a>
+<a href="actuators-3d.html#character-physics-3d">
+           Character Physics
+          </a>
+<a href="actuators-3d.html#character-jump-3d">
+           Character Jump
+          </a>
+<a href="actuators-3d.html#impulse-3d">
+           Impulse
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Character 2D Physics screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/character-2d-physics.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Character 2D Physics screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Character Jump 2D Character Jump 2D logic brick. General" id="character-jump-2d-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Character Jump 2D
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Character Jump 2D logic brick.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Motion
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/2d/jump_2d_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<p class="muted">
+        This brick exposes no configurable properties.
+       </p>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Character Jump 2D
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#character-physics-3d">
+           Character Physics
+          </a>
+<a href="actuators-2d.html#force-2d-2d">
+           Force 2D
+          </a>
+<a href="actuators-2d.html#impulse-2d-2d">
+           Impulse 2D
+          </a>
+<a href="actuators-2d.html#linear-velocity-2d-2d">
+           Linear Velocity 2D
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Character Jump 2D screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/character-jump-2d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Character Jump 2D screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Teleport 2D Instantly sets position to a target Node2D or coordinates.\nUseful for respawning, portals, checkpoints, and spawn points. Motion" id="teleport-2d-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Teleport 2D
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Instantly sets position to a target Node2D or coordinates.\nUseful for respawning, portals, checkpoints, and spawn points.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Motion
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/2d/teleport_2d_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             Target
+            </code>
+</small>
+<br/>
+<small>
+            Target Node2D node name
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mode
+           </code>
+</td>
+<td>
+           Mode
+           <br/>
+<small>
+            Choices: Target Node,Coordinates,Vector Variable
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             target_node
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            x
+           </code>
+</td>
+<td>
+           X
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            y
+           </code>
+</td>
+<td>
+           Y
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            vector_variable
+           </code>
+</td>
+<td>
+           Vector Variable
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            clear_velocity
+           </code>
+</td>
+<td>
+           Clear Velocity
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the motion action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Target a specific node by configuring the node field before testing the chain.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Teleport 2D
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Confirm the target node name and node type before troubleshooting the rest of the chain.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#teleport-3d">
+           Teleport
+          </a>
+<a href="actuators-2d.html#character-2d-physics-2d">
+           Character 2D Physics
+          </a>
+<a href="actuators-2d.html#motion-2d-2d">
+           Motion 2D
+          </a>
+<a href="actuators-2d.html#set-transforms-2d">
+           Set Transforms
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Teleport 2D screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/teleport-2d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Teleport 2D screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Mouse Toggle cursor visibility or rotate object based on mouse movement General" id="mouse-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Mouse
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Toggle cursor visibility or rotate object based on mouse movement
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Motion
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/3d/mouse_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            mode
+           </code>
+</td>
+<td>
+           Mode
+           <br/>
+<small>
+            Choices: Cursor Visibility,Mouse Look,Look Towards,Move Towards Cursor,Move To Mouse Click
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             cursor_visibility
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            cursor_visible
+           </code>
+</td>
+<td>
+           Cursor Visible
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            use_x_axis
+           </code>
+</td>
+<td>
+           Use X Axis
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            use_y_axis
+           </code>
+</td>
+<td>
+           Use Y Axis
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            x_target
+           </code>
+</td>
+<td>
+           X Target
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            y_target
+           </code>
+</td>
+<td>
+           Y Target
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            x_sensitivity
+           </code>
+</td>
+<td>
+           X Sensitivity
+           <br/>
+<small>
+            Default:
+            <code>
+             0.1
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            y_sensitivity
+           </code>
+</td>
+<td>
+           Y Sensitivity
+           <br/>
+<small>
+            Default:
+            <code>
+             0.1
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            x_invert
+           </code>
+</td>
+<td>
+           X Invert
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            y_invert
+           </code>
+</td>
+<td>
+           Y Invert
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            x_threshold
+           </code>
+</td>
+<td>
+           X Threshold
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            y_threshold
+           </code>
+</td>
+<td>
+           Y Threshold
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            x_min_degrees
+           </code>
+</td>
+<td>
+           X Min Degrees
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            x_max_degrees
+           </code>
+</td>
+<td>
+           X Max Degrees
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            y_min_degrees
+           </code>
+</td>
+<td>
+           Y Min Degrees
+           <br/>
+<small>
+            Default:
+            <code>
+             -90.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            y_max_degrees
+           </code>
+</td>
+<td>
+           Y Max Degrees
+           <br/>
+<small>
+            Default:
+            <code>
+             90.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            x_rotation_axis
+           </code>
+</td>
+<td>
+           X Rotation Axis
+           <br/>
+<small>
+            Choices: X,Y,Z
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             y
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            y_rotation_axis
+           </code>
+</td>
+<td>
+           Y Rotation Axis
+           <br/>
+<small>
+            Choices: X,Y,Z
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             x
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            x_use_local
+           </code>
+</td>
+<td>
+           X Use Local
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            y_use_local
+           </code>
+</td>
+<td>
+           Y Use Local
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            recenter_cursor
+           </code>
+</td>
+<td>
+           Recenter Cursor
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mouse_target
+           </code>
+</td>
+<td>
+           Mouse Target
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mouse_velocity
+           </code>
+</td>
+<td>
+           Mouse Velocity
+           <br/>
+<small>
+            Default:
+            <code>
+             5.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mouse_acceleration
+           </code>
+</td>
+<td>
+           Mouse Acceleration
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mouse_turn_speed
+           </code>
+</td>
+<td>
+           Mouse Turn Speed
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mouse_arrival_distance
+           </code>
+</td>
+<td>
+           Mouse Arrival Distance
+           <br/>
+<small>
+            Default:
+            <code>
+             0.1
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mouse_facing_axis
+           </code>
+</td>
+<td>
+           Mouse Facing Axis
+           <br/>
+<small>
+            Choices: +X,-X,+Y,-Y,+Z,-Z
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             +z
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mouse_lock_y
+           </code>
+</td>
+<td>
+           Mouse Lock Y
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            click_button
+           </code>
+</td>
+<td>
+           Click Button
+           <br/>
+<small>
+            Choices: Left,Right,Middle
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             left
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Mouse
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-2d.html#mouse-common">
+           Mouse
+          </a>
+<a href="actuators-3d.html#character-physics-3d">
+           Character Physics
+          </a>
+<a href="actuators-3d.html#collision-3d">
+           Collision
+          </a>
+<a href="actuators-3d.html#edit-object-3d">
+           Edit Object
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Mouse screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/mouse.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Mouse screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+</div>
+</section>
+<section class="actuator-category" id="object">
+<div class="category-heading">
+<span class="eyebrow">
+       RIGHT-CLICK SUBMENU
+      </span>
+<h2>
+       Object
+      </h2>
+<p>
+       Right-click → Actuators → Object
+      </p>
+</div>
+<div class="category-bricks">
+<section class="brick actuator" data-compatibility="2d" data-search="Get Transforms Gets position, rotation, and scale from a node or the nearest member of a group and stores the values as variables. Object" id="get-transforms-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Get Transforms
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Gets position, rotation, and scale from a node or the nearest member of a group and stores the values as variables.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Object
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/get_transforms_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_mode
+           </code>
+</td>
+<td>
+           Target Mode
+           <br/>
+<small>
+            Choices: Node Name,Group
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             node_name
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            target_name
+           </code>
+</td>
+<td>
+           Target Name
+           <br/>
+<small>
+            Node or group name
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            get_position
+           </code>
+</td>
+<td>
+           Get Position
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            position_variable
+           </code>
+</td>
+<td>
+           Position Variable
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            get_rotation
+           </code>
+</td>
+<td>
+           Get Rotation
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            rotation_variable
+           </code>
+</td>
+<td>
+           Rotation Variable
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            get_scale
+           </code>
+</td>
+<td>
+           Get Scale
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            scale_variable
+           </code>
+</td>
+<td>
+           Scale Variable
+          </td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the object action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Get Transforms
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#set-transforms-2d">
+           Set Transforms
+          </a>
+<a href="actuators-3d.html#save-load-3d">
+           Save / Load
+          </a>
+<a href="actuators-2d.html#get-variable-2d">
+           Get Variable
+          </a>
+<a href="actuators-2d.html#tween-animation-2d">
+           Tween Animation
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Get Transforms screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/get-transforms.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Get Transforms screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Set Transforms Sets position, rotation, and scale from entered values or variables, instantly or over time. Object" id="set-transforms-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Set Transforms
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Sets position, rotation, and scale from entered values or variables, instantly or over time.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Object
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/scale_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<p class="muted">
+        This brick exposes no configurable properties.
+       </p>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the object action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Set Transforms
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#get-transforms-2d">
+           Get Transforms
+          </a>
+<a href="actuators-3d.html#save-load-3d">
+           Save / Load
+          </a>
+<a href="actuators-3d.html#teleport-3d">
+           Teleport
+          </a>
+<a href="actuators-2d.html#teleport-2d-2d">
+           Teleport 2D
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Set Transforms screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/set-transforms.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Set Transforms screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Property Sets properties on a target node.\nChoose the node type to see its available properties.\nLeave a field empty to skip setting that property.\n⚠ Adds @export in Inspector — assign the target node. General" id="property-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Property
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Sets properties on a target node.\nChoose the node type to see its available properties.\nLeave a field empty to skip setting that property.\n⚠ Adds @export in Inspector — assign the target node.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Object
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/property_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            node_type
+           </code>
+</td>
+<td>
+           Node Type
+           <br/>
+<small>
+            Choices: Node,Mesh Instance,Collision Shape,Light,Rigid Body,Character Body,Animation Player,Control,Label,Button,Camera,Sprite,Custom
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             Node
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            target_node
+           </code>
+</td>
+<td>
+           Target Node
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_n3d_visibility
+           </code>
+</td>
+<td>
+           Group N3D Visibility
+           <br/>
+<small>
+            Choices: Visibility
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            n3d_visible
+           </code>
+</td>
+<td>
+           N3D Visible
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_n3d_transform
+           </code>
+</td>
+<td>
+           Group N3D Transform
+           <br/>
+<small>
+            Choices: Transform
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            n3d_pos_x
+           </code>
+</td>
+<td>
+           N3D Pos X
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            n3d_pos_y
+           </code>
+</td>
+<td>
+           N3D Pos Y
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            n3d_pos_z
+           </code>
+</td>
+<td>
+           N3D Pos Z
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            n3d_rot_x
+           </code>
+</td>
+<td>
+           N3D Rot X
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            n3d_rot_y
+           </code>
+</td>
+<td>
+           N3D Rot Y
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            n3d_rot_z
+           </code>
+</td>
+<td>
+           N3D Rot Z
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            n3d_scale_x
+           </code>
+</td>
+<td>
+           N3D Scale X
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            n3d_scale_y
+           </code>
+</td>
+<td>
+           N3D Scale Y
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            n3d_scale_z
+           </code>
+</td>
+<td>
+           N3D Scale Z
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_mesh_basic
+           </code>
+</td>
+<td>
+           Group Mesh Basic
+           <br/>
+<small>
+            Choices: Mesh Instance
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mesh_visible
+           </code>
+</td>
+<td>
+           Mesh Visible
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mesh_cast_shadow
+           </code>
+</td>
+<td>
+           Mesh Cast Shadow
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_col_basic
+           </code>
+</td>
+<td>
+           Group Col Basic
+           <br/>
+<small>
+            Choices: Collision Shape
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            col_disabled
+           </code>
+</td>
+<td>
+           Col Disabled
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_light_basic
+           </code>
+</td>
+<td>
+           Group Light Basic
+           <br/>
+<small>
+            Choices: Basic
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            light_visible
+           </code>
+</td>
+<td>
+           Light Visible
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            light_energy
+           </code>
+</td>
+<td>
+           Light Energy
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_light_color
+           </code>
+</td>
+<td>
+           Group Light Color
+           <br/>
+<small>
+            Choices: Color
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            light_color
+           </code>
+</td>
+<td>
+           Light Color
+           <br/>
+<small>
+            Default:
+            <code>
+             Color(1
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_light_shadow
+           </code>
+</td>
+<td>
+           Group Light Shadow
+           <br/>
+<small>
+            Choices: Shadow
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            light_shadow
+           </code>
+</td>
+<td>
+           Light Shadow
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_rb_basic
+           </code>
+</td>
+<td>
+           Group Rb Basic
+           <br/>
+<small>
+            Choices: Basic
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            rb_freeze
+           </code>
+</td>
+<td>
+           Rb Freeze
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            rb_mass
+           </code>
+</td>
+<td>
+           Rb Mass
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_rb_damping
+           </code>
+</td>
+<td>
+           Group Rb Damping
+           <br/>
+<small>
+            Choices: Damping
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            rb_gravity_scale
+           </code>
+</td>
+<td>
+           Rb Gravity Scale
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            rb_linear_damp
+           </code>
+</td>
+<td>
+           Rb Linear Damp
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            rb_angular_damp
+           </code>
+</td>
+<td>
+           Rb Angular Damp
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_cb_basic
+           </code>
+</td>
+<td>
+           Group Cb Basic
+           <br/>
+<small>
+            Choices: Basic
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            cb_up_dir_y
+           </code>
+</td>
+<td>
+           Cb Up Dir Y
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            cb_max_slides
+           </code>
+</td>
+<td>
+           Cb Max Slides
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_cb_floor
+           </code>
+</td>
+<td>
+           Group Cb Floor
+           <br/>
+<small>
+            Choices: Floor
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            cb_floor_max_angle
+           </code>
+</td>
+<td>
+           Cb Floor Max Angle
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            cb_stop_on_slope
+           </code>
+</td>
+<td>
+           Cb Stop On Slope
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            cb_block_on_wall
+           </code>
+</td>
+<td>
+           Cb Block On Wall
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            cb_slide_on_ceiling
+           </code>
+</td>
+<td>
+           Cb Slide On Ceiling
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_anim_basic
+           </code>
+</td>
+<td>
+           Group Anim Basic
+           <br/>
+<small>
+            Choices: Animation Player
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            anim_speed_scale
+           </code>
+</td>
+<td>
+           Anim Speed Scale
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_ctrl_basic
+           </code>
+</td>
+<td>
+           Group Ctrl Basic
+           <br/>
+<small>
+            Choices: Basic
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            ctrl_visible
+           </code>
+</td>
+<td>
+           Ctrl Visible
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            ctrl_modulate
+           </code>
+</td>
+<td>
+           Ctrl Modulate
+           <br/>
+<small>
+            Default:
+            <code>
+             Color(1
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_ctrl_transform
+           </code>
+</td>
+<td>
+           Group Ctrl Transform
+           <br/>
+<small>
+            Choices: Transform
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            ctrl_size_x
+           </code>
+</td>
+<td>
+           Ctrl Size X
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            ctrl_size_y
+           </code>
+</td>
+<td>
+           Ctrl Size Y
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            ctrl_pos_x
+           </code>
+</td>
+<td>
+           Ctrl Pos X
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            ctrl_pos_y
+           </code>
+</td>
+<td>
+           Ctrl Pos Y
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            ctrl_rotation
+           </code>
+</td>
+<td>
+           Ctrl Rotation
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            ctrl_scale_x
+           </code>
+</td>
+<td>
+           Ctrl Scale X
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            ctrl_scale_y
+           </code>
+</td>
+<td>
+           Ctrl Scale Y
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_lbl_basic
+           </code>
+</td>
+<td>
+           Group Lbl Basic
+           <br/>
+<small>
+            Choices: Label
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            lbl_text
+           </code>
+</td>
+<td>
+           Lbl Text
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            lbl_visible
+           </code>
+</td>
+<td>
+           Lbl Visible
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            lbl_modulate
+           </code>
+</td>
+<td>
+           Lbl Modulate
+           <br/>
+<small>
+            Default:
+            <code>
+             Color(1
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_btn_basic
+           </code>
+</td>
+<td>
+           Group Btn Basic
+           <br/>
+<small>
+            Choices: Button
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            btn_disabled
+           </code>
+</td>
+<td>
+           Btn Disabled
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            btn_text
+           </code>
+</td>
+<td>
+           Btn Text
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            btn_visible
+           </code>
+</td>
+<td>
+           Btn Visible
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_cam_basic
+           </code>
+</td>
+<td>
+           Group Cam Basic
+           <br/>
+<small>
+            Choices: Camera
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            cam_fov
+           </code>
+</td>
+<td>
+           Cam Fov
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            cam_near
+           </code>
+</td>
+<td>
+           Cam Near
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            cam_far
+           </code>
+</td>
+<td>
+           Cam Far
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            cam_current
+           </code>
+</td>
+<td>
+           Cam Current
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_spr_basic
+           </code>
+</td>
+<td>
+           Group Spr Basic
+           <br/>
+<small>
+            Choices: Basic
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            spr_visible
+           </code>
+</td>
+<td>
+           Spr Visible
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            spr_modulate
+           </code>
+</td>
+<td>
+           Spr Modulate
+           <br/>
+<small>
+            Default:
+            <code>
+             Color(1
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            spr_flip_h
+           </code>
+</td>
+<td>
+           Spr Flip H
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            spr_flip_v
+           </code>
+</td>
+<td>
+           Spr Flip V
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            spr_pixel_size
+           </code>
+</td>
+<td>
+           Spr Pixel Size
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_spr_display
+           </code>
+</td>
+<td>
+           Group Spr Display
+           <br/>
+<small>
+            Choices: Display
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            spr_billboard
+           </code>
+</td>
+<td>
+           Spr Billboard
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            spr_transparent
+           </code>
+</td>
+<td>
+           Spr Transparent
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            spr_shaded
+           </code>
+</td>
+<td>
+           Spr Shaded
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            spr_double_sided
+           </code>
+</td>
+<td>
+           Spr Double Sided
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_spr_frames
+           </code>
+</td>
+<td>
+           Group Spr Frames
+           <br/>
+<small>
+            Choices: Frames
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            spr_frame
+           </code>
+</td>
+<td>
+           Spr Frame
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            spr_hframes
+           </code>
+</td>
+<td>
+           Spr Hframes
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            spr_vframes
+           </code>
+</td>
+<td>
+           Spr Vframes
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            _group_custom
+           </code>
+</td>
+<td>
+           Group Custom
+           <br/>
+<small>
+            Choices: Custom Property
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            custom_property
+           </code>
+</td>
+<td>
+           Custom Property
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            custom_value
+           </code>
+</td>
+<td>
+           Custom Value
+          </td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Target a specific node by configuring the node field before testing the chain.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Property
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Confirm the target node name and node type before troubleshooting the rest of the chain.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#teleport-3d">
+           Teleport
+          </a>
+<a href="actuators-2d.html#smooth-follow-camera-2d">
+           Smooth Follow Camera
+          </a>
+<a href="actuators-3d.html#light-3d">
+           Light
+          </a>
+<a href="actuators-2d.html#set-camera-2d">
+           Set Camera
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Property screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/property.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Property screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Visibility Shows, hides, or toggles visibility of a node by name. Uses the same current-scene recursive name lookup as the Text Actuator. General" id="visibility-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Visibility
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Shows, hides, or toggles visibility of a node by name. Uses the same current-scene recursive name lookup as the Text Actuator.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Object
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/visibility_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+</small>
+<br/>
+<small>
+            Node name
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            action
+           </code>
+</td>
+<td>
+           Action
+           <br/>
+<small>
+            Choices: Show,Hide,Toggle
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             show
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Target a specific node by configuring the node field before testing the chain.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Visibility
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Confirm the target node name and node type before troubleshooting the rest of the chain.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#modulate-2d">
+           Modulate
+          </a>
+<a href="actuators-3d.html#text-3d">
+           Text
+          </a>
+<a href="actuators-3d.html#tween-3d">
+           Tween
+          </a>
+<a href="actuators-3d.html#look-at-input-3d">
+           Look At Input
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Visibility screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/visibility.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Visibility screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+</div>
+</section>
+<section class="actuator-category" id="physics">
+<div class="category-heading">
+<span class="eyebrow">
+       RIGHT-CLICK SUBMENU
+      </span>
+<h2>
+       Physics
+      </h2>
+<p>
+       Right-click → Actuators → Physics
+      </p>
+</div>
+<div class="category-bricks">
+<section class="brick actuator" data-compatibility="2d" data-search="Force 2D Force 2D logic brick. General" id="force-2d-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Force 2D
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Force 2D logic brick.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Physics
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/2d/force_2d_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<p class="muted">
+        This brick exposes no configurable properties.
+       </p>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Force 2D
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#character-jump-2d-2d">
+           Character Jump 2D
+          </a>
+<a href="actuators-2d.html#impulse-2d-2d">
+           Impulse 2D
+          </a>
+<a href="actuators-2d.html#linear-velocity-2d-2d">
+           Linear Velocity 2D
+          </a>
+<a href="actuators-2d.html#state-2d">
+           State
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Force 2D screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/force-2d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Force 2D screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Impulse 2D Impulse 2D logic brick. General" id="impulse-2d-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Impulse 2D
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Impulse 2D logic brick.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Physics
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/2d/impulse_2d_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<p class="muted">
+        This brick exposes no configurable properties.
+       </p>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Impulse 2D
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#character-jump-2d-2d">
+           Character Jump 2D
+          </a>
+<a href="actuators-2d.html#force-2d-2d">
+           Force 2D
+          </a>
+<a href="actuators-2d.html#linear-velocity-2d-2d">
+           Linear Velocity 2D
+          </a>
+<a href="actuators-2d.html#state-2d">
+           State
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Impulse 2D screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/impulse-2d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Impulse 2D screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Linear Velocity 2D Linear Velocity 2D logic brick. General" id="linear-velocity-2d-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • 2d
+        </span>
+<h2>
+         Linear Velocity 2D
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Linear Velocity 2D logic brick.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → Physics
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/2d/linear_velocity_2d_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<p class="muted">
+        This brick exposes no configurable properties.
+       </p>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Pair it with an appropriate sensor to control when the action occurs.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Linear Velocity 2D
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#character-jump-2d-2d">
+           Character Jump 2D
+          </a>
+<a href="actuators-2d.html#force-2d-2d">
+           Force 2D
+          </a>
+<a href="actuators-2d.html#impulse-2d-2d">
+           Impulse 2D
+          </a>
+<a href="actuators-3d.html#character-physics-3d">
+           Character Physics
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Linear Velocity 2D screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/linear-velocity-2d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Linear Velocity 2D screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+</div>
+</section>
+<section class="actuator-category" id="ui">
+<div class="category-heading">
+<span class="eyebrow">
+       RIGHT-CLICK SUBMENU
+      </span>
+<h2>
+       UI
+      </h2>
+<p>
+       Right-click → Actuators → UI
+      </p>
+</div>
+<div class="category-bricks">
+<section class="brick actuator" data-compatibility="2d" data-search="Modulate Sets or smoothly transitions the color/alpha of a UI or 2D node found by name anywhere in the current scene tree. General" id="modulate-2d">
+<div class="brick-heading">
+<span class="badge">
+         actuator • shared
+        </span>
+<h2>
+         Modulate
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Sets or smoothly transitions the color/alpha of a UI or 2D node found by name anywhere in the current scene tree.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Add Logic Brick → Actuators → UI
+         </span>
+</div>
+<div>
+<strong>
+          Source
+         </strong>
+<span>
+<code>
+           actuators/common/modulate_actuator.gd
+          </code>
+</span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+          </td>
+</tr>
+<tr>
+<td>
+<code>
+            node_name_source
+           </code>
+</td>
+<td>
+           Node Name Source
+           <br/>
+<small>
+            Choices: Literal Node Name,String Variable
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             literal
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            export_node_name
+           </code>
+</td>
+<td>
+           Export Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            target_modulate
+           </code>
+</td>
+<td>
+           Target Modulate
+           <br/>
+<small>
+            Choices: Self Modulate,Modulate
+           </small>
+<br/>
+<small>
+            Default:
+            <code>
+             self_modulate
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            color
+           </code>
+</td>
+<td>
+           Color
+           <br/>
+<small>
+            Default:
+            <code>
+             Color(1
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            transition
+           </code>
+</td>
+<td>
+           Transition
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            transition_speed
+           </code>
+</td>
+<td>
+           Transition Speed
+           <br/>
+<small>
+            Default:
+            <code>
+             5.0
+            </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Perform the general action described above after a sensor/controller chain succeeds.
+           </li>
+<li>
+            Reuse the brick in multiple states or chains with different option values.
+           </li>
+<li>
+            Target a specific node by configuring the node field before testing the chain.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Choose a sensor
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Controller
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Modulate
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Confirm the target node name and node type before troubleshooting the rest of the chain.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#progress-bar-3d">
+           Progress Bar
+          </a>
+<a href="actuators-3d.html#tween-3d">
+           Tween
+          </a>
+<a href="actuators-3d.html#screen-shake-3d">
+           Screen Shake
+          </a>
+<a href="actuators-3d.html#sprite-frames-3d">
+           Sprite Frames
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Modulate screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/modulate.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Modulate screenshot
+         </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+</div>
+</section>
+<div class="page-nav">
+<a class="page-nav-card previous" href="actuators-3d.html">
+<span class="page-nav-label">
+       ← Previous
+      </span>
+<strong>
+       Previous 3D Actuators
+      </strong>
+</a>
+<a class="page-nav-card next" href="actuators-ui.html">
+<span class="page-nav-label">
+       Next →
+      </span>
+<strong>
+       Next  UI Actuators
+      </strong>
+</a>
+</div>
+</main>
+<aside aria-label="On this page" class="page-toc">
+<div class="toc-box">
+<h3>
+      On this page
+     </h3>
+<ul>
+<li>
+<a data-toc-target="setup" href="#setup">
+        2D Setup and Actuators
+       </a>
+</li>
+<li>
+<a data-toc-target="animation" href="#animation">
+        Animation
+       </a>
+</li>
+<li>
+<a data-toc-target="audio" href="#audio">
+        Audio
+       </a>
+</li>
+<li>
+<a data-toc-target="camera" href="#camera">
+        Camera
+       </a>
+</li>
+<li>
+<a data-toc-target="game" href="#game">
+        Game
+       </a>
+</li>
+<li>
+<a data-toc-target="game-feel" href="#game-feel">
+        Game Feel
+       </a>
+</li>
+<li>
+<a data-toc-target="logic" href="#logic">
+        Logic
+       </a>
+</li>
+<li>
+<a data-toc-target="motion" href="#motion">
+        Motion
+       </a>
+</li>
+<li>
+<a data-toc-target="object" href="#object">
+        Object
+       </a>
+</li>
+<li>
+<a data-toc-target="physics" href="#physics">
+        Physics
+       </a>
+</li>
+<li>
+<a data-toc-target="ui" href="#ui">
+        UI
+       </a>
+</li>
+</ul>
+</div>
+</aside>
+</div>
+<section class="actuator-category" id="general-shared">
+<div class="category-heading">
+<span class="eyebrow">
+     AVAILABLE IN THIS WORKFLOW
+    </span>
+<h2>
+     General
+    </h2>
+<p>
+     Actuators available in the 2D workflow.
+    </p>
+</div>
+<div class="category-bricks">
+<section class="brick actuator" data-compatibility="2d" data-search="Animation Play, stop, or control animations by name.\nAutomatically finds the AnimationPlayer that owns the animation.\nWorks with AnimationPlayers nested at any depth. General" id="animation-2d">
+<div class="brick-heading">
+<span class="badge">
+       actuator • 2d
+      </span>
+<h2>
+       Animation
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d">
+        2D
+       </span>
+</div>
+</div>
+<p>
+      Play, stop, or control animations by name.\nAutomatically finds the AnimationPlayer that owns the animation.\nWorks with AnimationPlayers nested at any depth.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators → General
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/common/animation_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          mode
+         </code>
+</td>
+<td>
+         Mode
+         <br/>
+<small>
+          Choices: Play,Stop,Pause,Queue
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           play
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          animation_name
+         </code>
+</td>
+<td>
+         Animation Name
+         <br/>
+<small>
+          Choices: __ANIMATION_LIST__
+         </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          speed
+         </code>
+</td>
+<td>
+         Speed
+         <br/>
+<small>
+          Default:
+          <code>
+           1.0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          blend_time
+         </code>
+</td>
+<td>
+         Blend Time
+         <br/>
+<small>
+          Default:
+          <code>
+           -1.0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          play_backwards
+         </code>
+</td>
+<td>
+         Play Backwards
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          from_end
+         </code>
+</td>
+<td>
+         From End
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the general action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Pair it with an appropriate sensor to control when the action occurs.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Animation
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#rumble-2d">
+         Rumble
+        </a>
+<a href="actuators-3d.html#sprite-frames-3d">
+         Sprite Frames
+        </a>
+<a href="actuators-3d.html#animation-state-3d">
+         Animation State
+        </a>
+<a href="actuators-2d.html#modify-variable-2d">
+         Modify Variable
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Animation screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/animation.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Animation screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Tween Animates any property on self or on a node found by name anywhere in the current scene tree. General" id="tween-2d">
+<div class="brick-heading">
+<span class="badge">
+       actuator • 2d
+      </span>
+<h2>
+       Tween
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-2d">
+        2D
+       </span>
+</div>
+</div>
+<p>
+      Animates any property on self or on a node found by name anywhere in the current scene tree.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators → General
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/common/tween_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          target_mode
+         </code>
+</td>
+<td>
+         Target Mode
+         <br/>
+<small>
+          Choices: Self,Node
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           self
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          target_node_name
+         </code>
+</td>
+<td>
+         Target Node Name
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          node_name_source
+         </code>
+</td>
+<td>
+         Node Name Source
+         <br/>
+<small>
+          Choices: Literal Node Name,String Variable
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           literal
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          export_node_name
+         </code>
+</td>
+<td>
+         Export Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          property
+         </code>
+</td>
+<td>
+         Property
+         <br/>
+<small>
+          Default:
+          <code>
+           modulate:a
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          target_value
+         </code>
+</td>
+<td>
+         Target Value
+         <br/>
+<small>
+          Default:
+          <code>
+           0.0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          duration
+         </code>
+</td>
+<td>
+         Duration
+         <br/>
+<small>
+          Default:
+          <code>
+           0.5
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          trans_type
+         </code>
+</td>
+<td>
+         Trans Type
+         <br/>
+<small>
+          Choices: Linear,Sine,Quint,Quart,Quad,Expo,Elastic,Bounce,Back,Spring,Circular,Cubic
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           linear
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          ease_type
+         </code>
+</td>
+<td>
+         Ease Type
+         <br/>
+<small>
+          Choices: In,Out,In Out,Out In
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           in_out
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          loop
+         </code>
+</td>
+<td>
+         Loop
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the general action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Target a specific node by configuring the node field before testing the chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+<span aria-label="Tween: A smooth change from one value to another over a specified duration." class="glossary-term" data-tooltip="A smooth change from one value to another over a specified duration." tabindex="0">
+           Tween
+          </span>
+</span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Confirm the target node name and node type before troubleshooting the rest of the chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#modulate-2d">
+         Modulate
+        </a>
+<a href="actuators-3d.html#progress-bar-3d">
+         Progress Bar
+        </a>
+<a href="actuators-3d.html#screen-shake-3d">
+         Screen Shake
+        </a>
+<a href="actuators-3d.html#text-3d">
+         Text
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Tween screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/tween.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Tween screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+</div>
+</section>
+<div data-site-footer="">
+</div>
+<div data-shortcut-dialog="">
+</div>
+<script src="assets/js/site-shell.js">
+</script>
+<script src="assets/js/site.js">
+</script>
+<button aria-label="Back to top" class="back-to-top" title="Back to top" type="button">
+   ↑
+  </button>
+</body>
+</html>

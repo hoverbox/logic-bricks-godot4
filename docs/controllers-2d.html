@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="2 controllers available for 2D workflows." name="description"/>
+<title>
+   2D Controllers | Logic Bricks Documentation
+  </title>
+<link href="assets/css/site.css" rel="stylesheet"/>
+<link href="assets/images/favicon.svg" rel="icon" type="image/svg+xml"/>
+<meta content="#08101d" name="theme-color"/>
+</head>
+<body class="controllers-2d" data-page="controllers-2d.html">
+<div data-site-header="">
+</div>
+<div class="layout">
+<aside data-site-sidebar="">
+</aside>
+<main class="content">
+<nav aria-label="Breadcrumb" class="breadcrumb">
+<a href="index.html">
+      Home
+     </a>
+<span aria-hidden="true">
+      ›
+     </span>
+<span aria-current="page">
+      2D Controllers
+     </span>
+</nav>
+<section class="hero">
+<div aria-hidden="true" class="hero-category-mark">
+<span aria-label="Controller: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
+       Controller
+      </span>
+      Reference
+     </div>
+<div class="eyebrow">
+      Audited against addon source
+     </div>
+<h1>
+      2D Controllers
+     </h1>
+<p class="lead">
+      2 controllers available for 2D workflows.
+     </p>
+<div aria-label="Page information" class="page-reading-meta">
+<span>
+       ◷ 3 min read
+      </span>
+<span>
+       Phase 5 enhanced
+      </span>
+</div>
+</section>
+<div aria-label="Brick guidance controls" class="guidance-toolbar">
+<span>
+      Guidance panels
+     </span>
+<div>
+<button data-guidance-action="expand" type="button">
+       Expand all
+      </button>
+<button data-guidance-action="collapse" type="button">
+       Collapse all
+      </button>
+</div>
+</div>
+<div class="callout note">
+<strong>
+      Source of truth
+     </strong>
+     This page lists only bricks registered by the uploaded addon. Legacy aliases and compatibility script shims are not presented as separate menu entries.
+    </div>
+<section class="chapter-intro">
+<div>
+<span class="section-kicker">
+       Chapter guide
+      </span>
+<h2>
+       How controllers fit into a chain
+      </h2>
+<p>
+       Controllers decide whether connected
+       <span aria-label="sensor: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
+        sensor
+       </span>
+       results are allowed to continue. They keep conditions separate from the actions that follow.
+      </p>
+</div>
+<ol class="chapter-steps">
+<li>
+       Connect one or more Sensors.
+      </li>
+<li>
+       Choose the logic mode or script module.
+      </li>
+<li>
+       Connect the Controller output to the Actuators that should run.
+      </li>
+</ol>
+</section>
+<div class="page-tools">
+<input class="search" id="docSearch" placeholder="Filter controllers on this page…" type="search"/>
+</div>
+<section class="brick controller" data-compatibility="3d 2d ui" data-search="Controller AND: all connected sensors must be active OR: any connected sensor must be active NAND: NOT all sensors active (fires unless all are true) NOR: NO sensors active (fires only when all are false) XOR: exactly one sensor is active General" id="controller-controller-gd">
+<div class="brick-heading">
+<span class="badge">
+       controller • 2d
+      </span>
+<h2>
+       Controller
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+        3D
+       </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+        2D
+       </span>
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      AND: all connected sensors must be active OR: any connected sensor must be active NAND: NOT all sensors active (fires unless all are true) NOR: NO sensors active (fires only when all are false) XOR: exactly one sensor is active
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Controllers
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         controllers/controller.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          logic_mode
+         </code>
+</td>
+<td>
+         Logic Mode
+         <br/>
+<small>
+          Choices: AND,OR,NAND,NOR,XOR
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           and
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          all_states
+         </code>
+</td>
+<td>
+         All States
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          state_id
+         </code>
+</td>
+<td>
+         State Id
+         <br/>
+<small>
+          Choices: __STATE_LIST__
+         </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Combine one or more sensor results before actuators run.
+         </li>
+<li>
+          Keep decision-making separate from the actions that follow.
+         </li>
+<li>
+          Switch between AND, OR, NAND, NOR, and XOR without adding separate controller bricks.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          One or more sensors
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Choose an
+          <span aria-label="actuator: A brick that performs an action after a sensor and optional controller succeed." class="glossary-term" data-tooltip="A brick that performs an action after a sensor and optional controller succeed." tabindex="0">
+           actuator
+          </span>
+</span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Use AND when every connected condition must be true, and OR when any connected condition may continue the chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        Do not create separate bricks for AND, OR, NAND, NOR, or XOR; choose the mode inside the Controller brick.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="sensors-3d.html#actuator-3d">
+         Actuator
+        </a>
+<a href="controllers-2d.html#script-controller-script-controller-gd">
+         Script Controller
+        </a>
+<a href="sensors-3d.html#animation-tree-3d">
+         Animation Tree
+        </a>
+<a href="actuators-3d.html#force-3d">
+         Force
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Controller screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/controller.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Controller screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick controller" data-compatibility="3d 2d ui" data-search="Script Controller Works like UPBGE's Python Controller (module mode): - Point to a .gd file - That file defines a top-level function: func run(node: Node) -&gt; void: - When the sensor fires, run(node) is called — node is the scene object Example script (my_script.gd): func run(node: Node) -&gt; void: node.health -= 10 print(&quot;Health: &quot;, node.health) The script does NOT need extends — it is called as a module, not instantiated. General" id="script-controller-script-controller-gd">
+<div class="brick-heading">
+<span class="badge">
+       controller • 2d
+      </span>
+<h2>
+       Script Controller
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+        3D
+       </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+        2D
+       </span>
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Works like UPBGE's Python Controller (module mode): - Point to a .gd file - That file defines a top-level function: func run(node: Node) -&gt; void: - When the sensor fires, run(node) is called — node is the scene object Example script (my_script.gd): func run(node: Node) -&gt; void: node.health -= 10 print("Health: ", node.health) The script does NOT need extends — it is called as a module, not instantiated.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Controllers
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         controllers/script_controller.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          logic_mode
+         </code>
+</td>
+<td>
+         Logic Mode
+         <br/>
+<small>
+          Choices: AND,OR,NAND,NOR,XOR
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           and
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          script_path
+         </code>
+</td>
+<td>
+         Script Path
+         <br/>
+<small>
+          Choices: *.gd
+         </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          all_states
+         </code>
+</td>
+<td>
+         All States
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          state_id
+         </code>
+</td>
+<td>
+         State Id
+         <br/>
+<small>
+          Choices: __STATE_LIST__
+         </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Combine one or more sensor results before actuators run.
+         </li>
+<li>
+          Keep decision-making separate from the actions that follow.
+         </li>
+<li>
+          Call a small reusable GDScript module when visual logic needs custom behavior.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          One or more sensors
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Script Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Choose an actuator
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Keep the module function small and focused, and test its file path before connecting it to a larger chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        The module script must expose the function format described above; it is not used like a normal node script.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="controllers-2d.html#controller-controller-gd">
+         Controller
+        </a>
+<a href="sensors-3d.html#actuator-3d">
+         Actuator
+        </a>
+<a href="actuators-3d.html#look-at-input-3d">
+         Look At Input
+        </a>
+<a href="actuators-3d.html#look-at-movement-3d">
+         Look At Movement
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Script Controller screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/script-controller.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Script Controller screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<div class="page-nav">
+<a class="page-nav-card previous" href="sensors.html">
+<span class="page-nav-label">
+       ← Previous
+      </span>
+<strong>
+       Sensors
+      </strong>
+</a>
+<a class="page-nav-card next" href="actuators-common.html">
+<span class="page-nav-label">
+       Next →
+      </span>
+<strong>
+       Common Actuators
+      </strong>
+</a>
+</div>
+</main>
+<aside aria-label="On this page" class="page-toc">
+<div class="toc-box">
+<h3>
+      On this page
+     </h3>
+<p class="muted">
+      Overview
+     </p>
+</div>
+</aside>
+</div>
+<div data-site-footer="">
+</div>
+<div data-shortcut-dialog="">
+</div>
+<script src="assets/js/site-shell.js">
+</script>
+<script src="assets/js/site.js">
+</script>
+<button aria-label="Back to top" class="back-to-top" title="Back to top" type="button">
+   ↑
+  </button>
+</body>
+</html>

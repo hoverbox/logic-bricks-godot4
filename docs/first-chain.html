@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <meta content="Understand the core Sensor → Controller → Actuator workflow." name="description"/>
+  <title>
+   Your First Logic Chain | Logic Bricks Documentation
+  </title>
+  <link href="assets/css/site.css" rel="stylesheet"/>
+   <link href="assets/images/favicon.svg" rel="icon" type="image/svg+xml"/>
+  <meta content="#08101d" name="theme-color"/>
+</head>
+ <body class="general" data-page="first-chain.html">
+  <div data-site-header="">
+  </div>
+  <div class="layout">
+   <aside data-site-sidebar="">
+   </aside>
+   <main class="content">
+    <nav aria-label="Breadcrumb" class="breadcrumb">
+     <a href="index.html">
+      Home
+     </a>
+     <span aria-hidden="true">
+      ›
+     </span>
+     <span aria-current="page">
+      Your First Logic Chain
+     </span>
+    </nav>
+    <section class="hero">
+     <div aria-hidden="true" class="hero-category-mark">
+      Logic Bricks Manual
+     </div>
+     <div class="eyebrow">
+      Audited against addon source
+     </div>
+     <h1>
+      Your First Logic Chain
+     </h1>
+     <p class="lead">
+      Understand the core
+      <span aria-label="Sensor: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
+       Sensor
+      </span>
+      →
+      <span aria-label="Controller: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
+       Controller
+      </span>
+      →
+      <span aria-label="Actuator: A brick that performs an action after a sensor and optional controller succeed." class="glossary-term" data-tooltip="A brick that performs an action after a sensor and optional controller succeed." tabindex="0">
+       Actuator
+      </span>
+      workflow.
+     </p>
+     <div aria-label="Page information" class="page-reading-meta">
+      <span>
+       ◷ 1 min read
+      </span>
+      <span>
+       Phase 5 enhanced
+      </span>
+     </div>
+    </section>
+    <section>
+     <h2 id="the-basic-flow">
+      The basic flow
+     </h2>
+     <div class="flow">
+      <div>
+       <strong>
+        1. Sensor
+       </strong>
+       <span>
+        Detects an event or condition.
+       </span>
+      </div>
+      <div>
+       <strong>
+        2. Controller
+       </strong>
+       <span>
+        Combines sensor results and applies a logic mode.
+       </span>
+      </div>
+      <div>
+       <strong>
+        3. Actuator
+       </strong>
+       <span>
+        Performs the resulting action.
+       </span>
+      </div>
+     </div>
+    </section>
+    <section>
+     <h2 id="example-input-triggers-movement">
+      Example: input triggers movement
+     </h2>
+     <ol>
+      <li>
+       Add an
+       <strong>
+        Input Map
+       </strong>
+       sensor.
+      </li>
+      <li>
+       Select the input action and trigger mode.
+      </li>
+      <li>
+       Add a
+       <strong>
+        Controller
+       </strong>
+       and leave its logic mode set to AND for a single-sensor chain.
+      </li>
+      <li>
+       Add the appropriate 2D or 3D motion actuator.
+      </li>
+      <li>
+       Connect the bricks and apply/rebuild the generated logic as required by your workflow.
+      </li>
+     </ol>
+    </section>
+    <figure class="screenshot">
+     <div class="screenshot-image">
+      <img alt="First logic chain screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/first-chain.svg"/>
+     </div>
+     <figcaption>
+      <strong class="screenshot-caption-title">
+       Screenshot placeholder
+      </strong>
+      <span>
+       Replace with a screenshot of a simple connected chain.
+      </span>
+     </figcaption>
+    </figure>
+    <section class="related-topics">
+     <span class="section-kicker">
+      Keep learning
+     </span>
+     <h2>
+      Related topics
+     </h2>
+     <div class="related-topic-grid">
+      <a class="related-topic-card" href="sensors.html">
+       <strong>
+        Sensors
+       </strong>
+       <span>
+        Choose the event or condition that begins a chain.
+       </span>
+      </a>
+      <a class="related-topic-card" href="controllers.html">
+       <strong>
+        Controllers
+       </strong>
+       <span>
+        Decide how conditions combine.
+       </span>
+      </a>
+      <a class="related-topic-card" href="actuators-common.html">
+       <strong>
+        Common Actuators
+       </strong>
+       <span>
+        Choose an action that runs after the controller.
+       </span>
+      </a>
+     </div>
+    </section>
+    <div class="page-nav">
+     <a class="page-nav-card previous" href="getting-started.html">
+      <span class="page-nav-label">
+       ← Previous
+      </span>
+      <strong>
+       Getting Started
+      </strong>
+     </a>
+     <a class="page-nav-card next" href="interface.html">
+      <span class="page-nav-label">
+       Next →
+      </span>
+      <strong>
+       Interface &amp; Organization
+      </strong>
+     </a>
+    </div>
+   </main>
+   <aside aria-label="On this page" class="page-toc">
+    <div class="toc-box">
+     <h3>
+      On this page
+     </h3>
+     <ul>
+      <li>
+       <a data-toc-target="the-basic-flow" href="#the-basic-flow">
+        The basic flow
+       </a>
+      </li>
+      <li>
+       <a data-toc-target="example-input-triggers-movement" href="#example-input-triggers-movement">
+        Example: input triggers movement
+       </a>
+      </li>
+     </ul>
+    </div>
+   </aside>
+  </div>
+  <div data-site-footer="">
+  </div>
+  <div data-shortcut-dialog="">
+  </div>
+  <script src="assets/js/site-shell.js">
+  </script>
+  <script src="assets/js/site.js">
+  </script>
+  <button aria-label="Back to top" class="back-to-top" title="Back to top" type="button">
+   ↑
+  </button>
+ </body>
+</html>

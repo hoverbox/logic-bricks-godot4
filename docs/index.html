@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <meta content="Professional documentation for the current Logic Bricks addon." name="description"/>
+  <title>
+   Logic Bricks Documentation | Logic Bricks Documentation
+  </title>
+  <link href="assets/css/site.css" rel="stylesheet"/>
+   <link href="assets/images/favicon.svg" rel="icon" type="image/svg+xml"/>
+  <meta content="#08101d" name="theme-color"/>
+</head>
+ <body class="general" data-page="index.html">
+  <div data-site-header="">
+  </div>
+  <div class="layout">
+   <aside data-site-sidebar="">
+   </aside>
+   <main class="content">
+    <nav aria-label="Breadcrumb" class="breadcrumb">
+     <a href="index.html">
+      Home
+     </a>
+     <span aria-current="page">
+      Documentation
+     </span>
+    </nav>
+    <section class="home-hero" id="welcome">
+     <div class="home-hero-copy">
+      <div class="hero-category-mark">
+       Official Logic Bricks Manual
+      </div>
+      <div class="eyebrow">
+       Build game logic visually in Godot
+      </div>
+      <h1>
+       Learn Logic Bricks.
+       <br/>
+       <span>
+        Find answers quickly.
+       </span>
+      </h1>
+      <p class="lead">
+       Start with your first logic chain, explore the exact right-click menu structure, or search the complete brick reference.
+      </p>
+      <div aria-label="Page information" class="page-reading-meta">
+       <span>
+        ◷ 2 min read
+       </span>
+       <span>
+        Phase 5 enhanced
+       </span>
+      </div>
+      <div class="hero-actions">
+       <a class="btn" href="first-chain.html">
+        Build your first chain
+       </a>
+       <a class="btn secondary" href="brick-reference.html">
+        Browse every brick
+       </a>
+      </div>
+      <div aria-label="Documentation status" class="home-status-row">
+       <span class="status-pill">
+        <strong>
+         150
+        </strong>
+        documented bricks
+       </span>
+       <span class="status-pill">
+        <strong>
+         3D · 2D · UI
+        </strong>
+        workflows
+       </span>
+      </div>
+     </div>
+     <div aria-label="Logic Bricks workflow overview" class="home-hero-visual">
+      <div class="workflow-card workflow-card--sensor">
+       <span class="workflow-number" aria-hidden="true">1</span>
+       <strong>Sensor</strong>
+       <small>Detect an event</small>
+      </div>
+      <div class="workflow-connector" aria-hidden="true">→</div>
+      <div class="workflow-card workflow-card--controller">
+       <span class="workflow-number" aria-hidden="true">2</span>
+       <strong>Controller</strong>
+       <small>Evaluate logic</small>
+      </div>
+      <div class="workflow-connector" aria-hidden="true">→</div>
+      <div class="workflow-card workflow-card--actuator">
+       <span class="workflow-number" aria-hidden="true">3</span>
+       <strong>Actuator</strong>
+       <small>Perform an action</small>
+      </div>
+     </div>
+    </section>
+    <section class="home-search-panel" id="search-documentation">
+     <div>
+      <span class="section-kicker">
+       Documentation search
+      </span>
+      <h2>
+       What are you trying to build?
+      </h2>
+      <p>
+       Search page titles, menu sections, brick names, and learning topics.
+      </p>
+     </div>
+     <div class="home-search-wrap">
+      <label class="sr-only" for="homeDocSearch">
+       Search documentation
+      </label>
+      <input autocomplete="off" class="home-search-input" id="homeDocSearch" placeholder="Try “camera”, “variable”, “jump”, or “debug”…" type="search"/>
+      <span class="search-shortcut">
+       /
+      </span>
+     </div>
+     <div aria-live="polite" class="home-search-results" id="homeSearchResults">
+     </div>
+    </section>
+    <section class="home-section" id="start-here">
+     <div class="home-section-heading">
+      <div>
+       <span class="section-kicker">
+        New to Logic Bricks?
+       </span>
+       <h2>
+        Start here
+       </h2>
+      </div>
+      <a href="getting-started.html">
+       View getting started →
+      </a>
+     </div>
+     <div class="journey-grid">
+      <a class="journey-card" href="getting-started.html">
+       <span class="journey-number">
+        01
+       </span>
+       <strong>
+        Install and open
+       </strong>
+       <p>
+        Enable the addon and understand when the Logic Bricks panel appears.
+       </p>
+      </a>
+      <a class="journey-card" href="first-chain.html">
+       <span class="journey-number">
+        02
+       </span>
+       <strong>
+        Build a first chain
+       </strong>
+       <p>
+        Connect a Sensor, optional Controller, and Actuator.
+       </p>
+      </a>
+      <a class="journey-card" href="variables-states.html">
+       <span class="journey-number">
+        03
+       </span>
+       <strong>
+        Add variables and states
+       </strong>
+       <p>
+        Store values, organize behavior, and control which chains run.
+       </p>
+      </a>
+      <a class="journey-card" href="debugging.html">
+       <span class="journey-number">
+        04
+       </span>
+       <strong>
+        Test and debug
+       </strong>
+       <p>
+        Watch individual bricks and inspect live runtime behavior.
+       </p>
+      </a>
+     </div>
+    </section>
+    <section class="home-section" id="choose-workflow">
+     <div class="home-section-heading">
+      <div>
+       <span class="section-kicker">
+        Choose your node type
+       </span>
+       <h2>
+        3D, 2D, or UI
+       </h2>
+      </div>
+      <p>
+       The selected Godot node determines which compatible actuators appear.
+      </p>
+     </div>
+     <div class="workflow-domain-grid">
+      <a class="workflow-domain domain-3d" href="actuators-3d.html#setup">
+       <div class="domain-icon">
+        3D
+       </div>
+       <div>
+        <strong>
+         3D workflow
+        </strong>
+        <p>
+         Movement, physics, cameras, environments, audio, and object control for Node3D scenes.
+        </p>
+        <span>
+         Open 3D setup →
+        </span>
+       </div>
+      </a>
+      <a class="workflow-domain domain-2d" href="actuators-2d.html#setup">
+       <div class="domain-icon">
+        2D
+       </div>
+       <div>
+        <strong>
+         2D workflow
+        </strong>
+        <p>
+         Vector2 movement, CharacterBody2D physics, Camera2D, sprites, and game feel.
+        </p>
+        <span>
+         Open 2D setup →
+        </span>
+       </div>
+      </a>
+      <a class="workflow-domain domain-ui" href="actuators-ui.html#setup">
+       <div class="domain-icon">
+        UI
+       </div>
+       <div>
+        <strong>
+         UI workflow
+        </strong>
+        <p>
+         Control nodes, focus, text, sliders, progress bars, visibility, and windows.
+        </p>
+        <span>
+         Open UI setup →
+        </span>
+       </div>
+      </a>
+     </div>
+    </section>
+    <section class="home-section" id="popular-topics">
+     <div class="home-section-heading">
+      <div>
+       <span class="section-kicker">
+        Most useful destinations
+       </span>
+       <h2>
+        Popular topics
+       </h2>
+      </div>
+     </div>
+     <div class="popular-grid">
+      <a href="sensors.html">
+       <span class="topic-icon sensor-topic">
+        S
+       </span>
+       <div>
+        <strong>
+         Sensors
+        </strong>
+        <p>
+         Keyboard, mouse, collision, timers, raycasts, variables, and more.
+        </p>
+       </div>
+      </a>
+      <a href="controllers.html">
+       <span class="topic-icon controller-topic">
+        C
+       </span>
+       <div>
+        <strong>
+         Controllers
+        </strong>
+        <p>
+         Combine conditions and control the flow between sensors and actuators.
+        </p>
+       </div>
+      </a>
+      <a href="variables-states.html">
+       <span class="topic-icon variable-topic">
+        V
+       </span>
+       <div>
+        <strong>
+         Variables and states
+        </strong>
+        <p>
+         Store gameplay data and organize complex behavior.
+        </p>
+       </div>
+      </a>
+      <a href="debugging.html">
+       <span class="topic-icon debug-topic">
+        D
+       </span>
+       <div>
+        <strong>
+         Debugging
+        </strong>
+        <p>
+         Use per-brick watches, state debugging, and the runtime overlay.
+        </p>
+       </div>
+      </a>
+      <a href="graph-export.html">
+       <span class="topic-icon export-topic">
+        E
+       </span>
+       <div>
+        <strong>
+         Graph Export
+        </strong>
+        <p>
+         Create clean images of logic graphs for lessons and tutorials.
+        </p>
+       </div>
+      </a>
+      <a href="troubleshooting.html">
+       <span class="topic-icon trouble-topic">
+        ?
+       </span>
+       <div>
+        <strong>
+         Troubleshooting
+        </strong>
+        <p>
+         Resolve common setup, targeting, execution, and runtime problems.
+        </p>
+       </div>
+      </a>
+     </div>
+    </section>
+    <section class="home-feature-band" id="explore-reference">
+     <div class="feature-band-copy">
+      <span class="section-kicker">
+       Complete reference
+      </span>
+      <h2>
+       Find bricks the same way you find them in the addon.
+      </h2>
+      <p>
+       The documentation mirrors the right-click menu, including every 3D and 2D actuator submenu. The A–Z reference separates brick type, menu category, and supported domain.
+      </p>
+      <div class="hero-actions">
+       <a class="btn" href="brick-reference.html">
+        Open Brick Reference A–Z
+       </a>
+       <a class="btn secondary" href="interface.html">
+        Learn the interface
+       </a>
+      </div>
+     </div>
+     <div aria-label="Example right-click menu structure" class="menu-preview">
+      <div class="menu-preview-title">
+       Actuators · 3D
+      </div>
+      <a href="actuators-3d.html#animation">
+       Animation
+      </a>
+      <a href="actuators-3d.html#audio">
+       Audio
+      </a>
+      <a href="actuators-3d.html#camera">
+       Camera
+      </a>
+      <a href="actuators-3d.html#game-feel">
+       Game Feel
+      </a>
+      <a href="actuators-3d.html#motion">
+       Motion
+      </a>
+      <a href="actuators-3d.html#object">
+       Object
+      </a>
+      <a href="actuators-3d.html#physics">
+       Physics
+      </a>
+      <a class="menu-preview-more" href="actuators-3d.html">
+       View every submenu →
+      </a>
+     </div>
+    </section>
+    <section class="home-section" id="documentation-features">
+     <div class="home-section-heading">
+      <div>
+       <span class="section-kicker">
+        Built for learning and reference
+       </span>
+       <h2>
+        Use the manual your way
+       </h2>
+      </div>
+     </div>
+     <div class="feature-grid">
+      <div>
+       <strong>
+        Follow a learning path
+       </strong>
+       <p>
+        Move from installation through your first chain, variables, states, and debugging.
+       </p>
+      </div>
+      <div>
+       <strong>
+        Jump by menu location
+       </strong>
+       <p>
+        Navigate through the same categories shown in the Logic Bricks right-click menu.
+       </p>
+      </div>
+      <div>
+       <strong>
+        Scan practical guidance
+       </strong>
+       <p>
+        Each brick includes typical uses, an example chain, tips, common mistakes, and related bricks.
+       </p>
+      </div>
+      <div>
+       <strong>
+        Replace screenshots easily
+       </strong>
+       <p>
+        Every placeholder has a stable filename and documented location inside the image folder.
+       </p>
+      </div>
+     </div>
+    </section>
+    <div class="page-nav single">
+     <a class="page-nav-card next" href="getting-started.html">
+      <span class="page-nav-label">
+       Begin the guide →
+      </span>
+      <strong>
+       Getting Started
+      </strong>
+     </a>
+    </div>
+   </main>
+   <aside aria-label="On this page" class="page-toc">
+    <div class="toc-box">
+     <h3>
+      On this page
+     </h3>
+     <ul>
+      <li>
+       <a data-toc-target="welcome" href="#welcome">
+        Welcome
+       </a>
+      </li>
+      <li>
+       <a data-toc-target="search-documentation" href="#search-documentation">
+        Search
+       </a>
+      </li>
+      <li>
+       <a data-toc-target="start-here" href="#start-here">
+        Start here
+       </a>
+      </li>
+      <li>
+       <a data-toc-target="choose-workflow" href="#choose-workflow">
+        3D, 2D, and UI
+       </a>
+      </li>
+      <li>
+       <a data-toc-target="popular-topics" href="#popular-topics">
+        Popular topics
+       </a>
+      </li>
+      <li>
+       <a data-toc-target="explore-reference" href="#explore-reference">
+        Brick reference
+       </a>
+      </li>
+      <li>
+       <a data-toc-target="documentation-features" href="#documentation-features">
+        Manual features
+       </a>
+      </li>
+     </ul>
+    </div>
+   </aside>
+  </div>
+  <div data-site-footer="">
+  </div>
+  <script src="assets/js/search-index.js">
+  </script>
+  <div data-shortcut-dialog="">
+  </div>
+  <script src="assets/js/site-shell.js">
+  </script>
+  <script src="assets/js/site.js">
+  </script>
+  <button aria-label="Back to top" class="back-to-top" title="Back to top" type="button">
+   ↑
+  </button>
+ </body>
+</html>

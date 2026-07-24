@@ -1,0 +1,3557 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="14 UI-specific actuator bricks detected in the addon." name="description"/>
+<title>
+   UI Actuators | Logic Bricks Documentation
+  </title>
+<link href="assets/css/site.css" rel="stylesheet"/>
+<link href="assets/images/favicon.svg" rel="icon" type="image/svg+xml"/>
+<meta content="#08101d" name="theme-color"/>
+</head>
+<body class="ui" data-page="actuators-ui.html">
+<div data-site-header="">
+</div>
+<div class="layout">
+<aside data-site-sidebar="">
+</aside>
+<main class="content">
+<nav aria-label="Breadcrumb" class="breadcrumb">
+<a href="index.html">
+      Home
+     </a>
+<span aria-hidden="true">
+      ›
+     </span>
+<span>
+      Actuators
+     </span>
+<span aria-hidden="true">
+      ›
+     </span>
+<span aria-current="page">
+      UI Actuators
+     </span>
+</nav>
+<section class="hero">
+<div aria-hidden="true" class="hero-category-mark">
+      UI Workflow
+     </div>
+<h1>
+      UI Actuators
+     </h1>
+<p class="lead">
+      14 UI-specific
+      <span aria-label="actuator: A brick that performs an action after a sensor and optional controller succeed." class="glossary-term" data-tooltip="A brick that performs an action after a sensor and optional controller succeed." tabindex="0">
+       actuator
+      </span>
+      bricks detected in the addon.
+     </p>
+<div aria-label="Page information" class="page-reading-meta">
+<span>
+       ◷ 13 min read
+      </span>
+<span>
+       Phase 5 enhanced
+      </span>
+</div>
+</section>
+<div aria-label="Brick guidance controls" class="guidance-toolbar">
+<span>
+      Guidance panels
+     </span>
+<div>
+<button data-guidance-action="expand" type="button">
+       Expand all
+      </button>
+<button data-guidance-action="collapse" type="button">
+       Collapse all
+      </button>
+</div>
+</div>
+<div class="callout note">
+<strong>
+      Source of truth
+     </strong>
+     This page lists only bricks registered by the uploaded addon. Legacy aliases and compatibility script shims are not presented as separate menu entries.
+    </div>
+<section class="chapter-intro">
+<div>
+<span class="section-kicker">
+       Chapter guide
+      </span>
+<h2>
+       Building UI actions
+      </h2>
+<p>
+       UI actuators work with Control-based interfaces and are listed in the same flat menu structure used by the addon.
+      </p>
+</div>
+<ol class="chapter-steps">
+<li>
+       Select the relevant UI node.
+      </li>
+<li>
+       Choose the action that changes or controls the interface.
+      </li>
+<li>
+       Trigger it from input, variables, signals, or other sensors.
+      </li>
+</ol>
+</section>
+<div class="page-tools">
+<input class="search" id="docSearch" placeholder="Filter bricks on this page…" type="search"/>
+</div>
+<section class="domain-setup" id="setup">
+<span class="eyebrow">
+      UI WORKFLOW
+     </span>
+<h2>
+      UI Setup and Actuators
+     </h2>
+<p class="domain-lead">
+      Use this section for Control-based interfaces. Unlike the longer 3D and 2D lists, the addon intentionally displays compatible UI actuators as one flat menu.
+     </p>
+<div class="setup-grid">
+<article>
+<span class="step-number">
+        1
+       </span>
+<h3>
+        Select a Control node
+       </h3>
+<p>
+        Select a Control, Button, Label, Slider, ProgressBar, TabContainer, Window, or another supported UI node.
+       </p>
+</article>
+<article>
+<span class="step-number">
+        2
+       </span>
+<h3>
+        Open Logic Bricks
+       </h3>
+<p>
+        The addon keeps sensors and controllers available, but filters actuators to the UI-compatible set.
+       </p>
+</article>
+<article>
+<span class="step-number">
+        3
+       </span>
+<h3>
+        Target interface nodes
+       </h3>
+<p>
+        Many UI actuators can act on the selected node or locate another interface node by name, depending on the brick.
+       </p>
+</article>
+<article>
+<span class="step-number">
+        4
+       </span>
+<h3>
+        Build interaction chains
+       </h3>
+<p>
+        Connect input or UI sensors to controllers and then to focus, text, visibility, popup, slider, tab, window, or other UI actions.
+       </p>
+</article>
+</div>
+<div class="callout note">
+<strong>
+       How this relates to the menu
+      </strong>
+<p>
+       The UI actuator menu is flat by design, so this page uses one linked actuator reference rather than artificial submenus.
+      </p>
+</div>
+</section>
+<nav aria-label="UI page sections" class="submenu-jump">
+<a href="#setup">
+      UI setup
+     </a>
+<a href="#ui-actuator-reference">
+      UI actuator reference
+     </a>
+</nav>
+<section class="ui-reference-heading" id="ui-actuator-reference">
+<span class="eyebrow">
+      FLAT RIGHT-CLICK MENU
+     </span>
+<h2>
+      UI Actuator Reference
+     </h2>
+<p>
+      These entries appear directly under
+      <strong>
+       Actuators
+      </strong>
+      when a supported UI node is selected.
+     </p>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="2D Audio Plays UI or 2D audio. UI" id="2d-audio-ui">
+<div class="brick-heading">
+<span class="badge">
+       actuator • ui
+      </span>
+<h2>
+       2D Audio
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Plays UI or 2D audio.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/ui/audio_2d_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          mode
+         </code>
+</td>
+<td>
+         Mode
+         <br/>
+<small>
+          Choices: Play,Stop,Pause,Fade In,Fade Out
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           play
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          sound_file
+         </code>
+</td>
+<td>
+         Sound File
+         <br/>
+<small>
+          Choices: *.wav,*.ogg,*.mp3
+         </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          player_type
+         </code>
+</td>
+<td>
+         Player Type
+         <br/>
+<small>
+          Choices: AudioStreamPlayer,AudioStreamPlayer2D
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           stream_player
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          play_mode
+         </code>
+</td>
+<td>
+         Play Mode
+         <br/>
+<small>
+          Choices: Restart,Overlap,Ignore If Playing
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           restart
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          volume
+         </code>
+</td>
+<td>
+         Volume
+         <br/>
+<small>
+          Choices: -80,24,0.1
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           0.0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          pitch
+         </code>
+</td>
+<td>
+         Pitch
+         <br/>
+<small>
+          Choices: 0.01,4.0,0.01
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           1.0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          pitch_random
+         </code>
+</td>
+<td>
+         Pitch Random
+         <br/>
+<small>
+          Choices: 0.0,1.0,0.01
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           0.0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          loop
+         </code>
+</td>
+<td>
+         Loop
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          audio_bus
+         </code>
+</td>
+<td>
+         Audio Bus
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          fade_duration
+         </code>
+</td>
+<td>
+         Fade Duration
+         <br/>
+<small>
+          Choices: 0.1,10.0,0.1
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           1.0
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the ui action described above after a
+          <span aria-label="sensor: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
+           sensor
+          </span>
+          /
+          <span aria-label="controller: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
+           controller
+          </span>
+          chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Pair it with an appropriate sensor to control when the action occurs.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          2D Audio
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+<a href="actuators-ui.html#focus-ui">
+         Focus
+        </a>
+<a href="actuators-ui.html#modulate-ui">
+         Modulate
+        </a>
+<a href="actuators-ui.html#popup-ui">
+         Popup
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="2D Audio screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/2d-audio.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        2D Audio screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Button Triggers, toggles, presses, or releases a Button node. UI" id="button-ui">
+<div class="brick-heading">
+<span class="badge">
+       actuator • ui
+      </span>
+<h2>
+       Button
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Triggers, toggles, presses, or releases a Button node.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/ui/button_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          target_node_name
+         </code>
+</td>
+<td>
+         Target Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           self
+          </code>
+</small>
+<br/>
+<small>
+          self or Button node name
+         </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          action
+         </code>
+</td>
+<td>
+         Action
+         <br/>
+<small>
+          Choices: Emit Pressed,Press,Release,Toggle
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           emit_pressed
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the ui action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Target a specific node by configuring the node field before testing the chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Button
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Confirm the target node name and node type before troubleshooting the rest of the chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#focus-ui">
+         Focus
+        </a>
+<a href="actuators-ui.html#popup-ui">
+         Popup
+        </a>
+<a href="actuators-ui.html#visibility-ui">
+         Visibility
+        </a>
+<a href="actuators-ui.html#window-ui">
+         Window
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Button screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/button.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Button screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Focus Grabs or releases keyboard/gamepad focus on a Control node. UI" id="focus-ui">
+<div class="brick-heading">
+<span class="badge">
+       actuator • ui
+      </span>
+<h2>
+       Focus
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Grabs or releases keyboard/gamepad focus on a Control node.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/ui/focus_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          target_node_name
+         </code>
+</td>
+<td>
+         Target Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           self
+          </code>
+</small>
+<br/>
+<small>
+          self or Control node name
+         </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          action
+         </code>
+</td>
+<td>
+         Action
+         <br/>
+<small>
+          Choices: Grab Focus,Release Focus
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           grab_focus
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the ui action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Target a specific node by configuring the node field before testing the chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Focus
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Confirm the target node name and node type before troubleshooting the rest of the chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+<a href="actuators-ui.html#modulate-ui">
+         Modulate
+        </a>
+<a href="actuators-ui.html#popup-ui">
+         Popup
+        </a>
+<a href="actuators-ui.html#progress-bar-ui">
+         Progress Bar
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Focus screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/focus.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Focus screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Modulate Sets or transitions color/alpha on a Control or CanvasItem node. UI" id="modulate-ui">
+<div class="brick-heading">
+<span class="badge">
+       actuator • ui
+      </span>
+<h2>
+       Modulate
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Sets or transitions color/alpha on a Control or CanvasItem node.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/ui/modulate_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          target_node_name
+         </code>
+</td>
+<td>
+         Target Node Name
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          node_name_source
+         </code>
+</td>
+<td>
+         Node Name Source
+         <br/>
+<small>
+          Choices: Literal Node Name,String Variable
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           literal
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          export_node_name
+         </code>
+</td>
+<td>
+         Export Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          target_modulate
+         </code>
+</td>
+<td>
+         Target Modulate
+         <br/>
+<small>
+          Choices: Self Modulate,Modulate
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           self_modulate
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          color
+         </code>
+</td>
+<td>
+         Color
+         <br/>
+<small>
+          Default:
+          <code>
+           Color(1
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          transition
+         </code>
+</td>
+<td>
+         Transition
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          transition_speed
+         </code>
+</td>
+<td>
+         Transition Speed
+         <br/>
+<small>
+          Default:
+          <code>
+           5.0
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the ui action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Target a specific node by configuring the node field before testing the chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Modulate
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Confirm the target node name and node type before troubleshooting the rest of the chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-2d.html#modulate-2d">
+         Modulate
+        </a>
+<a href="actuators-ui.html#focus-ui">
+         Focus
+        </a>
+<a href="actuators-ui.html#progress-bar-ui">
+         Progress Bar
+        </a>
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Modulate screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/modulate.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Modulate screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Popup Shows, hides, toggles, or centers a Popup/Window-like UI node. UI" id="popup-ui">
+<div class="brick-heading">
+<span class="badge">
+       actuator • ui
+      </span>
+<h2>
+       Popup
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Shows, hides, toggles, or centers a Popup/Window-like UI node.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/ui/popup_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          target_node_name
+         </code>
+</td>
+<td>
+         Target Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           self
+          </code>
+</small>
+<br/>
+<small>
+          Popup node name
+         </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          action
+         </code>
+</td>
+<td>
+         Action
+         <br/>
+<small>
+          Choices: Show,Hide,Toggle,Popup Centered
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           show
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the ui action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Target a specific node by configuring the node field before testing the chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Popup
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Confirm the target node name and node type before troubleshooting the rest of the chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#window-ui">
+         Window
+        </a>
+<a href="actuators-ui.html#visibility-ui">
+         Visibility
+        </a>
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+<a href="actuators-ui.html#focus-ui">
+         Focus
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Popup screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/popup.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Popup screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Progress Bar Sets the value, min, or max of a ProgressBar, Slider, or Range UI node. UI" id="progress-bar-ui">
+<div class="brick-heading">
+<span class="badge">
+       actuator • ui
+      </span>
+<h2>
+       Progress Bar
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Sets the value, min, or max of a ProgressBar, Slider, or Range UI node.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/ui/progress_bar_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          target_node_name
+         </code>
+</td>
+<td>
+         Target Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           ProgressBar
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          node_name_source
+         </code>
+</td>
+<td>
+         Node Name Source
+         <br/>
+<small>
+          Choices: Literal Node Name,String Variable
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           literal
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          export_node_name
+         </code>
+</td>
+<td>
+         Export Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          set_value
+         </code>
+</td>
+<td>
+         Set Value
+         <br/>
+<small>
+          Default:
+          <code>
+           true
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          value
+         </code>
+</td>
+<td>
+         Value
+         <br/>
+<small>
+          Default:
+          <code>
+           100.0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          set_min
+         </code>
+</td>
+<td>
+         Set Min
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          min_value
+         </code>
+</td>
+<td>
+         Min Value
+         <br/>
+<small>
+          Default:
+          <code>
+           0.0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          set_max
+         </code>
+</td>
+<td>
+         Set Max
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          max_value
+         </code>
+</td>
+<td>
+         Max Value
+         <br/>
+<small>
+          Default:
+          <code>
+           100.0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          transition
+         </code>
+</td>
+<td>
+         Transition
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          transition_speed
+         </code>
+</td>
+<td>
+         Transition Speed
+         <br/>
+<small>
+          Default:
+          <code>
+           5.0
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the ui action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Target a specific node by configuring the node field before testing the chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Progress Bar
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Confirm the target node name and node type before troubleshooting the rest of the chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#progress-bar-3d">
+         Progress Bar
+        </a>
+<a href="actuators-ui.html#slider-ui">
+         Slider
+        </a>
+<a href="actuators-ui.html#modulate-ui">
+         Modulate
+        </a>
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Progress Bar screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/progress-bar.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Progress Bar screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Screen Flash Flashes a full-screen ColorRect overlay. UI" id="screen-flash-ui">
+<div class="brick-heading">
+<span class="badge">
+       actuator • ui
+      </span>
+<h2>
+       Screen Flash
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Flashes a full-screen ColorRect overlay.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/ui/screen_flash_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          color
+         </code>
+</td>
+<td>
+         Color
+         <br/>
+<small>
+          Default:
+          <code>
+           Color(1
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          duration
+         </code>
+</td>
+<td>
+         Duration
+         <br/>
+<small>
+          Default:
+          <code>
+           0.3
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          fade_in
+         </code>
+</td>
+<td>
+         Fade In
+         <br/>
+<small>
+          Default:
+          <code>
+           0.05
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the ui action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Pair it with an appropriate sensor to control when the action occurs.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Screen Flash
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#2d-audio-ui">
+         2D Audio
+        </a>
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+<a href="actuators-ui.html#focus-ui">
+         Focus
+        </a>
+<a href="actuators-ui.html#modulate-ui">
+         Modulate
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Screen Flash screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/screen-flash.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Screen Flash screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Scroll Sets or adds to a ScrollContainer scroll position. UI" id="scroll-ui">
+<div class="brick-heading">
+<span class="badge">
+       actuator • ui
+      </span>
+<h2>
+       Scroll
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Sets or adds to a ScrollContainer scroll position.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/ui/scroll_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          target_node_name
+         </code>
+</td>
+<td>
+         Target Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           self
+          </code>
+</small>
+<br/>
+<small>
+          ScrollContainer node name
+         </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          mode
+         </code>
+</td>
+<td>
+         Mode
+         <br/>
+<small>
+          Choices: Set,Add
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           set
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          axis
+         </code>
+</td>
+<td>
+         Axis
+         <br/>
+<small>
+          Choices: Vertical,Horizontal,Both
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           vertical
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          x
+         </code>
+</td>
+<td>
+         X
+         <br/>
+<small>
+          Default:
+          <code>
+           0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          y
+         </code>
+</td>
+<td>
+         Y
+         <br/>
+<small>
+          Default:
+          <code>
+           0
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the ui action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Target a specific node by configuring the node field before testing the chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Scroll
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Confirm the target node name and node type before troubleshooting the rest of the chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#slider-ui">
+         Slider
+        </a>
+<a href="actuators-ui.html#modulate-ui">
+         Modulate
+        </a>
+<a href="actuators-ui.html#progress-bar-ui">
+         Progress Bar
+        </a>
+<a href="actuators-ui.html#2d-audio-ui">
+         2D Audio
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Scroll screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/scroll.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Scroll screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Slider Sets or adds to a Slider or Range value. UI" id="slider-ui">
+<div class="brick-heading">
+<span class="badge">
+       actuator • ui
+      </span>
+<h2>
+       Slider
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Sets or adds to a Slider or Range value.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/ui/slider_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          target_node_name
+         </code>
+</td>
+<td>
+         Target Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           self
+          </code>
+</small>
+<br/>
+<small>
+          Slider node name
+         </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          mode
+         </code>
+</td>
+<td>
+         Mode
+         <br/>
+<small>
+          Choices: Set,Add
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           set
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          value
+         </code>
+</td>
+<td>
+         Value
+         <br/>
+<small>
+          Default:
+          <code>
+           0.0
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the ui action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Target a specific node by configuring the node field before testing the chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Slider
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Confirm the target node name and node type before troubleshooting the rest of the chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#progress-bar-ui">
+         Progress Bar
+        </a>
+<a href="actuators-ui.html#scroll-ui">
+         Scroll
+        </a>
+<a href="actuators-ui.html#modulate-ui">
+         Modulate
+        </a>
+<a href="actuators-ui.html#2d-audio-ui">
+         2D Audio
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Slider screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/slider.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Slider screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Tab Changes the active tab on a TabContainer. UI" id="tab-ui">
+<div class="brick-heading">
+<span class="badge">
+       actuator • ui
+      </span>
+<h2>
+       Tab
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Changes the active tab on a TabContainer.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/ui/tab_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          target_node_name
+         </code>
+</td>
+<td>
+         Target Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           self
+          </code>
+</small>
+<br/>
+<small>
+          TabContainer node name
+         </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          action
+         </code>
+</td>
+<td>
+         Action
+         <br/>
+<small>
+          Choices: Set,Next,Previous
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           set
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          tab_index
+         </code>
+</td>
+<td>
+         Tab Index
+         <br/>
+<small>
+          Default:
+          <code>
+           0
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the ui action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Target a specific node by configuring the node field before testing the chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Tab
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Confirm the target node name and node type before troubleshooting the rest of the chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#2d-audio-ui">
+         2D Audio
+        </a>
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+<a href="actuators-ui.html#focus-ui">
+         Focus
+        </a>
+<a href="actuators-ui.html#modulate-ui">
+         Modulate
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Tab screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/tab.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Tab screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Text Updates a Label, RichTextLabel, or other text UI node. UI" id="text-ui">
+<div class="brick-heading">
+<span class="badge">
+       actuator • ui
+      </span>
+<h2>
+       Text
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Updates a Label, RichTextLabel, or other text UI node.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/ui/text_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          target_node_name
+         </code>
+</td>
+<td>
+         Target Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           Label
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          node_name_source
+         </code>
+</td>
+<td>
+         Node Name Source
+         <br/>
+<small>
+          Choices: Literal Node Name,String Variable
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           literal
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          export_node_name
+         </code>
+</td>
+<td>
+         Export Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          mode
+         </code>
+</td>
+<td>
+         Mode
+         <br/>
+<small>
+          Choices: Variable,Static
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           variable
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          variable_name
+         </code>
+</td>
+<td>
+         Variable Name
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          prefix
+         </code>
+</td>
+<td>
+         Prefix
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          suffix
+         </code>
+</td>
+<td>
+         Suffix
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          static_text
+         </code>
+</td>
+<td>
+         Static Text
+        </td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the ui action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Target a specific node by configuring the node field before testing the chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Text
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Confirm the target node name and node type before troubleshooting the rest of the chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#text-3d">
+         Text
+        </a>
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+<a href="actuators-ui.html#focus-ui">
+         Focus
+        </a>
+<a href="actuators-ui.html#modulate-ui">
+         Modulate
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Text screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/text.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Text screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Tween Tweens a UI node property. UI" id="tween-ui">
+<div class="brick-heading">
+<span class="badge">
+       actuator • ui
+      </span>
+<h2>
+       Tween
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Tweens a UI node property.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/ui/tween_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          target_mode
+         </code>
+</td>
+<td>
+         Target Mode
+         <br/>
+<small>
+          Choices: Self,Node
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           self
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          target_node_name
+         </code>
+</td>
+<td>
+         Target Node Name
+        </td>
+</tr>
+<tr>
+<td>
+<code>
+          node_name_source
+         </code>
+</td>
+<td>
+         Node Name Source
+         <br/>
+<small>
+          Choices: Literal Node Name,String Variable
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           literal
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          export_node_name
+         </code>
+</td>
+<td>
+         Export Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          property
+         </code>
+</td>
+<td>
+         Property
+         <br/>
+<small>
+          Default:
+          <code>
+           modulate:a
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          target_value
+         </code>
+</td>
+<td>
+         Target Value
+         <br/>
+<small>
+          Default:
+          <code>
+           0.0
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          duration
+         </code>
+</td>
+<td>
+         Duration
+         <br/>
+<small>
+          Default:
+          <code>
+           0.5
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          trans_type
+         </code>
+</td>
+<td>
+         Trans Type
+         <br/>
+<small>
+          Choices: Linear,Sine,Quint,Quart,Quad,Expo,Elastic,Bounce,Back,Spring,Circular,Cubic
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           linear
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          ease_type
+         </code>
+</td>
+<td>
+         Ease Type
+         <br/>
+<small>
+          Choices: In,Out,In Out,Out In
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           in_out
+          </code>
+</small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          loop
+         </code>
+</td>
+<td>
+         Loop
+         <br/>
+<small>
+          Default:
+          <code>
+           false
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the ui action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Target a specific node by configuring the node field before testing the chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+<span aria-label="Tween: A smooth change from one value to another over a specified duration." class="glossary-term" data-tooltip="A smooth change from one value to another over a specified duration." tabindex="0">
+           Tween
+          </span>
+</span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Confirm the target node name and node type before troubleshooting the rest of the chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+<a href="actuators-ui.html#focus-ui">
+         Focus
+        </a>
+<a href="actuators-ui.html#modulate-ui">
+         Modulate
+        </a>
+<a href="actuators-ui.html#popup-ui">
+         Popup
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Tween screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/tween.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Tween screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Visibility Shows, hides, or toggles a UI node. UI" id="visibility-ui">
+<div class="brick-heading">
+<span class="badge">
+       actuator • ui
+      </span>
+<h2>
+       Visibility
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Shows, hides, or toggles a UI node.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/ui/visibility_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          target_node_name
+         </code>
+</td>
+<td>
+         Target Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           self
+          </code>
+</small>
+<br/>
+<small>
+          Node name
+         </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          action
+         </code>
+</td>
+<td>
+         Action
+         <br/>
+<small>
+          Choices: Show,Hide,Toggle
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           show
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the ui action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Target a specific node by configuring the node field before testing the chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Visibility
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Confirm the target node name and node type before troubleshooting the rest of the chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#popup-ui">
+         Popup
+        </a>
+<a href="actuators-ui.html#window-ui">
+         Window
+        </a>
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+<a href="actuators-2d.html#visibility-2d">
+         Visibility
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Visibility screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/visibility.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Visibility screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Window Shows, hides, toggles, or centers a Window node. UI" id="window-ui">
+<div class="brick-heading">
+<span class="badge">
+       actuator • ui
+      </span>
+<h2>
+       Window
+      </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+        UI
+       </span>
+</div>
+</div>
+<p>
+      Shows, hides, toggles, or centers a Window node.
+     </p>
+<div class="meta-grid">
+<div>
+<strong>
+        Menu
+       </strong>
+<span>
+        Add Logic Brick → Actuators
+       </span>
+</div>
+<div>
+<strong>
+        Source
+       </strong>
+<span>
+<code>
+         actuators/ui/window_actuator.gd
+        </code>
+</span>
+</div>
+</div>
+<h3>
+      Options
+     </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+         Property
+        </th>
+<th>
+         Details
+        </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+          target_node_name
+         </code>
+</td>
+<td>
+         Target Node Name
+         <br/>
+<small>
+          Default:
+          <code>
+           self
+          </code>
+</small>
+<br/>
+<small>
+          Window node name
+         </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+          action
+         </code>
+</td>
+<td>
+         Action
+         <br/>
+<small>
+          Choices: Show,Hide,Toggle,Popup Centered
+         </small>
+<br/>
+<small>
+          Default:
+          <code>
+           show
+          </code>
+</small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+       Using this brick
+      </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+         Typical uses
+        </h4>
+<ul>
+<li>
+          Perform the ui action described above after a sensor/controller chain succeeds.
+         </li>
+<li>
+          Reuse the brick in multiple states or chains with different option values.
+         </li>
+<li>
+          Target a specific node by configuring the node field before testing the chain.
+         </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+         Example chain
+        </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+          Choose a sensor
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Controller
+         </span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
+<span class="chain-node">
+          Window
+         </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+         Tip
+        </strong>
+        Confirm the target node name and node type before troubleshooting the rest of the chain.
+       </div>
+<div class="mini-callout caution">
+<strong>
+         Common mistake
+        </strong>
+        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+       </div>
+</div>
+<section class="related-bricks">
+<h4>
+        Related bricks
+       </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#popup-ui">
+         Popup
+        </a>
+<a href="actuators-ui.html#visibility-ui">
+         Visibility
+        </a>
+<a href="actuators-ui.html#button-ui">
+         Button
+        </a>
+<a href="actuators-ui.html#focus-ui">
+         Focus
+        </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Window screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/window.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+        Window screenshot
+       </strong>
+<span>
+</span>
+</figcaption>
+</figure>
+</section>
+<div class="page-nav">
+<a class="page-nav-card previous" href="actuators-2d.html">
+<span class="page-nav-label">
+       ← Previous
+      </span>
+<strong>
+       Previous 2D Actuators
+      </strong>
+</a>
+<a class="page-nav-card next" href="debugging.html">
+<span class="page-nav-label">
+       Next →
+      </span>
+<strong>
+       Next  Debugging
+      </strong>
+</a>
+</div>
+</main>
+<aside aria-label="On this page" class="page-toc">
+<div class="toc-box">
+<h3>
+      On this page
+     </h3>
+<ul>
+<li>
+<a data-toc-target="setup" href="#setup">
+        UI Setup and Actuators
+       </a>
+</li>
+<li>
+<a data-toc-target="ui-actuator-reference" href="#ui-actuator-reference">
+        UI Actuator Reference
+       </a>
+</li>
+</ul>
+</div>
+</aside>
+</div>
+<div data-site-footer="">
+</div>
+<div data-shortcut-dialog="">
+</div>
+<script src="assets/js/site-shell.js">
+</script>
+<script src="assets/js/site.js">
+</script>
+<button aria-label="Back to top" class="back-to-top" title="Back to top" type="button">
+   ↑
+  </button>
+</body>
+</html>

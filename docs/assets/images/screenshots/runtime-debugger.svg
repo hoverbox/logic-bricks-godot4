@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+<title id="title">Runtime Debugger screenshot placeholder</title>
+<desc id="desc">Replace this placeholder with a screenshot named runtime-debugger.svg.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111a2d"/><stop offset="1" stop-color="#0b1120"/></linearGradient>
+  <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#55a7ff"/><stop offset="1" stop-color="#b58cff"/></linearGradient>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="22" stdDeviation="25" flood-color="#000000" flood-opacity="0.42"/></filter>
+</defs>
+<rect width="1600" height="900" fill="url(#bg)"/>
+<circle cx="1370" cy="110" r="260" fill="#55a7ff" opacity="0.08"/>
+<circle cx="180" cy="790" r="310" fill="#b58cff" opacity="0.07"/>
+<g filter="url(#shadow)">
+  <rect x="90" y="80" width="1420" height="740" rx="34" fill="#121c30" stroke="#314563" stroke-width="3"/>
+  <rect x="90" y="80" width="1420" height="12" rx="6" fill="url(#accent)"/>
+</g>
+<rect x="154" y="160" width="96" height="96" rx="24" fill="#1d3152" stroke="#46658f" stroke-width="2"/>
+<path d="M184 207h36m-18-18v36" stroke="#8ec5ff" stroke-width="7" stroke-linecap="round"/>
+<text x="154" y="330" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="56" font-weight="700">Runtime Debugger</text>
+<text x="154" y="390" fill="#9fb0ca" font-family="Segoe UI, Arial, sans-serif" font-size="27">Screenshot placeholder</text>
+<line x1="154" y1="446" x2="1446" y2="446" stroke="#2b3d59" stroke-width="2"/>
+<text x="154" y="535" fill="#dce8f7" font-family="Segoe UI, Arial, sans-serif" font-size="31" font-weight="600">Replace this file:</text>
+<text x="154" y="590" fill="#69b4ff" font-family="Consolas, monospace" font-size="27">assets/images/screenshots/runtime-debugger.svg</text>
+<text x="154" y="680" fill="#9fb0ca" font-family="Segoe UI, Arial, sans-serif" font-size="25">Recommended image size: 1600 x 900</text>
+<text x="154" y="725" fill="#7588a6" font-family="Segoe UI, Arial, sans-serif" font-size="22">Keep the same filename and the website will update automatically.</text>
+</svg>
