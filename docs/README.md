@@ -12,9 +12,6 @@ This static website is ready for GitHub Pages.
 
 Screenshot placeholders are in `assets/images/screenshots/`. Replace a placeholder while keeping the same filename, or update the matching `<img src>` path in the page.
 
-## Audit details
-
-See `AUDIT_REPORT.md` for the source comparison and major corrections.
 
 ## Actuator page organization
 
@@ -32,7 +29,7 @@ The site includes a shared visual presentation layer in `assets/css/site.css`.
 
 ## Phase 3 content improvements
 
-The reference pages now include chapter introductions, typical uses, example chains, tips, common mistakes, related bricks, and cross-links to related topics. These additions are generated from the audited brick inventory and preserve the existing menu structure.
+The reference pages now include chapter introductions, typical uses, example chains, tips, common mistakes, related bricks, and cross-links to related topics. These additions are generated from the brick inventory and preserve the existing menu structure.
 
 ## Phase 4 homepage portal
 
