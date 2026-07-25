@@ -1,5 +1,11 @@
 # Logic Bricks for Godot 4
 
+
+
+➡️ **[📖 Click for Full Documentation](https://hoverbox.github.io/logic-bricks-godot4/)**
+
+________________________________________________________________________
+
 A visual logic system for Godot 4 inspired by the Blender Game Engine
 (UPBGE). Build game logic with a node-graph editor using **Sensors**,
 **Controllers**, and **Actuators**---no coding required.
