@@ -1129,7 +1129,7 @@ func _chain_needs_physics_process(chain: Dictionary) -> bool:
 	var actuators = chain.get("actuators", [])
 	for actuator_data in actuators:
 		var brick_type = actuator_data.get("type", "")
-		if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator", "Force2DActuator", "Impulse2DActuator", "LinearVelocity2DActuator", "Character2DActuator", "Jump2DActuator"]:
+		if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator", "Force2DActuator", "Impulse2DActuator", "LinearVelocity2DActuator", "Character2DActuator", "Gravity2DActuator", "Jump2DActuator", "SaveLoad2DActuator"]:
 			return true
 		if brick_type == "MotionActuator" or brick_type == "Motion2DActuator":
 			var props = actuator_data.get("properties", {})
@@ -1169,7 +1169,7 @@ func _chain_has_mixed_actuators(chain: Dictionary) -> bool:
 
 func _logic_brick_actuator_requires_physics(actuator_data: Dictionary) -> bool:
 	var brick_type = actuator_data.get("type", "")
-	if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator", "Force2DActuator", "Impulse2DActuator", "LinearVelocity2DActuator", "Character2DActuator", "Jump2DActuator"]:
+	if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator", "Force2DActuator", "Impulse2DActuator", "LinearVelocity2DActuator", "Character2DActuator", "Gravity2DActuator", "Jump2DActuator", "SaveLoad2DActuator"]:
 		return true
 	if brick_type == "MotionActuator" or brick_type == "Motion2DActuator":
 		var props = actuator_data.get("properties", {})

@@ -60,7 +60,8 @@ static var _legacy_aliases: Dictionary = {
 	"Scene2DActuator": "SceneActuator",
 	"ScreenFlash2DActuator": "ScreenFlashActuator",
 	"State2DActuator": "StateActuator",
-	"Tween2DActuator": "TweenAnimation2DActuator",
+	"TweenAnimation2DActuator": "Tween2DActuator",
+	"Tween2DActuator": "Tween2DActuator",
 	"Variable2DActuator": "VariableActuator",
 	"Visibility2DActuator": "VisibilityActuator",
 	# UI Button was briefly serialized from its file name before UI bricks
