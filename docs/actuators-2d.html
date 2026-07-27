@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<meta content="52 actuators available for 2D workflows." name="description"/>
+<meta content="63 actuators available for 2D workflows." name="description"/>
 <title>
    2D Actuators | Logic Bricks Documentation
   </title>
@@ -51,9 +51,7 @@
       reference organized exactly like the 2D right-click menu.
      </p>
 <div aria-label="Page information" class="page-reading-meta">
-<span>
-       ◷ 31 min read
-      </span>
+<span>◷ 38 min read</span>
 <span>
        Phase 5 enhanced
       </span>
@@ -101,25 +99,19 @@
 <span>
        Camera
       </span>
-<small>
-       3 actuators
-      </small>
+<small>4 actuators</small>
 </a>
 <a href="#game">
 <span>
        Game
       </span>
-<small>
-       3 actuators
-      </small>
+<small>4 actuators</small>
 </a>
 <a href="#game-feel">
 <span>
        Game Feel
       </span>
-<small>
-       4 actuators
-      </small>
+<small>6 actuators</small>
 </a>
 <a href="#logic">
 <span>
@@ -133,9 +125,7 @@
 <span>
        Motion
       </span>
-<small>
-       5 actuators
-      </small>
+<small>8 actuators</small>
 </a>
 <a href="#object">
 <span>
@@ -149,17 +139,13 @@
 <span>
        Physics
       </span>
-<small>
-       3 actuators
-      </small>
+<small>5 actuators</small>
 </a>
 <a href="#ui">
 <span>
        UI
       </span>
-<small>
-       1 actuator
-      </small>
+<small>3 actuators</small>
 </a>
 <a href="#general-shared">
 <span>
@@ -472,7 +458,7 @@
            Sprite Frames
           </a>
 <a href="actuators-2d.html#tween-animation-2d">
-           Tween Animation
+           Tween
           </a>
 <a href="actuators-3d.html#animation-3d">
            Animation
@@ -496,23 +482,19 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Tween Animation Tween a 2D node property such as position, rotation, scale, or modulate. Animation" id="tween-animation-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Tween Smoothly change a 2D property over time. Animation" id="tween-animation-2d">
 <div class="brick-heading">
 <span class="badge">
          actuator • 2d
         </span>
-<h2>
-         Tween Animation
-        </h2>
+<h2>Tween</h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
           2D
          </span>
 </div>
 </div>
-<p>
-        Tween a 2D node property such as position, rotation, scale, or modulate.
-       </p>
+<p>Smoothly changes a 2D property such as position, rotation, scale, or modulate over time.</p>
 <div class="meta-grid">
 <div>
 <strong>
@@ -575,7 +557,7 @@
             →
            </span>
 <span class="chain-node">
-            Tween Animation
+            Tween
            </span>
 </div>
 </section>
@@ -616,12 +598,10 @@
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Tween Animation screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/tween-animation.png"/>
+<img alt="Tween actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/tween.png"/>
 </div>
 <figcaption>
-<strong class="screenshot-caption-title">
-          Tween Animation screenshot
-         </strong>
+<strong class="screenshot-caption-title">Tween screenshot</strong>
 <span>
 </span>
 </figcaption>
@@ -2123,7 +2103,14 @@
 </figcaption>
 </figure>
 </section>
-</div>
+<section class="brick actuator" data-compatibility="2d" data-search="Split Screen Creates a two-player 2D split-screen view using two Camera2D nodes and isolated SubViewports. Camera" id="split-screen-2d">
+<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Split Screen</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<p>Creates a two-player 2D split-screen view using two Camera2D nodes and isolated SubViewports.</p>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Camera</span></div><div><strong>Source</strong><span><code>actuators/2d/split_screen_2d_actuator.gd</code></span></div></div>
+<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>camera_1_node_name</code></td><td>First Camera2D node name. Default: Camera2D</td></tr><tr><td><code>camera_2_node_name</code></td><td>Second Camera2D node name. Default: Camera2D2</td></tr><tr><td><code>layout</code></td><td>Screen division: Vertical or Horizontal. Default: Vertical</td></tr></tbody></table>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Split Screen after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Split Screen</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Both camera names must resolve to Camera2D nodes in the active scene.</div><div class="mini-callout caution"><strong>Common mistake</strong>Do not place the split-screen display on a canvas layer rendered by its own SubViewports; the actuator excludes its display layer automatically.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Split Screen actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/split-screen.png"/></div><figcaption><strong class="screenshot-caption-title">Split Screen screenshot</strong><span></span></figcaption></figure>
+</section></div>
 </section>
 <section class="actuator-category" id="game">
 <div class="category-heading">
@@ -2749,7 +2736,14 @@
 </figcaption>
 </figure>
 </section>
-</div>
+<section class="brick actuator" data-compatibility="2d" data-search="Save / Load Saves or restores 2D transforms, selected script variables, and optional RigidBody2D motion state. Game" id="save-load-2d">
+<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Save / Load</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<p>Saves or restores 2D transforms, selected script variables, and optional RigidBody2D motion state.</p>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Game</span></div><div><strong>Source</strong><span><code>actuators/2d/save_load_2d_actuator.gd</code></span></div></div>
+<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>mode</code></td><td>Choose Save or Load.</td></tr><tr><td><code>scope</code></td><td>This Node, Target Node, or Group.</td></tr><tr><td><code>target</code></td><td>Node name or group used by the selected scope.</td></tr><tr><td><code>slot</code></td><td>Save-slot filename. Default: slot1</td></tr><tr><td><code>save_position</code></td><td>Include global position.</td></tr><tr><td><code>save_rotation</code></td><td>Include global rotation.</td></tr><tr><td><code>save_variables</code></td><td>Include supported script variables.</td></tr><tr><td><code>restore_velocity</code></td><td>When loading a RigidBody2D, restore saved velocity instead of stopping at the loaded transform.</td></tr></tbody></table>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Save / Load after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Save / Load</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Leave Restore Velocity disabled when loading should place a physics body at rest.</div><div class="mini-callout caution"><strong>Common mistake</strong>A target path must still exist when loading; renamed or reparented nodes may not match an older save file.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Save / Load actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/save-load.png"/></div><figcaption><strong class="screenshot-caption-title">Save / Load screenshot</strong><span></span></figcaption></figure>
+</section></div>
 </section>
 <section class="actuator-category" id="game-feel">
 <div class="category-heading">
@@ -3678,7 +3672,21 @@
 </figcaption>
 </figure>
 </section>
-</div>
+<section class="brick actuator" data-compatibility="2d" data-search="Camera Shake Temporarily shakes a Camera2D by changing its offset and rotation, then restores the original camera state. Game-Feel" id="camera-shake-2d">
+<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Camera Shake</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<p>Temporarily shakes a Camera2D by changing its offset and rotation, then restores the original camera state.</p>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Game Feel</span></div><div><strong>Source</strong><span><code>actuators/2d/screen_shake_2d_actuator.gd</code></span></div></div>
+<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>camera_node_name</code></td><td>Camera2D node to shake. Default: Camera2D</td></tr><tr><td><code>intensity</code></td><td>Maximum positional shake amount.</td></tr><tr><td><code>duration</code></td><td>Shake duration in seconds.</td></tr><tr><td><code>rotation_intensity</code></td><td>Maximum rotational shake in degrees.</td></tr></tbody></table>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Camera Shake after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Camera Shake</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use a just-pressed or one-shot sensor to start a single shake.</div><div class="mini-callout caution"><strong>Common mistake</strong>A continuously active sensor can restart the shake repeatedly.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Camera Shake actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/screen-shake.png"/></div><figcaption><strong class="screenshot-caption-title">Camera Shake screenshot</strong><span></span></figcaption></figure>
+</section><section class="brick actuator" data-compatibility="2d" data-search="Object Shake Shakes a Node2D around a captured baseline transform and restores its exact original position and rotation. Game-Feel" id="object-shake-2d">
+<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Object Shake</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<p>Shakes a Node2D around a captured baseline transform and restores its exact original position and rotation.</p>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Game Feel</span></div><div><strong>Source</strong><span><code>actuators/2d/object_shake_2d_actuator.gd</code></span></div></div>
+<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>target_node_name</code></td><td>Node2D to shake. Empty uses the brick owner.</td></tr><tr><td><code>intensity</code></td><td>Maximum positional offset.</td></tr><tr><td><code>duration</code></td><td>Shake duration in seconds.</td></tr><tr><td><code>rotation_intensity</code></td><td>Maximum rotational offset in degrees.</td></tr></tbody></table>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Object Shake after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Object Shake</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>The actuator keeps a persistent baseline so repeated triggers do not cause positional drift.</div><div class="mini-callout caution"><strong>Common mistake</strong>Avoid moving the target through another system during the same shake unless that movement is intended to be overwritten by the final restore.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Object Shake actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/object-shake.png"/></div><figcaption><strong class="screenshot-caption-title">Object Shake screenshot</strong><span></span></figcaption></figure>
+</section></div>
 </section>
 <section class="actuator-category" id="logic">
 <div class="category-heading">
@@ -6485,7 +6493,28 @@
 </figcaption>
 </figure>
 </section>
-</div>
+<section class="brick actuator" data-compatibility="2d" data-search="Move Towards Moves or flees from a node, group member, or 2D coordinate with optional facing and navigation support. Motion" id="move-towards-2d">
+<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Move Towards</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<p>Moves or flees from a node, group member, or 2D coordinate with optional facing and navigation support.</p>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Motion</span></div><div><strong>Source</strong><span><code>actuators/2d/move_towards_2d_actuator.gd</code></span></div></div>
+<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>behavior</code></td><td>Seek or Flee.</td></tr><tr><td><code>target_mode</code></td><td>Node Name, Group, or Coordinates.</td></tr><tr><td><code>target_name</code></td><td>Target node name or group name.</td></tr><tr><td><code>coordinate_x / coordinate_y</code></td><td>Literal values or variables used for coordinate targeting.</td></tr><tr><td><code>speed</code></td><td>Movement speed in pixels per second.</td></tr><tr><td><code>arrival_distance</code></td><td>Distance at which seeking stops.</td></tr><tr><td><code>face_target</code></td><td>Rotate to face the movement direction.</td></tr><tr><td><code>use_navigation</code></td><td>Use a NavigationAgent2D when available.</td></tr></tbody></table>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Move Towards after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Move Towards</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use Coordinates with variables to move toward a position captured by Get Transforms.</div><div class="mini-callout caution"><strong>Common mistake</strong>CharacterBody2D movement requires collision-aware velocity handling; test against walls and slopes.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Move Towards actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/move-towards.png"/></div><figcaption><strong class="screenshot-caption-title">Move Towards screenshot</strong><span></span></figcaption></figure>
+</section><section class="brick actuator" data-compatibility="2d" data-search="Rotate Towards Rotates a Node2D toward a target node or nearest group member using 2D angular interpolation. Motion" id="rotate-towards-2d">
+<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Rotate Towards</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<p>Rotates a Node2D toward a target node or nearest group member using 2D angular interpolation.</p>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Motion</span></div><div><strong>Source</strong><span><code>actuators/2d/rotate_towards_2d_actuator.gd</code></span></div></div>
+<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>target_mode</code></td><td>Node Name or Group.</td></tr><tr><td><code>target_name</code></td><td>Target node or group.</td></tr><tr><td><code>speed</code></td><td>Rotation speed in degrees per second.</td></tr><tr><td><code>angle_offset</code></td><td>Additional angle offset in degrees.</td></tr></tbody></table>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Rotate Towards after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Rotate Towards</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use Angle Offset when the artwork faces up or another direction instead of Godot’s positive X axis.</div><div class="mini-callout caution"><strong>Common mistake</strong>Entering a group with no active Node2D members leaves the actuator without a valid target.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Rotate Towards actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/rotate-towards.png"/></div><figcaption><strong class="screenshot-caption-title">Rotate Towards screenshot</strong><span></span></figcaption></figure>
+</section><section class="brick actuator" data-compatibility="2d" data-search="Waypoint Path Moves a Node2D along the points of a Path2D curve with optional looping and direction-facing. Motion" id="waypoint-path-2d">
+<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Waypoint Path</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<p>Moves a Node2D along the points of a Path2D curve with optional looping and direction-facing.</p>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Motion</span></div><div><strong>Source</strong><span><code>actuators/2d/waypoint_path_2d_actuator.gd</code></span></div></div>
+<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>path_node_name</code></td><td>Path2D containing the Curve2D to follow.</td></tr><tr><td><code>speed</code></td><td>Movement speed in pixels per second.</td></tr><tr><td><code>loop</code></td><td>Return to the first waypoint after the last point.</td></tr><tr><td><code>face_direction</code></td><td>Rotate the moving node to face its travel direction.</td></tr></tbody></table>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Waypoint Path after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Waypoint Path</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Add at least two points to the Path2D curve before testing.</div><div class="mini-callout caution"><strong>Common mistake</strong>The actuator follows the Path2D curve points; an empty curve cannot produce movement.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Waypoint Path actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/waypoint-path.png"/></div><figcaption><strong class="screenshot-caption-title">Waypoint Path screenshot</strong><span></span></figcaption></figure>
+</section></div>
 </section>
 <section class="actuator-category" id="object">
 <div class="category-heading">
@@ -6743,7 +6772,7 @@
            Get Variable
           </a>
 <a href="actuators-2d.html#tween-animation-2d">
-           Tween Animation
+           Tween
           </a>
 </div>
 </section>
@@ -8675,7 +8704,21 @@
 </figcaption>
 </figure>
 </section>
-</div>
+<section class="brick actuator" data-compatibility="2d" data-search="Gravity Applies directional gravity to a RigidBody2D using the project gravity as a strength multiplier. Physics" id="gravity-2d">
+<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Gravity</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<p>Applies directional gravity to a RigidBody2D using the project gravity as a strength multiplier.</p>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Physics</span></div><div><strong>Source</strong><span><code>actuators/2d/gravity_2d_actuator.gd</code></span></div></div>
+<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>strength</code></td><td>Gravity multiplier: 1 is project gravity, 2 is double, and 0.5 is half.</td></tr><tr><td><code>direction_x / direction_y</code></td><td>2D gravity direction. Positive Y points down in Godot.</td></tr><tr><td><code>use_mass</code></td><td>Scale force by the RigidBody2D mass.</td></tr><tr><td><code>override_world_gravity</code></td><td>Disable the body’s normal project-gravity contribution.</td></tr><tr><td><code>reset_velocity_on_direction_change</code></td><td>Clear existing momentum when the gravity direction changes.</td></tr></tbody></table>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Gravity after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gravity</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>For upward gravity, use X = 0 and Y = -1.</div><div class="mini-callout caution"><strong>Common mistake</strong>Strength is a multiplier, not a raw pixel acceleration. A value of 10 means ten times project gravity.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Gravity actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/gravity.png"/></div><figcaption><strong class="screenshot-caption-title">Gravity screenshot</strong><span></span></figcaption></figure>
+</section><section class="brick actuator" data-compatibility="2d" data-search="Collisions Enables or disables 2D collision shapes, collision layer or mask bits, and Area2D monitoring. Physics" id="collisions-2d">
+<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Collisions</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<p>Enables or disables 2D collision shapes, collision layer or mask bits, and Area2D monitoring.</p>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Physics</span></div><div><strong>Source</strong><span><code>actuators/2d/collision_2d_actuator.gd</code></span></div></div>
+<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>action</code></td><td>Disable Shape, Enable Shape, Set Layer Bit, Set Mask Bit, Enable Monitoring, or Disable Monitoring.</td></tr><tr><td><code>target_node</code></td><td>CollisionShape2D, CollisionPolygon2D, CollisionObject2D, or Area2D target.</td></tr><tr><td><code>layer_value</code></td><td>Collision layer or mask bit from 1 through 32.</td></tr><tr><td><code>bit_enabled</code></td><td>Whether the selected layer or mask bit is enabled.</td></tr></tbody></table>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Collisions after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Collisions</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use deferred collision-shape changes when toggling during a physics callback; the actuator handles shape changes safely.</div><div class="mini-callout caution"><strong>Common mistake</strong>Collision layers and masks are one-based in the brick UI but converted to Godot’s zero-based bit index internally.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Collisions actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/collision-2d.png"/></div><figcaption><strong class="screenshot-caption-title">Collisions screenshot</strong><span></span></figcaption></figure>
+</section></div>
 </section>
 <section class="actuator-category" id="ui">
 <div class="category-heading">
@@ -8955,7 +8998,21 @@
 </figcaption>
 </figure>
 </section>
-</div>
+<section class="brick actuator" data-compatibility="2d" data-search="Progress Bar Sets or smoothly updates the value, minimum, or maximum of a ProgressBar, Slider, or other Range node. Ui" id="progress-bar-2d">
+<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Progress Bar</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<p>Sets or smoothly updates the value, minimum, or maximum of a ProgressBar, Slider, or other Range node.</p>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Ui</span></div><div><strong>Source</strong><span><code>actuators/2d/progress_bar_2d_actuator.gd</code></span></div></div>
+<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>target_node_name</code></td><td>Target ProgressBar, Slider, or Range node.</td></tr><tr><td><code>node_name_source</code></td><td>Literal Node Name or String Variable.</td></tr><tr><td><code>set_value / value</code></td><td>Enable and provide the new value.</td></tr><tr><td><code>set_min / min_value</code></td><td>Enable and provide a new minimum.</td></tr><tr><td><code>set_max / max_value</code></td><td>Enable and provide a new maximum.</td></tr><tr><td><code>transition / transition_speed</code></td><td>Smoothly approach the requested value instead of changing instantly.</td></tr></tbody></table>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Progress Bar after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Progress Bar</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Values can reference variables, making this useful for health, stamina, loading, and score meters.</div><div class="mini-callout caution"><strong>Common mistake</strong>The target must inherit Range; a plain Control node does not have value, min_value, or max_value properties.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Progress Bar actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/progress-bar.png"/></div><figcaption><strong class="screenshot-caption-title">Progress Bar screenshot</strong><span></span></figcaption></figure>
+</section><section class="brick actuator" data-compatibility="2d" data-search="Text Updates a Label, RichTextLabel, or compatible text UI node from a variable or static string. Ui" id="text-2d">
+<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Text</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<p>Updates a Label, RichTextLabel, or compatible text UI node from a variable or static string.</p>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Ui</span></div><div><strong>Source</strong><span><code>actuators/2d/text_2d_actuator.gd</code></span></div></div>
+<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>target_node_name</code></td><td>Target text node.</td></tr><tr><td><code>node_name_source</code></td><td>Literal Node Name or String Variable.</td></tr><tr><td><code>mode</code></td><td>Variable or Static.</td></tr><tr><td><code>variable_name</code></td><td>Variable converted to text in Variable mode.</td></tr><tr><td><code>prefix / suffix</code></td><td>Text placed before or after the variable value.</td></tr><tr><td><code>static_text</code></td><td>Exact text used in Static mode.</td></tr></tbody></table>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Text after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Text</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use Prefix and Suffix for labels such as “Health: 75 / 100”.</div><div class="mini-callout caution"><strong>Common mistake</strong>Variable mode requires a valid variable name on the generated script or accessible target context.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Text actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/text.png"/></div><figcaption><strong class="screenshot-caption-title">Text screenshot</strong><span></span></figcaption></figure>
+</section></div>
 </section>
 <div class="page-nav">
 <a class="page-nav-card previous" href="actuators-3d.html">
