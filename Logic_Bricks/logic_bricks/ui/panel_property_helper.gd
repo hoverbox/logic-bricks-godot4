@@ -462,11 +462,16 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 							linked_arr = []
 						linked_arr.append(linked_default)
 						brick_instance.set_property(linked, linked_arr)
-					# Sync waypoint Node3D children if this is a WaypointPathActuator
-					if property_name == "waypoints" and panel.current_node is Node3D:
-						var WaypointPathActuator = load("res://addons/logic_bricks/bricks/actuators/3d/waypoint_path_actuator.gd")
-						if WaypointPathActuator:
-							WaypointPathActuator.sync_waypoint_nodes(panel.current_node, brick_instance)
+					# Sync editable waypoint helper nodes for 3D and 2D waypoint actuators.
+					if property_name == "waypoints":
+						if panel.current_node is Node3D:
+							var WaypointPathActuator = load("res://addons/logic_bricks/bricks/actuators/3d/waypoint_path_actuator.gd")
+							if WaypointPathActuator:
+								WaypointPathActuator.sync_waypoint_nodes(panel.current_node, brick_instance)
+						elif panel.current_node is Node2D:
+							var WaypointPath2DActuator = load("res://addons/logic_bricks/bricks/actuators/2d/waypoint_path_2d_actuator.gd")
+							if WaypointPath2DActuator:
+								WaypointPath2DActuator.sync_waypoint_nodes(panel.current_node, brick_instance)
 					panel._save_graph_to_metadata()
 					_build_array_property_list(
 						list_vbox, graph_node, brick_instance,
@@ -772,11 +777,16 @@ func _build_array_property_list(
 				if capture_idx_rm < linked_upd.size():
 					linked_upd.remove_at(capture_idx_rm)
 					brick_instance.set_property(linked_array, linked_upd)
-			# Sync waypoint Node3D children if this is a WaypointPathActuator
-			if property_name == "waypoints" and panel.current_node is Node3D:
-				var WaypointPathActuator = load("res://addons/logic_bricks/bricks/actuators/3d/waypoint_path_actuator.gd")
-				if WaypointPathActuator:
-					WaypointPathActuator.sync_waypoint_nodes(panel.current_node, brick_instance)
+			# Sync editable waypoint helper nodes for 3D and 2D waypoint actuators.
+			if property_name == "waypoints":
+				if panel.current_node is Node3D:
+					var WaypointPathActuator = load("res://addons/logic_bricks/bricks/actuators/3d/waypoint_path_actuator.gd")
+					if WaypointPathActuator:
+						WaypointPathActuator.sync_waypoint_nodes(panel.current_node, brick_instance)
+				elif panel.current_node is Node2D:
+					var WaypointPath2DActuator = load("res://addons/logic_bricks/bricks/actuators/2d/waypoint_path_2d_actuator.gd")
+					if WaypointPath2DActuator:
+						WaypointPath2DActuator.sync_waypoint_nodes(panel.current_node, brick_instance)
 			panel._save_graph_to_metadata()
 			_build_array_property_list(
 				list_vbox, graph_node, brick_instance,

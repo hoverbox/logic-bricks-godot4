@@ -1733,6 +1733,12 @@ func _create_graph_node_from_data(node_data: Dictionary) -> GraphNode:
 		if WaypointPathActuator:
 			WaypointPathActuator.sync_waypoint_nodes(current_node, brick_instance)
 
+	# Restore pos_# Node2D children for the 2D Waypoint Path actuator.
+	if brick_class == "WaypointPath2DActuator" and current_node is Node2D:
+		var WaypointPath2DActuator = load("res://addons/logic_bricks/bricks/actuators/2d/waypoint_path_2d_actuator.gd")
+		if WaypointPath2DActuator:
+			WaypointPath2DActuator.sync_waypoint_nodes(current_node, brick_instance)
+
 	# Create GraphNode
 	var graph_node = BrickGraphNode.new()
 	graph_node.name = node_data["id"]
@@ -3534,6 +3540,20 @@ func _apply_scene_setup_create(node: Node, chains: Array) -> void:
 			brick.deserialize(actuator_data)
 			if node is Node3D:
 				brick_script.sync_path3d_node(node, brick)
+
+	# ── Waypoint Path 2D: create Path2D helper nodes when Path2D mode is selected ──
+	for chain in chains:
+		for actuator_data in chain.get("actuators", []):
+			if actuator_data.get("type", "") != "WaypointPath2DActuator":
+				continue
+			var brick_script_2d = load("res://addons/logic_bricks/bricks/actuators/2d/waypoint_path_2d_actuator.gd")
+			if not brick_script_2d:
+				push_warning("Logic Bricks: Could not load waypoint_path_2d_actuator.gd")
+				continue
+			var brick_2d = brick_script_2d.new()
+			brick_2d.deserialize(actuator_data)
+			if node is Node2D:
+				brick_script_2d.sync_path2d_node(node, brick_2d)
 
 	# ── SplitScreen: free stale _ss_canvas_* nodes if the actuator was removed ──
 	var has_split_screen := false
