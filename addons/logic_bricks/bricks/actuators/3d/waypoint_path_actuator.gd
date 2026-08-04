@@ -258,7 +258,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			"func %s() -> void:" % init_func,
 			"\t%s = %s.duplicate()" % [points_var, wp_array],
 			"\tfor _wp_i in range(%s.size()):" % points_var,
-			"\t\tvar _wp_child = get_node_or_null(\"pos_%%d\" %% _wp_i)",
+			"\t\tvar _wp_child = get_node_or_null(\"pos_%d\" % _wp_i)",
 			"\t\tif _wp_child is Node3D:",
 			"\t\t\t%s[_wp_i] = _wp_child.global_position" % points_var,
 		])
