@@ -117,8 +117,20 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	ready_lines.append("_max_jumps = int(%s)" % max_jumps_expr)
 	ready_lines.append("_jumps_remaining = int(%s)" % max_jumps_expr)
 
-	# Actuator body — runs when the sensor chain fires
-	code_lines.append("# Jump — fire when sensor triggers and jumps remain")
+	# Actuator body — runs when the sensor chain fires.
+	# Re-sync max_jumps here instead of relying only on _ready(). This protects the
+	# counter from stale generated scripts, state changes, or another shared jump
+	# actuator value overwriting _max_jumps. Preserve jumps already consumed so
+	# changing 1 -> 2 grants exactly one additional airborne jump, not a full refill.
+	code_lines.append("# Jump — keep the configured jump count synchronized")
+	code_lines.append("var _configured_max_jumps := maxi(0, int(%s))" % max_jumps_expr)
+	code_lines.append("if _configured_max_jumps != _max_jumps:")
+	code_lines.append("\tvar _used_jumps := maxi(0, _max_jumps - _jumps_remaining)")
+	code_lines.append("\t_max_jumps = _configured_max_jumps")
+	code_lines.append("\t_jumps_remaining = maxi(0, _max_jumps - _used_jumps)")
+	code_lines.append("# Refresh only while truly grounded and not already moving upward")
+	code_lines.append("if is_on_floor() and velocity.y <= 0.0:")
+	code_lines.append("\t_jumps_remaining = _max_jumps")
 	code_lines.append("if _jumps_remaining > 0:")
 	if inherit_platform_velocity:
 		code_lines.append("\tif _on_ground and _moving_platform_velocity != Vector3.ZERO:")

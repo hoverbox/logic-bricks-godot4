@@ -80,6 +80,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 			var property_type = prop_def.get("type", TYPE_NIL)
 			var hint = prop_def.get("hint", PROPERTY_HINT_NONE)
 			var hint_string = prop_def.get("hint_string", "")
+			hint_string = _variable_brick_hint_override(brick_instance, property_name, hint_string)
 
 			var ui_element = null
 
@@ -976,9 +977,13 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 					var prop_name = child.get_meta("property_name")
 					match prop_name:
 						"value":
-							child.visible = (mode in ["assign", "add"])
+							child.visible = (mode in ["assign", "add", "add_item", "remove_item", "set_item_at_index"])
 						"source_variable":
 							child.visible = (mode == "copy")
+						"item_type":
+							child.visible = (mode in ["add_item", "remove_item", "set_item_at_index"])
+						"index":
+							child.visible = (mode in ["remove_at_index", "set_item_at_index"])
 
 		"get_variable_actuator":  # Get Variable Actuator
 			var source = properties.get("source", "node_name")
@@ -1004,9 +1009,11 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 					var prop_name = child.get_meta("property_name")
 					match prop_name:
 						"value":
-							child.visible = (eval_type in ["equal", "not_equal", "greater_than", "less_than", "greater_or_equal", "less_or_equal"])
+							child.visible = (eval_type in ["equal", "not_equal", "greater_than", "less_than", "greater_or_equal", "less_or_equal", "contains", "does_not_contain", "size_equals", "size_greater_than", "size_less_than"])
 						"min_value", "max_value":
 							child.visible = (eval_type == "interval")
+						"item_type":
+							child.visible = (eval_type in ["contains", "does_not_contain"])
 
 		"proximity_sensor":  # Proximity Sensor
 			var store_obj = properties.get("store_object", false)
@@ -1674,11 +1681,79 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 
 
 
+func _logic_variable_type(variable_name: String) -> String:
+	var wanted := variable_name.strip_edges()
+	if wanted.is_empty() or panel == null:
+		return ""
+	# Prefer the panel's live data so type-aware bricks react immediately to editor changes.
+	for data in panel.variables_data:
+		if data is Dictionary and str(data.get("name", "")).strip_edges() == wanted:
+			return str(data.get("type", ""))
+	for data in panel.global_vars_data:
+		if data is Dictionary and str(data.get("name", "")).strip_edges() == wanted:
+			return str(data.get("type", ""))
+	return ""
+
+func _variable_brick_hint_override(brick_instance, property_name: String, fallback: String) -> String:
+	var script_name: String = str(brick_instance.get_script().resource_path.get_file().get_basename())
+	var var_type := _logic_variable_type(str(brick_instance.get_property("variable_name", "")))
+	if var_type != "Array":
+		return fallback
+	if script_name == "variable_sensor" and property_name == "evaluation_type":
+		return "Contains:contains,Does Not Contain:does_not_contain,Is Empty:is_empty,Is Not Empty:is_not_empty,Size Equals:size_equals,Size Greater Than:size_greater_than,Size Less Than:size_less_than,Changed:changed"
+	if script_name == "variable_actuator" and property_name == "mode":
+		return "Add Item:add_item,Remove Item:remove_item,Remove At Index:remove_at_index,Set Item At Index:set_item_at_index,Clear:clear,Assign:assign,Copy:copy"
+	return fallback
+
+
+func _refresh_variable_brick_operation_control(graph_node: GraphNode, brick_instance) -> void:
+	var script_name: String = str(brick_instance.get_script().resource_path.get_file().get_basename())
+	var property_name := "evaluation_type" if script_name == "variable_sensor" else ("mode" if script_name == "variable_actuator" else "")
+	if property_name.is_empty():
+		return
+	var option: OptionButton = null
+	for child in graph_node.get_children():
+		if child is HBoxContainer:
+			var candidate = child.get_node_or_null("PropertyControl_" + property_name)
+			if candidate is OptionButton:
+				option = candidate
+				break
+	if option == null:
+		return
+	var fallback := "Equal,Not Equal,Interval,Changed,Greater Than,Less Than,Greater or Equal,Less or Equal" if script_name == "variable_sensor" else "Assign,Add,Copy,Toggle"
+	var hint := _variable_brick_hint_override(brick_instance, property_name, fallback)
+	var current := str(brick_instance.get_property(property_name, ""))
+	option.clear()
+	var selected := -1
+	var parts = hint.split(",")
+	for i in range(parts.size()):
+		var part := str(parts[i]).strip_edges()
+		var display := part
+		var actual := part.to_lower().replace(" ", "_")
+		if ":" in part:
+			var pair = part.split(":", false, 1)
+			display = pair[0]
+			actual = pair[1]
+		option.add_item(display, i)
+		option.set_item_metadata(i, actual)
+		if actual == current:
+			selected = i
+	if selected < 0 and option.item_count > 0:
+		selected = 0
+		brick_instance.set_property(property_name, str(option.get_item_metadata(0)))
+	option.selected = selected
+	_update_conditional_visibility(graph_node, brick_instance)
+	graph_node.reset_size()
+
+
 func _on_property_changed(value, graph_node: GraphNode, property_name: String) -> void:
 	if graph_node.has_meta("brick_data"):
 		var brick_data = graph_node.get_meta("brick_data")
 		var brick_instance = brick_data["brick_instance"]
 		brick_instance.set_property(property_name, value)
+
+		if property_name == "variable_name":
+			_refresh_variable_brick_operation_control(graph_node, brick_instance)
 
 		if brick_data.get("brick_type", "") == "controller" and property_name in ["state_id", "all_states"]:
 			_update_controller_title(graph_node, brick_instance)
@@ -1754,18 +1829,18 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
 		# Get the value directly from the item metadata
 		value = option_button.get_item_metadata(index)
 	else:
-		# Parse the enum value the same way the UI setup does (regular enums)
-		var enum_parts = hint_string.split(",")
-		if index < 0 or index >= enum_parts.size():
-			return
-
-		var part = enum_parts[index].strip_edges()
-		value = part.to_lower().replace(" ", "_")
-
-		# Check if it has an explicit value (like "Display:value")
-		if ":" in part:
-			var split = part.split(":")
-			value = split[1]
+		# Regular enums store their actual values as item metadata. This also lets
+		# type-aware variable bricks swap their operation lists dynamically.
+		if option_button and index >= 0 and index < option_button.item_count:
+			value = option_button.get_item_metadata(index)
+		else:
+			var enum_parts = hint_string.split(",")
+			if index < 0 or index >= enum_parts.size():
+				return
+			var part = enum_parts[index].strip_edges()
+			value = part.to_lower().replace(" ", "_")
+			if ":" in part:
+				value = part.split(":")[1]
 
 		# Convert to correct type
 		if property_type == TYPE_INT:

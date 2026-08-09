@@ -13,3 +13,19 @@ lines to generated gameplay scripts.
 
 Watch choices are stored in scene metadata and are inspected by the standalone
 debugger at runtime.
+
+## Array Watches
+
+Array variables can be watched with the same bug button as other variables. The
+overlay expands a non-empty Array to show its item count and each value beside
+its zero-based index. For example:
+
+```text
+inventory: Array (3 items)
+  [0] "Key"
+  [1] "Potion"
+  [2] 25
+```
+
+This makes it easier to verify Add Item, Remove Item, Remove At Index, Set Item
+At Index, and Clear operations while the project is running.

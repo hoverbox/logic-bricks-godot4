@@ -2,7 +2,7 @@
 extends RefCounted
 class_name LogicBrickVariableUtils
 
-const SUPPORTED_TYPES = ["bool", "int", "float", "String", "Vector2", "Vector3"]
+const SUPPORTED_TYPES = ["bool", "int", "float", "String", "Vector2", "Vector3", "Array"]
 const DEFAULT_LOCAL_NAME = "new_variable"
 const DEFAULT_GLOBAL_NAME = "new_global"
 
@@ -77,11 +77,13 @@ static func gdscript_type_name_from_variant_type(type_int: int) -> String:
 			return "Vector2"
 		TYPE_VECTOR3:
 			return "Vector3"
+		TYPE_ARRAY:
+			return "Array"
 		_:
 			return ""
 
 
-static func get_default_value_for_variable_type(var_type: String) -> String:
+static func get_default_value_for_variable_type(var_type: String):
 	match normalize_type(var_type):
 		"bool":
 			return "false"
@@ -95,11 +97,13 @@ static func get_default_value_for_variable_type(var_type: String) -> String:
 			return "Vector2.ZERO"
 		"Vector3":
 			return "Vector3.ZERO"
+		"Array":
+			return []
 		_:
 			return "0"
 
 
-static func coerce_variable_value_for_type(value, var_type: String) -> String:
+static func coerce_variable_value_for_type(value, var_type: String):
 	var normalized_type := normalize_type(var_type)
 	var text_value := str(value)
 	match normalized_type:
@@ -152,6 +156,10 @@ static func coerce_variable_value_for_type(value, var_type: String) -> String:
 			if parts.size() == 3 and str(parts[0]).strip_edges().is_valid_float() and str(parts[1]).strip_edges().is_valid_float() and str(parts[2]).strip_edges().is_valid_float():
 				return "Vector3(%s, %s, %s)" % [str(parts[0]).strip_edges(), str(parts[1]).strip_edges(), str(parts[2]).strip_edges()]
 			return "Vector3.ZERO"
+		"Array":
+			if value is Array:
+				return value.duplicate(true)
+			return []
 		_:
 			return text_value
 
@@ -162,7 +170,7 @@ static func value_to_line_edit_text(value) -> String:
 
 static func to_gdscript_value_literal(value, var_type: String) -> String:
 	var normalized_type := normalize_type(var_type)
-	var coerced_value := coerce_variable_value_for_type(value, normalized_type)
+	var coerced_value: Variant = coerce_variable_value_for_type(value, normalized_type)
 	match normalized_type:
 		"String":
 			return '"%s"' % coerced_value.c_escape()
@@ -174,11 +182,13 @@ static func to_gdscript_value_literal(value, var_type: String) -> String:
 			return coerced_value
 		"Vector2", "Vector3":
 			return coerced_value
+		"Array":
+			return _array_to_gdscript_literal(coerced_value)
 		_:
 			return coerced_value
 
 
-static func parse_gdscript_value_literal(value_literal: String, var_type: String) -> String:
+static func parse_gdscript_value_literal(value_literal: String, var_type: String):
 	var normalized_type := normalize_type(var_type)
 	var text := str(value_literal).strip_edges()
 	match normalized_type:
@@ -198,5 +208,83 @@ static func parse_gdscript_value_literal(value_literal: String, var_type: String
 			return coerce_variable_value_for_type(text, normalized_type)
 		"Vector2", "Vector3":
 			return coerce_variable_value_for_type(text, normalized_type)
+		"Array":
+			return _parse_array_literal(text)
 		_:
 			return text
+
+
+static func _array_item_to_literal(item) -> String:
+	if item is Dictionary and item.has("type"):
+		return to_gdscript_value_literal(item.get("value", ""), str(item.get("type", "String")))
+	match typeof(item):
+		TYPE_BOOL: return "true" if item else "false"
+		TYPE_INT, TYPE_FLOAT: return str(item)
+		TYPE_STRING: return '"%s"' % str(item).c_escape()
+		TYPE_VECTOR2, TYPE_VECTOR3, TYPE_COLOR: return str(item)
+		TYPE_ARRAY: return _array_to_gdscript_literal(item)
+		_: return '"%s"' % str(item).c_escape()
+
+static func _array_to_gdscript_literal(value) -> String:
+	if not (value is Array):
+		return "[]"
+	var parts: Array[String] = []
+	for item in value:
+		parts.append(_array_item_to_literal(item))
+	return "[%s]" % ", ".join(parts)
+
+static func _parse_array_literal(text: String) -> Array:
+	# Disk fallback parser. Metadata is the authoritative source for typed array items.
+	# Preserve common scalar literals when globals are reconstructed from global_vars.gd.
+	var result: Array = []
+	var body := text.strip_edges()
+	if not body.begins_with("[") or not body.ends_with("]"):
+		return result
+	body = body.substr(1, body.length() - 2).strip_edges()
+	if body.is_empty():
+		return result
+	var current := ""
+	var depth := 0
+	var quoted := false
+	var escaped := false
+	for ch in body:
+		if escaped:
+			current += ch
+			escaped = false
+			continue
+		if ch == "\\" and quoted:
+			current += ch
+			escaped = true
+			continue
+		if ch == '"':
+			quoted = not quoted
+			current += ch
+			continue
+		if not quoted:
+			if ch in ["(", "["]:
+				depth += 1
+			elif ch in [")", "]"]:
+				depth -= 1
+			elif ch == "," and depth == 0:
+				result.append(_literal_to_typed_item(current.strip_edges()))
+				current = ""
+				continue
+		current += ch
+	if not current.strip_edges().is_empty():
+		result.append(_literal_to_typed_item(current.strip_edges()))
+	return result
+
+static func _literal_to_typed_item(text: String) -> Dictionary:
+	if text.to_lower() in ["true", "false"]:
+		return {"type":"bool", "value":text.to_lower()}
+	if text.is_valid_int():
+		return {"type":"int", "value":text}
+	if text.is_valid_float():
+		return {"type":"float", "value":text}
+	if text.begins_with("Vector2("):
+		return {"type":"Vector2", "value":text}
+	if text.begins_with("Vector3("):
+		return {"type":"Vector3", "value":text}
+	if text.length() >= 2 and text.begins_with('"') and text.ends_with('"'):
+		return {"type":"String", "value":parse_gdscript_value_literal(text, "String")}
+	return {"type":"String", "value":text}

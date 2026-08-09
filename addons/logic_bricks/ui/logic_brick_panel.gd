@@ -7,6 +7,7 @@ extends VBoxContainer
 const BrickGraphNode    = preload("res://addons/logic_bricks/ui/brick_graph_node.gd")
 const VariableUtils = preload("res://addons/logic_bricks/core/logic_brick_variable_utils.gd")
 const BrickRegistry = preload("res://addons/logic_bricks/core/brick_registry.gd")
+const DocumentationHelper = preload("res://addons/logic_bricks/core/documentation_helper.gd")
 const TutorialWindow = preload("res://addons/logic_bricks/ui/tutorial_window.gd")
 
 var manager = null
@@ -40,6 +41,9 @@ var sensors_menu: PopupMenu
 var controllers_menu: PopupMenu
 var actuators_menu: PopupMenu
 var actuator_submenus: Dictionary = {}  # name -> PopupMenu, for sub-submenu ID lookup
+var _brick_menu_context_popup: PopupMenu = null
+var _brick_menu_context_class: String = ""
+var _brick_menu_context_domain: String = ""
 var next_node_id: int = 0
 var last_mouse_position: Vector2 = Vector2.ZERO
 
@@ -101,6 +105,12 @@ func _init() -> void:
 	tutorial_button.tooltip_text = "Open the Logic Bricks getting-started tutorial"
 	tutorial_button.pressed.connect(_on_tutorial_pressed)
 	header_hbox.add_child(tutorial_button)
+
+	var documentation_button = Button.new()
+	documentation_button.text = "Documentation"
+	documentation_button.tooltip_text = "Open the bundled Logic Bricks documentation in your web browser"
+	documentation_button.pressed.connect(_on_documentation_pressed)
+	header_hbox.add_child(documentation_button)
 
 	var title_label = Label.new()
 	title_label.text = "Logic Bricks - Node Graph"
@@ -199,6 +209,10 @@ func _init() -> void:
 	_toolbar.add_child(apply_code_button)
 
 
+func _on_documentation_pressed() -> void:
+	DocumentationHelper.open_home()
+
+
 func _on_tutorial_pressed() -> void:
 	if not is_instance_valid(_tutorial_window):
 		_tutorial_window = TutorialWindow.new()
@@ -267,16 +281,19 @@ func _create_add_menu() -> void:
 	sensors_menu.name = "SensorsMenu"
 	add_menu.add_child(sensors_menu)
 	sensors_menu.id_pressed.connect(_on_add_menu_item_selected)
+	_enable_brick_menu_doc_right_click(sensors_menu)
 
 	controllers_menu = PopupMenu.new()
 	controllers_menu.name = "ControllersMenu"
 	add_menu.add_child(controllers_menu)
 	controllers_menu.id_pressed.connect(_on_add_menu_item_selected)
+	_enable_brick_menu_doc_right_click(controllers_menu)
 
 	actuators_menu = PopupMenu.new()
 	actuators_menu.name = "ActuatorsMenu"
 	add_menu.add_child(actuators_menu)
 	actuators_menu.id_pressed.connect(_on_add_menu_item_selected)
+	_enable_brick_menu_doc_right_click(actuators_menu)
 
 	add_menu.add_submenu_item("Sensors", "SensorsMenu", 0)
 	add_menu.add_submenu_item("Controllers", "ControllersMenu", 1)
@@ -285,6 +302,15 @@ func _create_add_menu() -> void:
 	add_menu.add_item("🔍 Search…", 4)
 	add_menu.add_item("Reroute", 3)
 	add_menu.add_separator()
+
+	# Context menu shown after right-clicking a specific brick entry in one of
+	# the Add submenus. Keep this separate from the Add menu itself so a right
+	# click never adds the brick or opens the browser immediately.
+	_brick_menu_context_popup = PopupMenu.new()
+	_brick_menu_context_popup.name = "BrickMenuDocumentationContext"
+	_brick_menu_context_popup.add_item("View Documentation", 0)
+	_brick_menu_context_popup.id_pressed.connect(_on_brick_menu_context_id_pressed)
+	add_child(_brick_menu_context_popup)
 
 	options_menu = PopupMenu.new()
 	options_menu.name = "OptionsMenu"
@@ -332,6 +358,56 @@ func _refresh_add_menu_from_registry(force_rescan: bool = false) -> void:
 	_populate_actuator_menu(BrickRegistry.get_bricks_by_type("actuator", domain))
 
 
+func _enable_brick_menu_doc_right_click(menu: PopupMenu) -> void:
+	# PopupMenu activates brick entries with a left click. Listen to the popup
+	# window as well so a right click can offer a documentation-only context
+	# action without adding the brick.
+	menu.window_input.connect(_on_brick_menu_window_input.bind(menu))
+
+
+func _on_brick_menu_window_input(event: InputEvent, menu: PopupMenu) -> void:
+	if not event is InputEventMouseButton:
+		return
+	var mouse_event: InputEventMouseButton = event
+	if mouse_event.button_index != MOUSE_BUTTON_RIGHT or not mouse_event.pressed:
+		return
+
+	# PopupMenu focuses the item under the pointer. Every actual brick entry
+	# stores its registered class in metadata; category/submenu rows do not.
+	var item_index: int = menu.get_focused_item()
+	if item_index < 0 or item_index >= menu.get_item_count():
+		return
+	if menu.is_item_disabled(item_index) or menu.is_item_separator(item_index):
+		return
+
+	var metadata: Variant = menu.get_item_metadata(item_index)
+	if not metadata is Dictionary:
+		return
+	var brick_class: String = str(metadata.get("class", ""))
+	if brick_class.is_empty():
+		return
+
+	_brick_menu_context_class = brick_class
+	_brick_menu_context_domain = current_brick_domain
+
+	# Close the Add-menu stack, then leave a small context menu at the pointer.
+	# The browser is opened only if the user explicitly chooses View Documentation.
+	menu.hide()
+	if is_instance_valid(add_menu):
+		add_menu.hide()
+	if is_instance_valid(_brick_menu_context_popup):
+		_brick_menu_context_popup.position = DisplayServer.mouse_get_position()
+		_brick_menu_context_popup.popup()
+
+
+func _on_brick_menu_context_id_pressed(id: int) -> void:
+	if id != 0 or _brick_menu_context_class.is_empty():
+		return
+	DocumentationHelper.open_brick(_brick_menu_context_class, _brick_menu_context_domain)
+	_brick_menu_context_class = ""
+	_brick_menu_context_domain = ""
+
+
 func _populate_brick_menu_flat(menu: PopupMenu, bricks: Array) -> void:
 	for info in bricks:
 		var id := int(info.get("menu_id", 0))
@@ -372,6 +448,7 @@ func _populate_actuator_menu(bricks: Array) -> void:
 			submenu.name = submenu_name
 			actuators_menu.add_child(submenu)
 			submenu.id_pressed.connect(_on_add_menu_item_selected)
+			_enable_brick_menu_doc_right_click(submenu)
 			actuator_submenus[submenu_name] = submenu
 			_populate_brick_menu_flat(submenu, group_items)
 			actuators_menu.add_submenu_item(category, submenu_name)
@@ -1832,6 +1909,7 @@ func _setup_graph_node_context_menu(graph_node: GraphNode) -> void:
 	# Set up right-click context menu for a graph node
 	var popup_menu = PopupMenu.new()
 	popup_menu.add_item("Duplicate", 0)
+	popup_menu.add_item("View Documentation", 2)
 	popup_menu.add_separator()
 	popup_menu.add_item("Delete", 1)
 
@@ -1848,6 +1926,11 @@ func _setup_graph_node_context_menu(graph_node: GraphNode) -> void:
 
 
 func _on_graph_node_context_menu(id: int, graph_node: GraphNode) -> void:
+	if id == 2:
+		if graph_node.has_meta("brick_data"):
+			var brick_data: Dictionary = graph_node.get_meta("brick_data")
+			DocumentationHelper.open_brick(str(brick_data.get("brick_class", "")), current_brick_domain)
+		return
 	await _clipboard_helper.on_graph_node_context_menu(id, graph_node)
 
 
@@ -2708,6 +2791,9 @@ func _vector_components_from_value(value, dimensions: int) -> Array[String]:
 
 func _create_axis_value_editor(parent: VBoxContainer, index: int, var_data: Dictionary, is_global: bool) -> void:
 	var var_type := str(var_data.get("type", "int"))
+	if var_type == "Array":
+		_create_array_variable_value_editor(parent, index, var_data, is_global)
+		return
 	if var_type != "Vector2" and var_type != "Vector3":
 		var row = HBoxContainer.new()
 		parent.add_child(row)
@@ -2745,6 +2831,122 @@ func _create_axis_value_editor(parent: VBoxContainer, index: int, var_data: Dict
 		axis_row.add_child(axis_edit)
 	for axis_edit in edits:
 		axis_edit.text_changed.connect(_on_vector_axis_value_changed.bind(index, var_type, edits, is_global))
+
+
+func _create_array_variable_value_editor(parent: VBoxContainer, index: int, var_data: Dictionary, is_global: bool) -> void:
+	var header := HBoxContainer.new()
+	parent.add_child(header)
+	var label := Label.new()
+	label.text = "Items:"
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(label)
+	var add_btn := Button.new()
+	add_btn.text = "+ Add Item"
+	add_btn.pressed.connect(_on_array_variable_item_added.bind(index, is_global))
+	header.add_child(add_btn)
+
+	var items = var_data.get("value", [])
+	if not (items is Array):
+		items = []
+	for item_index in range(items.size()):
+		var item = items[item_index]
+		if not (item is Dictionary):
+			item = {"type":"String", "value":str(item)}
+		var row := HBoxContainer.new()
+		parent.add_child(row)
+		var idx := Label.new()
+		idx.text = "[%d]" % item_index
+		idx.custom_minimum_size = Vector2(36, 0)
+		row.add_child(idx)
+		var type_option := OptionButton.new()
+		var item_types = ["bool", "int", "float", "String", "Vector2", "Vector3"]
+		for type_name in item_types:
+			type_option.add_item(type_name)
+		var selected := item_types.find(str(item.get("type", "String")))
+		type_option.selected = selected if selected >= 0 else item_types.find("String")
+		type_option.item_selected.connect(_on_array_variable_item_type_changed.bind(index, item_index, item_types, is_global))
+		row.add_child(type_option)
+		var edit := LineEdit.new()
+		edit.text = str(item.get("value", ""))
+		edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		edit.text_changed.connect(_on_array_variable_item_value_changed.bind(index, item_index, is_global))
+		row.add_child(edit)
+		var remove_btn := Button.new()
+		remove_btn.text = "×"
+		remove_btn.tooltip_text = "Remove item at index %d" % item_index
+		remove_btn.pressed.connect(_on_array_variable_item_removed.bind(index, item_index, is_global))
+		row.add_child(remove_btn)
+
+
+func _on_array_variable_item_added(index: int, is_global: bool) -> void:
+	var data = global_vars_data if is_global else variables_data
+	if index < 0 or index >= data.size():
+		return
+	var items = data[index].get("value", [])
+	if not (items is Array):
+		items = []
+	items.append({"type":"String", "value":""})
+	data[index]["value"] = items
+	_save_array_variable_change(is_global)
+	if is_global:
+		_refresh_global_vars_ui()
+	else:
+		_refresh_variables_ui()
+
+
+func _on_array_variable_item_removed(index: int, item_index: int, is_global: bool) -> void:
+	var data = global_vars_data if is_global else variables_data
+	if index < 0 or index >= data.size():
+		return
+	var items = data[index].get("value", [])
+	if not (items is Array) or item_index < 0 or item_index >= items.size():
+		return
+	items.remove_at(item_index)
+	data[index]["value"] = items
+	_save_array_variable_change(is_global)
+	if is_global:
+		_refresh_global_vars_ui()
+	else:
+		_refresh_variables_ui()
+
+
+func _on_array_variable_item_type_changed(type_index: int, index: int, item_index: int, item_types: Array, is_global: bool) -> void:
+	var data = global_vars_data if is_global else variables_data
+	if index < 0 or index >= data.size() or type_index < 0 or type_index >= item_types.size():
+		return
+	var items = data[index].get("value", [])
+	if not (items is Array) or item_index < 0 or item_index >= items.size():
+		return
+	var old = items[item_index] if items[item_index] is Dictionary else {"type":"String", "value":str(items[item_index])}
+	var new_type := str(item_types[type_index])
+	items[item_index] = {"type":new_type, "value":VariableUtils.coerce_variable_value_for_type(old.get("value", ""), new_type)}
+	data[index]["value"] = items
+	_save_array_variable_change(is_global)
+	if is_global:
+		_refresh_global_vars_ui()
+	else:
+		_refresh_variables_ui()
+
+
+func _on_array_variable_item_value_changed(new_value: String, index: int, item_index: int, is_global: bool) -> void:
+	var data = global_vars_data if is_global else variables_data
+	if index < 0 or index >= data.size():
+		return
+	var items = data[index].get("value", [])
+	if not (items is Array) or item_index < 0 or item_index >= items.size():
+		return
+	if not (items[item_index] is Dictionary):
+		items[item_index] = {"type":"String", "value":""}
+	items[item_index]["value"] = new_value
+	data[index]["value"] = items
+	_save_array_variable_change(is_global)
+
+
+func _save_array_variable_change(is_global: bool) -> void:
+	if is_global:
+		_save_global_vars_to_metadata()
+	else:
+		_save_variables_to_metadata()
 
 
 func _create_local_variable_value_editor(parent: VBoxContainer, index: int, var_data: Dictionary) -> void:

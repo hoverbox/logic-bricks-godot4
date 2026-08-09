@@ -20,7 +20,8 @@ func _initialize_properties() -> void:
 		"evaluation_type": "equal",    # How to compare
 		"value": "",                   # Value to compare against
 		"min_value": "",               # Minimum value for interval mode
-		"max_value": ""                # Maximum value for interval mode
+		"max_value": "",               # Maximum value for interval mode
+		"item_type": "String"           # Array item comparison type
 	}
 
 
@@ -52,6 +53,13 @@ func get_property_definitions() -> Array:
 			"name": "max_value",
 			"type": TYPE_STRING,
 			"default": ""
+		},
+		{
+			"name": "item_type",
+			"type": TYPE_STRING,
+			"hint": PROPERTY_HINT_ENUM,
+			"hint_string": "bool,int,float,String,Vector2,Vector3",
+			"default": "String"
 		}
 	]
 
@@ -73,6 +81,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var value = properties.get("value", "")
 	var min_val = properties.get("min_value", "")
 	var max_val = properties.get("max_value", "")
+	var item_type = str(properties.get("item_type", "String"))
 
 	# Normalize evaluation type
 	if typeof(eval_type) == TYPE_STRING:
@@ -164,11 +173,38 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				var max_compare = _parse_value(max_val)
 				code_lines.append("var sensor_active = (%s != null and %s >= %s and %s <= %s)" % [val_expr, val_expr, min_compare, val_expr, max_compare])
 
+		"contains", "does_not_contain":
+			if value.is_empty():
+				code_lines.append("var sensor_active = false")
+				code_lines.append("push_warning(\"Compare Variable: No array item value set for '%s'\")" % sanitized_name)
+			else:
+				var compare_value = _parse_typed_value(value, item_type)
+				var contains_expr = "(%s is Array and %s.has(%s))" % [val_expr, val_expr, compare_value]
+				if eval_type == "does_not_contain":
+					code_lines.append("var sensor_active = (%s is Array and not %s.has(%s))" % [val_expr, val_expr, compare_value])
+				else:
+					code_lines.append("var sensor_active = %s" % contains_expr)
+
+		"is_empty":
+			code_lines.append("var sensor_active = (%s is Array and %s.is_empty())" % [val_expr, val_expr])
+
+		"is_not_empty":
+			code_lines.append("var sensor_active = (%s is Array and not %s.is_empty())" % [val_expr, val_expr])
+
+		"size_equals", "size_greater_than", "size_less_than":
+			var size_value = value.strip_edges()
+			if not size_value.is_valid_int():
+				code_lines.append("var sensor_active = false")
+				code_lines.append("push_warning(\"Compare Variable: Array size comparison requires an integer\")")
+			else:
+				var op = "==" if eval_type == "size_equals" else (">" if eval_type == "size_greater_than" else "<")
+				code_lines.append("var sensor_active = (%s is Array and %s.size() %s %s)" % [val_expr, val_expr, op, size_value])
+
 		"changed":
 			var prev_var_name = "_prev_%s_%s" % [sanitized_name, chain_name]
 			member_vars.append("var %s = null" % prev_var_name)
 			code_lines.append("var _changed = (%s != %s)" % [prev_var_name, val_expr])
-			code_lines.append("%s = %s" % [prev_var_name, val_expr])
+			code_lines.append("%s = %s.duplicate(true) if %s is Array else %s" % [prev_var_name, val_expr, val_expr, val_expr])
 			code_lines.append("var sensor_active = _changed")
 
 		_:
@@ -201,9 +237,23 @@ func _parse_value(value_str: String) -> String:
 	if value_str.begins_with("Vector2(") or value_str.begins_with("Vector3("):
 		return value_str
 
+	# Array literal / expression
+	if value_str.begins_with("[") and value_str.ends_with("]"):
+		return value_str
+
 	# Variable name
 	if value_str.is_valid_identifier():
 		return value_str
 
 	# Default: treat as string
 	return "\"%s\"" % value_str.replace("\"", "\\\"")
+
+
+func _parse_typed_value(value_str: String, type_name: String) -> String:
+	var text := value_str.strip_edges()
+	match type_name:
+		"bool": return "true" if text.to_lower() in ["true", "1", "yes", "on"] else "false"
+		"int": return str(text.to_int()) if text.is_valid_int() else "0"
+		"float": return text if text.is_valid_float() else "0.0"
+		"Vector2", "Vector3": return text if text.begins_with(type_name + "(") else type_name + ".ZERO"
+		_: return '"%s"' % text.replace('\"', '\\"')

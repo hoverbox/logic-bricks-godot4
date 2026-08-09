@@ -205,6 +205,9 @@ func _vector_components_from_value(value, dimensions: int) -> Array[String]:
 
 func _create_value_editor(parent: VBoxContainer, index: int, var_data: Dictionary, is_global: bool) -> void:
 	var var_type := str(var_data.get("type", "int"))
+	if var_type == "Array":
+		_create_array_value_editor(parent, index, var_data, is_global)
+		return
 	if var_type != "Vector2" and var_type != "Vector3":
 		var row = HBoxContainer.new()
 		parent.add_child(row)
@@ -239,6 +242,111 @@ func _create_value_editor(parent: VBoxContainer, index: int, var_data: Dictionar
 	for edit in edits:
 		edit.text_changed.connect(_on_vector_axis_value_changed.bind(index, var_type, edits, is_global))
 
+
+
+func _create_array_value_editor(parent: VBoxContainer, index: int, var_data: Dictionary, is_global: bool) -> void:
+	var header := HBoxContainer.new()
+	parent.add_child(header)
+	var label := Label.new()
+	label.text = "Items:"
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(label)
+	var add_btn := Button.new()
+	add_btn.text = "+ Add Item"
+	add_btn.pressed.connect(_on_array_item_added.bind(index, is_global))
+	header.add_child(add_btn)
+
+	var items = var_data.get("value", [])
+	if not (items is Array):
+		items = []
+	for item_index in range(items.size()):
+		var item = items[item_index]
+		if not (item is Dictionary):
+			item = {"type":"String", "value":str(item)}
+		var row := HBoxContainer.new()
+		parent.add_child(row)
+		var idx := Label.new()
+		idx.text = "[%d]" % item_index
+		idx.custom_minimum_size = Vector2(36, 0)
+		row.add_child(idx)
+		var type_option := OptionButton.new()
+		var item_types = ["bool", "int", "float", "String", "Vector2", "Vector3"]
+		for type_name in item_types:
+			type_option.add_item(type_name)
+		var selected := item_types.find(str(item.get("type", "String")))
+		type_option.selected = selected if selected >= 0 else item_types.find("String")
+		type_option.item_selected.connect(_on_array_item_type_changed.bind(index, item_index, item_types, is_global))
+		row.add_child(type_option)
+		var edit := LineEdit.new()
+		edit.text = str(item.get("value", ""))
+		edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		edit.text_changed.connect(_on_array_item_value_changed.bind(index, item_index, is_global))
+		row.add_child(edit)
+		var remove_btn := Button.new()
+		remove_btn.text = "×"
+		remove_btn.tooltip_text = "Remove item at index %d" % item_index
+		remove_btn.pressed.connect(_on_array_item_removed.bind(index, item_index, is_global))
+		row.add_child(remove_btn)
+
+
+func _on_array_item_added(index: int, is_global: bool) -> void:
+	var data = panel.global_vars_data if is_global else panel.variables_data
+	if index < 0 or index >= data.size(): return
+	var items = data[index].get("value", [])
+	if not (items is Array): items = []
+	items.append({"type":"String", "value":""})
+	data[index]["value"] = items
+	_save_array_change(is_global)
+	if is_global:
+		refresh_global_variables_ui()
+	else:
+		refresh_local_variables_ui()
+
+
+func _on_array_item_removed(index: int, item_index: int, is_global: bool) -> void:
+	var data = panel.global_vars_data if is_global else panel.variables_data
+	if index < 0 or index >= data.size(): return
+	var items = data[index].get("value", [])
+	if not (items is Array) or item_index < 0 or item_index >= items.size(): return
+	items.remove_at(item_index)
+	data[index]["value"] = items
+	_save_array_change(is_global)
+	if is_global:
+		refresh_global_variables_ui()
+	else:
+		refresh_local_variables_ui()
+
+
+func _on_array_item_type_changed(type_index: int, index: int, item_index: int, item_types: Array, is_global: bool) -> void:
+	var data = panel.global_vars_data if is_global else panel.variables_data
+	if index < 0 or index >= data.size() or type_index < 0 or type_index >= item_types.size(): return
+	var items = data[index].get("value", [])
+	if not (items is Array) or item_index < 0 or item_index >= items.size(): return
+	var old = items[item_index] if items[item_index] is Dictionary else {"type":"String", "value":str(items[item_index])}
+	var new_type := str(item_types[type_index])
+	items[item_index] = {"type":new_type, "value":VariableUtils.coerce_variable_value_for_type(old.get("value", ""), new_type)}
+	data[index]["value"] = items
+	_save_array_change(is_global)
+	if is_global:
+		refresh_global_variables_ui()
+	else:
+		refresh_local_variables_ui()
+
+
+func _on_array_item_value_changed(new_value: String, index: int, item_index: int, is_global: bool) -> void:
+	var data = panel.global_vars_data if is_global else panel.variables_data
+	if index < 0 or index >= data.size(): return
+	var items = data[index].get("value", [])
+	if not (items is Array) or item_index < 0 or item_index >= items.size(): return
+	if not (items[item_index] is Dictionary): items[item_index] = {"type":"String", "value":""}
+	items[item_index]["value"] = new_value
+	data[index]["value"] = items
+	_save_array_change(is_global)
+
+
+func _save_array_change(is_global: bool) -> void:
+	if is_global: panel._save_global_vars_to_metadata()
+	else: panel._save_variables_to_metadata()
 
 func _on_vector_axis_value_changed(_new_text: String, index: int, var_type: String, edits: Array[LineEdit], is_global: bool) -> void:
 	var data = panel.global_vars_data if is_global else panel.variables_data

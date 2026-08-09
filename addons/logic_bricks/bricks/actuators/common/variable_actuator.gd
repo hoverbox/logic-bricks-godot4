@@ -18,7 +18,9 @@ func _initialize_properties() -> void:
 		"variable_name": "",        # Name of the variable to modify
 		"mode": "assign",           # assign, add, copy, toggle
 		"value": "",                # Value to assign/add
-		"source_variable": ""       # For copy mode: source variable name
+		"source_variable": "",      # For copy mode: source variable name
+		"item_type": "String",        # Array item type
+		"index": "0"                 # Array item index
 	}
 
 
@@ -45,6 +47,18 @@ func get_property_definitions() -> Array:
 			"name": "source_variable",
 			"type": TYPE_STRING,
 			"default": ""
+		},
+		{
+			"name": "item_type",
+			"type": TYPE_STRING,
+			"hint": PROPERTY_HINT_ENUM,
+			"hint_string": "bool,int,float,String,Vector2,Vector3",
+			"default": "String"
+		},
+		{
+			"name": "index",
+			"type": TYPE_STRING,
+			"default": "0"
 		}
 	]
 
@@ -87,6 +101,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = properties.get("mode", "assign")
 	var value = properties.get("value", "")
 	var source_var = properties.get("source_variable", "")
+	var item_type = str(properties.get("item_type", "String"))
+	var index_value = str(properties.get("index", "0")).strip_edges()
 
 	# Normalize mode
 	if typeof(mode) == TYPE_STRING:
@@ -132,7 +148,47 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("\t\tif _gv_src and \"%s\" in _gv_src:" % sanitized_source)
 				code_lines.append("\t\t\t_src_val = _gv_src.get(\"%s\")" % sanitized_source)
 				code_lines.append("\tif _src_val != null:")
-				code_lines.append("\t\t_target.set(\"%s\", _src_val)" % sanitized_name)
+				code_lines.append("\t\t_target.set(\"%s\", _src_val.duplicate(true) if _src_val is Array else _src_val)" % sanitized_name)
+
+		"add_item", "remove_item":
+			if value.is_empty():
+				code_lines.append("\tpush_warning(\"Modify Variable: Array item value is empty for '%s'\")" % sanitized_name)
+			else:
+				var parsed_item = _parse_typed_value(value, item_type)
+				code_lines.append("\tvar _arr = _target.get(\"%s\")" % sanitized_name)
+				code_lines.append("\tif _arr is Array:")
+				if mode == "add_item":
+					code_lines.append("\t\t_arr.append(%s)" % parsed_item)
+				else:
+					code_lines.append("\t\t_arr.erase(%s)" % parsed_item)
+
+		"remove_at_index":
+			if not index_value.is_valid_int():
+				code_lines.append("\tpush_warning(\"Modify Variable: Remove At Index requires an integer index\")")
+			else:
+				code_lines.append("\tvar _arr = _target.get(\"%s\")" % sanitized_name)
+				code_lines.append("\tvar _idx = %s" % index_value)
+				code_lines.append("\tif _arr is Array and _idx >= 0 and _idx < _arr.size():")
+				code_lines.append("\t\t_arr.remove_at(_idx)")
+				code_lines.append("\telse:")
+				code_lines.append("\t\tpush_warning(\"Modify Variable: Array index out of range\")")
+
+		"set_item_at_index":
+			if not index_value.is_valid_int() or value.is_empty():
+				code_lines.append("\tpush_warning(\"Modify Variable: Set Item At Index requires an integer index and value\")")
+			else:
+				var parsed_item = _parse_typed_value(value, item_type)
+				code_lines.append("\tvar _arr = _target.get(\"%s\")" % sanitized_name)
+				code_lines.append("\tvar _idx = %s" % index_value)
+				code_lines.append("\tif _arr is Array and _idx >= 0 and _idx < _arr.size():")
+				code_lines.append("\t\t_arr[_idx] = %s" % parsed_item)
+				code_lines.append("\telse:")
+				code_lines.append("\t\tpush_warning(\"Modify Variable: Array index out of range\")")
+
+		"clear":
+			code_lines.append("\tvar _arr = _target.get(\"%s\")" % sanitized_name)
+			code_lines.append("\tif _arr is Array:")
+			code_lines.append("\t\t_arr.clear()")
 
 		"toggle":
 			code_lines.append("\tvar _cur = _target.get(\"%s\")" % sanitized_name)
@@ -161,9 +217,22 @@ func _parse_value(value_str: String) -> String:
 	if value_str.begins_with("Color(") and value_str.ends_with(")"):
 		return value_str
 
+	if value_str.begins_with("[") and value_str.ends_with("]"):
+		return value_str
+
 	# Could be a variable name or expression
 	if value_str.is_valid_identifier():
 		return value_str
 
 	# Default: string
 	return "\"%s\"" % value_str.replace("\"", "\\\"")
+
+
+func _parse_typed_value(value_str: String, type_name: String) -> String:
+	var text := value_str.strip_edges()
+	match type_name:
+		"bool": return "true" if text.to_lower() in ["true", "1", "yes", "on"] else "false"
+		"int": return str(text.to_int()) if text.is_valid_int() else "0"
+		"float": return text if text.is_valid_float() else "0.0"
+		"Vector2", "Vector3": return text if text.begins_with(type_name + "(") else type_name + ".ZERO"
+		_: return '"%s"' % text.replace('\"', '\\"')

@@ -215,6 +215,15 @@ func _is_watch_enabled(value: Variant) -> bool:
 
 
 func _format_value(value) -> String:
+	if value is Array:
+		if value.is_empty():
+			return "[]"
+		var lines: Array[String] = ["Array (%d items)" % value.size()]
+		for i in range(value.size()):
+			lines.append("  [%d] %s" % [i, _format_value(value[i])])
+		return "\n".join(lines)
 	if value is float:
 		return "%.3f" % value
+	if value is String:
+		return '"%s"' % value
 	return str(value)
