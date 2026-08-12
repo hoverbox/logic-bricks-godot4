@@ -2,7 +2,7 @@
 
 
 
-➡️ **[📖 Click for Full Documentation]([https://hoverbox.github.io/logic-bricks-godot4/](https://brithe3dguy.com/game-development.html))**
+➡️ **[📖 Click for Full Documentation](https://brithe3dguy.com/game-development.html)**
 
 ________________________________________________________________________
 
