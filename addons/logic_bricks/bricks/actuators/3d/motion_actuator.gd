@@ -159,18 +159,23 @@ func _is_zero(val) -> bool:
 
 func _append_target_setup(code_lines: Array[String], member_vars: Array[String], chain_name: String) -> String:
 	var target_node_name = str(properties.get("target_node_name", "")).strip_edges()
+
+	# Blank target is the common case. Use self directly instead of generating
+	# cached lookup state and a runtime name search that can never be needed.
+	if target_node_name.is_empty():
+		code_lines.append("if not (self is Node3D):")
+		code_lines.append("\tpush_warning(\"Motion Actuator: self is not a Node3D\")")
+		code_lines.append("else:")
+		return "self"
+
 	var label = _unique_label(chain_name)
 	var target_var = "_motion_target_%s" % label
-
 	member_vars.append("var %s = null" % target_var)
 
 	var name_expr = "\"%s\"" % _gd_string(target_node_name)
-
 	code_lines.append("# Motion Actuator target")
 	code_lines.append("var _motion_target_name_%s = %s" % [label, name_expr])
-	code_lines.append("if _motion_target_name_%s.is_empty():" % label)
-	code_lines.append("\t%s = self" % target_var)
-	code_lines.append("elif %s == null or %s.name != _motion_target_name_%s:" % [target_var, target_var, label])
+	code_lines.append("if %s == null or %s.name != _motion_target_name_%s:" % [target_var, target_var, label])
 	code_lines.append("\t%s = find_child(_motion_target_name_%s, true, false)" % [target_var, label])
 	code_lines.append("\tif %s == null and get_tree().current_scene:" % target_var)
 	code_lines.append("\t\t%s = get_tree().current_scene.find_child(_motion_target_name_%s, true, false)" % [target_var, label])
@@ -328,11 +333,14 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 		body_lines.append("pass")
 	code_lines.append_array(_indent_lines(body_lines))
 
-	member_vars.append("var _logic_brick_character_use_acceleration: bool = false")
-	member_vars.append("var _logic_brick_character_acceleration: float = 1.0")
-	member_vars.append("var _logic_brick_character_motion_frame_prepared: bool = false")
-	member_vars.append("var _logic_brick_character_motion_active: bool = false")
-	member_vars.append("var _logic_brick_character_target_velocity: Vector3 = Vector3.ZERO")
+	# These members are shared with Character Physics and are only required by
+	# Character Velocity. Translate/Position should not inject controller state.
+	if movement_method == "character_velocity":
+		member_vars.append("var _logic_brick_character_use_acceleration: bool = false")
+		member_vars.append("var _logic_brick_character_acceleration: float = 1.0")
+		member_vars.append("var _logic_brick_character_motion_frame_prepared: bool = false")
+		member_vars.append("var _logic_brick_character_motion_active: bool = false")
+		member_vars.append("var _logic_brick_character_target_velocity: Vector3 = Vector3.ZERO")
 	return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
 
 
@@ -349,7 +357,6 @@ func _generate_rotation_code(node: Node, chain_name: String) -> Dictionary:
 	var code_lines: Array[String] = []
 	var member_vars: Array[String] = []
 	var target_var = _append_target_setup(code_lines, member_vars, chain_name)
-	var clamp_suffix = _unique_label(chain_name)
 	var body_lines: Array[String] = []
 	var vx = _to_expr(x)
 	var vy = _to_expr(y)
@@ -373,14 +380,3 @@ func _generate_rotation_code(node: Node, chain_name: String) -> Dictionary:
 	return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
 
 
-func _unique_label(chain_name: String) -> String:
-	var label = instance_name if not instance_name.is_empty() else "%s_%s_%s" % [brick_name, chain_name, str(abs(str(properties).hash()))]
-	label = label.to_lower().replace(" ", "_")
-	var regex = RegEx.new()
-	regex.compile("[^a-z0-9_]")
-	label = regex.sub(label, "", true)
-	return label if not label.is_empty() else chain_name
-
-
-func _gd_string(value: String) -> String:
-	return value.replace("\\", "\\\\").replace("\"", "\\\"")

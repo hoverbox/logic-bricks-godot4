@@ -137,5 +137,3 @@ func _safe_label(chain_name: String) -> String:
 	label = regex.sub(label, "", true)
 	return label if not label.is_empty() else "sprite_animation_2d"
 
-func _gd_string(value: String) -> String:
-	return value.replace("\\", "\\\\").replace("\"", "\\\"")

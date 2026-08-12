@@ -51,9 +51,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
 
 
-func _gd_string(value: String) -> String:
-	return value.replace("\\", "\\\\").replace("\"", "\\\"")
-
 func _unique_label(chain_name: String) -> String:
 	var base := ""
 	for i in range(chain_name.length()):

@@ -113,22 +113,18 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var code_lines: Array[String] = []
 	var member_vars: Array[String] = []
 
-	# Inject a shared helper method (manager deduplicates identical member_vars)
-	member_vars.append("")
-	member_vars.append("func _find_anim_player(anim_name: String) -> AnimationPlayer:")
-	member_vars.append("\treturn _find_anim_player_recursive(self, anim_name)")
-	member_vars.append("")
-	member_vars.append("func _find_anim_player_recursive(node: Node, anim_name: String) -> AnimationPlayer:")
-	member_vars.append("\tfor child in node.get_children():")
-	member_vars.append("\t\tif child is AnimationPlayer and child.has_animation(anim_name):")
-	member_vars.append("\t\t\treturn child")
-	member_vars.append("\t\tvar found = _find_anim_player_recursive(child, anim_name)")
-	member_vars.append("\t\tif found: return found")
-	member_vars.append("\treturn null")
-
 	if anim_name.is_empty():
 		code_lines.append("push_warning(\"Animation Actuator: No animation name set — open the brick and select an animation\")")
-		return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
+		return {"actuator_code": "\n".join(code_lines)}
+
+	# Shared helper. find_children(..., owned=false) preserves the old recursive
+	# behavior while generating less code and remaining easy to read.
+	member_vars.append("")
+	member_vars.append("func _find_anim_player(anim_name: String) -> AnimationPlayer:")
+	member_vars.append("\tfor child in find_children(\"*\", \"AnimationPlayer\", true, false):")
+	member_vars.append("\t\tif child.has_animation(anim_name):")
+	member_vars.append("\t\t\treturn child")
+	member_vars.append("\treturn null")
 
 	code_lines.append("# Animation Actuator: find player that owns \"%s\"" % anim_name)
 	code_lines.append("var %s = _find_anim_player(\"%s\")" % [player_var, anim_name])

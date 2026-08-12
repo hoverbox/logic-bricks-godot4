@@ -52,26 +52,4 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\tpush_warning(\"Set Camera 2D Actuator: No Camera2D assigned to '%s'\")" % camera_var)
 	return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
 
-func _append_find_node_helpers(member_vars: Array[String]) -> void:
-	member_vars.append("")
-	member_vars.append("func _lb_find_node_by_name_recursive(node: Node, target_name: String) -> Node:")
-	member_vars.append("\tif node == null or target_name.is_empty():")
-	member_vars.append("\t\treturn null")
-	member_vars.append("\tif node.name == target_name:")
-	member_vars.append("\t\treturn node")
-	member_vars.append("\tfor child in node.get_children():")
-	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(child, target_name)")
-	member_vars.append("\t\tif found:")
-	member_vars.append("\t\t\treturn found")
-	member_vars.append("\treturn null")
-	member_vars.append("")
-	member_vars.append("func _lb_find_node_in_current_scene(target_name: String) -> Node:")
-	member_vars.append("\tvar scene_root = get_tree().current_scene")
-	member_vars.append("\tif scene_root:")
-	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(scene_root, target_name)")
-	member_vars.append("\t\tif found:")
-	member_vars.append("\t\t\treturn found")
-	member_vars.append("\treturn _lb_find_node_by_name_recursive(get_tree().root, target_name)")
 
-func _gd_string(value: String) -> String:
-	return value.replace("\\", "\\\\").replace("\"", "\\\"")

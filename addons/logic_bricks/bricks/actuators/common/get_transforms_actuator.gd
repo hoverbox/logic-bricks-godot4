@@ -215,5 +215,3 @@ func _unique_label(chain_name: String) -> String:
 	return label if not label.is_empty() else "get_transforms"
 
 
-func _gd_string(value: String) -> String:
-	return value.replace("\\", "\\\\").replace("\"", "\\\"")

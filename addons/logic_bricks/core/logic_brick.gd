@@ -149,6 +149,43 @@ func get_tooltip_definitions() -> Dictionary:
 	return {}
 
 
+## Shared code-generation helpers used by many bricks. Keeping these in the base
+## class avoids dozens of brick-local copies drifting out of sync.
+func _append_find_node_helpers(member_vars: Array[String]) -> void:
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_by_name_recursive(node: Node, target_name: String) -> Node:")
+	member_vars.append("\tif node == null or target_name.is_empty():")
+	member_vars.append("\t\treturn null")
+	member_vars.append("\tif node.name == target_name:")
+	member_vars.append("\t\treturn node")
+	member_vars.append("\tfor child in node.get_children():")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(child, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn null")
+	member_vars.append("")
+	member_vars.append("func _lb_find_node_in_current_scene(target_name: String) -> Node:")
+	member_vars.append("\tvar scene_root = get_tree().current_scene")
+	member_vars.append("\tif scene_root:")
+	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(scene_root, target_name)")
+	member_vars.append("\t\tif found:")
+	member_vars.append("\t\t\treturn found")
+	member_vars.append("\treturn _lb_find_node_by_name_recursive(get_tree().root, target_name)")
+
+
+func _unique_label(chain_name: String) -> String:
+	var label = instance_name if not instance_name.is_empty() else "%s_%s_%s" % [brick_name, chain_name, str(abs(str(properties).hash()))]
+	label = label.to_lower().replace(" ", "_")
+	var regex = RegEx.new()
+	regex.compile("[^a-z0-9_]")
+	label = regex.sub(label, "", true)
+	return label if not label.is_empty() else chain_name
+
+
+func _gd_string(value: String) -> String:
+	return value.replace("\\", "\\\\").replace("\"", "\\\"")
+
+
 ## Generate debug print code if debug is enabled
 func get_debug_code() -> String:
 	if debug_enabled and not debug_message.is_empty():

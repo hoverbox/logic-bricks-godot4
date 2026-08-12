@@ -455,9 +455,12 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 				export_checks.append("if not %s:" % var_name)
 				export_checks.append("\tpush_warning(\"Logic Bricks: '%s' is not assigned! Drag a node into the inspector.\")" % label)
 
-	if ready_code.size() > 0 or export_checks.size() > 0 or true:
+	var needs_state_runtime := _chains_need_state_runtime(chains, states_data)
+
+	if ready_code.size() > 0 or export_checks.size() > 0 or needs_state_runtime:
 		code_lines.append("func _ready() -> void:")
-		code_lines.append("	_logic_brick_init_states()")
+		if needs_state_runtime:
+			code_lines.append("	_logic_brick_init_states()")
 		# Defer export validation by one frame so all nodes are in the scene tree.
 		# Accessing @export node references before the tree is ready triggers
 		# "Cannot get path of node as it is not in a scene tree" errors.
@@ -476,49 +479,49 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			code_lines.append("\t" + rc)
 		code_lines.append("")
 
-	# Runtime state
-	code_lines.append("var _logic_brick_state: String = \"\"")
-	code_lines.append("")
-	code_lines.append("func _logic_brick_init_states() -> void:")
-	if states_data.is_empty():
-		code_lines.append("	_logic_brick_state = \"\"")
-	else:
-		code_lines.append("	_logic_brick_state = %s" % _gdscript_string_literal(str(states_data[0].get("id", ""))))
-	code_lines.append("")
-	code_lines.append("func _logic_brick_chain_state_matches(state_id: String, all_states: bool = false) -> bool:")
-	code_lines.append("	if all_states:")
-	code_lines.append("		return true")
-	code_lines.append("	if state_id.is_empty():")
-	code_lines.append("		return true")
-	code_lines.append("	return _logic_brick_state == state_id")
-	code_lines.append("")
-	code_lines.append("func _logic_brick_get_state_signature() -> String:")
-	code_lines.append("	return _logic_brick_state")
-	code_lines.append("")
-	code_lines.append("func _logic_brick_set_state(new_state: String) -> void:")
-	code_lines.append("\tif _logic_brick_state == new_state:")
-	code_lines.append("\t\treturn")
-	code_lines.append("\t_logic_brick_state = new_state")
-	code_lines.append("\t_on_logic_brick_state_enter(new_state)")
-	code_lines.append("")
-	code_lines.append("func _on_logic_brick_state_enter(state_id: String) -> void:")
-	var _has_state_body := false
-	for _chain_name in chain_member_vars:
-		var _resets: Array = chain_member_vars[_chain_name]
-		var _setups: Array = chain_setup_calls.get(_chain_name, [])
-		if _resets.is_empty() and _setups.is_empty():
-			continue
+	# Runtime state is emitted only when the graph actually uses named states.
+	if needs_state_runtime:
+		code_lines.append("var _logic_brick_state: String = \"\"")
+		code_lines.append("")
+		code_lines.append("func _logic_brick_init_states() -> void:")
+		if states_data.is_empty():
+			code_lines.append("	_logic_brick_state = \"\"")
+		else:
+			code_lines.append("	_logic_brick_state = %s" % _gdscript_string_literal(str(states_data[0].get("id", ""))))
+		code_lines.append("")
+		code_lines.append("func _logic_brick_chain_state_matches(state_id: String, all_states: bool = false) -> bool:")
+		code_lines.append("	if all_states:")
+		code_lines.append("		return true")
+		code_lines.append("	if state_id.is_empty():")
+		code_lines.append("		return true")
+		code_lines.append("	return _logic_brick_state == state_id")
+		code_lines.append("")
+		code_lines.append("func _logic_brick_get_state_signature() -> String:")
+		code_lines.append("	return _logic_brick_state")
+		code_lines.append("")
+		code_lines.append("func _logic_brick_set_state(new_state: String) -> void:")
+		code_lines.append("\tif _logic_brick_state == new_state:")
+		code_lines.append("\t\treturn")
+		code_lines.append("\t_logic_brick_state = new_state")
+		code_lines.append("\t_on_logic_brick_state_enter(new_state)")
+		code_lines.append("")
+		code_lines.append("func _on_logic_brick_state_enter(state_id: String) -> void:")
+		var _has_state_body := false
+		for _chain_name in chain_member_vars:
+			var _resets: Array = chain_member_vars[_chain_name]
+			var _setups: Array = chain_setup_calls.get(_chain_name, [])
+			if _resets.is_empty() and _setups.is_empty():
+				continue
+			if not _has_state_body:
+				_has_state_body = true
+			code_lines.append("\tif state_id == %s:" % _gdscript_string_literal(_chain_name))
+			for _reset_line in _resets:
+				code_lines.append("\t\t" + _reset_line)
+			for _setup_call in _setups:
+				code_lines.append("\t\t" + _setup_call)
 		if not _has_state_body:
-			_has_state_body = true
-		code_lines.append("\tif state_id == %s:" % _gdscript_string_literal(_chain_name))
-		for _reset_line in _resets:
-			code_lines.append("\t\t" + _reset_line)
-		for _setup_call in _setups:
-			code_lines.append("\t\t" + _setup_call)
-	if not _has_state_body:
-		code_lines.append("\tpass")
-	code_lines.append("")
-
+			code_lines.append("\tpass")
+		code_lines.append("")
 
 	# Pre-generate all chain functions — this is the single source of truth for
 	# whether a chain produces valid output. Calls are only emitted if the function
@@ -702,15 +705,16 @@ func _generate_chain_function(node: Node, chain: Dictionary, has_actuator_sensor
 	if controller_data:
 		state_id = str(controller_data.get("properties", {}).get("state_id", "")).strip_edges()
 		all_states = bool(controller_data.get("properties", {}).get("all_states", false))
-	var state_condition := "_logic_brick_chain_state_matches(%s, %s)" % [_gdscript_string_literal(state_id), "true" if all_states else "false"]
+	var state_condition := "true"
+	if not state_id.is_empty() and not all_states:
+		state_condition = "_logic_brick_chain_state_matches(%s, false)" % _gdscript_string_literal(state_id)
 
-	# Gate the whole chain by state before evaluating sensors.
-	# This prevents inactive-state sensors such as Delay from counting down
-	# immediately at game start and firing later without the intended trigger.
-	lines.append("\tvar _chain_state_active = " + state_condition)
-	lines.append("\tif not _chain_state_active:")
-	lines.append("\t\treturn")
-	lines.append("\t")
+	# Gate state-specific chains before evaluating sensors. This prevents inactive-state
+	# sensors such as Delay from counting down before their state becomes active.
+	if state_condition != "true":
+		lines.append("\tif not " + state_condition + ":")
+		lines.append("\t\treturn")
+		lines.append("\t")
 
 	# Generate sensor code for ALL direct and nested controller inputs.
 	lines.append("\t# Sensor and controller input evaluation")
@@ -738,8 +742,7 @@ func _generate_chain_function(node: Node, chain: Dictionary, has_actuator_sensor
 		if controller_brick:
 			# ── Script Controller ───────────────────────────────────────────────
 			if controller_data["type"] == "ScriptController":
-				var condition = controller_brick.get_condition(sensor_vars)
-				condition = "_chain_state_active and (" + condition + ")" if sensor_vars.size() > 0 else "_chain_state_active"
+				var condition = controller_brick.get_condition(sensor_vars) if sensor_vars.size() > 0 else "true"
 				lines.append("\tvar controller_active = " + condition)
 				lines.append("\t")
 				lines.append("\t# Script Controller — custom code")
@@ -769,18 +772,15 @@ func _generate_chain_function(node: Node, chain: Dictionary, has_actuator_sensor
 
 			if sensor_vars.size() > 0:
 				var condition = _controller_condition_from_vars(logic_mode, sensor_vars)
-				condition = state_condition + " and (" + condition + ")"
 				lines.append("\tvar controller_active = " + condition)
 			else:
-				lines.append("\tvar controller_active = " + state_condition)
+				lines.append("\tvar controller_active = true")
 	else:
-		# No controller - default to AND logic plus state gating
+		# No controller - default to AND logic. State gating already happened above.
 		if sensor_vars.size() > 0:
-			var condition = " and ".join(sensor_vars)
-			condition = state_condition + " and (" + condition + ")"
-			lines.append("\tvar controller_active = " + condition)
+			lines.append("\tvar controller_active = " + " and ".join(sensor_vars))
 		else:
-			lines.append("\tvar controller_active = " + state_condition)
+			lines.append("\tvar controller_active = true")
 
 	# Generate actuator code for ALL actuators
 	lines.append("\t")
@@ -801,21 +801,14 @@ func _generate_chain_function(node: Node, chain: Dictionary, has_actuator_sensor
 					var actuator_code = str(generated["actuator_code"])
 					actuator_code = _uniquify_generated_local_vars(actuator_code, actuator_code_name)
 					var code_lines_array = actuator_code.split("\n")
-					var wrote_actuator_scope := false
 					for code_line in code_lines_array:
 						if code_line.strip_edges() != "":
-							if not wrote_actuator_scope:
-								lines.append("\t\tif true:")
-								wrote_actuator_scope = true
-							lines.append("\t\t\t" + code_line)
+							lines.append("\t\t" + code_line)
 							actuator_lines_written += 1
 
 					var debug_code = actuator_brick.get_debug_code()
 					if not debug_code.is_empty():
-						if not wrote_actuator_scope:
-							lines.append("\t\tif true:")
-							wrote_actuator_scope = true
-						lines.append("\t\t\t" + debug_code)
+						lines.append("\t\t" + debug_code)
 						actuator_lines_written += 1
 
 				# inactive_code: code to emit in the else branch (when controller is NOT active).
@@ -826,11 +819,10 @@ func _generate_chain_function(node: Node, chain: Dictionary, has_actuator_sensor
 					var inactive = str(generated["inactive_code"])
 					inactive = _uniquify_generated_local_vars(inactive, actuator_code_name + "_inactive")
 					lines.append("\telse:")
-					lines.append("\t\tif true:")
 					var inactive_lines = inactive.split("\n")
 					for il in inactive_lines:
 						if il.strip_edges() != "":
-							lines.append("\t\t\t" + il)
+							lines.append("\t\t" + il)
 
 		# If all actuators produced empty code, treat as incomplete — skip entirely
 		if actuator_lines_written == 0:
@@ -881,11 +873,9 @@ func _emit_sensor_eval(lines: Array[String], node: Node, chain_name: String, sen
 	sensor_code = _rename_rx.sub(sensor_code, sensor_var, true)
 	sensor_code = _uniquify_generated_local_vars(sensor_code, sensor_var, [sensor_var])
 
-	# Predeclare the result outside the isolation block so controller logic can read it.
-	# The generated brick code runs inside an `if true` block to prevent duplicated
-	# sensors from redeclaring helper locals in the same function scope.
+	# Predeclare the result so controller logic can read it. Helper locals have already
+	# been uniquified above, so an extra `if true` scope is unnecessary.
 	lines.append("\tvar %s = false" % sensor_var)
-	lines.append("\tif true:")
 	var first_decl_rx = RegEx.new()
 	first_decl_rx.compile("^([\\t ]*)var\\s+" + sensor_var + "(?:\\s*:[^=]+)?\\s*(?::=|=)\\s*(.*)$")
 	for code_line in sensor_code.split("\n"):
@@ -894,7 +884,7 @@ func _emit_sensor_eval(lines: Array[String], node: Node, chain_name: String, sen
 			# controller code can read it. Convert the brick's first declaration
 			# into an assignment to avoid shadowing and UNUSED_VARIABLE errors.
 			var isolated_line = first_decl_rx.sub(code_line, "$1" + sensor_var + " = $2", false)
-			lines.append("\t\t" + isolated_line)
+			lines.append("\t" + isolated_line)
 
 	var debug_code = sensor_brick.get_debug_code()
 	if not debug_code.is_empty():
@@ -1042,6 +1032,39 @@ func _collect_sensors_from_controller_inputs(controller_inputs: Array, sensors: 
 		for sensor_data in controller_tree.get("sensors", []):
 			sensors.append(sensor_data)
 		_collect_sensors_from_controller_inputs(controller_tree.get("controller_inputs", []), sensors)
+
+func _chains_need_state_runtime(chains: Array, states_data: Array) -> bool:
+	if not states_data.is_empty():
+		return true
+	for chain in chains:
+		for actuator_data in chain.get("actuators", []):
+			if actuator_data.get("type", "") == "StateActuator":
+				return true
+		for controller_data in chain.get("controllers", []):
+			if _controller_uses_named_state(controller_data):
+				return true
+		var legacy_controller = chain.get("controller", null)
+		if legacy_controller is Dictionary and _controller_uses_named_state(legacy_controller):
+			return true
+		if _controller_inputs_use_named_state(chain.get("controller_inputs", [])):
+			return true
+	return false
+
+
+func _controller_uses_named_state(controller_data: Dictionary) -> bool:
+	var props: Dictionary = controller_data.get("properties", {})
+	return not str(props.get("state_id", "")).strip_edges().is_empty() and not bool(props.get("all_states", false))
+
+
+func _controller_inputs_use_named_state(controller_inputs: Array) -> bool:
+	for controller_tree in controller_inputs:
+		var controller_data = controller_tree.get("controller", null)
+		if controller_data is Dictionary and _controller_uses_named_state(controller_data):
+			return true
+		if _controller_inputs_use_named_state(controller_tree.get("controller_inputs", [])):
+			return true
+	return false
+
 
 func _gdscript_string_literal(value: String) -> String:
 	return '"%s"' % value.c_escape()

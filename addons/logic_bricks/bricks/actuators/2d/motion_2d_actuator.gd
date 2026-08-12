@@ -66,26 +66,34 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var x_expr = _to_expr(properties.get("x", "0.0"))
 	var y_expr = _to_expr(properties.get("y", "0.0"))
 	var label = _safe_label(instance_name if not instance_name.is_empty() else chain_name)
-	var target_var = "_motion2d_target_" + label
-	var target_name = str(properties.get("target_node_name", "")).replace("\\", "\\\\").replace("\"", "\\\"")
+	var target_name = str(properties.get("target_node_name", "")).strip_edges()
+	var use_self = target_name.is_empty()
+	var target_var = "self" if use_self else "_motion2d_target_" + label
 
 	var member_vars: Array[String] = []
-	member_vars.append("var %s = null" % target_var)
-	# Shared with Character 2D Physics. Dedup keeps only one declaration.
-	member_vars.append("var _logic_brick_character_2d_motion_active: bool = false")
-	member_vars.append("var _logic_brick_character_2d_target_velocity: Vector2 = Vector2.ZERO")
+	if not use_self:
+		member_vars.append("var %s = null" % target_var)
+
+	# Shared with Character 2D Physics. Only Character Velocity uses these.
+	if motion_type != "rotation" and movement_method == "character_velocity":
+		member_vars.append("var _logic_brick_character_2d_motion_active: bool = false")
+		member_vars.append("var _logic_brick_character_2d_target_velocity: Vector2 = Vector2.ZERO")
 
 	var code_lines: Array[String] = []
-	code_lines.append("var _motion2d_name_%s = \"%s\"" % [label, target_name])
-	code_lines.append("if _motion2d_name_%s.is_empty():" % label)
-	code_lines.append("\t%s = self" % target_var)
-	code_lines.append("elif %s == null or %s.name != _motion2d_name_%s:" % [target_var, target_var, label])
-	code_lines.append("\t%s = find_child(_motion2d_name_%s, true, false)" % [target_var, label])
-	code_lines.append("\tif %s == null and get_tree().current_scene:" % target_var)
-	code_lines.append("\t\t%s = get_tree().current_scene.find_child(_motion2d_name_%s, true, false)" % [target_var, label])
-	code_lines.append("if not (%s is Node2D):" % target_var)
-	code_lines.append("\tpush_warning(\"Motion 2D target is missing or is not Node2D\")")
-	code_lines.append("else:")
+	if use_self:
+		code_lines.append("if not (self is Node2D):")
+		code_lines.append("\tpush_warning(\"Motion 2D: self is not a Node2D\")")
+		code_lines.append("else:")
+	else:
+		var escaped_target_name = _gd_string(target_name)
+		code_lines.append("var _motion2d_name_%s = \"%s\"" % [label, escaped_target_name])
+		code_lines.append("if %s == null or %s.name != _motion2d_name_%s:" % [target_var, target_var, label])
+		code_lines.append("\t%s = find_child(_motion2d_name_%s, true, false)" % [target_var, label])
+		code_lines.append("\tif %s == null and get_tree().current_scene:" % target_var)
+		code_lines.append("\t\t%s = get_tree().current_scene.find_child(_motion2d_name_%s, true, false)" % [target_var, label])
+		code_lines.append("if not (%s is Node2D):" % target_var)
+		code_lines.append("\tpush_warning(\"Motion 2D target is missing or is not Node2D\")")
+		code_lines.append("else:")
 
 	if motion_type == "rotation":
 		code_lines.append("\t%s.rotation += deg_to_rad(%s)" % [target_var, x_expr])
@@ -104,13 +112,19 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		else:
 			code_lines.append("\tvar _motion2d_vec_%s := %s" % [label, vec_expr])
 			code_lines.append("\tif %s is CharacterBody2D:" % target_var)
-			code_lines.append("\t\tif str(%s.get_path()) == str(self.get_path()):" % target_var)
-			if space == "local":
-				code_lines.append("\t\t\t_motion2d_vec_%s = _motion2d_vec_%s.rotated(rotation)" % [label, label])
-			code_lines.append("\t\t\t_logic_brick_character_2d_motion_active = true")
-			code_lines.append("\t\t\t_logic_brick_character_2d_target_velocity += _motion2d_vec_%s" % label)
-			code_lines.append("\t\telse:")
-			code_lines.append("\t\t\t%s.velocity = _motion2d_vec_%s" % [target_var, label])
+			if use_self:
+				if space == "local":
+					code_lines.append("\t\t_motion2d_vec_%s = _motion2d_vec_%s.rotated(rotation)" % [label, label])
+				code_lines.append("\t\t_logic_brick_character_2d_motion_active = true")
+				code_lines.append("\t\t_logic_brick_character_2d_target_velocity += _motion2d_vec_%s" % label)
+			else:
+				code_lines.append("\t\tif %s == self:" % target_var)
+				if space == "local":
+					code_lines.append("\t\t\t_motion2d_vec_%s = _motion2d_vec_%s.rotated(rotation)" % [label, label])
+				code_lines.append("\t\t\t_logic_brick_character_2d_motion_active = true")
+				code_lines.append("\t\t\t_logic_brick_character_2d_target_velocity += _motion2d_vec_%s" % label)
+				code_lines.append("\t\telse:")
+				code_lines.append("\t\t\t%s.velocity = _motion2d_vec_%s" % [target_var, label])
 			code_lines.append("\telse:")
 			if space == "local":
 				code_lines.append("\t\t%s.translate(_motion2d_vec_%s * _delta)" % [target_var, label])

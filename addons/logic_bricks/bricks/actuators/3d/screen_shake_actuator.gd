@@ -229,10 +229,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	}
 
 
-func _gd_string(value: String) -> String:
-	return value.replace("\\", "\\\\").replace("\"", "\\\"")
-
-
 func _to_expr(val) -> String:
 	var s = str(val).strip_edges()
 	if s.is_empty(): return "0.0"

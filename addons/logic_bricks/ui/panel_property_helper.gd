@@ -1739,8 +1739,13 @@ func _refresh_variable_brick_operation_control(graph_node: GraphNode, brick_inst
 		if actual == current:
 			selected = i
 	if selected < 0 and option.item_count > 0:
-		selected = 0
-		brick_instance.set_property(property_name, str(option.get_item_metadata(0)))
+		# Only coerce an incompatible operation after the variable type is known.
+		# During project/node loading variables_data may briefly be empty; mutating
+		# here would destroy a saved Array operation such as add_item/contains.
+		var var_type := _logic_variable_type(str(brick_instance.get_property("variable_name", "")))
+		if not var_type.is_empty():
+			selected = 0
+			brick_instance.set_property(property_name, str(option.get_item_metadata(0)))
 	option.selected = selected
 	_update_conditional_visibility(graph_node, brick_instance)
 	graph_node.reset_size()

@@ -1235,10 +1235,15 @@ func _update_ui() -> void:
 	# node does NOT trigger a graph flush while graph_edit still holds the previous
 	# node's bricks (the canvas is cleared and repopulated by _load_graph_from_metadata below).
 	_load_states_from_metadata(true)
+	# Variable-aware bricks (Compare Variable / Modify Variable) build their
+	# operation dropdowns while the graph UI is created. Load variable metadata
+	# first so Array variables get their Array-specific menus immediately when
+	# reopening a project or switching nodes.
+	_load_variables_from_metadata()
 	await _load_graph_from_metadata()
 	_frames_helper.load_frames_from_metadata(self)
-	_load_variables_from_metadata()
 	_refresh_brick_state_ui()
+	_refresh_variable_brick_context_ui()
 
 
 func _refresh_brick_state_ui() -> void:
@@ -1255,6 +1260,20 @@ func _refresh_brick_state_ui() -> void:
 				_property_helper._refresh_state_dropdown(child, brick_instance)
 				if brick_type == "controller":
 					_property_helper._update_controller_title(child, brick_instance)
+
+
+func _refresh_variable_brick_context_ui() -> void:
+	if not graph_edit or not _property_helper:
+		return
+	for child in graph_edit.get_children():
+		if not (child is GraphNode and child.has_meta("brick_data")):
+			continue
+		var brick_data = child.get_meta("brick_data")
+		var brick_instance = brick_data.get("brick_instance")
+		if brick_instance:
+			# The helper no-ops for non-variable bricks. Checking the script there also
+			# covers 2D compatibility aliases that share these same brick scripts.
+			_property_helper._refresh_variable_brick_operation_control(child, brick_instance)
 
 
 func _is_supported_node(node: Node) -> bool:

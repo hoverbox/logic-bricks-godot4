@@ -181,10 +181,6 @@ func _unique_label(chain_name: String) -> String:
 	return label if not label.is_empty() else "get_variable"
 
 
-func _gd_string(value: String) -> String:
-	return value.replace("\\", "\\\\").replace("\"", "\\\"")
-
-
 func _parse_value(value_str: String) -> String:
 	value_str = value_str.strip_edges()
 	if value_str.to_lower() == "true":
