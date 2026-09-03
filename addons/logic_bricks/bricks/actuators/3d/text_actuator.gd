@@ -24,11 +24,11 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
-		{"name": "target_node_name", "type": TYPE_STRING, "default": "Label"},
+		{"name": "target_node_name", "required": true, "required_label": "a text node or String variable name", "type": TYPE_STRING, "default": "Label"},
 		{"name": "node_name_source", "type": TYPE_STRING, "hint": PROPERTY_HINT_ENUM, "hint_string": "Literal Node Name,String Variable", "default": "literal"},
 		{"name": "export_node_name", "type": TYPE_BOOL, "default": false},
 		{"name": "mode", "type": TYPE_STRING, "hint": PROPERTY_HINT_ENUM, "hint_string": "Variable,Static", "default": "variable"},
-		{"name": "variable_name", "type": TYPE_STRING, "default": ""},
+		{"name": "variable_name", "required": true, "required_label": "a variable name", "required_if": {"mode": "variable"}, "type": TYPE_STRING, "default": ""},
 		{"name": "prefix", "type": TYPE_STRING, "default": ""},
 		{"name": "suffix", "type": TYPE_STRING, "default": ""},
 		{"name": "static_text", "type": TYPE_STRING, "default": ""},

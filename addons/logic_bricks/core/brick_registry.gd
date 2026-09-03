@@ -79,8 +79,6 @@ static var _legacy_aliases: Dictionary = {
 	"WindowActuator": "UIWindowActuator",
 	"ANDController": "Controller",
 	"LocationActuator": "MotionActuator",
-	"RotationActuator": "MotionActuator",
-	"ScaleActuator": "TransformsActuator",
 	# Ghost classes produced by panel_script_rebuild_helper pattern detection.
 	# These bricks no longer exist; map to the nearest current equivalent so that
 	# "Rebuild from Script" does not write unresolvable class names into metadata.
@@ -115,7 +113,7 @@ static var _ui_actuator_whitelist: Array[String] = [
 ]
 
 static var _fallback_categories: Dictionary = {
-	"MotionActuator": "Motion", "CharacterActuator": "Motion", "JumpActuator": "Motion",
+	"MotionActuator": "Motion", "CharacterActuator": "Motion", "JumpActuator": "Motion", "PositionActuator": "Motion", "RotationActuator": "Motion", "ScaleActuator": "Motion",
 	"LookAtMovementActuator": "Motion", "LookAtInputActuator": "Motion", "RotateTowardsActuator": "Motion",
 	"WaypointPathActuator": "Motion", "MoveTowardsActuator": "Motion", "TeleportActuator": "Motion",
 	"MouseActuator": "Motion", "Mouse2DActuator": "Motion",
@@ -149,6 +147,10 @@ static func ensure_scanned() -> void:
 		return
 	_scanned = true
 	_scan_dir(BRICK_ROOT)
+	# Rotation and Scale are intentionally pinned to their new dedicated scripts.
+	# This runs after discovery so obsolete files left behind by an in-place addon update cannot override them.
+	_register_script("res://addons/logic_bricks/bricks/actuators/3d/rotation_xyz_actuator.gd")
+	_register_script("res://addons/logic_bricks/bricks/actuators/3d/scale_tween_actuator.gd")
 	for alias_name in _legacy_aliases.keys():
 		var target = _legacy_aliases[alias_name]
 		if _bricks_by_class.has(target):
@@ -250,6 +252,7 @@ static func _build_info_from_instance(instance, script_path: String) -> Dictiona
 		"category": category,
 		"description": description,
 		"menu_order": int(info.get("menu_order", 9999)),
+		"hidden_menu": bool(info.get("hidden_menu", false)),
 		"script_path": script_path,
 		"menu_id": int(info.get("menu_id", _allocate_menu_id())),
 		"aliases": info.get("aliases", []),
@@ -278,7 +281,7 @@ static func _register_info(info: Dictionary) -> void:
 					list.remove_at(i)
 
 	_bricks_by_class[brick_class_name] = info
-	if _bricks_by_type.has(brick_type):
+	if _bricks_by_type.has(brick_type) and not bool(info.get("hidden_menu", false)):
 		_bricks_by_type[brick_type].append(info)
 	for alias_name in info.get("aliases", []):
 		_aliases[str(alias_name)] = brick_class_name

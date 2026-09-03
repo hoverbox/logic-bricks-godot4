@@ -1,14 +1,14 @@
 @tool
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Physics Sensor - Detects CharacterBody2D contact state.
+## Character Physics Trigger - Detects CharacterBody2D contact state.
 ## Useful for platformers: on floor, touching wall, or touching ceiling.
 
 
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.SENSOR
-	brick_name = "Physics"
+	brick_name = "Character Physics"
 
 
 func _initialize_properties() -> void:

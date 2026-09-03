@@ -29,6 +29,8 @@ func get_property_definitions() -> Array:
 	return [
 		{
 			"name": "area_node_name",
+			"required": true,
+			"required_label": "an Area2D node name",
 			"type": TYPE_STRING,
 			"default": ""
 		},
@@ -57,7 +59,7 @@ func get_property_definitions() -> Array:
 			"default": "any"
 		},
 		{
-			"name": "filter_value",
+			"name": "filter_value", "required": true, "required_label": "a group or node name to filter", "required_if": {"filter_type": ["group", "name"]}, "group_picker": true, "group_picker_if": {"filter_type": "group"},
 			"type": TYPE_STRING,
 			"default": ""
 		},

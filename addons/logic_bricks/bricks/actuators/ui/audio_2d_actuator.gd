@@ -51,7 +51,7 @@ func get_property_definitions() -> Array:
 			"default": "play"
 		},
 		{
-			"name": "sound_file",
+			"name": "sound_file", "required": true, "required_label": "a sound file", "required_if": {"mode": ["play", "fade_in"]},
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_FILE,
 			"hint_string": "*.wav,*.ogg,*.mp3",

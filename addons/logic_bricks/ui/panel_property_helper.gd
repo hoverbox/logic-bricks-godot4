@@ -1,5 +1,7 @@
 extends RefCounted
 
+const NodeReferenceLineEdit = preload("res://addons/logic_bricks/ui/node_reference_line_edit.gd")
+
 var panel = null
 
 func setup(target_panel) -> void:
@@ -7,6 +9,25 @@ func setup(target_panel) -> void:
 
 
 
+
+
+func _refresh_compatibility_ui(graph_node: GraphNode, brick_instance) -> void:
+	graph_node.modulate = Color.WHITE
+	var warning = graph_node.get_node_or_null("CompatibilityWarning")
+	var compatibility_error = ""
+	if panel.current_node and brick_instance.has_method("get_compatibility_error"):
+		compatibility_error = str(brick_instance.call("get_compatibility_error", panel.current_node))
+	if compatibility_error.is_empty():
+		if warning:
+			warning.queue_free()
+		return
+	graph_node.modulate = Color(1.0, 0.55, 0.55, 1.0)
+	if not warning:
+		warning = Label.new()
+		warning.name = "CompatibilityWarning"
+		graph_node.add_child(warning)
+	warning.text = "⚠ " + compatibility_error
+	warning.tooltip_text = compatibility_error
 
 func _select_line_edit_text_on_focus(line_edit: LineEdit) -> void:
 	if line_edit == null:
@@ -30,6 +51,9 @@ func _select_spinbox_text_on_focus(spinbox: SpinBox) -> void:
 func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 	var properties = brick_instance.get_properties()
 	var prop_definitions = brick_instance.get_property_definitions()
+
+	# Keep incompatible bricks visible, but make the problem obvious.
+	_refresh_compatibility_ui(graph_node, brick_instance)
 
 	# Get tooltip definitions - try brick first, then centralized file
 	var tooltips = {}
@@ -88,6 +112,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 			if property_type == TYPE_NIL and hint == 999:
 				# Outer container so we can set_meta on it
 				var group_outer = VBoxContainer.new()
+				group_outer.add_theme_constant_override("separation", 8)
 				group_outer.set_meta("property_name", property_name)
 
 				# Check if this group should start collapsed
@@ -103,6 +128,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 
 				# Body container (holds the properties in this group)
 				var group_body = VBoxContainer.new()
+				group_body.add_theme_constant_override("separation", 8)
 				group_body.name = "GroupBody"
 				group_body.visible = not start_collapsed
 				group_outer.add_child(group_body)
@@ -378,14 +404,30 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 
 				ui_element = hbox
 
-			# Regular string line edit
+			# Input Map action name: free text plus a dropdown of project actions.
+			elif property_type == TYPE_STRING and prop_def.get("input_action_picker", false):
+				ui_element = _create_input_action_picker(graph_node, brick_instance, property_name, property_value)
+
+			# Group name: free text / node drag plus a picker of groups used by the project.
+			elif property_type == TYPE_STRING and prop_def.get("group_picker", false):
+				ui_element = _create_group_picker(graph_node, brick_instance, prop_def, property_name, property_value)
+
+			# Regular string line edit. Node-reference properties get a drop-aware
+			# LineEdit so nodes can be Ctrl-dragged directly from the Scene dock.
 			elif property_type == TYPE_STRING and hint != PROPERTY_HINT_ENUM:
 				var hbox = HBoxContainer.new()
 				var label = Label.new()
 				label.text = _format_property_name(property_name) + ":"
 				hbox.add_child(label)
 
-				var line_edit = LineEdit.new()
+				var line_edit: LineEdit
+				if _is_node_reference_property(prop_def, property_name):
+					var node_edit = NodeReferenceLineEdit.new()
+					node_edit.configure(panel.editor_interface, property_name, _accepted_node_types(prop_def, property_name), panel.current_node)
+					node_edit.node_reference_dropped.connect(_on_property_changed.bind(graph_node, property_name))
+					line_edit = node_edit
+				else:
+					line_edit = LineEdit.new()
 				_select_line_edit_text_on_focus(line_edit)
 				line_edit.name = "PropertyControl_" + property_name
 				line_edit.text = str(property_value) if typeof(property_value) != TYPE_STRING else property_value
@@ -418,6 +460,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				var item_label_text  = prop_def.get("item_label", "Item")
 
 				var vbox = VBoxContainer.new()
+				vbox.add_theme_constant_override("separation", 8)
 				vbox.set_meta("property_name", property_name)
 
 				# Header row: label + Add button
@@ -434,6 +477,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 
 				# Item list container
 				var list_vbox = VBoxContainer.new()
+				list_vbox.add_theme_constant_override("separation", 8)
 				list_vbox.name = "ArrayListContainer"
 				vbox.add_child(list_vbox)
 
@@ -559,6 +603,14 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 				if tooltips.has(property_name):
 					ui_element.tooltip_text = tooltips[property_name]
 				graph_node.add_child(ui_element)
+
+	var has_input_action_picker := false
+	for prop_def in prop_definitions:
+		if prop_def.get("input_action_picker", false):
+			has_input_action_picker = true
+			break
+	if has_input_action_picker:
+		graph_node.add_child(_create_open_input_maps_button())
 
 	# Add debug section separator
 	var debug_separator = HSeparator.new()
@@ -925,6 +977,14 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 
 	# Define visibility rules for specific brick types
 	match brick_class:
+		"scale_tween_actuator", "scale_2d_actuator":  # Dedicated Scale Actuators
+			var use_tween = bool(properties.get("use_tween", false))
+			for child in graph_node.get_children():
+				if child.has_meta("property_name"):
+					var prop_name = child.get_meta("property_name")
+					if prop_name in ["duration", "transition", "ease"]:
+						child.visible = use_tween
+
 		"end_object_actuator":  # Edit Object Actuator
 			var edit_type = properties.get("edit_type", "end")
 			# Normalize to lowercase
@@ -944,26 +1004,78 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 							child.visible = (edit_type == "replace_mesh")
 
 		"waypoint_path_actuator":  # Waypoint Path Actuator
-			var path_source = properties.get("path_source", "node_positions")
-			if typeof(path_source) == TYPE_STRING:
-				path_source = path_source.to_lower()
+			var path_source = str(properties.get("path_source", "node_positions")).to_lower()
+			var path_mode = str(properties.get("path_mode", "sequential")).to_lower().replace(" ", "_")
+			var node_points = (path_source != "path3d")
+			var random_mode = node_points and path_mode == "random"
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
 					var prop_name = child.get_meta("property_name")
-					if prop_name == "waypoints":
-						child.visible = (path_source != "path3d")
+					match prop_name:
+						"waypoints", "path_mode":
+							child.visible = node_points
+						"loop_mode":
+							child.visible = not random_mode
+						"avoid_immediate_repeat", "random_neighbor_count":
+							child.visible = random_mode
+						"follow_curve_tilt":
+							child.visible = (path_source == "path3d")
 
-		"move_towards_actuator":  # Move Towards Actuator
-			var behavior = properties.get("behavior", "seek")
-			if typeof(behavior) == TYPE_STRING:
-				behavior = behavior.to_lower().replace(" ", "_")
-
-			# use_navmesh_normal is only relevant for path_follow
+		"move_towards_actuator":  # Steering Actuator (legacy filename retained)
+			var behavior = str(properties.get("behavior", "seek")).to_lower().replace(" ", "_")
+			var needs_target = behavior != "wander"
+			var target_mode = str(properties.get("target_mode", "group")).to_lower().replace(" ", "_")
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
 					var prop_name = child.get_meta("property_name")
-					if prop_name == "use_navmesh_normal":
-						child.visible = (behavior == "path_follow")
+					match prop_name:
+						"navigation_agent_node_name", "use_navmesh_normal":
+							child.visible = (behavior == "path_follow")
+						"target_mode":
+							child.visible = needs_target
+						"target_name":
+							child.visible = needs_target and target_mode != "vector_variable"
+						"target_variable":
+							child.visible = needs_target and target_mode == "vector_variable"
+						"arrival_distance":
+							child.visible = behavior in ["seek", "flee", "arrive", "path_follow"]
+						"slowing_distance":
+							child.visible = (behavior == "arrive")
+						"desired_distance", "distance_tolerance":
+							child.visible = (behavior == "maintain_distance")
+						"orbit_distance", "orbit_direction":
+							child.visible = (behavior == "orbit")
+						"wander_amount", "wander_frequency":
+							child.visible = (behavior == "wander")
+						"self_terminate":
+							child.visible = behavior in ["seek", "flee", "arrive", "path_follow"]
+
+		"move_towards_2d_actuator":  # Steering 2D Actuator (legacy filename retained)
+			var behavior_2d = str(properties.get("behavior", "seek")).to_lower().replace(" ", "_")
+			var needs_target_2d = behavior_2d != "wander"
+			var target_mode_2d = str(properties.get("target_mode", "node_name")).to_lower().replace(" ", "_")
+			for child in graph_node.get_children():
+				if child.has_meta("property_name"):
+					var prop_name = child.get_meta("property_name")
+					match prop_name:
+						"target_mode":
+							child.visible = needs_target_2d
+						"target_name":
+							child.visible = needs_target_2d and target_mode_2d in ["node_name", "group"]
+						"coordinate_x", "coordinate_y":
+							child.visible = needs_target_2d and target_mode_2d == "coordinates"
+						"arrival_distance":
+							child.visible = behavior_2d in ["seek", "flee", "arrive"]
+						"slowing_distance":
+							child.visible = (behavior_2d == "arrive")
+						"desired_distance", "distance_tolerance":
+							child.visible = (behavior_2d == "maintain_distance")
+						"orbit_distance", "orbit_direction":
+							child.visible = (behavior_2d == "orbit")
+						"wander_amount", "wander_frequency":
+							child.visible = (behavior_2d == "wander")
+						"use_navigation":
+							child.visible = behavior_2d in ["seek", "arrive"]
 
 		"variable_actuator":  # Variable Actuator
 			var mode = properties.get("mode", "assign")
@@ -1679,6 +1791,8 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 						"invert":
 							child.visible = true  # Invert is useful for all input modes
 
+	# Group picker buttons follow their mode field without affecting the text field itself.
+	_update_group_picker_buttons(graph_node, brick_instance)
 
 
 func _logic_variable_type(variable_name: String) -> String:
@@ -1751,6 +1865,43 @@ func _refresh_variable_brick_operation_control(graph_node: GraphNode, brick_inst
 	graph_node.reset_size()
 
 
+
+func _is_node_reference_property(prop_def: Dictionary, property_name: String) -> bool:
+	# Bricks may opt in/out explicitly. The naming fallback makes the feature
+	# immediately useful across existing sensors/actuators without rewriting each one.
+	if prop_def.has("node_reference"):
+		return bool(prop_def.get("node_reference", false))
+	if property_name.ends_with("_node_name"):
+		return true
+	return property_name in [
+		"camera_name",
+		"target_name",
+		"animation_tree_name",
+	]
+
+
+func _accepted_node_types(prop_def: Dictionary, property_name: String) -> Array:
+	var explicit = prop_def.get("accepted_node_types", [])
+	var result: Array = []
+	if explicit is Array:
+		for item in explicit:
+			result.append(str(item))
+	if not result.is_empty():
+		return result
+
+	# Sensible type guards for the most common specialized node references.
+	if property_name in ["camera_name", "camera_node_name", "camera_1_node_name", "camera_2_node_name", "camera_3_node_name", "camera_4_node_name"]:
+		return ["Camera3D", "Camera2D"]
+	if property_name == "animation_tree_name" or property_name == "animation_tree_node_name":
+		return ["AnimationTree"]
+	if property_name == "navigation_agent_node_name":
+		return ["NavigationAgent3D", "NavigationAgent2D"]
+	if property_name == "raycast_node_name":
+		return ["RayCast3D", "RayCast2D"]
+	if property_name == "area_node_name":
+		return ["Area3D", "Area2D"]
+	return []
+
 func _on_property_changed(value, graph_node: GraphNode, property_name: String) -> void:
 	if graph_node.has_meta("brick_data"):
 		var brick_data = graph_node.get_meta("brick_data")
@@ -1764,6 +1915,7 @@ func _on_property_changed(value, graph_node: GraphNode, property_name: String) -
 			_update_controller_title(graph_node, brick_instance)
 
 		_update_conditional_visibility(graph_node, brick_instance)
+		_refresh_compatibility_ui(graph_node, brick_instance)
 		panel._save_graph_to_metadata()
 
 
@@ -1773,9 +1925,9 @@ func _update_controller_title(graph_node: GraphNode, brick_instance) -> void:
 	var state_id = str(props.get("state_id", ""))
 	var state_name = panel.get_state_display_name(state_id) if panel and panel.has_method("get_state_display_name") else state_id
 	if all_states:
-		graph_node.title = "Controller [ALL]"
+		graph_node.title = "Gate [ALL]"
 	else:
-		graph_node.title = "Controller [%s]" % (state_name if not state_name.is_empty() else "No State")
+		graph_node.title = "Gate [%s]" % (state_name if not state_name.is_empty() else "No State")
 
 
 func _on_instance_name_changed(new_name: String, graph_node: GraphNode, brick_instance) -> void:
@@ -1891,6 +2043,7 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
 
 	# Update conditional visibility for fields that depend on this enum
 	_update_conditional_visibility(graph_node, brick_instance)
+	_refresh_compatibility_ui(graph_node, brick_instance)
 
 
 
@@ -1929,6 +2082,284 @@ func _refresh_state_dropdown(graph_node: GraphNode, brick_instance) -> void:
 				var new_value = option_button.get_item_metadata(option_button.selected)
 				brick_instance.set_property("state_id", new_value)
 			return
+
+
+func _get_project_input_actions() -> Array[String]:
+	var actions: Array[String] = []
+	var config := ConfigFile.new()
+	if config.load("res://project.godot") != OK or not config.has_section("input"):
+		return actions
+	for key in config.get_section_keys("input"):
+		var action_name := str(key).strip_edges()
+		if not action_name.is_empty():
+			actions.append(action_name)
+	actions.sort()
+	return actions
+
+
+func _get_builtin_input_actions(project_actions: Array[String]) -> Array[String]:
+	var actions: Array[String] = []
+	for property_info in ProjectSettings.get_property_list():
+		var setting_name := str(property_info.get("name", ""))
+		if not setting_name.begins_with("input/"):
+			continue
+		var action_name := setting_name.trim_prefix("input/")
+		if action_name.is_empty() or project_actions.has(action_name):
+			continue
+		actions.append(action_name)
+	actions.sort()
+	return actions
+
+
+func _find_input_map_tab(root: Node) -> Dictionary:
+	for candidate in root.find_children("*", "TabContainer", true, false):
+		var tabs := candidate as TabContainer
+		if tabs == null:
+			continue
+		for i in range(tabs.get_tab_count()):
+			if tabs.get_tab_title(i).strip_edges() == "Input Map":
+				return {"tabs": tabs, "index": i}
+	return {}
+
+
+func _activate_input_map_tab(root: Node) -> void:
+	var result := _find_input_map_tab(root)
+	if not result.is_empty():
+		(result["tabs"] as TabContainer).current_tab = int(result["index"])
+
+
+func _open_input_map_settings() -> void:
+	if panel == null or panel.editor_interface == null:
+		return
+	var root: Control = panel.editor_interface.get_base_control()
+	if root == null:
+		return
+
+	# Use Godot's own Project Settings menu action so the dialog initializes
+	# exactly as it would when opened from Project > Project Settings.
+	for candidate in root.find_children("*", "PopupMenu", true, false):
+		var popup := candidate as PopupMenu
+		if popup == null:
+			continue
+		for i in range(popup.get_item_count()):
+			if popup.get_item_text(i).contains("Project Settings"):
+				popup.emit_signal("id_pressed", popup.get_item_id(i))
+				call_deferred("_activate_input_map_tab", root)
+				return
+
+	# Fallback: if the menu structure changes, locate the existing Project
+	# Settings dialog by its Input Map tab and show it directly.
+	var result := _find_input_map_tab(root)
+	if result.is_empty():
+		return
+	var tabs := result["tabs"] as TabContainer
+	tabs.current_tab = int(result["index"])
+	var owner := tabs.get_parent()
+	while owner != null and not (owner is Window):
+		owner = owner.get_parent()
+	if owner is Window:
+		(owner as Window).popup_centered_ratio(0.8)
+
+
+func _create_open_input_maps_button() -> Button:
+	var button := Button.new()
+	button.text = "Open Input Maps"
+	button.tooltip_text = "Open Project Settings > Input Map"
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.pressed.connect(_open_input_map_settings)
+	return button
+
+
+func _create_input_action_picker(graph_node: GraphNode, brick_instance, property_name: String, property_value) -> Control:
+	var hbox = HBoxContainer.new()
+	var label = Label.new()
+	label.text = _format_property_name(property_name) + ":"
+	hbox.add_child(label)
+
+	var line_edit = LineEdit.new()
+	_select_line_edit_text_on_focus(line_edit)
+	line_edit.name = "PropertyControl_" + property_name
+	line_edit.text = str(property_value)
+	line_edit.placeholder_text = "Enter Input action"
+	line_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line_edit.text_changed.connect(_on_property_changed.bind(graph_node, property_name))
+	hbox.add_child(line_edit)
+
+	var menu_button = MenuButton.new()
+	menu_button.text = "▾"
+	menu_button.tooltip_text = "Choose a custom action from Project Settings > Input Map"
+	menu_button.custom_minimum_size = Vector2(28, 0)
+	hbox.add_child(menu_button)
+
+	var popup := menu_button.get_popup()
+	var rebuild_popup = func():
+		popup.clear()
+		var project_actions := _get_project_input_actions()
+		var builtin_actions := _get_builtin_input_actions(project_actions)
+		var item_id := 0
+
+		if not project_actions.is_empty():
+			popup.add_separator("Project Inputs")
+			for action_name in project_actions:
+				popup.add_item(action_name, item_id)
+				popup.set_item_metadata(popup.get_item_index(item_id), action_name)
+				item_id += 1
+
+		if not builtin_actions.is_empty():
+			popup.add_separator("Built-in Inputs")
+			for action_name in builtin_actions:
+				popup.add_item(action_name, item_id)
+				popup.set_item_metadata(popup.get_item_index(item_id), action_name)
+				item_id += 1
+
+	popup.about_to_popup.connect(rebuild_popup)
+	popup.id_pressed.connect(func(id: int):
+		var index := popup.get_item_index(id)
+		if index < 0:
+			return
+		var selected := str(popup.get_item_metadata(index))
+		if selected.is_empty():
+			return
+		line_edit.text = selected
+		_on_property_changed(selected, graph_node, property_name)
+	)
+	rebuild_popup.call()
+	return hbox
+
+
+func _collect_project_group_names() -> Array[String]:
+	var groups: Array[String] = []
+
+	# Groups actually used by nodes in the currently edited scene.
+	if panel != null and panel.editor_interface != null:
+		var scene_root: Node = panel.editor_interface.get_edited_scene_root()
+		if scene_root != null:
+			var pending: Array[Node] = [scene_root]
+			while not pending.is_empty():
+				var current: Node = pending.pop_back()
+				for group_value in current.get_groups():
+					var scene_group_name := str(group_value).strip_edges()
+					if not scene_group_name.is_empty() and not scene_group_name.begins_with("_") and not groups.has(scene_group_name):
+						groups.append(scene_group_name)
+				for child in current.get_children():
+					if child is Node:
+						pending.append(child as Node)
+
+	# Also include globally-declared groups even when no node in this scene uses them yet.
+	for property_info in ProjectSettings.get_property_list():
+		var setting_name := str(property_info.get("name", ""))
+		if setting_name.begins_with("global_group/"):
+			var global_group_name := setting_name.trim_prefix("global_group/").strip_edges()
+			if not global_group_name.is_empty() and not groups.has(global_group_name):
+				groups.append(global_group_name)
+
+	# ConfigFile fallback keeps this compatible with projects that serialize global groups as a section.
+	var config := ConfigFile.new()
+	if config.load("res://project.godot") == OK:
+		for section_name in ["global_group", "global_groups"]:
+			if config.has_section(section_name):
+				for key in config.get_section_keys(section_name):
+					var config_group_name := str(key).strip_edges()
+					if not config_group_name.is_empty() and not groups.has(config_group_name):
+						groups.append(config_group_name)
+
+	groups.sort()
+	return groups
+
+
+func _group_picker_condition_matches(brick_instance, condition: Dictionary) -> bool:
+	if condition.is_empty():
+		return true
+	for property_name in condition:
+		var actual := str(brick_instance.get_property(str(property_name), "")).to_lower().replace(" ", "_")
+		var expected = condition[property_name]
+		if expected is Array:
+			var matched := false
+			for option in expected:
+				if actual == str(option).to_lower().replace(" ", "_"):
+					matched = true
+					break
+			if not matched:
+				return false
+		elif actual != str(expected).to_lower().replace(" ", "_"):
+			return false
+	return true
+
+
+func _update_group_picker_buttons(graph_node: GraphNode, brick_instance) -> void:
+	for property_control in _find_prop_nodes(graph_node):
+		var button := property_control.get_node_or_null("GroupPickerButton") as MenuButton
+		if button == null:
+			continue
+		var condition: Dictionary = property_control.get_meta("group_picker_if", {})
+		button.visible = _group_picker_condition_matches(brick_instance, condition)
+
+
+func _create_group_picker(graph_node: GraphNode, brick_instance, prop_def: Dictionary, property_name: String, property_value) -> Control:
+	var hbox := HBoxContainer.new()
+	var label := Label.new()
+	label.text = _format_property_name(property_name) + ":"
+	hbox.add_child(label)
+
+	var line_edit: LineEdit
+	if _is_node_reference_property(prop_def, property_name):
+		var node_edit := NodeReferenceLineEdit.new()
+		node_edit.configure(panel.editor_interface, property_name, _accepted_node_types(prop_def, property_name), panel.current_node)
+		node_edit.node_reference_dropped.connect(_on_property_changed.bind(graph_node, property_name))
+		line_edit = node_edit
+	else:
+		line_edit = LineEdit.new()
+	_select_line_edit_text_on_focus(line_edit)
+	line_edit.name = "PropertyControl_" + property_name
+	line_edit.text = str(property_value)
+	line_edit.placeholder_text = str(prop_def.get("placeholder", "Enter group name"))
+	line_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line_edit.text_changed.connect(_on_property_changed.bind(graph_node, property_name))
+	hbox.add_child(line_edit)
+
+	var menu_button := MenuButton.new()
+	menu_button.name = "GroupPickerButton"
+	menu_button.text = "▾"
+	menu_button.tooltip_text = "Choose a group used in this project"
+	menu_button.custom_minimum_size = Vector2(28, 0)
+	hbox.add_child(menu_button)
+	hbox.set_meta("group_picker_if", prop_def.get("group_picker_if", {}))
+
+	var popup := menu_button.get_popup()
+	var rebuild_popup = func():
+		popup.clear()
+		var groups := _collect_project_group_names()
+		if groups.is_empty():
+			popup.add_item("(No groups found)", 0)
+			popup.set_item_disabled(0, true)
+			return
+		for i in range(groups.size()):
+			popup.add_item(groups[i], i)
+			popup.set_item_metadata(i, groups[i])
+
+	popup.about_to_popup.connect(rebuild_popup)
+	popup.id_pressed.connect(func(id: int):
+		var index := popup.get_item_index(id)
+		if index < 0:
+			return
+		var selected := str(popup.get_item_metadata(index)).strip_edges()
+		if selected.is_empty():
+			return
+		var new_value := selected
+		if bool(prop_def.get("group_picker_multi", false)):
+			var existing: Array[String] = []
+			for part in line_edit.text.split(","):
+				var group_name := str(part).strip_edges()
+				if not group_name.is_empty() and not existing.has(group_name):
+					existing.append(group_name)
+			if not existing.has(selected):
+				existing.append(selected)
+			new_value = ", ".join(existing)
+		line_edit.text = new_value
+		_on_property_changed(new_value, graph_node, property_name)
+	)
+	rebuild_popup.call()
+	return hbox
 
 func _on_file_picker_pressed(graph_node: GraphNode, property_name: String, filter: String) -> void:
 	# Open a file dialog to select a file path

@@ -20,7 +20,7 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	return [
 		{
-			"name": "state_id",
+			"name": "state_id", "required": true, "required_label": "a state",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
 			"hint_string": "__STATE_LIST__",

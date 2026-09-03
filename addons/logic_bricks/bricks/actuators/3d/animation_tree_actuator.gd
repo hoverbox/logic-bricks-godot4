@@ -59,7 +59,7 @@ func get_property_definitions() -> Array:
 			"default": "AnimationTree"
 		},
 		{
-			"name": "state_name",
+			"name": "state_name", "required": true, "required_label": "a state name", "required_if": {"mode": "go_to_state"},
 			"type": TYPE_STRING,
 			"default": ""
 		},
@@ -78,7 +78,7 @@ func get_property_definitions() -> Array:
 			"default": ""
 		},
 		{
-			"name": "condition_name",
+			"name": "condition_name", "required": true, "required_label": "a condition name", "required_if": {"mode": "set_condition_value"},
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
 			"hint_string": "__ANIM_TREE_CONDITION_LIST__",
@@ -92,7 +92,7 @@ func get_property_definitions() -> Array:
 			"default": "true"
 		},
 		{
-			"name": "parameter_name",
+			"name": "parameter_name", "required": true, "required_label": "a parameter name", "required_if": {"mode": "set_parameter"},
 			"type": TYPE_STRING,
 			"default": ""
 		},

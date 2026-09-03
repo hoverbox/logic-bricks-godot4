@@ -86,7 +86,8 @@ const ACTUATOR_SIGNATURES: Array = [
 	["# Rotate Towards",                   "RotateTowardsActuator"],
 	["# Rotate target node to face",       "LookAtMovementActuator"],
 	["# Teleport to target node",          "TeleportActuator"],
-	["# Move Towards",                     "MoveTowardsActuator"],
+	["# Steering",                         "MoveTowardsActuator"],
+	["# Move Towards",                     "MoveTowardsActuator"],  # legacy generated scripts
 	["_mt_stuck_offset_",                  "MoveTowardsActuator"],
 	["# Waypoint Path",                    "WaypointPathActuator"],
 	# ── Object / Scene ──────────────────────────────────────────────────────

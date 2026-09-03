@@ -46,7 +46,7 @@ func get_property_definitions() -> Array:
 			"default": "Any"
 		},
 		{
-			"name": "resources",
+			"name": "resources", "required": true, "required_label": "at least one resource to preload",
 			"type": TYPE_ARRAY,
 			"default": [],
 			"item_hint": PROPERTY_HINT_FILE,
@@ -60,6 +60,7 @@ func get_property_definitions() -> Array:
 		},
 		{
 			"name": "signal_group",
+			"group_picker": true,
 			"type": TYPE_STRING,
 			"default": "",
 			"visible_if": {"on_complete_signal": true}

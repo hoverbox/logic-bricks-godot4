@@ -21,9 +21,9 @@
   --cyan:#00E5FF;
   --yellow:#FFD600;
   --max:1240px;
-  --font-display:'Archivo Black',Impact,'Arial Black',sans-serif;
-  --font-head:'Syne','Trebuchet MS','Segoe UI',sans-serif;
-  --font-body:'DM Sans','Segoe UI',Arial,sans-serif;
+  --font-display:'Arial Black','Segoe UI Black',Arial,system-ui,sans-serif;
+  --font-head:'Trebuchet MS','Segoe UI',Arial,system-ui,sans-serif;
+  --font-body:'Segoe UI',Arial,system-ui,sans-serif;
 }
 body {
   font-family:var(--font-body);

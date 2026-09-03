@@ -1,7 +1,7 @@
 @tool
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Sensor Brick Template
+## Trigger Brick Template
 ## =====================
 ## Copy this file into:  res://addons/logic_bricks/bricks/sensors/3d/
 ## Rename it to snake_case, e.g.  enemy_near_sensor.gd
@@ -10,13 +10,13 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ## Minimum requirements: _init() sets brick_type and brick_name.
 ## Everything else is optional but recommended.
 ##
-## HOW SENSORS WORK
+## HOW TRIGGERS WORK
 ## ----------------
 ## generate_code() must return a Dictionary containing "sensor_code".
 ## That code will be injected into the node's _process() method.
 ## It MUST assign a boolean to a local variable named `sensor_active`.
 ## The chain evaluates `sensor_active` to decide whether to fire the
-## connected controller and actuators.
+## connected Gate and Actions.
 ##
 ##   return { "sensor_code": "var sensor_active = true" }
 ##
@@ -33,7 +33,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ##                  one-time setup such as connecting signals or caching
 ##                  node references.
 ##
-## Example (signal-based sensor):
+## Example (signal-based trigger):
 ##   return {
 ##       "member_vars": ["var _hit_flag_%s := false" % chain_name],
 ##       "ready_lines": [
@@ -45,7 +45,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ##
 ## USE chain_name TO AVOID COLLISIONS
 ## ------------------------------------
-## Multiple sensor instances on the same node each get a unique chain_name
+## Multiple trigger instances on the same node each get a unique chain_name
 ## string (e.g. "chain_0", "chain_1"). Always suffix any member vars and
 ## helper functions you emit with chain_name so they don't collide.
 ##
@@ -59,7 +59,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ##
 ## NODE TYPE GUARDS
 ## ----------------
-## If your sensor only works with a specific node class, check at codegen
+## If your trigger only works with a specific node class, check at codegen
 ## time and emit a warning comment rather than broken code:
 ##   if not (node is Area3D):
 ##       return { "sensor_code": "var sensor_active = false  # Needs Area3D" }
@@ -71,14 +71,14 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ## display name, set a category, control menu_order, or declare aliases.
 ##
 ## Category controls the submenu grouping in the Add Brick menu.
-## Sensors with no category appear at the top level.
+## Triggers with no category appear at the top level.
 ## menu_order controls sort position within a category (lower = higher up).
 
 
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.SENSOR
-	brick_name = "Example Sensor"
+	brick_name = "Example Trigger"
 
 
 ## Optional — override display name, category, menu order, or aliases.
@@ -86,10 +86,10 @@ func _init() -> void:
 func get_brick_info() -> Dictionary:
 	return {
 		"class": "ExampleSensor",       # PascalCase, must be unique across all bricks
-		"name": "Example Sensor",       # Label shown in the UI
+		"name": "Example Trigger",       # Label shown in the UI
 		"type": "sensor",
 		"category": "",                 # Submenu group, e.g. "Detection". Empty = top level.
-		"description": "Describe when this sensor fires.",
+		"description": "Describe when this trigger fires.",
 		"menu_order": 9999,             # Lower numbers appear higher in the menu
 		"aliases": []                   # Legacy class names that deserialize to this brick
 	}
@@ -101,7 +101,7 @@ func _initialize_properties() -> void:
 		# Add your own properties here.
 		# Use plain GDScript values (bool, int, float, String).
 		# String fields can also hold variable names or expressions,
-		# letting users wire logic-brick variables into the sensor at runtime.
+		# letting users wire logic-brick variables into the trigger at runtime.
 	}
 
 
@@ -132,8 +132,8 @@ func get_tooltip_definitions() -> Dictionary:
 	## description if get_brick_info() doesn't supply one).
 	## All other keys match property names defined in get_property_definitions().
 	return {
-		"_description": "Short explanation of when this sensor is active.",
-		"enabled": "Turns this sensor on or off.",
+		"_description": "Short explanation of when this trigger is active.",
+		"enabled": "Turns this trigger on or off.",
 	}
 
 
@@ -148,7 +148,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if not enabled:
 		return { "sensor_code": "var sensor_active = false" }
 
-	# Replace the line below with your actual sensor condition.
+	# Replace the line below with your actual trigger condition.
 	# `sensor_active` MUST be assigned a bool before this block ends.
 	var code := "var sensor_active = true"
 

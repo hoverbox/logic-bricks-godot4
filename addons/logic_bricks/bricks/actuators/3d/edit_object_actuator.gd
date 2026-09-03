@@ -38,7 +38,7 @@ func get_property_definitions() -> Array:
 			"default": "End Object"
 		},
 		{
-			"name": "spawn_object",
+			"name": "spawn_object", "required": true, "required_label": "a scene to spawn", "required_if": {"edit_type": "add_object"},
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_FILE,
 			"hint_string": "*.tscn,*.scn",
@@ -96,7 +96,7 @@ func get_property_definitions() -> Array:
 			"visible_if": {"edit_type": "End Object"}
 		},
 		{
-			"name": "mesh_path",
+			"name": "mesh_path", "required": true, "required_label": "a mesh file", "required_if": {"edit_type": "replace_mesh"},
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_FILE,
 			"hint_string": "*.mesh,*.obj",

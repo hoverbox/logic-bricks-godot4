@@ -24,6 +24,9 @@ func _init() -> void:
 	brick_type = BrickType.ACTUATOR
 	brick_name = "Gravity"
 
+func get_compatibility_error(node: Node) -> String:
+	return "" if node is RigidBody2D else "Requires RigidBody2D"
+
 
 func _initialize_properties() -> void:
 	properties = {

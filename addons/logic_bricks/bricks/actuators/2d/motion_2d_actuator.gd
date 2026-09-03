@@ -13,7 +13,9 @@ func get_brick_info() -> Dictionary:
 		"type": "actuator",
 		"category": "Motion",
 		"domain": "2d",
-		"menu_order": 100,
+		"description": "Legacy combined 2D motion actuator kept for existing graphs.",
+		"menu_order": 9999,
+		"hidden_menu": true,
 	}
 
 func _init() -> void:
@@ -31,6 +33,16 @@ func _initialize_properties() -> void:
 		"space": "local",
 		"call_move_and_slide": false,
 	}
+
+func apply_context_defaults(node: Node) -> void:
+	properties["movement_method"] = "character_velocity" if node is CharacterBody2D else "translate"
+
+func get_compatibility_error(node: Node) -> String:
+	var motion_type = str(properties.get("motion_type", "location")).to_lower()
+	var method = str(properties.get("movement_method", "character_velocity")).to_lower().replace(" ", "_")
+	if motion_type != "rotation" and method == "character_velocity" and not (node is CharacterBody2D):
+		return "Character Velocity requires CharacterBody2D"
+	return ""
 
 func get_property_definitions() -> Array:
 	return [

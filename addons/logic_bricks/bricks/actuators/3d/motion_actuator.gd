@@ -14,6 +14,19 @@ func _init() -> void:
 	brick_name = "Motion"
 
 
+
+func get_brick_info() -> Dictionary:
+	return {
+		"class": "MotionActuator",
+		"name": "Motion",
+		"type": "actuator",
+		"category": "Motion",
+		"description": "Legacy combined position/rotation actuator kept for existing graphs.",
+		"menu_order": 9999,
+		"hidden_menu": true,
+		"domain": "3d"
+	}
+
 func _initialize_properties() -> void:
 	properties = {
 		"target_node_name": "",

@@ -42,17 +42,17 @@ func get_property_definitions() -> Array:
 			"default": "node_name"
 		},
 		{
-			"name": "source_node_name",
+			"name": "source_node_name", "required": true, "required_label": "a source node name", "required_if": {"source": "node_name"},
 			"type": TYPE_STRING,
 			"default": ""
 		},
 		{
-			"name": "variable_name",
+			"name": "variable_name", "required": true, "required_label": "a variable name",
 			"type": TYPE_STRING,
 			"default": ""
 		},
 		{
-			"name": "store_as",
+			"name": "store_as", "required": true, "required_label": "a destination variable name",
 			"type": TYPE_STRING,
 			"default": ""
 		},

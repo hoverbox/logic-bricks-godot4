@@ -4,19 +4,19 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<meta content="2 controllers available for 3D workflows." name="description"/>
+<meta content="2 gates available for 3D workflows." name="description"/>
 <title>
-   3D Controllers | Logic Bricks Documentation
+   3D Gates | Logic Bricks Documentation
   </title>
-  <link rel="canonical" href="https://brithe3dguy.com/logic-bricks/docs/controllers-3d.html"/>
-  <link href="assets/css/site.css" rel="stylesheet"/>
+<link href="https://brithe3dguy.com/logic-bricks/docs/controllers-3d.html" rel="canonical"/>
+<link href="assets/css/site.css" rel="stylesheet"/>
 <link href="assets/images/favicon.svg" rel="icon" type="image/svg+xml"/>
 <meta content="#0A0A0F" name="theme-color"/>
-  <meta property="og:type" content="website"/>
-  <meta property="og:title" content="3D Controllers | Bri The 3D Guy"/>
-  <meta property="og:description" content="Official Logic Bricks documentation for Godot 4."/>
-  <meta property="og:url" content="https://brithe3dguy.com/logic-bricks/docs/controllers-3d.html"/>
-  <meta property="og:image" content="https://brithe3dguy.com/images/bricks_thumb.png"/>
+<meta content="website" property="og:type"/>
+<meta content="3D Gates | Bri The 3D Guy" property="og:title"/>
+<meta content="Official Logic Bricks documentation for Godot 4." property="og:description"/>
+<meta content="https://brithe3dguy.com/logic-bricks/docs/controllers-3d.html" property="og:url"/>
+<meta content="https://brithe3dguy.com/images/bricks_thumb.png" property="og:image"/>
 </head>
 <body class="controllers-3d" data-page="controllers-3d.html">
 <div data-site-header="">
@@ -33,21 +33,21 @@
       ›
      </span>
 <span aria-current="page">
-      3D Controllers
+      3D Gates
      </span>
 </nav>
 <section class="hero">
 <div aria-hidden="true" class="hero-category-mark">
-<span aria-label="Controller: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
-       Controller
+<span aria-label="Gate: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
+       Gate
       </span>
       Reference
      </div>
 <h1>
-      3D Controllers
+      3D Gates
      </h1>
 <p class="lead">
-      2 controllers available for 3D workflows.
+      2 gates available for 3D workflows.
      </p>
 <div aria-label="Page information" class="page-reading-meta">
 <span>
@@ -83,39 +83,37 @@
        Chapter guide
       </span>
 <h2>
-       How controllers fit into a chain
+       How gates fit into a chain
       </h2>
 <p>
-       Controllers decide whether connected
-       <span aria-label="sensor: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
-        sensor
+       Gates decide whether connected
+       <span aria-label="trigger: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
+        trigger
        </span>
        results are allowed to continue. They keep conditions separate from the actions that follow.
       </p>
 </div>
 <ol class="chapter-steps">
 <li>
-       Connect one or more Sensors.
+       Connect one or more Triggers.
       </li>
 <li>
        Choose the logic mode or script module.
       </li>
 <li>
-       Connect the Controller output to the Actuators that should run.
+       Connect the Gate output to the Actions that should run.
       </li>
 </ol>
 </section>
 <div class="page-tools">
-<input class="search" id="docSearch" placeholder="Filter controllers on this page…" type="search"/>
+<input class="search" id="docSearch" placeholder="Filter gates on this page…" type="search"/>
 </div>
-<section class="brick controller" data-compatibility="3d 2d ui" data-search="Controller AND: all connected sensors must be active OR: any connected sensor must be active NAND: NOT all sensors active (fires unless all are true) NOR: NO sensors active (fires only when all are false) XOR: exactly one sensor is active General" id="controller-controller-gd">
+<section class="brick controller" data-compatibility="3d 2d ui" data-search="Gate AND: all connected triggers must be active OR: any connected trigger must be active NAND: NOT all triggers active (fires unless all are true) NOR: NO triggers active (fires only when all are false) XOR: exactly one trigger is active General" id="controller-controller-gd">
 <div class="brick-heading">
 <span class="badge">
-       controller • 3d
+       gate • 3d
       </span>
-<h2>
-       Controller
-      </h2>
+<h2>Gate</h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
         3D
@@ -129,7 +127,7 @@
 </div>
 </div>
 <p>
-      AND: all connected sensors must be active OR: any connected sensor must be active NAND: NOT all sensors active (fires unless all are true) NOR: NO sensors active (fires only when all are false) XOR: exactly one sensor is active
+      AND: all connected triggers must be active OR: any connected trigger must be active NAND: NOT all triggers active (fires unless all are true) NOR: NO triggers active (fires only when all are false) XOR: exactly one trigger is active
      </p>
 <div class="meta-grid">
 <div>
@@ -137,18 +135,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Controllers
+        Add Logic Brick → Gates
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         controllers/controller.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -231,13 +219,13 @@
         </h4>
 <ul>
 <li>
-          Combine one or more sensor results before actuators run.
+          Combine one or more trigger results before actions run.
          </li>
 <li>
           Keep decision-making separate from the actions that follow.
          </li>
 <li>
-          Switch between AND, OR, NAND, NOR, and XOR without adding separate controller bricks.
+          Switch between AND, OR, NAND, NOR, and XOR without adding separate gate bricks.
          </li>
 </ul>
 </section>
@@ -247,21 +235,21 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          One or more sensors
+          One or more triggers
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
           Choose an
-          <span aria-label="actuator: A brick that performs an action after a sensor and optional controller succeed." class="glossary-term" data-tooltip="A brick that performs an action after a sensor and optional controller succeed." tabindex="0">
-           actuator
+          <span aria-label="action: A brick that performs an action after a trigger and optional gate succeed." class="glossary-term" data-tooltip="A brick that performs an action after a trigger and optional gate succeed." tabindex="0">
+           action
           </span>
 </span>
 </div>
@@ -278,7 +266,7 @@
 <strong>
          Common mistake
         </strong>
-        Do not create separate bricks for AND, OR, NAND, NOR, or XOR; choose the mode inside the Controller brick.
+        Do not create separate bricks for AND, OR, NAND, NOR, or XOR; choose the mode inside the Gate brick.
        </div>
 </div>
 <section class="related-bricks">
@@ -286,11 +274,9 @@
         Related bricks
        </h4>
 <div class="related-link-list">
-<a href="sensors-3d.html#actuator-3d">
-         Actuator
-        </a>
+<a href="sensors-3d.html#actuator-3d">Action Triggered</a>
 <a href="controllers-2d.html#script-controller-script-controller-gd">
-         Script Controller
+         Script Gate
         </a>
 <a href="sensors-3d.html#animation-tree-3d">
          Animation Tree
@@ -301,27 +287,13 @@
 </div>
 </section>
 </details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Controller screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/controller.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Controller screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
 </section>
-<section class="brick controller" data-compatibility="3d 2d ui" data-search="Script Controller Works like UPBGE's Python Controller (module mode): - Point to a .gd file - That file defines a top-level function: func run(node: Node) -&gt; void: - When the sensor fires, run(node) is called — node is the scene object Example script (my_script.gd): func run(node: Node) -&gt; void: node.health -= 10 print(&quot;Health: &quot;, node.health) The script does NOT need extends — it is called as a module, not instantiated. General" id="script-controller-script-controller-gd">
+<section class="brick controller" data-compatibility="3d 2d ui" data-search='Script Gate Runs a custom GDScript module function: - Point to a .gd file - That file defines a top-level function: func run(node: Node) -&gt; void: - When the trigger fires, run(node) is called — node is the scene object Example script (my_script.gd): func run(node: Node) -&gt; void: node.health -= 10 print("Health: ", node.health) The script does NOT need extends — it is called as a module, not instantiated. General' id="script-controller-script-controller-gd">
 <div class="brick-heading">
 <span class="badge">
-       controller • 3d
+       gate • 3d
       </span>
-<h2>
-       Script Controller
-      </h2>
+<h2>Script Gate</h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
         3D
@@ -335,7 +307,7 @@
 </div>
 </div>
 <p>
-      Works like UPBGE's Python Controller (module mode): - Point to a .gd file - That file defines a top-level function: func run(node: Node) -&gt; void: - When the sensor fires, run(node) is called — node is the scene object Example script (my_script.gd): func run(node: Node) -&gt; void: node.health -= 10 print("Health: ", node.health) The script does NOT need extends — it is called as a module, not instantiated.
+      Runs a custom GDScript module function: - Point to a .gd file - That file defines a top-level function: func run(node: Node) -&gt; void: - When the trigger fires, run(node) is called — node is the scene object Example script (my_script.gd): func run(node: Node) -&gt; void: node.health -= 10 print("Health: ", node.health) The script does NOT need extends — it is called as a module, not instantiated.
      </p>
 <div class="meta-grid">
 <div>
@@ -343,18 +315,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Controllers
+        Add Logic Brick → Gates
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         controllers/script_controller.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -451,7 +413,7 @@
         </h4>
 <ul>
 <li>
-          Combine one or more sensor results before actuators run.
+          Combine one or more trigger results before actions run.
          </li>
 <li>
           Keep decision-making separate from the actions that follow.
@@ -467,19 +429,19 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          One or more sensors
+          One or more triggers
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Script Controller
+          Script Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Choose an actuator
+          Choose an action
          </span>
 </div>
 </section>
@@ -504,11 +466,9 @@
        </h4>
 <div class="related-link-list">
 <a href="controllers-2d.html#controller-controller-gd">
-         Controller
+         Gate
         </a>
-<a href="sensors-3d.html#actuator-3d">
-         Actuator
-        </a>
+<a href="sensors-3d.html#actuator-3d">Action Triggered</a>
 <a href="actuators-3d.html#look-at-input-3d">
          Look At Input
         </a>
@@ -518,18 +478,6 @@
 </div>
 </section>
 </details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Script Controller screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/script-controller.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Script Controller screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
 </section>
 <div class="page-nav">
 <a class="page-nav-card previous" href="sensors.html">
@@ -537,7 +485,7 @@
        ← Previous
       </span>
 <strong>
-       Sensors
+       Triggers
       </strong>
 </a>
 <a class="page-nav-card next" href="actuators-common.html">
@@ -545,7 +493,7 @@
        Next →
       </span>
 <strong>
-       Common Actuators
+       Common Actions
       </strong>
 </a>
 </div>

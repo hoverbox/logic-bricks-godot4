@@ -48,7 +48,7 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	return [
 		{
-			"name": "variable_name",
+			"name": "variable_name", "required": true, "required_label": "a variable name",
 			"type": TYPE_STRING,
 			"default": ""
 		},
@@ -60,17 +60,17 @@ func get_property_definitions() -> Array:
 			"default": "equal"
 		},
 		{
-			"name": "value",
+			"name": "value", "required": true, "required_label": "a comparison value", "required_if": {"evaluation_type": ["equal", "not_equal", "greater_than", "less_than", "greater_or_equal", "less_or_equal"]},
 			"type": TYPE_STRING,
 			"default": ""
 		},
 		{
-			"name": "min_value",
+			"name": "min_value", "required": true, "required_label": "a minimum value", "required_if": {"evaluation_type": "interval"},
 			"type": TYPE_STRING,
 			"default": ""
 		},
 		{
-			"name": "max_value",
+			"name": "max_value", "required": true, "required_label": "a maximum value", "required_if": {"evaluation_type": "interval"},
 			"type": TYPE_STRING,
 			"default": ""
 		},

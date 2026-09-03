@@ -25,7 +25,7 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	return [
 		{
-			"name": "raycast_node_name",
+			"name": "raycast_node_name", "required": true, "required_label": "a RayCast2D node name",
 			"type": TYPE_STRING,
 			"default": "RayCast2D",
 			"placeholder": "RayCast2D node name"
@@ -38,7 +38,7 @@ func get_property_definitions() -> Array:
 			"default": "any"
 		},
 		{
-			"name": "group_filter",
+			"name": "group_filter", "required": true, "required_label": "a group name", "required_if": {"detect_mode": "group"}, "group_picker": true, "group_picker_if": {"detect_mode": "group"}, "group_picker_multi": true,
 			"type": TYPE_STRING,
 			"default": ""
 		},

@@ -31,8 +31,8 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
-		{"name": "camera_1_node_name", "type": TYPE_STRING, "default": "Camera2D"},
-		{"name": "camera_2_node_name", "type": TYPE_STRING, "default": "Camera2D2"},
+		{"name": "camera_1_node_name", "required": true, "required_label": "Player 1 camera", "type": TYPE_STRING, "default": "Camera2D"},
+		{"name": "camera_2_node_name", "required": true, "required_label": "Player 2 camera", "type": TYPE_STRING, "default": "Camera2D2"},
 		{
 			"name": "layout",
 			"type": TYPE_STRING,

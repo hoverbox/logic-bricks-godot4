@@ -45,7 +45,7 @@ func get_property_definitions() -> Array:
 			"default": "node_name"
 		},
 		{
-			"name": "target_name",
+			"name": "target_name", "required": true, "required_label": "a target node or group name", "group_picker": true, "group_picker_if": {"target_mode": "group"},
 			"type": TYPE_STRING,
 			"default": "",
 			"placeholder": "Node or group name"
@@ -56,7 +56,7 @@ func get_property_definitions() -> Array:
 			"default": true
 		},
 		{
-			"name": "position_variable",
+			"name": "position_variable", "required": true, "required_label": "a Position variable", "required_if": {"get_position": true},
 			"type": TYPE_STRING,
 			"default": "",
 			"visible_if": {"get_position": true}
@@ -67,7 +67,7 @@ func get_property_definitions() -> Array:
 			"default": false
 		},
 		{
-			"name": "rotation_variable",
+			"name": "rotation_variable", "required": true, "required_label": "a Rotation variable", "required_if": {"get_rotation": true},
 			"type": TYPE_STRING,
 			"default": "",
 			"visible_if": {"get_rotation": true}
@@ -78,7 +78,7 @@ func get_property_definitions() -> Array:
 			"default": false
 		},
 		{
-			"name": "scale_variable",
+			"name": "scale_variable", "required": true, "required_label": "a Scale variable", "required_if": {"get_scale": true},
 			"type": TYPE_STRING,
 			"default": "",
 			"visible_if": {"get_scale": true}

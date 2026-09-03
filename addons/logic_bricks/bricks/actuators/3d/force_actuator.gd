@@ -12,6 +12,10 @@ func _init() -> void:
 	brick_name = "Force"
 
 
+func get_compatibility_error(node: Node) -> String:
+	return "" if node is RigidBody3D else "Requires RigidBody3D"
+
+
 func _initialize_properties() -> void:
 	properties = {
 		"x": "0.0",
@@ -80,6 +84,13 @@ func _is_zero(val) -> bool:
 	# It's a variable name — not zero
 	return false
 
+
+
+func get_configuration_warnings(node: Node = null) -> Array[String]:
+	var warnings := super.get_configuration_warnings(node)
+	if _validation_all_numeric_zero(["x", "y", "z"]):
+		warnings.append("Put a Value or Variable in X,Y, or Z")
+	return warnings
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var x = properties.get("x", "0.0")

@@ -4,19 +4,19 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<meta content="14 UI-specific actuator bricks detected in the addon." name="description"/>
+<meta content="14 actions available for UI workflows." name="description"/>
 <title>
-   UI Actuators | Logic Bricks Documentation
+   UI Actions | Logic Bricks Documentation
   </title>
-  <link rel="canonical" href="https://brithe3dguy.com/logic-bricks/docs/actuators-ui.html"/>
-  <link href="assets/css/site.css" rel="stylesheet"/>
+<link href="https://brithe3dguy.com/logic-bricks/docs/actuators-ui.html" rel="canonical"/>
+<link href="assets/css/site.css" rel="stylesheet"/>
 <link href="assets/images/favicon.svg" rel="icon" type="image/svg+xml"/>
 <meta content="#0A0A0F" name="theme-color"/>
-  <meta property="og:type" content="website"/>
-  <meta property="og:title" content="UI Actuators | Bri The 3D Guy"/>
-  <meta property="og:description" content="Official Logic Bricks documentation for Godot 4."/>
-  <meta property="og:url" content="https://brithe3dguy.com/logic-bricks/docs/actuators-ui.html"/>
-  <meta property="og:image" content="https://brithe3dguy.com/images/bricks_thumb.png"/>
+<meta content="website" property="og:type"/>
+<meta content="UI Actions | Bri The 3D Guy" property="og:title"/>
+<meta content="Official Logic Bricks documentation for Godot 4." property="og:description"/>
+<meta content="https://brithe3dguy.com/logic-bricks/docs/actuators-ui.html" property="og:url"/>
+<meta content="https://brithe3dguy.com/images/bricks_thumb.png" property="og:image"/>
 </head>
 <body class="ui" data-page="actuators-ui.html">
 <div data-site-header="">
@@ -33,13 +33,13 @@
       ›
      </span>
 <span>
-      Actuators
+      Actions
      </span>
 <span aria-hidden="true">
       ›
      </span>
 <span aria-current="page">
-      UI Actuators
+      UI Actions
      </span>
 </nav>
 <section class="hero">
@@ -47,12 +47,12 @@
       UI Workflow
      </div>
 <h1>
-      UI Actuators
+      UI Actions
      </h1>
 <p class="lead">
       14 UI-specific
-      <span aria-label="actuator: A brick that performs an action after a sensor and optional controller succeed." class="glossary-term" data-tooltip="A brick that performs an action after a sensor and optional controller succeed." tabindex="0">
-       actuator
+      <span aria-label="action: A brick that performs an action after a trigger and optional gate succeed." class="glossary-term" data-tooltip="A brick that performs an action after a trigger and optional gate succeed." tabindex="0">
+       action
       </span>
       bricks detected in the addon.
      </p>
@@ -93,7 +93,7 @@
        Building UI actions
       </h2>
 <p>
-       UI actuators work with Control-based interfaces and are listed in the same flat menu structure used by the addon.
+       UI actions work with Control-based interfaces and are listed in the same flat menu structure used by the addon.
       </p>
 </div>
 <ol class="chapter-steps">
@@ -104,7 +104,7 @@
        Choose the action that changes or controls the interface.
       </li>
 <li>
-       Trigger it from input, variables, signals, or other sensors.
+       Trigger it from input, variables, signals, or other triggers.
       </li>
 </ol>
 </section>
@@ -116,10 +116,10 @@
       UI WORKFLOW
      </span>
 <h2>
-      UI Setup and Actuators
+      UI Setup and Actions
      </h2>
 <p class="domain-lead">
-      Use this section for Control-based interfaces. Unlike the longer 3D and 2D lists, the addon intentionally displays compatible UI actuators as one flat menu.
+      Use this section for Control-based interfaces. Unlike the longer 3D and 2D lists, the addon intentionally displays compatible UI actions as one flat menu.
      </p>
 <div class="setup-grid">
 <article>
@@ -141,7 +141,7 @@
         Open Logic Bricks
        </h3>
 <p>
-        The addon keeps sensors and controllers available, but filters actuators to the UI-compatible set.
+        The addon keeps triggers and gates available, but filters actions to the UI-compatible set.
        </p>
 </article>
 <article>
@@ -152,7 +152,7 @@
         Target interface nodes
        </h3>
 <p>
-        Many UI actuators can act on the selected node or locate another interface node by name, depending on the brick.
+        Many UI actions can act on the selected node or locate another interface node by name, depending on the brick.
        </p>
 </article>
 <article>
@@ -163,7 +163,7 @@
         Build interaction chains
        </h3>
 <p>
-        Connect input or UI sensors to controllers and then to focus, text, visibility, popup, slider, tab, window, or other UI actions.
+        Connect input or UI triggers to gates and then to focus, text, visibility, popup, slider, tab, window, or other UI actions.
        </p>
 </article>
 </div>
@@ -172,7 +172,7 @@
        How this relates to the menu
       </strong>
 <p>
-       The UI actuator menu is flat by design, so this page uses one linked actuator reference rather than artificial submenus.
+       The UI action menu is flat by design, so this page uses one linked action reference rather than artificial submenus.
       </p>
 </div>
 </section>
@@ -181,7 +181,7 @@
       UI setup
      </a>
 <a href="#ui-actuator-reference">
-      UI actuator reference
+      UI action reference
      </a>
 </nav>
 <section class="ui-reference-heading" id="ui-actuator-reference">
@@ -189,12 +189,12 @@
       FLAT RIGHT-CLICK MENU
      </span>
 <h2>
-      UI Actuator Reference
+      UI Action Reference
      </h2>
 <p>
       These entries appear directly under
       <strong>
-       Actuators
+       Actions
       </strong>
       when a supported UI node is selected.
      </p>
@@ -202,7 +202,7 @@
 <section class="brick actuator" data-compatibility="ui" data-search="2D Audio Plays UI or 2D audio. UI" id="2d-audio-ui">
 <div class="brick-heading">
 <span class="badge">
-       actuator • ui
+       action • ui
       </span>
 <h2>
        2D Audio
@@ -222,18 +222,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators
+        Add Logic Brick → Actions
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/ui/audio_2d_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -453,12 +443,12 @@
 <ul>
 <li>
           Perform the ui action described above after a
-          <span aria-label="sensor: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
-           sensor
+          <span aria-label="trigger: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
+           trigger
           </span>
           /
-          <span aria-label="controller: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
-           controller
+          <span aria-label="gate: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
+           gate
           </span>
           chain succeeds.
          </li>
@@ -466,7 +456,7 @@
           Reuse the brick in multiple states or chains with different option values.
          </li>
 <li>
-          Pair it with an appropriate sensor to control when the action occurs.
+          Pair it with an appropriate trigger to control when the action occurs.
          </li>
 </ul>
 </section>
@@ -476,13 +466,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -498,13 +488,13 @@
 <strong>
          Tip
         </strong>
-        Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+        Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
        </div>
 <div class="mini-callout caution">
 <strong>
          Common mistake
         </strong>
-        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
        </div>
 </div>
 <section class="related-bricks">
@@ -543,7 +533,7 @@
 <section class="brick actuator" data-compatibility="ui" data-search="Button Triggers, toggles, presses, or releases a Button node. UI" id="button-ui">
 <div class="brick-heading">
 <span class="badge">
-       actuator • ui
+       action • ui
       </span>
 <h2>
        Button
@@ -563,18 +553,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators
+        Add Logic Brick → Actions
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/ui/button_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -647,7 +627,7 @@
         </h4>
 <ul>
 <li>
-          Perform the ui action described above after a sensor/controller chain succeeds.
+          Perform the ui action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
@@ -663,13 +643,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -691,7 +671,7 @@
 <strong>
          Common mistake
         </strong>
-        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
        </div>
 </div>
 <section class="related-bricks">
@@ -730,7 +710,7 @@
 <section class="brick actuator" data-compatibility="ui" data-search="Focus Grabs or releases keyboard/gamepad focus on a Control node. UI" id="focus-ui">
 <div class="brick-heading">
 <span class="badge">
-       actuator • ui
+       action • ui
       </span>
 <h2>
        Focus
@@ -750,18 +730,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators
+        Add Logic Brick → Actions
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/ui/focus_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -834,7 +804,7 @@
         </h4>
 <ul>
 <li>
-          Perform the ui action described above after a sensor/controller chain succeeds.
+          Perform the ui action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
@@ -850,13 +820,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -878,7 +848,7 @@
 <strong>
          Common mistake
         </strong>
-        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
        </div>
 </div>
 <section class="related-bricks">
@@ -917,7 +887,7 @@
 <section class="brick actuator" data-compatibility="ui" data-search="Modulate Sets or transitions color/alpha on a Control or CanvasItem node. UI" id="modulate-ui">
 <div class="brick-heading">
 <span class="badge">
-       actuator • ui
+       action • ui
       </span>
 <h2>
        Modulate
@@ -937,18 +907,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators
+        Add Logic Brick → Actions
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/ui/modulate_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -1099,7 +1059,7 @@
         </h4>
 <ul>
 <li>
-          Perform the ui action described above after a sensor/controller chain succeeds.
+          Perform the ui action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
@@ -1115,13 +1075,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -1182,7 +1142,7 @@
 <section class="brick actuator" data-compatibility="ui" data-search="Popup Shows, hides, toggles, or centers a Popup/Window-like UI node. UI" id="popup-ui">
 <div class="brick-heading">
 <span class="badge">
-       actuator • ui
+       action • ui
       </span>
 <h2>
        Popup
@@ -1202,18 +1162,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators
+        Add Logic Brick → Actions
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/ui/popup_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -1286,7 +1236,7 @@
         </h4>
 <ul>
 <li>
-          Perform the ui action described above after a sensor/controller chain succeeds.
+          Perform the ui action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
@@ -1302,13 +1252,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -1330,7 +1280,7 @@
 <strong>
          Common mistake
         </strong>
-        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
        </div>
 </div>
 <section class="related-bricks">
@@ -1369,7 +1319,7 @@
 <section class="brick actuator" data-compatibility="ui" data-search="Progress Bar Sets the value, min, or max of a ProgressBar, Slider, or Range UI node. UI" id="progress-bar-ui">
 <div class="brick-heading">
 <span class="badge">
-       actuator • ui
+       action • ui
       </span>
 <h2>
        Progress Bar
@@ -1389,18 +1339,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators
+        Add Logic Brick → Actions
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/ui/progress_bar_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -1622,7 +1562,7 @@
         </h4>
 <ul>
 <li>
-          Perform the ui action described above after a sensor/controller chain succeeds.
+          Perform the ui action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
@@ -1638,13 +1578,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -1705,7 +1645,7 @@
 <section class="brick actuator" data-compatibility="ui" data-search="Screen Flash Flashes a full-screen ColorRect overlay. UI" id="screen-flash-ui">
 <div class="brick-heading">
 <span class="badge">
-       actuator • ui
+       action • ui
       </span>
 <h2>
        Screen Flash
@@ -1725,18 +1665,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators
+        Add Logic Brick → Actions
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/ui/screen_flash_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -1818,13 +1748,13 @@
         </h4>
 <ul>
 <li>
-          Perform the ui action described above after a sensor/controller chain succeeds.
+          Perform the ui action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
          </li>
 <li>
-          Pair it with an appropriate sensor to control when the action occurs.
+          Pair it with an appropriate trigger to control when the action occurs.
          </li>
 </ul>
 </section>
@@ -1834,13 +1764,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -1856,7 +1786,7 @@
 <strong>
          Tip
         </strong>
-        Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+        Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
        </div>
 <div class="mini-callout caution">
 <strong>
@@ -1901,7 +1831,7 @@
 <section class="brick actuator" data-compatibility="ui" data-search="Scroll Sets or adds to a ScrollContainer scroll position. UI" id="scroll-ui">
 <div class="brick-heading">
 <span class="badge">
-       actuator • ui
+       action • ui
       </span>
 <h2>
        Scroll
@@ -1921,18 +1851,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators
+        Add Logic Brick → Actions
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/ui/scroll_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -2060,7 +1980,7 @@
         </h4>
 <ul>
 <li>
-          Perform the ui action described above after a sensor/controller chain succeeds.
+          Perform the ui action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
@@ -2076,13 +1996,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -2104,7 +2024,7 @@
 <strong>
          Common mistake
         </strong>
-        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
        </div>
 </div>
 <section class="related-bricks">
@@ -2143,7 +2063,7 @@
 <section class="brick actuator" data-compatibility="ui" data-search="Slider Sets or adds to a Slider or Range value. UI" id="slider-ui">
 <div class="brick-heading">
 <span class="badge">
-       actuator • ui
+       action • ui
       </span>
 <h2>
        Slider
@@ -2163,18 +2083,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators
+        Add Logic Brick → Actions
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/ui/slider_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -2264,7 +2174,7 @@
         </h4>
 <ul>
 <li>
-          Perform the ui action described above after a sensor/controller chain succeeds.
+          Perform the ui action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
@@ -2280,13 +2190,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -2308,7 +2218,7 @@
 <strong>
          Common mistake
         </strong>
-        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
        </div>
 </div>
 <section class="related-bricks">
@@ -2347,7 +2257,7 @@
 <section class="brick actuator" data-compatibility="ui" data-search="Tab Changes the active tab on a TabContainer. UI" id="tab-ui">
 <div class="brick-heading">
 <span class="badge">
-       actuator • ui
+       action • ui
       </span>
 <h2>
        Tab
@@ -2367,18 +2277,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators
+        Add Logic Brick → Actions
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/ui/tab_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -2468,7 +2368,7 @@
         </h4>
 <ul>
 <li>
-          Perform the ui action described above after a sensor/controller chain succeeds.
+          Perform the ui action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
@@ -2484,13 +2384,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -2512,7 +2412,7 @@
 <strong>
          Common mistake
         </strong>
-        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
        </div>
 </div>
 <section class="related-bricks">
@@ -2551,7 +2451,7 @@
 <section class="brick actuator" data-compatibility="ui" data-search="Text Updates a Label, RichTextLabel, or other text UI node. UI" id="text-ui">
 <div class="brick-heading">
 <span class="badge">
-       actuator • ui
+       action • ui
       </span>
 <h2>
        Text
@@ -2571,18 +2471,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators
+        Add Logic Brick → Actions
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/ui/text_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -2729,7 +2619,7 @@
         </h4>
 <ul>
 <li>
-          Perform the ui action described above after a sensor/controller chain succeeds.
+          Perform the ui action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
@@ -2745,13 +2635,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -2773,7 +2663,7 @@
 <strong>
          Common mistake
         </strong>
-        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
        </div>
 </div>
 <section class="related-bricks">
@@ -2812,7 +2702,7 @@
 <section class="brick actuator" data-compatibility="ui" data-search="Tween Tweens a UI node property. UI" id="tween-ui">
 <div class="brick-heading">
 <span class="badge">
-       actuator • ui
+       action • ui
       </span>
 <h2>
        Tween
@@ -2832,18 +2722,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators
+        Add Logic Brick → Actions
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/ui/tween_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -3053,7 +2933,7 @@
         </h4>
 <ul>
 <li>
-          Perform the ui action described above after a sensor/controller chain succeeds.
+          Perform the ui action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
@@ -3069,13 +2949,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -3138,7 +3018,7 @@
 <section class="brick actuator" data-compatibility="ui" data-search="Visibility Shows, hides, or toggles a UI node. UI" id="visibility-ui">
 <div class="brick-heading">
 <span class="badge">
-       actuator • ui
+       action • ui
       </span>
 <h2>
        Visibility
@@ -3158,18 +3038,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators
+        Add Logic Brick → Actions
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/ui/visibility_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -3242,7 +3112,7 @@
         </h4>
 <ul>
 <li>
-          Perform the ui action described above after a sensor/controller chain succeeds.
+          Perform the ui action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
@@ -3258,13 +3128,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -3286,7 +3156,7 @@
 <strong>
          Common mistake
         </strong>
-        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
        </div>
 </div>
 <section class="related-bricks">
@@ -3325,7 +3195,7 @@
 <section class="brick actuator" data-compatibility="ui" data-search="Window Shows, hides, toggles, or centers a Window node. UI" id="window-ui">
 <div class="brick-heading">
 <span class="badge">
-       actuator • ui
+       action • ui
       </span>
 <h2>
        Window
@@ -3345,18 +3215,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators
+        Add Logic Brick → Actions
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/ui/window_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -3429,7 +3289,7 @@
         </h4>
 <ul>
 <li>
-          Perform the ui action described above after a sensor/controller chain succeeds.
+          Perform the ui action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
@@ -3445,13 +3305,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -3473,7 +3333,7 @@
 <strong>
          Common mistake
         </strong>
-        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
        </div>
 </div>
 <section class="related-bricks">
@@ -3515,7 +3375,7 @@
        ← Previous
       </span>
 <strong>
-       Previous 2D Actuators
+       Previous 2D Actions
       </strong>
 </a>
 <a class="page-nav-card next" href="debugging.html">
@@ -3536,12 +3396,12 @@
 <ul>
 <li>
 <a data-toc-target="setup" href="#setup">
-        UI Setup and Actuators
+        UI Setup and Actions
        </a>
 </li>
 <li>
 <a data-toc-target="ui-actuator-reference" href="#ui-actuator-reference">
-        UI Actuator Reference
+        UI Action Reference
        </a>
 </li>
 </ul>

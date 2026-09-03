@@ -29,6 +29,7 @@ func get_property_definitions() -> Array:
 	return [
 		{
 			"name": "target_group",
+			"group_picker": true,
 			"type": TYPE_STRING,
 			"default": ""
 		},
@@ -67,7 +68,7 @@ func get_property_definitions() -> Array:
 			"default": false
 		},
 		{
-			"name": "object_variable",
+			"name": "object_variable", "required": true, "required_label": "a variable to store the detected object", "required_if": {"store_object": true},
 			"type": TYPE_STRING,
 			"default": ""
 		}

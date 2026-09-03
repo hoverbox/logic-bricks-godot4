@@ -18,6 +18,9 @@ func _initialize_properties() -> void:
 		"path_source": "node_positions", # "node_positions" or "path3d"
 		"waypoints": [],          # Array of "x,y,z" strings
 		"loop_mode": "loop",      # "loop", "ping_pong", "once"
+		"path_mode": "sequential", # "sequential" or "random" for Node3D Positions
+		"avoid_immediate_repeat": true,
+		"random_neighbor_count": 0, # 0 = any waypoint; otherwise nearest N candidates
 		"speed": "5.0",
 		"arrival_distance": "0.5",
 		"face_direction": false,
@@ -35,7 +38,7 @@ func get_property_definitions() -> Array:
 			"default": "node_positions"
 		},
 		{
-			"name": "waypoints",
+			"name": "waypoints", "required": true, "required_label": "at least one waypoint", "required_if": {"path_source": "node_positions"},
 			"type": TYPE_ARRAY,
 			"item_hint": PROPERTY_HINT_NONE,
 			"item_hint_string": "",
@@ -48,6 +51,25 @@ func get_property_definitions() -> Array:
 			"hint": PROPERTY_HINT_ENUM,
 			"hint_string": "Loop,Ping Pong,Once",
 			"default": "loop"
+		},
+		{
+			"name": "path_mode",
+			"type": TYPE_STRING,
+			"hint": PROPERTY_HINT_ENUM,
+			"hint_string": "Sequential,Random",
+			"default": "sequential"
+		},
+		{
+			"name": "avoid_immediate_repeat",
+			"type": TYPE_BOOL,
+			"default": true
+		},
+		{
+			"name": "random_neighbor_count",
+			"type": TYPE_INT,
+			"hint": PROPERTY_HINT_RANGE,
+			"hint_string": "0,32,1",
+			"default": 0
 		},
 		{
 			"name": "speed",
@@ -79,8 +101,11 @@ func get_tooltip_definitions() -> Dictionary:
 		"_description": "Moves this node through a series of waypoints or along an editable Path3D curve.",
 		"path_source": "Choose Node3D Positions for the original pos_# waypoint nodes, or Path3D for a smooth editable curve.",
 		"waypoints": "List of waypoint positions (X,Y,Z).\nAdd with + then drag the handles in the viewport to place them.",
-		"loop_mode": "Loop: repeat from the first waypoint after the last.\nPing Pong: reverse direction at each end.\nOnce: stop at the last waypoint.",
-		"speed": "Movement speed in units per second. Accepts a number, variable name, or expression, like the Motion actuator fields.",
+		"loop_mode": "Sequential mode only. Loop repeats from the first waypoint, Ping Pong reverses at each end, and Once stops at the last waypoint.",
+		"path_mode": "Node3D Positions only. Sequential follows waypoint order. Random chooses a different waypoint each time one is reached.",
+		"avoid_immediate_repeat": "Random mode only. Prevents immediately returning to the waypoint the object just came from when another choice is available.",
+		"random_neighbor_count": "Random mode only. 0 allows any waypoint. A value above 0 limits choices to that many physically nearest waypoint candidates, which creates more local wandering.",
+		"speed": "Movement speed in units per second. Accepts a number, variable name, or expression, like the Position actuator fields.",
 		"arrival_distance": "How close the node must get to count as having reached a waypoint. Accepts a number, variable name, or expression.",
 		"face_direction": "Rotate the node to face the direction of movement.",
 		"follow_curve_tilt": "Path3D only. Rotate the node using the Path3D curve's baked rotation and tilt values, similar to PathFollow3D tilt behavior.",
@@ -195,6 +220,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		properties["waypoints"] = waypoints
 
 	var loop_mode = properties.get("loop_mode", "loop")
+	var path_mode = properties.get("path_mode", "sequential")
+	var avoid_immediate_repeat = bool(properties.get("avoid_immediate_repeat", true))
+	var random_neighbor_count = int(properties.get("random_neighbor_count", 0))
 	var speed_expr = _to_expr(properties.get("speed", "5.0"))
 	var arrival_dist_expr = _to_expr(properties.get("arrival_distance", "0.5"))
 	var face_dir = properties.get("face_direction", false)
@@ -202,12 +230,17 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	if typeof(loop_mode) == TYPE_STRING:
 		loop_mode = loop_mode.to_lower().replace(" ", "_")
+	if typeof(path_mode) == TYPE_STRING:
+		path_mode = path_mode.to_lower().replace(" ", "_")
+	if path_source == "path3d":
+		path_mode = "sequential"
 
 	if path_source != "path3d" and waypoints.is_empty():
 		return {"actuator_code": "pass  # Waypoint Path: no waypoints set"}
 
 	var cn = chain_name
 	var idx_var  = "_wp_idx_%s"  % cn
+	var prev_idx_var = "_wp_prev_idx_%s" % cn
 	var dir_var  = "_wp_dir_%s"  % cn
 	var done_var = "_wp_done_%s" % cn
 
@@ -225,6 +258,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	var member_vars: Array[String] = [
 		"var %s: int = 0"       % idx_var,
+		"var %s: int = -1"      % prev_idx_var,
 		"var %s: int = 1"       % dir_var,
 		"var %s: bool = false"  % done_var,
 	]
@@ -369,21 +403,39 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			lines.append("\t\tvar _wp_new_basis: Basis = basis.orthonormalized().slerp(_wp_basis, clampf(10.0 * _delta, 0.0, 1.0))")
 			lines.append("\t\tbasis = _wp_new_basis.scaled(_wp_existing_scale)")
 
-		# Arrival — advance index
+		# Arrival — choose or advance the next waypoint.
 		lines.append("else:")
-		match loop_mode:
-			"loop":
-				lines.append("\t%s = (%s + 1) %% %s.size()" % [idx_var, idx_var, points_var])
-			"ping_pong":
-				lines.append("\t%s += %s" % [idx_var, dir_var])
-				lines.append("\tif %s >= %s.size() or %s < 0:" % [idx_var, points_var, idx_var])
-				lines.append("\t\t%s = clampi(%s, 0, %s.size() - 1)" % [idx_var, idx_var, points_var])
-				lines.append("\t\t%s = -(%s)" % [dir_var, dir_var])
-			"once":
-				lines.append("\tif %s < %s.size() - 1:" % [idx_var, points_var])
-				lines.append("\t\t%s += 1" % idx_var)
-				lines.append("\telse:")
-				lines.append("\t\t%s = true" % done_var)
+		if path_mode == "random":
+			lines.append("\tvar _wp_old_idx = %s" % idx_var)
+			lines.append("\tvar _wp_candidates: Array[int] = []")
+			lines.append("\tfor _wp_candidate_i in range(%s.size()):" % points_var)
+			lines.append("\t\tif _wp_candidate_i == %s:" % idx_var)
+			lines.append("\t\t\tcontinue")
+			if avoid_immediate_repeat:
+				lines.append("\t\tif _wp_candidate_i == %s and %s.size() > 2:" % [prev_idx_var, points_var])
+				lines.append("\t\t\tcontinue")
+			lines.append("\t\t_wp_candidates.append(_wp_candidate_i)")
+			if random_neighbor_count > 0:
+				lines.append("\t_wp_candidates.sort_custom(func(a: int, b: int): return %s[%s].distance_squared_to(%s[a]) < %s[%s].distance_squared_to(%s[b]))" % [points_var, idx_var, points_var, points_var, idx_var, points_var])
+				lines.append("\tif _wp_candidates.size() > %d:" % random_neighbor_count)
+				lines.append("\t\t_wp_candidates.resize(%d)" % random_neighbor_count)
+			lines.append("\tif not _wp_candidates.is_empty():")
+			lines.append("\t\t%s = _wp_candidates[randi() %% _wp_candidates.size()]" % idx_var)
+			lines.append("\t%s = _wp_old_idx" % prev_idx_var)
+		else:
+			match loop_mode:
+				"loop":
+					lines.append("\t%s = (%s + 1) %% %s.size()" % [idx_var, idx_var, points_var])
+				"ping_pong":
+					lines.append("\t%s += %s" % [idx_var, dir_var])
+					lines.append("\tif %s >= %s.size() or %s < 0:" % [idx_var, points_var, idx_var])
+					lines.append("\t\t%s = clampi(%s, 0, %s.size() - 1)" % [idx_var, idx_var, points_var])
+					lines.append("\t\t%s = -(%s)" % [dir_var, dir_var])
+				"once":
+					lines.append("\tif %s < %s.size() - 1:" % [idx_var, points_var])
+					lines.append("\t\t%s += 1" % idx_var)
+					lines.append("\telse:")
+					lines.append("\t\t%s = true" % done_var)
 	return {
 		"actuator_code": "\n".join(lines),
 		"member_vars": member_vars,

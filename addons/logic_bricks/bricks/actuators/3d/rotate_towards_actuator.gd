@@ -36,7 +36,7 @@ func get_property_definitions() -> Array:
 			"default": "node_name"
 		},
 		{
-			"name": "target_name",
+			"name": "target_name", "required": true, "required_label": "a target node or group name", "group_picker": true, "group_picker_if": {"target_mode": "group"},
 			"type": TYPE_STRING,
 			"default": ""
 		},

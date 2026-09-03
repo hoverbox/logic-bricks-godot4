@@ -27,7 +27,7 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
-		{"name":"camera_node_name","type":TYPE_STRING,"default":"Camera2D","placeholder":"Camera2D node name"},
+		{"name":"camera_node_name", "required": true, "required_label": "a Camera2D node name","type":TYPE_STRING,"default":"Camera2D","placeholder":"Camera2D node name"},
 		{"name":"follow_speed","type":TYPE_FLOAT,"default":5.0},
 		{"name":"dead_zone_x","type":TYPE_FLOAT,"default":0.0},
 		{"name":"dead_zone_y","type":TYPE_FLOAT,"default":0.0},

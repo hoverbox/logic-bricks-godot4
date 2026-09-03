@@ -36,7 +36,7 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	return [
 		{
-			"name": "variable_name",
+			"name": "variable_name", "required": true, "required_label": "a variable name",
 			"type": TYPE_STRING,
 			"default": ""
 		},

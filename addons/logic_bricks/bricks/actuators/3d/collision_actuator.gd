@@ -41,7 +41,7 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	return [
 		{
-			"name": "target_node_name",
+			"name": "target_node_name", "required": true, "required_label": "a collision target node name",
 			"type": TYPE_STRING,
 			"default": ""
 		},

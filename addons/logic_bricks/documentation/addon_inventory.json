@@ -85,7 +85,7 @@
     "cls": "SetCamera2DActuator",
     "domain": "2d",
     "category": "Camera",
-    "description": "Makes the named Camera2D the active camera. Use a one-shot sensor when possible so make_current() is not called every frame.",
+    "description": "Makes the named Camera2D the active camera. Use a one-shot trigger when possible so make_current() is not called every frame.",
     "props": [
       [
         "camera_node_name",
@@ -242,7 +242,7 @@
     "cls": "Character2DActuator",
     "domain": "2d",
     "category": "Motion",
-    "description": "Finalizes CharacterBody2D movement once per physics frame. Motion 2D bricks add requested movement; this brick applies gravity, friction, acceleration, snapping, slope limits, bounce, and move_and_slide().",
+    "description": "Finalizes CharacterBody2D movement once per physics frame. Position 2D Actions add requested movement; this brick applies gravity, friction, acceleration, snapping, slope limits, bounce, and move_and_slide().",
     "props": [
       [
         "gravity_strength",
@@ -315,11 +315,11 @@
   },
   {
     "type": "actuator",
-    "name": "Motion 2D",
-    "cls": "Motion2DActuator",
+    "name": "Position 2D",
+    "cls": "Position2DActuator",
     "domain": "2d",
     "category": "Motion",
-    "description": "For CharacterBody2D movement, this only requests/accumulates velocity for the frame. Character 2D Physics should be used once on the character to apply friction, gravity, diagonal normalization, and move_and_slide().",
+    "description": "Changes 2D position using Character Velocity, a translation offset, or an exact position.",
     "props": [
       [
         "target_node_name",
@@ -328,14 +328,8 @@
         "blank = self, or child/node name"
       ],
       [
-        "motion_type",
-        "Location,Rotation",
-        "location",
-        ""
-      ],
-      [
         "movement_method",
-        "Character Velocity,Translate,Position",
+        "Character Velocity,Translate,Set Position",
         "character_velocity",
         ""
       ],
@@ -358,7 +352,89 @@
         ""
       ]
     ],
-    "file": "actuators/2d/motion_2d_actuator.gd"
+    "file": "actuators/2d/position_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Rotation 2D",
+    "cls": "Rotation2DActuator",
+    "domain": "2d",
+    "category": "Motion",
+    "description": "Rotates a 2D object by a number of degrees.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "",
+        "blank = self, or child/node name"
+      ],
+      [
+        "degrees",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "space",
+        "Local,Global",
+        "local",
+        ""
+      ]
+    ],
+    "file": "actuators/2d/rotation_2d_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "name": "Scale 2D",
+    "cls": "Scale2DActuator",
+    "domain": "2d",
+    "category": "Motion",
+    "description": "Changes a 2D object's scale, instantly or with a tween.",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "",
+        "blank = self, or child/node name"
+      ],
+      [
+        "x",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "y",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "use_tween",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "duration",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "transition",
+        "Linear,Sine,Quad,Cubic,Quart,Quint,Expo,Circ,Back,Elastic,Bounce",
+        "Sine",
+        ""
+      ],
+      [
+        "ease",
+        "In,Out,In Out,Out In",
+        "In Out",
+        ""
+      ]
+    ],
+    "file": "actuators/2d/scale_2d_actuator.gd"
   },
   {
     "type": "actuator",
@@ -645,7 +721,7 @@
     "cls": "ThirdPersonCameraActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Orbits a Camera3D around the character via a pivot Node3D.\\nAssign both the pivot and the camera in the Inspector.\\nThe camera can live anywhere in the scene \u2014 including inside a SubViewport for split screen.",
+    "description": "Orbits a Camera3D around the character via a pivot Node3D.\\nAssign both the pivot and the camera in the Inspector.\\nThe camera can live anywhere in the scene — including inside a SubViewport for split screen.",
     "props": [
       [
         "camera_node_name",
@@ -960,7 +1036,7 @@
     "cls": "CharacterActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Character Actuator - Unified character controller for CharacterBody3D Handles gravity, ground detection, and move_and_slide() in one brick. Jumping is handled by the separate Jump Actuator. Pair with an Always Sensor so it runs every frame. Horizontal movement is handled by separate Motion / Move Towards Actuators. Execution order (guaranteed): 1. Pre-process: reset horizontal velocity 2. This chain: apply gravity, detect ground 3. Other chains: motion actuators set velocity.x / velocity.z; Jump Actuator sets velocity.y 4. Post-process: move_and_slide()",
+    "description": "Character Physics Action - Unified character controller for CharacterBody3D Handles gravity, ground detection, and move_and_slide() in one brick. Jumping is handled by the separate Character Jump Action. Pair with an Always Trigger so it runs every frame. Horizontal movement is handled by separate Position / Steering Actions. Execution order (guaranteed): 1. Pre-process: reset horizontal velocity 2. This chain: apply gravity, detect ground 3. Other chains: Position/Steering Actions set velocity.x / velocity.z; Character Jump Action sets velocity.y 4. Post-process: move_and_slide()",
     "props": [
       [
         "gravity_strength",
@@ -1072,7 +1148,7 @@
     "cls": "EditObjectActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Similar to UPBGE's Edit Object actuator.",
+    "description": "Similar to UPBGE's Edit Object Action.",
     "props": [
       [
         "edit_type",
@@ -1543,7 +1619,7 @@
     "cls": "GravityActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Use this with RigidBody3D objects. CharacterBody3D gravity belongs in the Character Actuator. This actuator writes to RigidBody3D.constant_force instead of using apply_central_force(). That makes gravity keep working after a one-shot trigger such as a Delay sensor.",
+    "description": "Use this with RigidBody3D objects. CharacterBody3D gravity belongs in the Character Physics Action. This Action writes to RigidBody3D.constant_force instead of using apply_central_force(). That makes gravity keep working after a one-shot trigger such as a Delay trigger.",
     "props": [
       [
         "gravity_strength",
@@ -1590,7 +1666,7 @@
     "cls": "ImpulseActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Applies a one-shot impulse to a RigidBody3D.\\nFires once per activation \u2014 does not accumulate each frame.",
+    "description": "Applies a one-shot impulse to a RigidBody3D.\\nFires once per activation — does not accumulate each frame.",
     "props": [
       [
         "impulse_type",
@@ -1888,7 +1964,7 @@
     "cls": "LinearVelocityActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Similar to UPBGE's Linear Velocity actuator",
+    "description": "Similar to UPBGE's Linear Velocity Action",
     "props": [
       [
         "mode",
@@ -2031,11 +2107,9 @@
   },
   {
     "type": "actuator",
-    "name": "Motion",
     "cls": "MotionActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Moves or rotates a target node. Leave Target Node Name blank to affect self. X/Y/Z fields accept numbers, variable names, or math expressions.",
     "props": [
       [
         "target_node_name",
@@ -2098,7 +2172,118 @@
         ""
       ]
     ],
-    "file": "actuators/3d/motion_actuator.gd"
+    "file": "actuators/3d/motion_actuator.gd",
+    "class": "PositionActuator",
+    "name": "Position",
+    "description": "Changes position using character velocity, translation, or an exact position.",
+    "menu_order": 30,
+    "script_path": "res://addons/logic_bricks/bricks/actuators/3d/position_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "cls": "RotationActuatorActuator",
+    "domain": "3d",
+    "category": "Motion",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "",
+        "blank = self, or child/node name"
+      ],
+      [
+        "x",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "y",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "z",
+        "",
+        "0.0",
+        ""
+      ],
+      [
+        "space",
+        "Local,Global",
+        "local",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/rotation_actuator.gd",
+    "class": "RotationActuator",
+    "name": "Rotation",
+    "description": "Rotates a 3D object around its X, Y, and Z axes.",
+    "menu_order": 40,
+    "script_path": "res://addons/logic_bricks/bricks/actuators/3d/rotation_actuator.gd"
+  },
+  {
+    "type": "actuator",
+    "cls": "ScaleActuatorActuator",
+    "domain": "3d",
+    "category": "Motion",
+    "props": [
+      [
+        "target_node_name",
+        "",
+        "",
+        "blank = self, or child/node name"
+      ],
+      [
+        "x",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "y",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "z",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "use_tween",
+        "",
+        "false",
+        ""
+      ],
+      [
+        "duration",
+        "",
+        "1.0",
+        ""
+      ],
+      [
+        "transition",
+        "Linear,Sine,Quad,Cubic,Quart,Quint,Expo,Circ,Back,Elastic,Bounce",
+        "Sine",
+        ""
+      ],
+      [
+        "ease",
+        "In,Out,In Out,Out In",
+        "In Out",
+        ""
+      ]
+    ],
+    "file": "actuators/3d/scale_actuator.gd",
+    "class": "ScaleActuator",
+    "name": "Scale",
+    "description": "Sets a 3D object's scale instantly or smoothly with a tween.",
+    "menu_order": 50,
+    "script_path": "res://addons/logic_bricks/bricks/actuators/3d/scale_actuator.gd"
   },
   {
     "type": "actuator",
@@ -2287,11 +2472,11 @@
   },
   {
     "type": "actuator",
-    "name": "Move Towards",
+    "name": "Steering",
     "cls": "MoveTowardsActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Moves toward or away from a target.\\nSeek: move directly toward target\\nFlee: move away from target\\nPath Follow: use NavigationAgent3D to pathfind toward target.\\n\\n\u26a0 Path Follow finds the NavigationAgent3D by typed node name.",
+    "description": "Moves toward or away from a target.\\nSeek: move directly toward target\\nFlee: move away from target\\nPath Follow: use NavigationAgent3D to pathfind toward target.\\n\\n⚠ Path Follow finds the NavigationAgent3D by typed node name.",
     "props": [
       [
         "navigation_agent_node_name",
@@ -2421,7 +2606,7 @@
     "cls": "ObjectPoolActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Spawns objects from reusable pools.\\nFaster than instancing \u2014 reuses inactive nodes.\\nPools are created at startup.",
+    "description": "Spawns objects from reusable pools.\\nFaster than instancing — reuses inactive nodes.\\nPools are created at startup.",
     "props": [
       [
         "action",
@@ -2486,7 +2671,7 @@
     "cls": "ObjectShakeActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Shakes a named object by rotation, translation, or scale, then returns it to its starting value.\\nType a node name, not a path. Use multiple Object Shake actuators for multiple effects.",
+    "description": "Shakes a named object by rotation, translation, or scale, then returns it to its starting value.\\nType a node name, not a path. Use multiple Object Shake Actions for multiple effects.",
     "props": [
       [
         "shake_type",
@@ -2533,7 +2718,7 @@
     "cls": "ParentActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Similar to UPBGE's Parent actuator",
+    "description": "Similar to UPBGE's Parent Action",
     "props": [
       [
         "mode",
@@ -2739,7 +2924,7 @@
     "cls": "SaveLoadActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Three scopes: This Node   \u2014 saves position, rotation, and variables for the node this brick is on Target Node \u2014 saves position, rotation, and variables for a specific named node Group       \u2014 saves position, rotation, and variables for every node in a named group No custom save()/load() methods required on any node. Pair with an InputMap Sensor or Collision Sensor to trigger",
+    "description": "Three scopes: This Node   — saves position, rotation, and variables for the node this brick is on Target Node — saves position, rotation, and variables for a specific named node Group       — saves position, rotation, and variables for every node in a named group No custom save()/load() methods required on any node. Pair with an Input Trigger or Collision Trigger to trigger",
     "props": [
       [
         "mode",
@@ -2863,7 +3048,7 @@
     "cls": "SetCameraActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Makes the assigned Camera3D the active camera.\\nUse a one-shot sensor (e.g. Delay or a state transition) to avoid\\ncalling make_current() every frame unnecessarily.\\n\\n\u26a0 Adds an @export in the Inspector \u2014 assign your Camera3D there.",
+    "description": "Makes the assigned Camera3D the active camera.\\nUse a one-shot trigger (e.g. Delay or a state transition) to avoid\\ncalling make_current() every frame unnecessarily.\\n\\n⚠ Adds an @export in the Inspector — assign your Camera3D there.",
     "props": [
       [
         "camera_node_name",
@@ -2880,7 +3065,7 @@
     "cls": "SmoothFollowCameraActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Smoothly follows this node with the assigned Camera3D,\\nmaintaining the camera's initial offset from the target.\\n\\nPosition follow: camera tracks the node's position per axis.\\nRotation follow: camera orbits the node, keeping it in frame.\\nDead zone: camera only moves once the node exceeds the threshold.\\n\\n\u26a0 Adds an @export in the Inspector \u2014 assign your Camera3D there.",
+    "description": "Smoothly follows this node with the assigned Camera3D,\\nmaintaining the camera's initial offset from the target.\\n\\nPosition follow: camera tracks the node's position per axis.\\nRotation follow: camera orbits the node, keeping it in frame.\\nDead zone: camera only moves once the node exceeds the threshold.\\n\\n⚠ Adds an @export in the Inspector — assign your Camera3D there.",
     "props": [
       [
         "camera_node_name",
@@ -2969,7 +3154,7 @@
     "cls": "SplitScreenActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Creates a split screen layout.\\nApply Code always builds all 4 SubViewportContainers.\\nEach player count has its own independent layout.\\nChange split_screen_players at runtime to switch counts\\nwithout re-applying code.\\n** Use an Always sensor so the layout updates every frame.",
+    "description": "Creates a split screen layout.\\nApply Code always builds all 4 SubViewportContainers.\\nEach player count has its own independent layout.\\nChange split_screen_players at runtime to switch counts\\nwithout re-applying code.\\n** Use an Always trigger so the layout updates every frame.",
     "props": [
       [
         "camera_1_node_name",
@@ -3069,7 +3254,7 @@
     "cls": "TeleportActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Instantly sets position to a target node or coordinates.\\nUseful for respawning, portals, checkpoints.\\n\\n\u26a0 Target Node mode adds an @export in the Inspector \u2014 assign the destination node there.",
+    "description": "Instantly sets position to a target node or coordinates.\\nUseful for respawning, portals, checkpoints.\\n\\n⚠ Target Node mode adds an @export in the Inspector — assign the destination node there.",
     "props": [
       [
         "target_node_name",
@@ -3275,7 +3460,7 @@
     "cls": "JumpActuator",
     "domain": "3d",
     "category": "Motion",
-    "description": "Applies a jump impulse to a CharacterBody3D. Pair with the Character Actuator for gravity and ground detection.",
+    "description": "Applies a jump impulse to a CharacterBody3D. Pair with the Character Physics Action for gravity and ground detection.",
     "props": [
       [
         "jump_height",
@@ -3710,7 +3895,7 @@
     "cls": "PropertyActuatorActuator",
     "domain": "common",
     "category": "General",
-    "description": "Sets properties on a target node.\\nChoose the node type to see its available properties.\\nLeave a field empty to skip setting that property.\\n\u26a0 Adds @export in Inspector \u2014 assign the target node.",
+    "description": "Sets properties on a target node.\\nChoose the node type to see its available properties.\\nLeave a field empty to skip setting that property.\\n⚠ Adds @export in Inspector — assign the target node.",
     "props": [
       [
         "node_type",
@@ -4231,7 +4416,7 @@
     "cls": "RandomActuatorActuator",
     "domain": "common",
     "category": "General",
-    "description": "Similar to UPBGE's Random actuator",
+    "description": "Similar to UPBGE's Random Action",
     "props": [
       [
         "variable_name",
@@ -4338,7 +4523,7 @@
     "cls": "RumbleActuatorActuator",
     "domain": "common",
     "category": "General",
-    "description": "Trigger controller haptic vibration.\\nVibrate: manual motor control for a set duration.\\nStop: immediately stop all vibration.\\nPattern: built-in presets that play to completion.\\nThe sensor only needs to fire once \u2014 the pattern finishes even if the sensor stops.",
+    "description": "Trigger controller haptic vibration.\\nVibrate: manual motor control for a set duration.\\nStop: immediately stop all vibration.\\nPattern: built-in presets that play to completion.\\nThe trigger only needs to fire once — the pattern finishes even if the trigger stops.",
     "props": [
       [
         "action",
@@ -4391,7 +4576,7 @@
     "cls": "SceneActuatorActuator",
     "domain": "common",
     "category": "General",
-    "description": "Similar to UPBGE's Scene actuator",
+    "description": "Similar to UPBGE's Scene Action",
     "props": [
       [
         "mode",
@@ -4439,11 +4624,11 @@
   },
   {
     "type": "actuator",
-    "name": "Signal",
+    "name": "Signal Send",
     "cls": "MessageActuatorActuator",
     "domain": "common",
     "category": "General",
-    "description": "Sends a signal to other nodes.\\nReceiving nodes need a Signal Sensor listening for the subject.",
+    "description": "Sends a signal to other nodes.\\nReceiving nodes need a Signal Receive Trigger listening for the subject.",
     "props": [
       [
         "target_group",
@@ -4560,7 +4745,7 @@
     "cls": "VisibilityActuatorActuator",
     "domain": "common",
     "category": "General",
-    "description": "Shows, hides, or toggles visibility of a node by name. Uses the same current-scene recursive name lookup as the Text Actuator.",
+    "description": "Shows, hides, or toggles visibility of a node by name. Uses the same current-scene recursive name lookup as the Text Action.",
     "props": [
       [
         "target_node_name",
@@ -5263,11 +5448,11 @@
   },
   {
     "type": "controller",
-    "name": "Controller",
+    "name": "Gate",
     "cls": "ControllerController",
     "domain": "controller.gd",
     "category": "General",
-    "description": "AND: all connected sensors must be active OR: any connected sensor must be active NAND: NOT all sensors active (fires unless all are true) NOR: NO sensors active (fires only when all are false) XOR: exactly one sensor is active",
+    "description": "AND: all connected triggers must be active OR: any connected trigger must be active NAND: NOT all triggers active (fires unless all are true) NOR: NO triggers active (fires only when all are false) XOR: exactly one trigger is active",
     "props": [
       [
         "logic_mode",
@@ -5292,11 +5477,11 @@
   },
   {
     "type": "controller",
-    "name": "Script Controller",
+    "name": "Script Gate",
     "cls": "ScriptControllerController",
     "domain": "script_controller.gd",
     "category": "General",
-    "description": "Works like UPBGE's Python Controller (module mode): - Point to a .gd file - That file defines a top-level function: func run(node: Node) -> void: - When the sensor fires, run(node) is called \u2014 node is the scene object Example script (my_script.gd): func run(node: Node) -> void: node.health -= 10 print(\"Health: \", node.health) The script does NOT need extends \u2014 it is called as a module, not instantiated.",
+    "description": "Runs a custom GDScript module function: - Point to a .gd file - That file defines a top-level function: func run(node: Node) -> void: - When the trigger fires, run(node) is called — node is the scene object Example script (my_script.gd): func run(node: Node) -> void: node.health -= 10 print(\"Health: \", node.health) The script does NOT need extends — it is called as a module, not instantiated.",
     "props": [
       [
         "logic_mode",
@@ -5380,7 +5565,7 @@
   },
   {
     "type": "sensor",
-    "name": "Movement 2D",
+    "name": "Movement Detected",
     "cls": "Movement2DSensor",
     "domain": "2d",
     "category": "General",
@@ -5445,7 +5630,7 @@
   },
   {
     "type": "sensor",
-    "name": "Physics 2D",
+    "name": "Character Physics",
     "cls": "Physics2DSensor",
     "domain": "2d",
     "category": "General",
@@ -5568,11 +5753,11 @@
   },
   {
     "type": "sensor",
-    "name": "Actuator",
+    "name": "Action Triggered",
     "cls": "ActuatorSensorSensor",
     "domain": "3d",
     "category": "General",
-    "description": "Fires TRUE when the named actuator on this node matches the chosen state.\\nThe actuator must have an instance name set.",
+    "description": "Fires TRUE when the named Action on this node matches the chosen state.\\nThe Action must have an instance name set.",
     "props": [
       [
         "actuator_name",
@@ -5709,7 +5894,7 @@
   },
   {
     "type": "sensor",
-    "name": "Movement",
+    "name": "Movement Detected",
     "cls": "MovementSensorSensor",
     "domain": "3d",
     "category": "General",
@@ -5786,7 +5971,7 @@
   },
   {
     "type": "sensor",
-    "name": "Physics",
+    "name": "Character Physics",
     "cls": "PhysicsSensorSensor",
     "domain": "3d",
     "category": "General",
@@ -6002,7 +6187,7 @@
   },
   {
     "type": "sensor",
-    "name": "Input Map",
+    "name": "Input",
     "cls": "InputMapSensorSensor",
     "domain": "common",
     "category": "General",
@@ -6106,7 +6291,7 @@
     "cls": "RandomSensorSensor",
     "domain": "common",
     "category": "General",
-    "description": "Activates randomly each time it is evaluated.\\\\nPair with a Delay Sensor to control how often it rolls.\\\\nUseful for random behaviors, AI variation, and loot rolls.",
+    "description": "Activates randomly each time it is evaluated.\\\\nPair with a Delay Trigger to control how often it rolls.\\\\nUseful for random behaviors, AI variation, and loot rolls.",
     "props": [
       [
         "trigger_mode",
@@ -6167,11 +6352,11 @@
   },
   {
     "type": "sensor",
-    "name": "Signal",
+    "name": "Signal Receive",
     "cls": "MessageSensorSensor",
     "domain": "common",
     "category": "General",
-    "description": "Detects signals sent by a Signal Actuator.\\nListens for a specific subject.",
+    "description": "Detects signals sent by a Signal Send Action.\\nListens for a specific subject.",
     "props": [
       [
         "subject",
@@ -6271,7 +6456,7 @@
   },
   {
     "type": "sensor",
-    "name": "Input Map",
+    "name": "Input",
     "cls": "UIInputMapSensor",
     "domain": "ui",
     "category": "General",
@@ -6389,7 +6574,7 @@
   },
   {
     "type": "sensor",
-    "name": "Signal",
+    "name": "Signal Receive",
     "cls": "UIMessageSensor",
     "domain": "ui",
     "category": "General",

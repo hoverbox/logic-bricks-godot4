@@ -18,9 +18,9 @@
         <button aria-expanded="false" aria-label="Toggle 3D Bricks submenu" class="nav-toggle" type="button">▸</button>
       </div>
       <div class="nav-submenu">
-        <a data-page="sensors-3d.html" href="sensors-3d.html">Sensors</a>
-        <a data-page="controllers-3d.html" href="controllers-3d.html">Controllers</a>
-        <a data-page="actuators-3d.html" href="actuators-3d.html">Actuators</a>
+        <a data-page="sensors-3d.html" href="sensors-3d.html">Triggers</a>
+        <a data-page="controllers-3d.html" href="controllers-3d.html">Gates</a>
+        <a data-page="actuators-3d.html" href="actuators-3d.html">Actions</a>
       </div>
     </div>
     <div class="nav-group" data-nav-group="2d">
@@ -29,9 +29,9 @@
         <button aria-expanded="false" aria-label="Toggle 2D Bricks submenu" class="nav-toggle" type="button">▸</button>
       </div>
       <div class="nav-submenu">
-        <a data-page="sensors-2d.html" href="sensors-2d.html">Sensors</a>
-        <a data-page="controllers-2d.html" href="controllers-2d.html">Controllers</a>
-        <a data-page="actuators-2d.html" href="actuators-2d.html">Actuators</a>
+        <a data-page="sensors-2d.html" href="sensors-2d.html">Triggers</a>
+        <a data-page="controllers-2d.html" href="controllers-2d.html">Gates</a>
+        <a data-page="actuators-2d.html" href="actuators-2d.html">Actions</a>
       </div>
     </div>
     <div class="nav-group" data-nav-group="ui">
@@ -40,9 +40,9 @@
         <button aria-expanded="false" aria-label="Toggle UI Bricks submenu" class="nav-toggle" type="button">▸</button>
       </div>
       <div class="nav-submenu">
-        <a data-page="sensors-ui.html" href="sensors-ui.html">Sensors</a>
-        <a data-page="controllers-ui.html" href="controllers-ui.html">Controllers</a>
-        <a data-page="actuators-ui.html" href="actuators-ui.html">Actuators</a>
+        <a data-page="sensors-ui.html" href="sensors-ui.html">Triggers</a>
+        <a data-page="controllers-ui.html" href="controllers-ui.html">Gates</a>
+        <a data-page="actuators-ui.html" href="actuators-ui.html">Actions</a>
       </div>
     </div>
     <a data-page="advanced.html" href="advanced.html">Advanced</a>

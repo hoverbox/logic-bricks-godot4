@@ -14,6 +14,10 @@ func _init() -> void:
 	brick_name = "Gravity"
 
 
+func get_compatibility_error(node: Node) -> String:
+	return "" if node is RigidBody3D else "Requires RigidBody3D"
+
+
 func _initialize_properties() -> void:
 	properties = {
 		"gravity_strength": "9.8",  # Acceleration in units/sec^2; accepts numbers, variables, or expressions

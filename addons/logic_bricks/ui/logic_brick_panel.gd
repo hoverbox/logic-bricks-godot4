@@ -8,7 +8,6 @@ const BrickGraphNode    = preload("res://addons/logic_bricks/ui/brick_graph_node
 const VariableUtils = preload("res://addons/logic_bricks/core/logic_brick_variable_utils.gd")
 const BrickRegistry = preload("res://addons/logic_bricks/core/brick_registry.gd")
 const DocumentationHelper = preload("res://addons/logic_bricks/core/documentation_helper.gd")
-const TutorialWindow = preload("res://addons/logic_bricks/ui/tutorial_window.gd")
 
 var manager = null
 var editor_interface = null
@@ -21,19 +20,28 @@ var _selection_clipboard: Dictionary = {}  # Selected bricks only — survives n
 var is_locked: bool = false  # Lock to prevent losing current_node on selection change
 var _instance_override: bool = false  # Allow editing instanced nodes when true
 var _instance_panel: PanelContainer = null  # The instance warning/choice panel
+var _script_required_overlay: CenterContainer = null  # Blocks Logic Bricks until the node has a script
+var _script_required_desc: Label = null
+var _script_parent_warning: Label = null
+var _script_select_parent_button: Button = null
 
 var node_info_label: Label
+var add_script_button: Button
 var lock_button: Button
 var _template_save_dialog: FileDialog
 var _template_load_dialog: FileDialog
 var _graph_image_dialog: FileDialog
 var options_menu: PopupMenu
 var _popout_button: Button         # Toggles floating window
-var _tutorial_window: Window = null
 var _popout_window: Window = null  # The detached floating window (null when docked)
 var _main_hsplit: HSplitContainer  # The bottom-panel hsplit (kept as member for re-docking)
 var _toolbar_separator: HSeparator  # Separator above the toolbar (moved with toolbar)
 var _toolbar: HBoxContainer         # Bottom toolbar with Add Frame / Apply Code (moved on popout)
+var _apply_code_button: Button = null
+var _has_unapplied_changes: bool = false
+var _dirty_indicator_token: int = 0
+var _apply_validation_active: bool = false
+var _suppress_dirty_mark: bool = false
 var _instructions_label: Label      # "Select a node" label (moved with graph area)
 var graph_edit: GraphEdit
 var add_menu: PopupMenu
@@ -58,8 +66,8 @@ var _side_content_scroll: ScrollContainer # right content column
 var _side_stack: VBoxContainer          # right column — only one child visible at a time
 var _collapse_button: Button            # collapses to icon rail only
 var _side_collapsed: bool = false
-var _expanded_side_width: int = 300
-var _active_tab_index: int = 0          # 0=Variables, 1=Globals, 2=States, 3=Frames
+var _expanded_side_width: int = 360
+var _active_tab_index: int = 0          # 0=Variables, 1=Globals, 2=States, 3=Frames, 4=Customize
 var _nav_buttons: Array[Button] = []    # Kept so we can update active highlight
 var variables_panel: VBoxContainer
 var variables_list: VBoxContainer
@@ -70,6 +78,7 @@ var global_vars_list: VBoxContainer  # UI container for the globals section
 var frames_panel: VBoxContainer
 var frames_list: ItemList
 var states_panel: VBoxContainer
+var customize_panel: VBoxContainer
 var states_data: Array[Dictionary] = []
 var states_list: VBoxContainer
 var state_debug_button: Button
@@ -81,6 +90,22 @@ var _clipboard_helper = preload("res://addons/logic_bricks/ui/panel_clipboard_he
 var _graph_helper = preload("res://addons/logic_bricks/ui/panel_graph_helper.gd").new()
 var _property_helper = preload("res://addons/logic_bricks/ui/panel_property_helper.gd").new()
 var _script_rebuild_helper = preload("res://addons/logic_bricks/ui/panel_script_rebuild_helper.gd").new()
+
+const DEFAULT_BRICK_SENSOR_COLOR := Color("038AA8")
+const DEFAULT_BRICK_CONTROLLER_COLOR := Color("6703A1")
+const DEFAULT_BRICK_ACTUATOR_COLOR := Color("B80449")
+const DEFAULT_BRICK_HEADER_TEXT_COLOR := Color("FFFFFF")
+const DEFAULT_BRICK_BODY_COLOR := Color("202020")
+const DEFAULT_GRAPH_BACKGROUND_COLOR := Color("111111")
+const EDITOR_COLOR_SETTING_PREFIX := "logic_bricks/editor_colors/"
+
+var _brick_sensor_color := DEFAULT_BRICK_SENSOR_COLOR
+var _brick_controller_color := DEFAULT_BRICK_CONTROLLER_COLOR
+var _brick_actuator_color := DEFAULT_BRICK_ACTUATOR_COLOR
+var _brick_header_text_color := DEFAULT_BRICK_HEADER_TEXT_COLOR
+var _brick_body_color := DEFAULT_BRICK_BODY_COLOR
+var _graph_background_color := DEFAULT_GRAPH_BACKGROUND_COLOR
+var _customize_color_pickers: Dictionary = {}
 
 
 func _init() -> void:
@@ -97,14 +122,6 @@ func _init() -> void:
 	# Create header
 	var header_hbox = HBoxContainer.new()
 	add_child(header_hbox)
-
-	# Keep the tutorial entry at the far left so it stays separate from
-	# frequently used node and window controls on the right.
-	var tutorial_button = Button.new()
-	tutorial_button.text = "Tutorial"
-	tutorial_button.tooltip_text = "Open the Logic Bricks getting-started tutorial"
-	tutorial_button.pressed.connect(_on_tutorial_pressed)
-	header_hbox.add_child(tutorial_button)
 
 	var documentation_button = Button.new()
 	documentation_button.text = "Documentation"
@@ -146,7 +163,7 @@ func _init() -> void:
 	# Create horizontal split: graph on left, variables on right
 	_main_hsplit = HSplitContainer.new()
 	_main_hsplit.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_main_hsplit.split_offset = -300  # Variables panel takes 300px from the right
+	_main_hsplit.split_offset = -360  # Keep variable controls, including delete, visible by default
 	add_child(_main_hsplit)
 
 	# GraphEdit for visual node connections (LEFT SIDE)
@@ -157,6 +174,8 @@ func _init() -> void:
 	graph_edit.show_zoom_label = true
 	graph_edit.minimap_enabled = true
 	graph_edit.minimap_size = Vector2(200, 150)
+
+	_create_script_required_overlay()
 
 	# Enable panning - allow dragging the canvas
 	graph_edit.panning_scheme = GraphEdit.SCROLL_ZOOMS  # Mouse wheel zooms, drag pans
@@ -203,21 +222,55 @@ func _init() -> void:
 	add_frame_button.pressed.connect(_on_add_frame_pressed)
 	_toolbar.add_child(add_frame_button)
 
-	var apply_code_button = Button.new()
-	apply_code_button.text = "Apply Code"
-	apply_code_button.pressed.connect(_on_apply_code_pressed)
-	_toolbar.add_child(apply_code_button)
+	_apply_code_button = Button.new()
+	_apply_code_button.text = "Apply Code"
+	_apply_code_button.pressed.connect(_on_apply_code_pressed)
+	_toolbar.add_child(_apply_code_button)
+
+
+func _ready() -> void:
+	_load_editor_customization()
 
 
 func _on_documentation_pressed() -> void:
 	DocumentationHelper.open_home()
 
 
-func _on_tutorial_pressed() -> void:
-	if not is_instance_valid(_tutorial_window):
-		_tutorial_window = TutorialWindow.new()
-		add_child(_tutorial_window)
-	_tutorial_window.open_tutorial()
+func _on_add_script_pressed() -> void:
+	if not current_node or current_node.get_script():
+		_update_ui()
+		return
+
+	var scene_root = editor_interface.get_edited_scene_root() if editor_interface else null
+	var scene_dir = scene_root.scene_file_path.get_base_dir() if scene_root and not scene_root.scene_file_path.is_empty() else "res://"
+	var base_name = current_node.name.to_snake_case().validate_filename()
+	if base_name.is_empty():
+		base_name = "logic_brick_node"
+
+	var script_path = scene_dir.path_join(base_name + ".gd")
+	var suffix = 2
+	while FileAccess.file_exists(script_path):
+		script_path = scene_dir.path_join("%s_%d.gd" % [base_name, suffix])
+		suffix += 1
+
+	var file = FileAccess.open(script_path, FileAccess.WRITE)
+	if not file:
+		push_error("Logic Bricks: Could not create script at %s" % script_path)
+		return
+	file.store_string("extends %s\n" % current_node.get_class())
+	file.close()
+
+	if editor_interface:
+		editor_interface.get_resource_filesystem().update_file(script_path)
+	var script = ResourceLoader.load(script_path, "GDScript", ResourceLoader.CACHE_MODE_IGNORE)
+	if not script:
+		push_error("Logic Bricks: Script was created but could not be loaded: %s" % script_path)
+		return
+
+	current_node.set_script(script)
+	if editor_interface:
+		editor_interface.mark_scene_as_unsaved()
+	_update_ui()
 
 
 func _create_template_dialogs() -> void:
@@ -295,9 +348,10 @@ func _create_add_menu() -> void:
 	actuators_menu.id_pressed.connect(_on_add_menu_item_selected)
 	_enable_brick_menu_doc_right_click(actuators_menu)
 
-	add_menu.add_submenu_item("Sensors", "SensorsMenu", 0)
-	add_menu.add_submenu_item("Controllers", "ControllersMenu", 1)
-	add_menu.add_submenu_item("Actuators", "ActuatorsMenu", 2)
+	add_menu.add_submenu_item("Triggers", "SensorsMenu", 0)
+	add_menu.add_submenu_item("Gates", "ControllersMenu", 1)
+	add_menu.add_submenu_item("Actions", "ActuatorsMenu", 2)
+	_apply_add_menu_colors()
 	add_menu.add_separator()
 	add_menu.add_item("🔍 Search…", 4)
 	add_menu.add_item("Reroute", 3)
@@ -411,7 +465,13 @@ func _on_brick_menu_context_id_pressed(id: int) -> void:
 func _populate_brick_menu_flat(menu: PopupMenu, bricks: Array) -> void:
 	for info in bricks:
 		var id := int(info.get("menu_id", 0))
-		menu.add_item(str(info.get("name", info.get("class", "Brick"))), id)
+		var display_name := str(info.get("name", info.get("class", "Brick")))
+		if str(info.get("type", "")) == "controller":
+			if display_name == "Controller":
+				display_name = "Gate"
+			elif display_name == "Script Controller":
+				display_name = "Script Gate"
+		menu.add_item(display_name, id)
 		var idx := menu.get_item_index(id)
 		menu.set_item_metadata(idx, {"type": str(info.get("type", "")), "class": str(info.get("class", ""))})
 		var description := str(info.get("description", ""))
@@ -475,6 +535,7 @@ func _create_side_panel() -> void:
 	_side_hbox.add_child(_side_nav_panel)
 
 	_side_nav = VBoxContainer.new()
+	_side_nav.add_theme_constant_override("separation", 8)
 	_side_nav.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_side_nav.alignment = BoxContainer.ALIGNMENT_BEGIN
 	_side_nav_panel.add_child(_side_nav)
@@ -500,21 +561,24 @@ func _create_side_panel() -> void:
 	_side_hbox.add_child(_side_content_scroll)
 
 	_side_stack = VBoxContainer.new()
+	_side_stack.add_theme_constant_override("separation", 8)
 	_side_stack.custom_minimum_size = Vector2.ZERO
 	_side_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_side_stack.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_side_content_scroll.add_child(_side_stack)
 
-	# Build the three content panels
+	# Build the content panels
 	_create_variables_tab()
 	_create_global_variables_tab()
 	_create_frames_tab()
 	_create_states_tab()
+	_create_customize_tab()
 
 	_side_stack.add_child(variables_panel)
 	_side_stack.add_child(global_vars_panel)
 	_side_stack.add_child(states_panel)
 	_side_stack.add_child(frames_panel)
+	_side_stack.add_child(customize_panel)
 
 	# Build nav buttons (one per panel)
 	var tab_defs = [
@@ -542,6 +606,29 @@ func _create_side_panel() -> void:
 		btn.pressed.connect(func(): _on_side_tab_pressed(idx))
 		_side_nav.add_child(btn)
 		_nav_buttons.append(btn)
+
+	# Keep editor customization at the bottom of the rail.
+	var nav_spacer = Control.new()
+	nav_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_side_nav.add_child(nav_spacer)
+
+	var customize_btn = Button.new()
+	customize_btn.flat = false
+	customize_btn.toggle_mode = false
+	customize_btn.focus_mode = Control.FOCUS_NONE
+	customize_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	customize_btn.custom_minimum_size = Vector2(32, 32)
+	customize_btn.tooltip_text = "Customize Editor"
+	customize_btn.text = "C"
+	customize_btn.expand_icon = false
+	customize_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	customize_btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+	customize_btn.theme_type_variation = "FlatButton"
+	customize_btn.set_meta("icon_name", "Color")
+	customize_btn.set_meta("fallback_text", "C")
+	customize_btn.pressed.connect(func(): _on_side_tab_pressed(4))
+	_side_nav.add_child(customize_btn)
+	_nav_buttons.append(customize_btn)
 
 	_apply_side_tab_icons()
 	_update_collapse_button_icon()
@@ -710,9 +797,165 @@ func _set_global_used_in_current_script(index: int, enabled: bool) -> void:
 	_mark_scene_modified()
 
 
+func _create_customize_tab() -> void:
+	customize_panel = VBoxContainer.new()
+	customize_panel.add_theme_constant_override("separation", 8)
+	customize_panel.name = "Customize"
+	customize_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+
+	var title = Label.new()
+	title.text = "Customize Editor"
+	var title_font = title.get_theme_font("bold", "EditorFonts")
+	if title_font:
+		title.add_theme_font_override("font", title_font)
+	customize_panel.add_child(title)
+
+	var hint = Label.new()
+	hint.text = "Colors are saved for this editor user."
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65))
+	hint.add_theme_font_size_override("font_size", 10)
+	customize_panel.add_child(hint)
+
+	customize_panel.add_child(HSeparator.new())
+	_add_customize_color_row("Trigger Header", "sensor_header", _brick_sensor_color)
+	_add_customize_color_row("Gate Header", "controller_header", _brick_controller_color)
+	_add_customize_color_row("Action Header", "actuator_header", _brick_actuator_color)
+	_add_customize_color_row("Header Text", "header_text", _brick_header_text_color)
+	_add_customize_color_row("Brick Body", "brick_body", _brick_body_color)
+	_add_customize_color_row("Graph Background", "graph_background", _graph_background_color)
+
+	customize_panel.add_child(HSeparator.new())
+	var reset_button = Button.new()
+	reset_button.text = "Reset Colors"
+	reset_button.tooltip_text = "Restore the default Logic Bricks editor colors"
+	reset_button.pressed.connect(_reset_editor_customization)
+	customize_panel.add_child(reset_button)
+
+
+func _add_customize_color_row(label_text: String, key: String, color: Color) -> void:
+	var row = HBoxContainer.new()
+	customize_panel.add_child(row)
+
+	var label = Label.new()
+	label.text = label_text
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(label)
+
+	var picker = ColorPickerButton.new()
+	picker.color = color
+	picker.edit_alpha = false
+	picker.custom_minimum_size = Vector2(72, 28)
+	picker.tooltip_text = "Change " + label_text.to_lower()
+	picker.color_changed.connect(_on_customize_color_changed.bind(key))
+	row.add_child(picker)
+	_customize_color_pickers[key] = picker
+
+
+func _on_customize_color_changed(color: Color, key: String) -> void:
+	_set_customization_color(key, color)
+	_save_editor_customization_color(key, color)
+	_apply_editor_customization()
+
+
+func _set_customization_color(key: String, color: Color) -> void:
+	match key:
+		"sensor_header": _brick_sensor_color = color
+		"controller_header": _brick_controller_color = color
+		"actuator_header": _brick_actuator_color = color
+		"header_text": _brick_header_text_color = color
+		"brick_body": _brick_body_color = color
+		"graph_background": _graph_background_color = color
+
+
+func _get_logic_bricks_editor_settings():
+	if editor_interface and editor_interface.has_method("get_editor_settings"):
+		return editor_interface.get_editor_settings()
+	return null
+
+
+func _load_editor_customization() -> void:
+	var settings = _get_logic_bricks_editor_settings()
+	if settings:
+		for key in ["sensor_header", "controller_header", "actuator_header", "header_text", "brick_body", "graph_background"]:
+			var setting_name = EDITOR_COLOR_SETTING_PREFIX + key
+			if settings.has_setting(setting_name):
+				var saved = settings.get_setting(setting_name)
+				if saved is Color:
+					_set_customization_color(key, saved)
+	_sync_customize_color_pickers()
+	_apply_editor_customization()
+
+
+func _save_editor_customization_color(key: String, color: Color) -> void:
+	var settings = _get_logic_bricks_editor_settings()
+	if settings:
+		settings.set_setting(EDITOR_COLOR_SETTING_PREFIX + key, color)
+
+
+func _sync_customize_color_pickers() -> void:
+	var colors = {
+		"sensor_header": _brick_sensor_color,
+		"controller_header": _brick_controller_color,
+		"actuator_header": _brick_actuator_color,
+		"header_text": _brick_header_text_color,
+		"brick_body": _brick_body_color,
+		"graph_background": _graph_background_color,
+	}
+	for key in colors:
+		var picker = _customize_color_pickers.get(key)
+		if is_instance_valid(picker):
+			picker.color = colors[key]
+
+
+func _reset_editor_customization() -> void:
+	var defaults = {
+		"sensor_header": DEFAULT_BRICK_SENSOR_COLOR,
+		"controller_header": DEFAULT_BRICK_CONTROLLER_COLOR,
+		"actuator_header": DEFAULT_BRICK_ACTUATOR_COLOR,
+		"header_text": DEFAULT_BRICK_HEADER_TEXT_COLOR,
+		"brick_body": DEFAULT_BRICK_BODY_COLOR,
+		"graph_background": DEFAULT_GRAPH_BACKGROUND_COLOR,
+	}
+	for key in defaults:
+		_set_customization_color(key, defaults[key])
+		_save_editor_customization_color(key, defaults[key])
+	_sync_customize_color_pickers()
+	_apply_editor_customization()
+
+
+func _make_menu_color_icon(color: Color) -> ImageTexture:
+	var image = Image.create(12, 12, false, Image.FORMAT_RGBA8)
+	image.fill(color)
+	return ImageTexture.create_from_image(image)
+
+
+func _apply_add_menu_colors() -> void:
+	if not is_instance_valid(add_menu):
+		return
+	# PopupMenu does not support a different background/text color per item, so
+	# use color swatches that stay readable and track the customizable headers.
+	add_menu.set_item_icon(0, _make_menu_color_icon(_brick_sensor_color))
+	add_menu.set_item_icon(1, _make_menu_color_icon(_brick_controller_color))
+	add_menu.set_item_icon(2, _make_menu_color_icon(_brick_actuator_color))
+
+
+func _apply_editor_customization() -> void:
+	_apply_add_menu_colors()
+	if graph_edit:
+		var graph_style = StyleBoxFlat.new()
+		graph_style.bg_color = _graph_background_color
+		graph_edit.add_theme_stylebox_override("panel", graph_style)
+		for child in graph_edit.get_children():
+			if child is GraphNode and child.has_meta("brick_data"):
+				var brick_data = child.get_meta("brick_data")
+				_apply_brick_visual_style(child, str(brick_data.get("brick_type", "")))
+
+
 func _create_variables_tab() -> void:
 	# Create the variables management tab
 	variables_panel = VBoxContainer.new()
+	variables_panel.add_theme_constant_override("separation", 8)
 	variables_panel.name = "Variables"
 	variables_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
@@ -743,6 +986,7 @@ func _create_variables_tab() -> void:
 	variables_panel.add_child(scroll)
 
 	variables_list = VBoxContainer.new()
+	variables_list.add_theme_constant_override("separation", 8)
 	variables_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(variables_list)
 
@@ -750,6 +994,7 @@ func _create_variables_tab() -> void:
 func _create_global_variables_tab() -> void:
 	# Create the global variables management tab (scene-wide, stored on scene root)
 	global_vars_panel = VBoxContainer.new()
+	global_vars_panel.add_theme_constant_override("separation", 8)
 	global_vars_panel.name = "Globals"
 	global_vars_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
@@ -789,6 +1034,7 @@ func _create_global_variables_tab() -> void:
 	global_vars_panel.add_child(global_scroll)
 
 	global_vars_list = VBoxContainer.new()
+	global_vars_list.add_theme_constant_override("separation", 8)
 	global_vars_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	global_scroll.add_child(global_vars_list)
 
@@ -796,6 +1042,7 @@ func _create_global_variables_tab() -> void:
 func _create_frames_tab() -> void:
 	# Create the frames management tab
 	frames_panel = VBoxContainer.new()
+	frames_panel.add_theme_constant_override("separation", 8)
 	frames_panel.name = "Frames"
 	frames_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
@@ -835,6 +1082,7 @@ func _create_frames_tab() -> void:
 
 	# Frame settings (shown when a frame is selected)
 	frame_settings_container = VBoxContainer.new()
+	frame_settings_container.add_theme_constant_override("separation", 8)
 	frame_settings_container.name = "FrameSettings"
 	frame_settings_container.visible = false
 	frames_panel.add_child(frame_settings_container)
@@ -956,6 +1204,7 @@ func _create_frames_tab() -> void:
 
 func _create_states_tab() -> void:
 	states_panel = VBoxContainer.new()
+	states_panel.add_theme_constant_override("separation", 8)
 	states_panel.name = "States"
 	states_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
@@ -992,6 +1241,7 @@ func _create_states_tab() -> void:
 	states_panel.add_child(scroll)
 
 	states_list = VBoxContainer.new()
+	states_list.add_theme_constant_override("separation", 8)
 	states_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(states_list)
 
@@ -1085,6 +1335,7 @@ func _create_state_item_ui(index: int, state_data: Dictionary) -> void:
 	states_list.add_child(item_panel)
 
 	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
 	item_panel.add_child(vbox)
 
 	var header = HBoxContainer.new()
@@ -1175,21 +1426,35 @@ func set_selected_node(node: Node) -> void:
 	_instance_override = false
 	_hide_instance_panel()
 
-	# Save current state before switching (but NOT if current node is an instance)
+	# Save current state before switching (but NOT if current node is an instance).
+	# This bookkeeping save is not a user edit, so it must not create a false
+	# "unapplied changes" indicator on the next node.
+	_suppress_dirty_mark = true
 	if current_node and not _is_part_of_instance(current_node):
 		_save_graph_to_metadata()
 		_frames_helper.save_frames_to_metadata(self)
+	_suppress_dirty_mark = false
 
+	_clear_all_apply_warnings()
+	_apply_validation_active = false
+	_clear_unapplied_changes()
 	current_node = node
 	_update_ui()
 
 
 func _update_ui() -> void:
+	node_info_label.remove_theme_color_override("font_color")
+	_hide_script_required_overlay()
+
 	if not current_node:
 		current_brick_domain = ""
 		node_info_label.text = "No node selected - Select a Node3D, Node2D, or UI Control node in the scene tree"
 		graph_edit.visible = false
 		_apply_side_panel_visibility()
+		if _toolbar:
+			_toolbar.visible = false
+		if _toolbar_separator:
+			_toolbar_separator.visible = false
 		if _instructions_label:
 			_instructions_label.visible = true
 		return
@@ -1200,33 +1465,61 @@ func _update_ui() -> void:
 		node_info_label.text = "Unsupported node type: %s - Use a Node3D, Node2D, or UI Control node" % current_node.get_class()
 		graph_edit.visible = false
 		_apply_side_panel_visibility()
+		if _toolbar:
+			_toolbar.visible = false
+		if _toolbar_separator:
+			_toolbar_separator.visible = false
 		if _instructions_label:
 			_instructions_label.visible = true
 		return
 
-	# Check if node is part of an instanced scene
+	# Instanced scenes must be explicitly unlocked before any other editing choice.
 	if _is_part_of_instance(current_node) and not _instance_override:
 		node_info_label.text = "⚠ Instanced Node: %s" % current_node.name
 		node_info_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.0))
 		graph_edit.visible = false
 		_apply_side_panel_visibility()
+		if _toolbar:
+			_toolbar.visible = false
+		if _toolbar_separator:
+			_toolbar_separator.visible = false
 		if _instructions_label:
 			_instructions_label.visible = false
 		_show_instance_panel()
 		return
 
-	# Hide instance panel if showing
+	# Hide instance panel after choosing Edit This Instance, or for regular nodes.
 	_hide_instance_panel()
 
-	# Reset label color to normal
-	node_info_label.remove_theme_color_override("font_color")
-
-	# Update header
 	current_brick_domain = _get_selected_node_domain()
 	_refresh_add_menu_from_registry(false)
+
+	# A script is required before Logic Bricks can be edited. Show a full blocking
+	# prompt in the graph area instead of allowing students into a dead-end state.
+	if current_node.get_script() == null:
+		_clear_graph_display()
+		node_info_label.text = "⚠ Node: %s (%s) - Script required" % [current_node.name, current_node.get_class()]
+		node_info_label.add_theme_color_override("font_color", Color(1.0, 0.7, 0.2))
+		graph_edit.visible = true
+		_apply_side_panel_visibility()
+		if side_panel:
+			side_panel.visible = false
+		if _toolbar:
+			_toolbar.visible = false
+		if _toolbar_separator:
+			_toolbar_separator.visible = false
+		if _instructions_label:
+			_instructions_label.visible = false
+		_show_script_required_overlay()
+		return
+
 	node_info_label.text = "✓ Node: %s (%s) - Right-click to add %s bricks" % [current_node.name, current_node.get_class(), current_brick_domain.to_upper()]
 	graph_edit.visible = true
 	_apply_side_panel_visibility()
+	if _toolbar:
+		_toolbar.visible = true
+	if _toolbar_separator:
+		_toolbar_separator.visible = true
 	if _instructions_label:
 		_instructions_label.visible = false
 
@@ -1311,6 +1604,7 @@ func _popout_window_open() -> void:
 
 	# Root container inside the window (mirrors the bottom panel VBox structure)
 	var win_root = VBoxContainer.new()
+	win_root.add_theme_constant_override("separation", 8)
 	win_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_popout_window.add_child(win_root)
 
@@ -1404,6 +1698,103 @@ func _dock_window() -> void:
 	_popout_button.tooltip_text = "Pop out into a floating window (useful for 2nd screen)"
 
 
+func _create_script_required_overlay() -> void:
+	_script_required_overlay = CenterContainer.new()
+	_script_required_overlay.name = "ScriptRequiredOverlay"
+	_script_required_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_script_required_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_script_required_overlay.visible = false
+	graph_edit.add_child(_script_required_overlay)
+
+	var panel = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(430, 250)
+	_script_required_overlay.add_child(panel)
+
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	vbox.add_theme_constant_override("separation", 14)
+	panel.add_child(vbox)
+
+	var title = Label.new()
+	title.text = "⚠  Script Required"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_color_override("font_color", Color(1.0, 0.7, 0.2))
+	vbox.add_child(title)
+
+	_script_required_desc = Label.new()
+	_script_required_desc.text = "Logic Bricks cannot be added to this node until it has a script."
+	_script_required_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_script_required_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(_script_required_desc)
+
+	add_script_button = Button.new()
+	add_script_button.text = "Add Script to Node"
+	add_script_button.tooltip_text = "Create and attach the script required by Logic Bricks"
+	add_script_button.custom_minimum_size = Vector2(220, 44)
+	add_script_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	add_script_button.pressed.connect(_on_add_script_pressed)
+	vbox.add_child(add_script_button)
+
+	_script_parent_warning = Label.new()
+	_script_parent_warning.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_script_parent_warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_script_parent_warning.add_theme_color_override("font_color", Color(1.0, 0.65, 0.2))
+	_script_parent_warning.visible = false
+	vbox.add_child(_script_parent_warning)
+
+	_script_select_parent_button = Button.new()
+	_script_select_parent_button.text = "Select Parent"
+	_script_select_parent_button.tooltip_text = "Select the nearest parent that already has a script or Logic Bricks"
+	_script_select_parent_button.custom_minimum_size = Vector2(220, 40)
+	_script_select_parent_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_script_select_parent_button.visible = false
+	_script_select_parent_button.pressed.connect(_on_select_parent_pressed)
+	vbox.add_child(_script_select_parent_button)
+
+
+func _show_script_required_overlay() -> void:
+	if not _script_required_overlay:
+		return
+
+	var parent_with_logic = _get_parent_with_script_or_logic()
+	if _script_parent_warning:
+		_script_parent_warning.text = "This is a child of a node with a script/logic."
+		_script_parent_warning.visible = parent_with_logic != null
+	if _script_select_parent_button:
+		_script_select_parent_button.visible = parent_with_logic != null
+
+	_script_required_overlay.visible = true
+	_script_required_overlay.move_to_front()
+
+
+func _get_parent_with_script_or_logic() -> Node:
+	if not current_node:
+		return null
+
+	var parent = current_node.get_parent()
+	while parent:
+		if parent.get_script() != null or parent.has_meta("logic_bricks_graph") or parent.has_meta("logic_bricks"):
+			return parent
+		parent = parent.get_parent()
+	return null
+
+
+func _on_select_parent_pressed() -> void:
+	var parent_with_logic = _get_parent_with_script_or_logic()
+	if not parent_with_logic or not editor_interface:
+		return
+
+	var selection = editor_interface.get_selection()
+	selection.clear()
+	selection.add_node(parent_with_logic)
+
+
+func _hide_script_required_overlay() -> void:
+	if _script_required_overlay:
+		_script_required_overlay.visible = false
+
+
 func _show_instance_panel() -> void:
 	if _instance_panel:
 		_instance_panel.visible = true
@@ -1415,6 +1806,7 @@ func _show_instance_panel() -> void:
 	_instance_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
 	vbox.add_theme_constant_override("separation", 10)
 	_instance_panel.add_child(vbox)
 
@@ -1506,8 +1898,7 @@ func _is_part_of_instance(node: Node) -> bool:
 	return false
 
 
-func _load_graph_from_metadata() -> void:
-	# Clear existing graph - disconnect first, then remove nodes immediately
+func _clear_graph_display() -> void:
 	graph_edit.clear_connections()
 	var children_to_remove = []
 	for child in graph_edit.get_children():
@@ -1516,6 +1907,11 @@ func _load_graph_from_metadata() -> void:
 	for child in children_to_remove:
 		graph_edit.remove_child(child)
 		child.free()
+
+
+func _load_graph_from_metadata() -> void:
+	# Clear existing graph before loading the selected node.
+	_clear_graph_display()
 
 	if not current_node or not current_node.has_meta("logic_bricks_graph"):
 		pass
@@ -1578,7 +1974,115 @@ func _save_graph_to_metadata(action_name: String = "Edit Logic Bricks", record_c
 	_clipboard_helper.save_graph_to_metadata(action_name, record_change, merge)
 
 
+func _mark_unapplied_changes() -> void:
+	if _suppress_dirty_mark:
+		return
+	_has_unapplied_changes = true
+	_dirty_indicator_token += 1
+	var token = _dirty_indicator_token
+	# Deliberately delayed so the UI does not nag during every click/keystroke.
+	get_tree().create_timer(1.5).timeout.connect(func():
+		if token == _dirty_indicator_token and _has_unapplied_changes and is_instance_valid(_apply_code_button):
+			_apply_code_button.text = "Apply Code  •"
+			_apply_code_button.tooltip_text = "The graph has changes that have not been applied to the script yet."
+	)
+
+
+func _clear_unapplied_changes() -> void:
+	_has_unapplied_changes = false
+	_dirty_indicator_token += 1
+	if is_instance_valid(_apply_code_button):
+		_apply_code_button.text = "Apply Code"
+		_apply_code_button.tooltip_text = ""
+
+
+func _warning_node_name(graph_node: GraphNode) -> String:
+	return "apply_warning_" + str(graph_node.name)
+
+
+func _remove_apply_warning(graph_node: GraphNode) -> void:
+	var warning = graph_edit.get_node_or_null(NodePath(_warning_node_name(graph_node)))
+	if warning:
+		graph_edit.remove_child(warning)
+		warning.queue_free()
+
+
+func _set_apply_warning(graph_node: GraphNode, messages: Array[String]) -> void:
+	_remove_apply_warning(graph_node)
+	if messages.is_empty():
+		return
+	var warning = GraphNode.new()
+	warning.name = _warning_node_name(graph_node)
+	warning.title = ""
+	warning.draggable = false
+	warning.selectable = false
+	warning.resizable = false
+	warning.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	warning.z_index = 100
+	var label = Label.new()
+	label.text = "⚠ " + " • ".join(messages)
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	warning.add_child(label)
+	var box = StyleBoxFlat.new()
+	box.bg_color = Color("5a430d")
+	box.border_color = Color("f2b84b")
+	box.set_border_width_all(2)
+	box.content_margin_left = 10
+	box.content_margin_right = 20
+	box.content_margin_top = 6
+	box.content_margin_bottom = 6
+	box.corner_radius_top_left = 5
+	box.corner_radius_top_right = 5
+	box.corner_radius_bottom_left = 5
+	box.corner_radius_bottom_right = 5
+	warning.add_theme_stylebox_override("panel", box)
+	warning.add_theme_stylebox_override("panel_selected", box)
+	var empty_title = StyleBoxEmpty.new()
+	warning.add_theme_stylebox_override("titlebar", empty_title)
+	warning.add_theme_stylebox_override("titlebar_selected", empty_title)
+	graph_edit.add_child(warning)
+	warning.size = warning.get_combined_minimum_size()
+	warning.position_offset = graph_node.position_offset + Vector2(0, -warning.size.y - 10)
+
+
+func _refresh_apply_validation_warnings() -> void:
+	if not _apply_validation_active or not is_instance_valid(graph_edit):
+		return
+	# Apply Code is the validation checkpoint. Rebuild the warning set from
+	# exactly the bricks that exist at this moment; later edits do not add
+	# warnings until Apply Code is pressed again.
+	_clear_all_apply_warnings()
+	var connections = graph_edit.get_connection_list()
+	for child in graph_edit.get_children():
+		if not (child is GraphNode and child.has_meta("brick_data")):
+			continue
+		var messages: Array[String] = []
+		if not _graph_helper.is_brick_in_complete_chain(child, connections):
+			messages.append("Incomplete Brick Chain")
+		var brick_data: Dictionary = child.get_meta("brick_data")
+		var brick_instance = brick_data.get("brick_instance")
+		if brick_instance and brick_instance.has_method("get_configuration_warnings"):
+			for message in brick_instance.call("get_configuration_warnings", current_node):
+				var text := str(message).strip_edges()
+				if not text.is_empty():
+					messages.append(text)
+		_set_apply_warning(child, messages)
+
+
+func _clear_all_apply_warnings() -> void:
+	var warnings_to_remove: Array[Node] = []
+	for child in graph_edit.get_children():
+		if child is GraphNode and str(child.name).begins_with("apply_warning_"):
+			warnings_to_remove.append(child)
+	for warning in warnings_to_remove:
+		graph_edit.remove_child(warning)
+		warning.queue_free()
+
+
 func _on_popup_request(position: Vector2) -> void:
+	if not current_node or current_node.get_script() == null:
+		return
 	# Store the position accounting for scroll offset
 	# position is in local graph coordinates, we need to add scroll offset
 	last_mouse_position = (position + graph_edit.scroll_offset) / graph_edit.zoom
@@ -1725,12 +2229,62 @@ func _get_brick_menu_metadata(id: int):
 	return null
 
 
+func _apply_brick_visual_style(graph_node: GraphNode, brick_type: String) -> void:
+	var header_color := Color.WHITE
+	match brick_type:
+		"sensor": header_color = _brick_sensor_color
+		"controller": header_color = _brick_controller_color
+		"actuator": header_color = _brick_actuator_color
+		_: return
+
+	var titlebar := StyleBoxFlat.new()
+	titlebar.bg_color = header_color
+	titlebar.corner_radius_top_left = 4
+	titlebar.corner_radius_top_right = 4
+	titlebar.content_margin_left = 10.0
+	var titlebar_selected := titlebar.duplicate()
+	titlebar_selected.bg_color = header_color.lightened(0.12)
+	graph_node.add_theme_stylebox_override("titlebar", titlebar)
+	graph_node.add_theme_stylebox_override("titlebar_selected", titlebar_selected)
+	# GraphNode exposes its title as a Label inside the titlebar HBox. Style that
+	# Label directly; GraphNode itself has no title text color theme property.
+	var titlebar_hbox := graph_node.get_titlebar_hbox()
+	if titlebar_hbox.get_child_count() > 0 and titlebar_hbox.get_child(0) is Label:
+		var title_label := titlebar_hbox.get_child(0) as Label
+		title_label.add_theme_color_override("font_color", _brick_header_text_color)
+		title_label.add_theme_color_override("font_outline_color", Color.TRANSPARENT)
+		title_label.add_theme_color_override("font_shadow_color", Color.TRANSPARENT)
+		title_label.add_theme_constant_override("outline_size", 0)
+
+	var body := StyleBoxFlat.new()
+	body.bg_color = _brick_body_color
+	body.corner_radius_bottom_left = 4
+	body.corner_radius_bottom_right = 4
+	var body_selected := body.duplicate()
+	body_selected.bg_color = _brick_body_color.lightened(0.08)
+	graph_node.add_theme_stylebox_override("panel", body)
+	graph_node.add_theme_stylebox_override("panel_selected", body_selected)
+
+	# Connections carry the color of the brick type they are flowing toward:
+	# sensor -> controller is cyan; controller -> actuator is magenta.
+	if brick_type == "sensor":
+		graph_node.set_slot(0, false, 0, Color.WHITE, true, 0, _brick_sensor_color)
+	elif brick_type == "controller":
+		graph_node.set_slot(0, true, 0, _brick_sensor_color, true, 0, _brick_actuator_color)
+	else:
+		graph_node.set_slot(0, true, 0, _brick_actuator_color, false, 0, Color.WHITE)
+
+
 func _create_graph_node(brick_type: String, brick_class: String, position: Vector2) -> void:
 	# Create the brick instance
 	var brick_instance = _create_brick_instance(brick_class)
 	if not brick_instance:
 		push_error("Logic Bricks: Failed to create brick instance for: " + brick_class)
 		return
+
+	# Let bricks choose smarter defaults from the node they are being added to.
+	if current_node and brick_instance.has_method("apply_context_defaults"):
+		brick_instance.call("apply_context_defaults", current_node)
 
 	# Create the GraphNode
 	var graph_node = BrickGraphNode.new()
@@ -1747,13 +2301,8 @@ func _create_graph_node(brick_type: String, brick_class: String, position: Vecto
 		"brick_instance": brick_instance
 	})
 
-	# Set up ports based on brick type
-	if brick_type == "sensor":
-		graph_node.set_slot(0, false, 0, Color.WHITE, true, 0, Color.GREEN)
-	elif brick_type == "controller":
-		graph_node.set_slot(0, true, 0, Color.GREEN, true, 0, Color.BLUE)
-	elif brick_type == "actuator":
-		graph_node.set_slot(0, true, 0, Color.BLUE, false, 0, Color.WHITE)
+	# Color-code brick headers and their connection ports.
+	_apply_brick_visual_style(graph_node, brick_type)
 
 	# Create UI for brick properties
 	_create_brick_ui(graph_node, brick_instance)
@@ -1848,13 +2397,8 @@ func _create_graph_node_from_data(node_data: Dictionary) -> GraphNode:
 		"brick_instance": brick_instance
 	})
 
-	# Set up ports
-	if brick_type == "sensor":
-		graph_node.set_slot(0, false, 0, Color.WHITE, true, 0, Color.GREEN)
-	elif brick_type == "controller":
-		graph_node.set_slot(0, true, 0, Color.GREEN, true, 0, Color.BLUE)
-	elif brick_type == "actuator":
-		graph_node.set_slot(0, true, 0, Color.BLUE, false, 0, Color.WHITE)
+	# Color-code brick headers and their connection ports.
+	_apply_brick_visual_style(graph_node, brick_type)
 
 	# Create UI
 	_create_brick_ui(graph_node, brick_instance)
@@ -2002,6 +2546,8 @@ func _on_connection_request(from_node: String, from_port: int, to_node: String, 
 
 
 func _on_graph_edit_input(event: InputEvent) -> void:
+	if not current_node or current_node.get_script() == null:
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		# Ctrl+D to duplicate selected nodes
 		if event.keycode == KEY_D and event.ctrl_pressed:
@@ -2274,6 +2820,7 @@ func _add_export_frame(canvas: Control, frame: GraphFrame, export_origin: Vector
 	canvas.add_child(panel)
 
 	var text_box := VBoxContainer.new()
+	text_box.add_theme_constant_override("separation", 8)
 	text_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(text_box)
 
@@ -2427,6 +2974,9 @@ func _on_apply_code_pressed() -> void:
 		push_error("Logic Bricks: Editor interface not available!")
 		return
 
+	_apply_validation_active = true
+	_refresh_apply_validation_warnings()
+
 	_graph_helper.sync_graph_ui_to_bricks()
 	_save_graph_to_metadata()
 
@@ -2438,7 +2988,7 @@ func _on_apply_code_pressed() -> void:
 		current_node.remove_meta("logic_bricks")
 
 	if not current_node.get_script():
-		push_error("Logic Bricks: Selected node has no script. Add a script manually before applying Logic Bricks code.")
+		push_error("Logic Bricks: Selected node has no script. Click Add Script to Node first.")
 		return
 
 	# Get script path before regeneration
@@ -2495,6 +3045,7 @@ func _on_apply_code_pressed() -> void:
 
 	# Apply the reloaded script to the node
 	_apply_node.set_script(reloaded_script)
+	_clear_unapplied_changes()
 
 	# Phase 2: assign @export vars now that the new script is live.
 	# This MUST come after set_script() or the assignments get wiped.
@@ -2526,8 +3077,8 @@ func _on_apply_code_pressed() -> void:
 	var prev_window_mode = DisplayServer.window_get_mode()
 	var restore_mode = DisplayServer.WINDOW_MODE_WINDOWED
 	if prev_window_mode == DisplayServer.WINDOW_MODE_MAXIMIZED or \
-	   prev_window_mode == DisplayServer.WINDOW_MODE_FULLSCREEN or \
-	   prev_window_mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN:
+		prev_window_mode == DisplayServer.WINDOW_MODE_FULLSCREEN or \
+		prev_window_mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN:
 		restore_mode = prev_window_mode
 
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)
@@ -2648,6 +3199,7 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
 	variables_list.add_child(panel)
 
 	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
 	panel.add_child(vbox)
 
 	var header = HBoxContainer.new()
@@ -2678,6 +3230,7 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
 	header.add_child(delete_btn)
 
 	var details = VBoxContainer.new()
+	details.add_theme_constant_override("separation", 8)
 	details.name = "Details"
 	vbox.add_child(details)
 
@@ -3012,6 +3565,7 @@ func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
 	global_vars_list.add_child(panel)
 
 	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
 	panel.add_child(vbox)
 
 	var header = HBoxContainer.new()
@@ -3040,6 +3594,7 @@ func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
 	header.add_child(delete_btn)
 
 	var details = VBoxContainer.new()
+	details.add_theme_constant_override("separation", 8)
 	details.name = "Details"
 	vbox.add_child(details)
 
@@ -3593,6 +4148,9 @@ func _on_add_frame_pressed() -> void:
 
 ## Handle brick node being dragged
 func _on_brick_node_dragged(from: Vector2, to: Vector2, node: GraphNode) -> void:
+	var warning = graph_edit.get_node_or_null(NodePath(_warning_node_name(node)))
+	if warning is GraphNode:
+		warning.position_offset = node.position_offset + Vector2(0, -warning.size.y - 10)
 	# Check if node entered/left any frames
 	_frames_helper.check_node_frame_membership(self, node)
 
@@ -3840,7 +4398,7 @@ func _apply_scene_setup_create(node: Node, chains: Array) -> void:
 							break
 						p = p.get_parent()
 				else:
-					push_warning("Screen Flash Actuator: Camera '%s' not found — using full window size" % cam_name)
+					push_warning("Screen Flash Action: Camera '%s' not found — using full window size" % cam_name)
 
 			# Find or create the CanvasLayer
 			var canvas_layer: CanvasLayer = null

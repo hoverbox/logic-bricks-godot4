@@ -234,8 +234,8 @@ func get_property_definitions() -> Array:
 
 		# === CUSTOM ===
 		{ "name": "_group_custom", "type": TYPE_NIL, "hint": 999, "hint_string": "Custom Property" },
-		{ "name": "custom_property", "type": TYPE_STRING, "default": "" },
-		{ "name": "custom_value",    "type": TYPE_STRING, "default": "" },
+		{ "name": "custom_property", "required": true, "required_label": "a custom property name", "required_if": {"node_type": "custom"}, "type": TYPE_STRING, "default": "" },
+		{ "name": "custom_value", "required": true, "required_label": "a custom property value", "required_if": {"node_type": "custom"},    "type": TYPE_STRING, "default": "" },
 	]
 
 

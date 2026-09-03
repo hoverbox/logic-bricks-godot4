@@ -8,15 +8,15 @@
 <title>
    Brick Reference A-Z | Logic Bricks Documentation
   </title>
-  <link rel="canonical" href="https://brithe3dguy.com/logic-bricks/docs/brick-reference.html"/>
-  <link href="assets/css/site.css" rel="stylesheet"/>
+<link href="https://brithe3dguy.com/logic-bricks/docs/brick-reference.html" rel="canonical"/>
+<link href="assets/css/site.css" rel="stylesheet"/>
 <link href="assets/images/favicon.svg" rel="icon" type="image/svg+xml"/>
 <meta content="#0A0A0F" name="theme-color"/>
-  <meta property="og:type" content="website"/>
-  <meta property="og:title" content="Brick Reference A-Z | Bri The 3D Guy"/>
-  <meta property="og:description" content="Official Logic Bricks documentation for Godot 4."/>
-  <meta property="og:url" content="https://brithe3dguy.com/logic-bricks/docs/brick-reference.html"/>
-  <meta property="og:image" content="https://brithe3dguy.com/images/bricks_thumb.png"/>
+<meta content="website" property="og:type"/>
+<meta content="Brick Reference A-Z | Bri The 3D Guy" property="og:title"/>
+<meta content="Official Logic Bricks documentation for Godot 4." property="og:description"/>
+<meta content="https://brithe3dguy.com/logic-bricks/docs/brick-reference.html" property="og:url"/>
+<meta content="https://brithe3dguy.com/images/bricks_thumb.png" property="og:image"/>
 </head>
 <body class="general" data-page="brick-reference.html">
 <div data-site-header="">
@@ -57,18 +57,18 @@
 </section>
 <div class="callout note">
      The Type column identifies whether an entry is a
-     <span aria-label="Sensor: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
-      Sensor
+     <span aria-label="Trigger: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
+      Trigger
      </span>
      ,
-     <span aria-label="Controller: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
-      Controller
+     <span aria-label="Gate: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
+      Gate
      </span>
      , or
-     <span aria-label="Actuator: A brick that performs an action after a sensor and optional controller succeed." class="glossary-term" data-tooltip="A brick that performs an action after a sensor and optional controller succeed." tabindex="0">
-      Actuator
+     <span aria-label="Action: A brick that performs an action after a trigger and optional gate succeed." class="glossary-term" data-tooltip="A brick that performs an action after a trigger and optional gate succeed." tabindex="0">
+      Action
      </span>
-     . The Menu column matches the right-click submenu for actuators; sensors are labeled Sensor and controllers are labeled Controller.
+     . The Menu column matches the right-click submenu for actions; triggers are labeled Trigger and gates are labeled Gate.
     </div>
 <div class="reference-filter-panel page-tools">
 <label class="filter-field filter-search">
@@ -86,13 +86,13 @@
         All types
        </option>
 <option>
-        Sensor
+        Trigger
        </option>
 <option>
-        Controller
+        Gate
        </option>
 <option>
-        Actuator
+        Action
        </option>
 </select>
 </label>
@@ -156,7 +156,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -172,7 +172,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         ui
@@ -188,7 +188,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -204,7 +204,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -215,18 +215,16 @@
 </tr>
 <tr data-domain="3d" data-menu="sensor" data-type="sensor">
 <td>
-<a href="sensors-3d.html#actuator-3d">
-         Actuator
-        </a>
+<a href="sensors-3d.html#actuator-3d">Action Triggered</a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         3d
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="common" data-menu="sensor" data-type="sensor">
@@ -236,13 +234,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         common
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="ui" data-menu="sensor" data-type="sensor">
@@ -252,13 +250,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         ui
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="common" data-menu="animation" data-type="actuator">
@@ -268,7 +266,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -284,7 +282,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -300,13 +298,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         3d
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="ui" data-menu="top level" data-type="actuator">
@@ -316,7 +314,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         ui
@@ -332,13 +330,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         ui
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="2d" data-menu="camera" data-type="actuator">
@@ -348,7 +346,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         2d
@@ -364,7 +362,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -380,7 +378,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         2d
@@ -396,7 +394,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -412,7 +410,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         2d
@@ -428,7 +426,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -444,7 +442,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -460,13 +458,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         3d
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="2d" data-menu="sensor" data-type="sensor">
@@ -476,13 +474,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         2d
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="common" data-menu="sensor" data-type="sensor">
@@ -492,29 +490,29 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         common
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="controller.gd" data-menu="controller" data-type="controller">
 <td>
 <a href="controllers-2d.html#controller-controller-gd">
-         Controller
+         Gate
         </a>
 </td>
 <td>
-        Controller
+        Gate
        </td>
 <td>
-        controller.gd
+        gate.gd
        </td>
 <td>
-        Controller
+        Gate
        </td>
 </tr>
 <tr data-domain="common" data-menu="sensor" data-type="sensor">
@@ -524,13 +522,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         common
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="ui" data-menu="sensor" data-type="sensor">
@@ -540,13 +538,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         ui
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="3d" data-menu="object" data-type="actuator">
@@ -556,7 +554,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -572,7 +570,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -588,7 +586,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         ui
@@ -604,7 +602,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -620,7 +618,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         2d
@@ -636,7 +634,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -652,7 +650,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -668,7 +666,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -684,7 +682,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -700,7 +698,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -716,7 +714,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -732,7 +730,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         2d
@@ -743,34 +741,30 @@
 </tr>
 <tr data-domain="common" data-menu="sensor" data-type="sensor">
 <td>
-<a href="sensors-2d.html#input-map-common">
-         Input Map
-        </a>
+<a href="sensors-2d.html#input-map-common">Input</a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         common
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="ui" data-menu="sensor" data-type="sensor">
 <td>
-<a href="sensors-ui.html#input-map-ui">
-         Input Map
-        </a>
+<a href="sensors-ui.html#input-map-ui">Input</a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         ui
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="3d" data-menu="environment" data-type="actuator">
@@ -780,7 +774,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -796,7 +790,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -812,7 +806,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         2d
@@ -828,7 +822,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -844,7 +838,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -860,7 +854,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -876,7 +870,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -892,7 +886,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         ui
@@ -903,12 +897,36 @@
 </tr>
 <tr data-domain="3d" data-menu="motion" data-type="actuator">
 <td>
-<a href="actuators-3d.html#motion-3d">
-         Motion
-        </a>
+<a href="actuators-3d.html#position-3d">Position</a>
 </td>
 <td>
-        Actuator
+        Action
+       </td>
+<td>
+        3d
+       </td>
+<td>
+        Motion
+       </td>
+</tr><tr data-domain="3d" data-menu="motion" data-type="actuator">
+<td>
+<a href="actuators-3d.html#rotation-3d">Rotation</a>
+</td>
+<td>
+        Action
+       </td>
+<td>
+        3d
+       </td>
+<td>
+        Motion
+       </td>
+</tr><tr data-domain="3d" data-menu="motion" data-type="actuator">
+<td>
+<a href="actuators-3d.html#scale-3d">Scale</a>
+</td>
+<td>
+        Action
        </td>
 <td>
         3d
@@ -919,12 +937,36 @@
 </tr>
 <tr data-domain="2d" data-menu="motion" data-type="actuator">
 <td>
-<a href="actuators-2d.html#motion-2d-2d">
-         Motion 2D
-        </a>
+<a href="actuators-2d.html#position-2d">Position 2D</a>
 </td>
 <td>
-        Actuator
+        Action
+       </td>
+<td>
+        2d
+       </td>
+<td>
+        Motion
+       </td>
+</tr><tr data-domain="2d" data-menu="motion" data-type="actuator">
+<td>
+<a href="actuators-2d.html#rotation-2d">Rotation 2D</a>
+</td>
+<td>
+        Action
+       </td>
+<td>
+        2d
+       </td>
+<td>
+        Motion
+       </td>
+</tr><tr data-domain="2d" data-menu="motion" data-type="actuator">
+<td>
+<a href="actuators-2d.html#scale-2d">Scale 2D</a>
+</td>
+<td>
+        Action
        </td>
 <td>
         2d
@@ -940,7 +982,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         2d
@@ -956,7 +998,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -972,23 +1014,23 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         common
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="3d" data-menu="motion" data-type="actuator">
 <td>
-<a href="actuators-3d.html#move-towards-3d">
-         Move Towards
+<a href="actuators-3d.html#steering-3d">
+         Steering
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -999,34 +1041,30 @@
 </tr>
 <tr data-domain="3d" data-menu="sensor" data-type="sensor">
 <td>
-<a href="sensors-3d.html#movement-3d">
-         Movement
-        </a>
+<a href="sensors-3d.html#movement-3d">Movement Detected</a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         3d
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="2d" data-menu="sensor" data-type="sensor">
 <td>
-<a href="sensors-2d.html#movement-2d-2d">
-         Movement 2D
-        </a>
+<a href="sensors-2d.html#movement-2d-2d">Movement Detected</a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         2d
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="common" data-menu="audio" data-type="actuator">
@@ -1036,7 +1074,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -1052,7 +1090,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         2d
@@ -1068,7 +1106,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1084,7 +1122,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1100,7 +1138,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1116,7 +1154,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1132,7 +1170,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1148,29 +1186,27 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         3d
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="2d" data-menu="sensor" data-type="sensor">
 <td>
-<a href="sensors-2d.html#physics-2d-2d">
-         Physics 2D
-        </a>
+<a href="sensors-2d.html#physics-2d-2d">Character Physics</a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         2d
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="ui" data-menu="top level" data-type="actuator">
@@ -1180,7 +1216,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         ui
@@ -1196,7 +1232,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -1212,7 +1248,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1228,7 +1264,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         ui
@@ -1244,7 +1280,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -1260,13 +1296,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         3d
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="2d" data-menu="sensor" data-type="sensor">
@@ -1276,13 +1312,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         2d
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="common" data-menu="logic" data-type="actuator">
@@ -1292,7 +1328,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -1308,13 +1344,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         common
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="ui" data-menu="sensor" data-type="sensor">
@@ -1324,13 +1360,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         ui
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="3d" data-menu="sensor" data-type="sensor">
@@ -1340,13 +1376,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         3d
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="2d" data-menu="sensor" data-type="sensor">
@@ -1356,13 +1392,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         2d
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="3d" data-menu="motion" data-type="actuator">
@@ -1372,7 +1408,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1388,7 +1424,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -1404,7 +1440,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1420,7 +1456,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -1436,7 +1472,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -1452,7 +1488,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         ui
@@ -1468,7 +1504,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1480,17 +1516,17 @@
 <tr data-domain="script_controller.gd" data-menu="controller" data-type="controller">
 <td>
 <a href="controllers-2d.html#script-controller-script-controller-gd">
-         Script Controller
+         Script Gate
         </a>
 </td>
 <td>
-        Controller
+        Gate
        </td>
 <td>
         script_controller.gd
        </td>
 <td>
-        Controller
+        Gate
        </td>
 </tr>
 <tr data-domain="ui" data-menu="top level" data-type="actuator">
@@ -1500,7 +1536,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         ui
@@ -1516,7 +1552,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         2d
@@ -1532,7 +1568,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1548,7 +1584,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -1559,12 +1595,10 @@
 </tr>
 <tr data-domain="common" data-menu="logic" data-type="actuator">
 <td>
-<a href="sensors-2d.html#signal-common">
-         Signal
-        </a>
+<a href="sensors-2d.html#signal-common">Signal Receive</a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -1575,34 +1609,30 @@
 </tr>
 <tr data-domain="common" data-menu="sensor" data-type="sensor">
 <td>
-<a href="sensors-2d.html#signal-common">
-         Signal
-        </a>
+<a href="sensors-2d.html#signal-common">Signal Receive</a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         common
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="ui" data-menu="sensor" data-type="sensor">
 <td>
-<a href="sensors-ui.html#signal-ui">
-         Signal
-        </a>
+<a href="sensors-ui.html#signal-ui">Signal Receive</a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         ui
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="ui" data-menu="top level" data-type="actuator">
@@ -1612,7 +1642,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         ui
@@ -1628,7 +1658,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         2d
@@ -1644,7 +1674,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1660,7 +1690,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1676,7 +1706,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         2d
@@ -1692,7 +1722,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1708,7 +1738,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -1724,7 +1754,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         ui
@@ -1740,7 +1770,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1756,7 +1786,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         2d
@@ -1772,7 +1802,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1788,7 +1818,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         ui
@@ -1804,7 +1834,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1820,7 +1850,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -1836,7 +1866,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         ui
@@ -1852,7 +1882,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         2d
@@ -1868,13 +1898,13 @@
         </a>
 </td>
 <td>
-        Sensor
+        Trigger
        </td>
 <td>
         ui
        </td>
 <td>
-        Sensor
+        Trigger
        </td>
 </tr>
 <tr data-domain="common" data-menu="object" data-type="actuator">
@@ -1884,7 +1914,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         common
@@ -1900,7 +1930,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         ui
@@ -1916,7 +1946,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         3d
@@ -1932,7 +1962,7 @@
         </a>
 </td>
 <td>
-        Actuator
+        Action
        </td>
 <td>
         ui
@@ -1953,15 +1983,15 @@
 <div class="related-topic-grid">
 <a class="related-topic-card" href="sensors.html">
 <strong>
-        Sensors
+        Triggers
        </strong>
 <span>
-        Read full sensor options and guidance.
+        Read full trigger options and guidance.
        </span>
 </a>
 <a class="related-topic-card" href="actuators-3d.html">
 <strong>
-        3D Actuators
+        3D Actions
        </strong>
 <span>
         Browse the exact 3D menu hierarchy.
@@ -1969,7 +1999,7 @@
 </a>
 <a class="related-topic-card" href="actuators-2d.html">
 <strong>
-        2D Actuators
+        2D Actions
        </strong>
 <span>
         Browse the exact 2D menu hierarchy.

@@ -15,10 +15,10 @@ func _init() -> void:
 func _initialize_properties() -> void:
 	properties = {
 		"target_node_name": "MeshInstance3D",
-		"forward_action": "move_forward",
-		"backward_action": "move_backward",
-		"left_action": "move_left",
-		"right_action": "move_right",
+		"forward_action": "",
+		"backward_action": "",
+		"left_action": "",
+		"right_action": "",
 		"forward_axis": "-z",
 		"smoothing": 0.1,
 		"camera_relative": false,
@@ -37,26 +37,30 @@ func get_property_definitions() -> Array:
 		{
 			"name": "forward_action",
 			"type": TYPE_STRING,
-			"default": "move_forward",
-			"placeholder": "Input Map action"
+			"default": "",
+			"placeholder": "Input Map action",
+			"input_action_picker": true
 		},
 		{
 			"name": "backward_action",
 			"type": TYPE_STRING,
-			"default": "move_backward",
-			"placeholder": "Input Map action"
+			"default": "",
+			"placeholder": "Input Map action",
+			"input_action_picker": true
 		},
 		{
 			"name": "left_action",
 			"type": TYPE_STRING,
-			"default": "move_left",
-			"placeholder": "Input Map action"
+			"default": "",
+			"placeholder": "Input Map action",
+			"input_action_picker": true
 		},
 		{
 			"name": "right_action",
 			"type": TYPE_STRING,
-			"default": "move_right",
-			"placeholder": "Input Map action"
+			"default": "",
+			"placeholder": "Input Map action",
+			"input_action_picker": true
 		},
 		{
 			"name": "forward_axis",
@@ -99,6 +103,24 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+func get_configuration_warnings(node: Node = null) -> Array[String]:
+	var warnings := super.get_configuration_warnings(node)
+	var input_count := 0
+	for property_name in ["forward_action", "backward_action", "left_action", "right_action"]:
+		if not str(properties.get(property_name, "")).strip_edges().is_empty():
+			input_count += 1
+	if input_count < 2:
+		warnings.append("Select or enter at least two Input actions.")
+	return warnings
+
+
+func _action_strength_expression(action_name) -> String:
+	var action := str(action_name).strip_edges()
+	if action.is_empty():
+		return "0.0"
+	return "Input.get_action_strength(%s)" % _quote_action(action)
+
+
 func _quote_action(action_name) -> String:
 	var s = str(action_name).strip_edges()
 	return '"%s"' % s.c_escape()
@@ -106,10 +128,10 @@ func _quote_action(action_name) -> String:
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target_node_name = str(properties.get("target_node_name", "MeshInstance3D")).strip_edges()
-	var forward_action = properties.get("forward_action", "move_forward")
-	var backward_action = properties.get("backward_action", "move_backward")
-	var left_action = properties.get("left_action", "move_left")
-	var right_action = properties.get("right_action", "move_right")
+	var forward_action = properties.get("forward_action", "")
+	var backward_action = properties.get("backward_action", "")
+	var left_action = properties.get("left_action", "")
+	var right_action = properties.get("right_action", "")
 	var forward_axis = properties.get("forward_axis", "-z")
 	var smoothing = properties.get("smoothing", 0.1)
 	var camera_relative = properties.get("camera_relative", false)
@@ -152,8 +174,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("if not %s:" % target_var)
 	code_lines.append("\tpush_warning(\"Look At Input: could not find Node3D named '\" + str(_target_name_%s) + \"'\")" % label)
 	code_lines.append("else:")
-	code_lines.append("\tvar _input_x = Input.get_action_strength(%s) - Input.get_action_strength(%s)" % [_quote_action(right_action), _quote_action(left_action)])
-	code_lines.append("\tvar _input_z = Input.get_action_strength(%s) - Input.get_action_strength(%s)" % [_quote_action(backward_action), _quote_action(forward_action)])
+	code_lines.append("\tvar _input_x = %s - %s" % [_action_strength_expression(right_action), _action_strength_expression(left_action)])
+	code_lines.append("\tvar _input_z = %s - %s" % [_action_strength_expression(backward_action), _action_strength_expression(forward_action)])
 	code_lines.append("\tvar _input_dir = Vector3(_input_x, 0.0, _input_z)")
 	code_lines.append("\tif _input_dir.length_squared() > 1.0:")
 	code_lines.append("\t\t_input_dir = _input_dir.normalized()")

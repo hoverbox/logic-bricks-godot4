@@ -13,7 +13,7 @@ func get_brick_info() -> Dictionary:
 		"type": "actuator",
 		"category": "Motion",
 		"domain": "2d",
-		"menu_order": 110,
+		"menu_order": 10,
 		"aliases": ["Character2DPhysicsActuator"]
 	}
 
@@ -21,6 +21,9 @@ func _init() -> void:
 	super._init()
 	brick_type = BrickType.ACTUATOR
 	brick_name = "Character 2D Physics"
+
+func get_compatibility_error(node: Node) -> String:
+	return "" if node is CharacterBody2D else "Requires CharacterBody2D"
 
 func _initialize_properties() -> void:
 	properties = {
@@ -47,8 +50,8 @@ func get_property_definitions() -> Array:
 		{"name": "acceleration", "type": TYPE_STRING, "default": "1.0"},
 		{"name": "friction", "type": TYPE_STRING, "default": "1.0"},
 		{"name": "bounce", "type": TYPE_STRING, "default": "0.0"},
-		{"name": "ground_groups", "type": TYPE_STRING, "default": "", "placeholder": "Enter ground groups"},
-		{"name": "platform_groups", "type": TYPE_STRING, "default": "", "placeholder": "Enter platform groups"},
+		{"name": "ground_groups", "type": TYPE_STRING, "default": "", "placeholder": "Enter ground groups", "group_picker": true, "group_picker_multi": true},
+		{"name": "platform_groups", "type": TYPE_STRING, "default": "", "placeholder": "Enter platform groups", "group_picker": true, "group_picker_multi": true},
 		{"name": "inherit_platform_velocity_on_jump", "type": TYPE_BOOL, "default": true}
 	]
 

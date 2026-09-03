@@ -7,13 +7,13 @@
 
   const INTENTS = [
     { id:"input", terms:["input","keyboard","keyboard key","button press","press","controller","gamepad","controls","click"], suggestions:[
-      [["Input Map"],"Detect a player input action such as move, jump, interact, or attack."] ] },
+      [["Input"],"Detect a player input action such as move, jump, interact, or attack."] ] },
     { id:"mouse_input", terms:["mouse","mouse click","mouse button","cursor","wheel","hover","click"], suggestions:[
       [["Mouse"],"Detect mouse buttons, movement, wheel input, or hovering."] ] },
     { id:"move", terms:["move","movement","walk","run","sprint","strafe","drive","fly","travel","go","locomotion","speed","velocity","movement control"], suggestions:[
-      [["Motion 2D","Motion"],"Move or rotate the controlled object."],
+      [["Position 2D","Position"],"Move the controlled object."],
       [["Character 2D Physics","Character Physics"],"Apply character movement and physics each frame."],
-      [["Input Map"],"Detect the player's movement controls."] ] },
+      [["Input"],"Detect the player's movement controls."] ] },
     { id:"character", terms:["character","player","enemy","npc","non player character","monster","creature","hero","avatar","opponent","bad guy","boss","character controller","characterbody","character body"], suggestions:[
       [["Character Physics"],"Apply 3D character movement and physics each frame."],
       [["Character 2D Physics"],"Apply 2D character movement and physics each frame."],
@@ -21,11 +21,11 @@
       [["Character Jump 2D"],"Add jumping behavior to a 2D character."] ] },
     { id:"jump", terms:["jump","hop","leap","double jump","platformer"], suggestions:[
       [["Character Jump 2D","Character Jump"],"Apply a jump to a character."],
-      [["Physics 2D","Physics"],"Check whether the character is on the floor before jumping."],
-      [["Input Map"],"Detect the jump action."] ] },
+      [["Character Physics"],"Check whether the character is on the floor before jumping."],
+      [["Input"],"Detect the jump action."] ] },
     { id:"collision", terms:["collision","collide","touch","hit","overlap","contact","bump","trigger","trigger area","trigger zone","enter area","walk into","run into"], suggestions:[
       [["Collision 2D","Collision"],"Detect when objects touch or enter a collision area."],
-      [["Physics 2D","Physics"],"Check floor, wall, or ceiling contact for a character."] ] },
+      [["Character Physics"],"Check floor, wall, or ceiling contact for a character."] ] },
     { id:"near", terms:["near","nearby","close","close to","distance","range","within range","approach","radius","proximity","get close","comes close"], suggestions:[
       [["Proximity 2D","Proximity"],"Detect when a target is within a chosen distance or angle."],
       [["Raycast 2D","Raycast"],"Check whether something is directly detectable along a ray."] ] },
@@ -34,12 +34,12 @@
       [["Proximity 2D","Proximity"],"Limit detection to a nearby distance or viewing angle."] ] },
     { id:"chase", terms:["chase","follow","follow player","pursue","hunt","track player","come after","go after","run after","enemy follow"], suggestions:[
       [["Proximity 2D","Proximity"],"Decide when the target is close enough to react to."],
-      [["Move Towards"],"Move an enemy toward a target or pathfind toward it."],
+      [["Steering"],"Move an enemy toward a target or pathfind toward it."],
       [["Rotate Towards"],"Turn an enemy so it faces the target."],
       [["Raycast 2D","Raycast"],"Optionally require clear line of sight before chasing."] ] },
     { id:"patrol", terms:["patrol","waypoint","route","path","guard route","walk between"], suggestions:[
       [["Waypoint Path"],"Move through a sequence of waypoints."],
-      [["Move Towards"],"Move toward a current patrol target."],
+      [["Steering"],"Move toward a current patrol target."],
       [["Delay"],"Pause at a waypoint before continuing."] ] },
     { id:"rotate", terms:["rotate","turn","face","aim","look at","point toward","track target"], suggestions:[
       [["Rotate Towards"],"Rotate an object so it faces a target."],
@@ -69,14 +69,14 @@
       [["Random"],"Activate logic based on a random chance."],
       [["Delay"],"Control how often a random check happens."] ] },
     { id:"message", terms:["signal","message","tell another","notify","communicate","broadcast","event message"], suggestions:[
-      [["Signal"],"Send or receive a named signal between logic chains or nodes."] ] },
+      [["Signal Send","Signal Receive"],"Send or receive a named signal between logic chains or nodes."] ] },
     { id:"interaction", terms:["interact","interaction","use","activate","press to use","press e","talk to","talk with","open chest","use object","activate switch","switch","lever"], suggestions:[
-      [["Input Map"],"Detect the player's interact/use action."],
+      [["Input"],"Detect the player's interact/use action."],
       [["Collision 2D","Collision"],"Detect when the player is close enough or touching the interactive object."],
-      [["Signal"],"Tell another node or logic chain that the interaction happened."],
+      [["Signal Send"],"Tell another node or logic chain that the interaction happened."],
       [["Property"],"Change the target object's state or properties after interaction."] ] },
     { id:"combat", terms:["attack","combat","fight","hit enemy","damage","hurt","shoot","shooting","fire weapon","weapon","gun","sword","melee","bullet","projectile","kill enemy","enemy dies","die","death"], suggestions:[
-      [["Input Map"],"Detect an attack, fire, or action input from the player."],
+      [["Input"],"Detect an attack, fire, or action input from the player."],
       [["Raycast 2D","Raycast"],"Detect a target for hitscan attacks, aiming, or line-of-sight hits."],
       [["Collision 2D","Collision"],"Detect projectile, melee, or contact hits."],
       [["Modify Variable"],"Change health, ammo, damage counters, or other combat values."],
@@ -149,7 +149,7 @@
     { id:"pause", terms:["pause","pause menu","resume","unpause"], suggestions:[
       [["Game"],"Pause or resume the game."],
       [["Visibility"],"Show or hide a pause-menu interface."],
-      [["Input Map"],"Detect the pause action."] ] },
+      [["Input"],"Detect the pause action."] ] },
     { id:"visual", terms:["flash","shake","feedback","impact","screen shake","camera shake","rumble","vibrate","hit effect"], suggestions:[
       [["Screen Shake","Object Shake"],"Add shake feedback to impacts or dramatic events."],
       [["Screen Flash","Object Flash"],"Flash the screen or an object for feedback."],
@@ -195,20 +195,20 @@
     { id:"jump_pad", phrases:["jump pad","bounce pad","spring pad","launch pad","bounce player","launch player"], suggestions:[
       [["Collision"],"Detect when the player touches the pad."],
       [["Character Jump"],"Apply an upward jump-like impulse to a 3D character."],
-      [["Physics"],"Use character physics information when the launch depends on floor or collision state."] ] },
+      [["Character Physics"],"Use character physics information when the launch depends on floor or collision state."] ] },
     { id:"locked_door", phrases:["locked door","key opens door","open door with key","door needs key","unlock door","key door"], suggestions:[
       [["Compare Variable","Variable"],"Check whether the player has the required key or condition."],
       [["Animation"],"Play the door opening animation after it unlocks."],
       [["Property"],"Change the door's state or collision-related properties after unlocking."] ] },
     { id:"switch_door", phrases:["switch opens door","button opens door","lever opens door","pressure plate opens door","floor switch","pressure plate","door switch"], suggestions:[
       [["Collision"],"Detect a player or object activating a pressure plate or trigger."],
-      [["Input Map"],"Detect an interact action for a button, switch, or lever."],
-      [["Signal"],"Tell the door that the switch or plate was activated."],
+      [["Input"],"Detect an interact action for a button, switch, or lever."],
+      [["Signal Send"],"Tell the door that the switch or plate was activated."],
       [["Animation"],"Play the door opening or closing animation."] ] },
     { id:"interact_prompt", phrases:["press e to interact","press button to interact","interact with object","use object","activate object","talk to npc","talk to character"], suggestions:[
-      [["Input Map"],"Detect the player's interact/use action."],
+      [["Input"],"Detect the player's interact/use action."],
       [["Proximity"],"Check that the player is close enough to interact."],
-      [["Signal"],"Notify the target object that the interaction happened."] ] },
+      [["Signal Send"],"Notify the target object that the interaction happened."] ] },
     { id:"pickup_item", phrases:["pick up item","pickup item","collect item","collect coin","collect gem","pick up key","pickup key","health pickup","ammo pickup","power up","powerup"], suggestions:[
       [["Collision"],"Detect when the player reaches the collectible."],
       [["Modify Variable"],"Record the item, health, ammo, score, or inventory change."],
@@ -225,13 +225,13 @@
     { id:"teleporter", phrases:["teleporter","teleport","portal","warp","warp point","move player instantly","teleport player"], suggestions:[
       [["Teleport"],"Instantly move the player or object to a destination node or coordinates."],
       [["Collision"],"Detect when the player enters a teleporter or portal."],
-      [["Signal"],"Trigger teleport behavior on another object or logic chain when useful."] ] },
+      [["Signal Send"],"Trigger teleport behavior on another object or logic chain when useful."] ] },
     { id:"next_level", phrases:["next level","change level","change scene","load level","go to next scene","restart level","restart scene","return to menu","main menu"], suggestions:[
       [["Scene"],"Change, reload, or manage the current scene for level and menu transitions."],
       [["Collision"],"Detect a level exit or goal trigger when the transition is world-based."],
-      [["Input Map"],"Detect a button/action that starts the scene change."] ] },
+      [["Input"],"Detect a button/action that starts the scene change."] ] },
     { id:"shoot_projectile", phrases:["shoot bullet","fire bullet","shoot projectile","fire projectile","shoot weapon","fire weapon","gun shoots","spawn bullet","spawn projectile"], suggestions:[
-      [["Input Map"],"Detect the fire action when the player controls the weapon."],
+      [["Input"],"Detect the fire action when the player controls the weapon."],
       [["Object Pool"],"Spawn and reuse bullets or projectiles efficiently."],
       [["Collision"],"Detect projectile impacts."],
       [["Modify Variable"],"Track ammo, health, or damage values when needed."] ] },
@@ -258,7 +258,7 @@
       [["Text"],"Display a countdown or remaining time in the UI."] ] },
     { id:"enemy_chase", phrases:["enemy chase player","enemy chases player","monster chase player","npc follows player","enemy follows player","bad guy follows player","enemy comes after player"], suggestions:[
       [["Proximity"],"Decide when the player is close enough for the enemy to react."],
-      [["Move Towards"],"Move or pathfind the enemy toward the player."],
+      [["Steering"],"Move or pathfind the enemy toward the player."],
       [["Rotate Towards"],"Keep the enemy facing its target."],
       [["Raycast"],"Optionally require clear line of sight before chasing."] ] },
     { id:"camera_follow", phrases:["camera follows player","follow camera","camera follow","third person camera","3rd person camera","camera tracks player"], suggestions:[
@@ -276,7 +276,7 @@
     { id:"win_condition", phrases:["win condition","player wins","beat level","complete level","finish level","all enemies defeated","collect all"], suggestions:[
       [["Compare Variable","Variable"],"Check whether the required score, count, state, or objective has been reached."],
       [["Scene"],"Move to a results screen, next level, or other scene after winning."],
-      [["Signal"],"Notify other logic that the win condition has been met."] ] },
+      [["Signal Send"],"Notify other logic that the win condition has been met."] ] },
     { id:"game_over", phrases:["game over","lose condition","player loses","out of lives","zero health","player dies","player death"], suggestions:[
       [["Compare Variable","Variable"],"Check for zero health, zero lives, or another failure condition."],
       [["Scene"],"Reload the level or switch to a game-over scene."],
@@ -285,12 +285,12 @@
 
   const RECIPE_BOOSTS = [
     { all:["inventory","door"], extra:[[["Compare Variable","Variable"],"Check the inventory for the required item before opening the door."],[["Animation"],"Play the door opening animation after the condition succeeds."]] },
-    { any:["shoot","gun","weapon","fire"], extra:[[["Input Map"],"Detect the fire action."],[["Object Pool"],"Spawn reusable bullets or projectiles efficiently."],[["Raycast 2D","Raycast"],"Use a ray for hitscan weapons or aiming checks."]] },
-    { any:["enemy","monster","npc","bad guy"], all:["chase"], extra:[[["Move Towards"],"Move or pathfind toward the player."],[["Rotate Towards"],"Keep the enemy facing its target."]] },
+    { any:["shoot","gun","weapon","fire"], extra:[[["Input"],"Detect the fire action."],[["Object Pool"],"Spawn reusable bullets or projectiles efficiently."],[["Raycast 2D","Raycast"],"Use a ray for hitscan weapons or aiming checks."]] },
+    { any:["enemy","monster","npc","bad guy"], all:["chase"], extra:[[["Steering"],"Move or pathfind toward the player."],[["Rotate Towards"],"Keep the enemy facing its target."]] },
     { any:["collect","pickup","coin","gem","key"], extra:[[["Collision 2D","Collision"],"Detect the collection event."],[["Modify Variable"],"Record the item or update a score/count."]] }
     ,{ any:["enemy","monster","npc","boss","bad guy"], extra:[[["Character Physics"],"Use character physics for a moving 3D enemy or NPC."],[["Proximity 2D","Proximity"],"Detect when the player is near enough for the enemy to react."]] }
     ,{ any:["health","hp","heart","hearts"], extra:[[["Modify Variable"],"Store and change the character's health value."],[["Progress Bar"],"Show the current health value visually in the HUD."]] }
-    ,{ any:["interact","activate","use"], extra:[[["Input Map"],"Detect the player's interaction action."],[["Signal"],"Notify another object that the interaction happened."]] }
+    ,{ any:["interact","activate","use"], extra:[[["Input"],"Detect the player's interaction action."],[["Signal Send"],"Notify another object that the interaction happened."]] }
   ];
 
   function basicStem(word) {

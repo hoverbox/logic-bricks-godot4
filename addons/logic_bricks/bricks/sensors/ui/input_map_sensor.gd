@@ -2,7 +2,7 @@
 
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Input Map Sensor - Detects input via Godot's Input Map actions
+## Input Trigger - Detects input via Godot's Input Map actions
 ## Works with keyboard, gamepad, mouse buttons, or any device mapped to actions
 ## Configure actions in Project > Project Settings > Input Map
 ##
@@ -15,14 +15,14 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.SENSOR
-	brick_name = "Input Map"
+	brick_name = "Input"
 
 
 
 func get_brick_info() -> Dictionary:
 	return {
 		"class": "UIInputMapSensor",
-		"name": "Input Map",
+		"name": "Input",
 		"type": "sensor",
 		"category": "UI",
 		"description": "Detects Godot Input Map actions for UI logic.",
@@ -41,7 +41,7 @@ func serialize() -> Dictionary:
 func _initialize_properties() -> void:
 	properties = {
 		"input_mode": "pressed",     # pressed, just_pressed, just_released, any_pressed, any_just_pressed, any_just_released, axis
-		"action_name": "ui_accept",  # Button modes: Input Map action name
+		"action_name": "",           # Button modes: Input Map action name
 		"negative_action": "",       # Axis mode: action for -1 direction
 		"positive_action": "",       # Axis mode: action for +1 direction
 		"invert": false,             # Flip the result
@@ -60,18 +60,21 @@ func get_property_definitions() -> Array:
 			"default": "pressed"
 		},
 		{
-			"name": "action_name",
+			"name": "action_name", "required": true, "required_label": "an Input action", "required_if": {"input_mode": ["pressed", "just_pressed", "just_released"]},
 			"type": TYPE_STRING,
-			"default": "ui_accept"
-		},
-		{
-			"name": "negative_action",
-			"type": TYPE_STRING,
+			"input_action_picker": true,
 			"default": ""
 		},
 		{
-			"name": "positive_action",
+			"name": "negative_action", "required": true, "required_label": "a negative Input action", "required_if": {"input_mode": "axis"},
 			"type": TYPE_STRING,
+			"input_action_picker": true,
+			"default": ""
+		},
+		{
+			"name": "positive_action", "required": true, "required_label": "a positive Input action", "required_if": {"input_mode": "axis"},
+			"type": TYPE_STRING,
+			"input_action_picker": true,
 			"default": ""
 		},
 		{
@@ -96,7 +99,7 @@ func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Detects input actions from Project > Input Map.\nSupports button presses, any-action checks, and analog joystick axis input.",
 		"input_mode": "Pressed: active while held\nJust Pressed: one frame on press\nJust Released: one frame on release\nAny Pressed: active when any action in the Input Map is held\nAny Just Pressed: one frame when any Input Map action is pressed\nAny Just Released: one frame when any Input Map action is released\nAxis: joystick/WASD axis value (-1 to 1)",
-		"action_name": "Input Map action name (e.g. 'jump', 'ui_accept'). Ignored by Any modes.",
+		"action_name": "Type an Input Map action name or choose one from the dropdown. Project-created actions are listed first, followed by Godot's built-in actions. Ignored by Any modes.",
 		"negative_action": "Input Map action for the -1 direction.\nExample: 'move_left', 'move_forward', 'look_down'\nMust match an action in Project > Input Map.",
 		"positive_action": "Input Map action for the +1 direction.\nExample: 'move_right', 'move_back', 'look_up'\nMust match an action in Project > Input Map.",
 		"invert": "Invert the sensor result.\nButton modes: active when action is NOT pressed.\nAny modes: active when no Input Map action matches.\nAxis mode: active when the axis is NOT moved past the deadzone.",
@@ -124,8 +127,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 
 func _generate_button_code(input_mode: String) -> Dictionary:
-	var action_name = properties.get("action_name", "ui_accept")
+	var action_name = str(properties.get("action_name", "")).strip_edges()
 	var invert = properties.get("invert", false)
+	if action_name.is_empty():
+		return {"sensor_code": "var sensor_active = false  # Input action not set"}
 	var raw = ""
 
 	match input_mode:

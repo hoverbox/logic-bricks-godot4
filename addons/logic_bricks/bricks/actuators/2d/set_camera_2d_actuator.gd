@@ -19,7 +19,7 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
-		{"name":"camera_node_name","type":TYPE_STRING,"default":"Camera2D","placeholder":"Camera2D node name"},
+		{"name":"camera_node_name", "required": true, "required_label": "a Camera2D node name","type":TYPE_STRING,"default":"Camera2D","placeholder":"Camera2D node name"},
 	]
 
 func get_tooltip_definitions() -> Dictionary:

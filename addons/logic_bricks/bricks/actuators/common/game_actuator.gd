@@ -28,7 +28,7 @@ func get_property_definitions() -> Array:
 			"default": "exit"
 		},
 		{
-			"name": "screenshot_path",
+			"name": "screenshot_path", "required": true, "required_label": "a screenshot path", "required_if": {"action": "screenshot"},
 			"type": TYPE_STRING,
 			"default": "user://screenshot.png"
 		}

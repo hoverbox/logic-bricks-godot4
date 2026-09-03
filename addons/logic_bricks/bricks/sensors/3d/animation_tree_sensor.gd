@@ -36,7 +36,7 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	return [
 		{
-			"name": "animation_tree_node_name",
+			"name": "animation_tree_node_name", "required": true, "required_label": "an AnimationTree node name",
 			"type": TYPE_STRING,
 			"default": "AnimationTree",
 			"placeholder": "AnimationTree node name"
@@ -49,7 +49,7 @@ func get_property_definitions() -> Array:
 			"default": "current_state"
 		},
 		{
-			"name": "state_name",
+			"name": "state_name", "required": true, "required_label": "a state name", "required_if": {"mode": "current_state"},
 			"type": TYPE_STRING,
 			"default": ""
 		},
@@ -59,7 +59,7 @@ func get_property_definitions() -> Array:
 			"default": "parameters/playback"
 		},
 		{
-			"name": "condition_name",
+			"name": "condition_name", "required": true, "required_label": "a condition name", "required_if": {"mode": "condition"},
 			"type": TYPE_STRING,
 			"default": ""
 		},
@@ -69,7 +69,7 @@ func get_property_definitions() -> Array:
 			"default": true
 		},
 		{
-			"name": "parameter_path",
+			"name": "parameter_path", "required": true, "required_label": "a parameter path", "required_if": {"mode": "parameter_compare"},
 			"type": TYPE_STRING,
 			"default": ""
 		},

@@ -25,7 +25,7 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	return [
 		{"name":"path_source","type":TYPE_STRING,"hint":PROPERTY_HINT_ENUM,"hint_string":"Node2D Positions:node_positions,Path2D:path2d","default":"node_positions"},
-		{"name":"waypoints","type":TYPE_ARRAY,"item_hint":PROPERTY_HINT_NONE,"item_hint_string":"","item_label":"Waypoint","item_default":"","default":[]},
+		{"name":"waypoints", "required": true, "required_label": "at least one waypoint", "required_if": {"path_source": "node_positions"},"type":TYPE_ARRAY,"item_hint":PROPERTY_HINT_NONE,"item_hint_string":"","item_label":"Waypoint","item_default":"","default":[]},
 		{"name":"loop_mode","type":TYPE_STRING,"hint":PROPERTY_HINT_ENUM,"hint_string":"Loop:loop,Ping Pong:ping_pong,Once:once","default":"loop"},
 		{"name":"speed","type":TYPE_STRING,"default":"150.0","placeholder":"number, variable, or expression"},
 		{"name":"arrival_distance","type":TYPE_STRING,"default":"4.0","placeholder":"number, variable, or expression"},

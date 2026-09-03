@@ -131,6 +131,8 @@ func save_graph_to_metadata(action_name: String = "Edit Logic Bricks", record_ch
 		})
 	target_node.set_meta("logic_bricks_graph", graph_data)
 	panel._mark_scene_modified()
+	if panel.has_method("_mark_unapplied_changes"):
+		panel._mark_unapplied_changes()
 	if record_change:
 		record_undo(action_name, before_snapshot, take_graph_snapshot(target_node), target_node, merge)
 
@@ -140,6 +142,8 @@ func on_graph_node_context_menu(id: int, graph_node: GraphNode) -> void:
 			await duplicate_graph_node(graph_node)
 		1:
 			var before_snapshot = take_graph_snapshot()
+			if panel.has_method("_remove_apply_warning"):
+				panel._remove_apply_warning(graph_node)
 			graph_node.queue_free()
 			await panel.get_tree().process_frame
 			save_graph_to_metadata("Delete Logic Brick", false)
@@ -416,6 +420,8 @@ func on_delete_nodes_request(nodes: Array) -> void:
 	for node_name in nodes:
 		var node = panel.graph_edit.get_node(NodePath(node_name))
 		if node:
+			if node is GraphNode and node.has_meta("brick_data") and panel.has_method("_remove_apply_warning"):
+				panel._remove_apply_warning(node)
 			if node is GraphFrame:
 				panel.frame_node_mapping.erase(node.name)
 				panel.frame_titles.erase(node.name)

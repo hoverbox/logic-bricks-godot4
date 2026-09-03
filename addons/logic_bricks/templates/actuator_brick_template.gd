@@ -1,7 +1,7 @@
 @tool
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Actuator Brick Template
+## Action Brick Template
 ## =======================
 ## Copy this file into:  res://addons/logic_bricks/bricks/actuators/3d/
 ## Rename it to snake_case, e.g.  grid_map_actuator.gd
@@ -10,11 +10,11 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ## Minimum requirements: _init() sets brick_type and brick_name.
 ## Everything else is optional but recommended.
 ##
-## HOW ACTUATORS WORK
+## HOW ACTIONS WORK
 ## ------------------
 ## generate_code() must return a Dictionary containing "actuator_code".
 ## That code is injected inside the chain's `if sensor_active:` block, so
-## it only runs when the connected sensor and controller both pass.
+## it only runs when the connected Trigger and Gate both pass.
 ##
 ##   return { "actuator_code": "position.y += 1.0" }
 ##
@@ -30,7 +30,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ## "ready_lines"  – Array[String] of lines added inside _ready(). Use for
 ##                  one-time setup, e.g. caching a node reference.
 ##
-## Example (actuator with persistent state):
+## Example (action with persistent state):
 ##   return {
 ##       "member_vars": ["var _tween_%s: Tween" % chain_name],
 ##       "ready_lines": [],
@@ -43,7 +43,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ##
 ## USE chain_name TO AVOID COLLISIONS
 ## ------------------------------------
-## Multiple actuator instances on the same node each get a unique chain_name
+## Multiple action instances on the same node each get a unique chain_name
 ## string (e.g. "chain_0", "chain_1"). Always suffix any member vars and
 ## helper functions you emit with chain_name so they don't collide.
 ##
@@ -61,7 +61,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ##
 ## NODE TYPE GUARDS
 ## ----------------
-## If your actuator only works with specific node classes, check at codegen
+## If your action only works with specific node classes, check at codegen
 ## time and emit a warning comment rather than broken code:
 ##   if not (node is RigidBody3D):
 ##       var lines = [
@@ -84,14 +84,14 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ## display name, set a category, control menu_order, or declare aliases.
 ##
 ## Category controls the submenu grouping in the Add Brick menu.
-## Actuators with no category land in "General".
+## Actions with no category land in "General".
 ## menu_order controls sort position within a category (lower = higher up).
 
 
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.ACTUATOR
-	brick_name = "Example Actuator"
+	brick_name = "Example Action"
 
 
 ## Optional — override display name, category, menu order, or aliases.
@@ -99,10 +99,10 @@ func _init() -> void:
 func get_brick_info() -> Dictionary:
 	return {
 		"class": "ExampleActuator",     # PascalCase, must be unique across all bricks
-		"name": "Example Actuator",     # Label shown in the UI
+		"name": "Example Action",     # Label shown in the UI
 		"type": "actuator",
 		"category": "General",          # Submenu group, e.g. "Motion", "Audio", "UI"
-		"description": "Describe the action this actuator performs.",
+		"description": "Describe what this Action performs.",
 		"menu_order": 9999,             # Lower numbers appear higher in the menu
 		"aliases": []                   # Legacy class names that deserialize to this brick
 	}
@@ -115,7 +115,7 @@ func _initialize_properties() -> void:
 		# Add your own properties here.
 		# Use plain GDScript values (bool, int, float, String).
 		# String fields can also hold variable names or expressions,
-		# letting users wire logic-brick variables into the actuator at runtime.
+		# letting users wire logic-brick variables into the action at runtime.
 	}
 
 
@@ -151,9 +151,9 @@ func get_tooltip_definitions() -> Dictionary:
 	## description if get_brick_info() doesn't supply one).
 	## All other keys match property names defined in get_property_definitions().
 	return {
-		"_description": "Short explanation of what this actuator does.",
+		"_description": "Short explanation of what this Action does.",
 		"target_node": "Use 'self' to target the owning node, or type a child node name. Uses find_child() so only the name is needed, not the full path.",
-		"enabled": "Turns this actuator on or off.",
+		"enabled": "Turns this Action on or off.",
 	}
 
 
@@ -180,7 +180,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("\tpush_warning(\"%s: could not find node '%s'\")" % [brick_name, target_node])
 		code_lines.append("\treturn")
 
-	# Replace the lines below with your actual actuator action.
+	# Replace the lines below with your actual Action code.
 	code_lines.append("# TODO: replace with actuator action")
 	code_lines.append("pass")
 

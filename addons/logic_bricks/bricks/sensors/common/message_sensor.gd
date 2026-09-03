@@ -2,7 +2,7 @@
 
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Signal Sensor - Detect signals sent by Signal Actuator
+## Signal Receive Trigger - Detect signals sent by Signal Send Action
 ## Listens for signals with a specific subject
 ## Automatically adds the node to the broadcast listener group
 
@@ -10,7 +10,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.SENSOR
-	brick_name = "Signal"
+	brick_name = "Signal Receive"
 
 
 func _initialize_properties() -> void:
@@ -45,8 +45,8 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Detects signals sent by a Signal Actuator.\nListens for a specific subject.",
-		"subject": "Signal name to listen for.\nMust match what the Signal Actuator sends.",
+		"_description": "Detects signals sent by a Signal Send Action.\nListens for a specific subject.",
+		"subject": "Signal name to listen for.\nMust match what the Signal Send Action sends.",
 		"match_mode": "Exact: subject must match exactly\nContains: subject contains the text\nStarts With: subject starts with the text",
 		"response_delay": "Seconds to wait after receiving the message before activating.\n0 = activate immediately on the same frame the message arrives.",
 	}
@@ -100,7 +100,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var handler_name = "_on_message_received_%s" % chain_name
 	var handler_code: Array[String] = []
 	handler_code.append("")
-	handler_code.append("# Message handler method (called by Signal Actuator)")
+	handler_code.append("# Message handler method (called by Signal Send Action)")
 	handler_code.append("func %s(subject: String, body: String, sender: Node) -> void:" % handler_name)
 
 	match match_mode:

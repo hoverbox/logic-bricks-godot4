@@ -2,16 +2,16 @@
 
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Actuator Sensor - Detects when a named actuator on this node is active.
-## Fires TRUE the frame an actuator runs, FALSE when it doesn't.
-## The actuator must be on the same node and have an instance name set.
-## Useful for chaining actions: "do X when Y actuator is running".
+## Action Triggered - Detects when a named action on this node is active.
+## Fires TRUE the frame an action runs, FALSE when it doesn't.
+## The action must be on the same node and have an instance name set.
+## Useful for chaining actions: "do X when Y action is running".
 
 
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.SENSOR
-	brick_name = "Actuator"
+	brick_name = "Action Triggered"
 
 
 func _initialize_properties() -> void:
@@ -24,7 +24,7 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	return [
 		{
-			"name": "actuator_name",
+			"name": "actuator_name", "required": true, "required_label": "an Action name",
 			"type": TYPE_STRING,
 			"default": ""
 		},
@@ -40,8 +40,8 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Fires TRUE when the named actuator on this node matches the chosen state.\nThe actuator must have an instance name set.",
-		"actuator_name": "The instance name of the actuator to watch.\nMust match the Name field on the actuator's graph node.",
+		"_description": "Fires TRUE when the named action on this node matches the chosen state.\nThe action must have an instance name set.",
+		"actuator_name": "The instance name of the action to watch.\nMust match the Name field on the action's graph node.",
 		"trigger_on": "Active: fires TRUE while the actuator is running.\nInactive: fires TRUE while the actuator is NOT running.",
 	}
 

@@ -10,7 +10,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ##   Range:   generates a random integer and fires TRUE when it falls in [min, max].
 ##
 ## Use Seed to get reproducible results (same sequence every run).
-## Pair with a Delay Sensor to control how often the roll is evaluated.
+## Pair with a Delay Trigger to control how often the roll is evaluated.
 
 
 func _init() -> void:
@@ -84,7 +84,7 @@ func get_property_definitions() -> Array:
 			"default": false
 		},
 		{
-			"name": "value_variable",
+			"name": "value_variable", "required": true, "required_label": "a variable to store the random value", "required_if": {"store_value": true},
 			"type": TYPE_STRING,
 			"default": ""
 		},
@@ -93,7 +93,7 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Activates randomly each time it is evaluated.\\nPair with a Delay Sensor to control how often it rolls.\\nUseful for random behaviors, AI variation, and loot rolls.",
+		"_description": "Activates randomly each time it is evaluated.\\nPair with a Delay Trigger to control how often it rolls.\\nUseful for random behaviors, AI variation, and loot rolls.",
 		"trigger_mode":   "Chance: rolls TRUE with a given probability each evaluation.\\nValue: rolls an integer and fires TRUE when it matches the target.\\nRange: rolls an integer and fires TRUE when it falls within [min, max].",
 		"chance_percent": "Probability of firing TRUE (0–100%).\\n10 = 10% chance per evaluation.\\n100 = always fires.",
 		"target_value":   "The integer the roll must equal to fire TRUE (Value mode).\\nThe roll range is [0, target_value * 2] so the target sits in the middle.",

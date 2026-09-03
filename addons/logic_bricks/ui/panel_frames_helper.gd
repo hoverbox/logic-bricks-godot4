@@ -365,6 +365,7 @@ func on_frame_rename_button_pressed(panel) -> void:
 	dialog.dialog_autowrap = true
 
 	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
 	dialog.add_child(vbox)
 
 	var label = Label.new()

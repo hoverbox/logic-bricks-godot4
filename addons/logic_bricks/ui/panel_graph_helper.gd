@@ -60,6 +60,81 @@ func sync_graph_ui_to_bricks() -> void:
 			elif control is ColorPickerButton:
 				brick_instance.set_property(property_name, control.color)
 
+func is_brick_in_complete_chain(graph_node: GraphNode, connections: Array) -> bool:
+	if not graph_node.has_meta("brick_data"):
+		return true
+	var brick_data: Dictionary = graph_node.get_meta("brick_data")
+	var brick_type := str(brick_data.get("brick_type", ""))
+	if brick_type == "sensor":
+		return _sensor_reaches_terminal(graph_node, connections, {})
+	if brick_type == "controller":
+		return _controller_has_trigger_upstream(graph_node, connections, {}) and _controller_reaches_terminal(graph_node, connections, {})
+	if brick_type == "actuator":
+		return _actuator_has_trigger_upstream(graph_node, connections)
+	return true
+
+
+func _sensor_reaches_terminal(sensor_node: GraphNode, connections: Array, visited: Dictionary) -> bool:
+	if visited.has(sensor_node.name):
+		return false
+	var next_visited := visited.duplicate()
+	next_visited[sensor_node.name] = true
+	for output_node in trace_outputs(sensor_node.name, connections):
+		if not output_node.has_meta("brick_data"):
+			continue
+		var data: Dictionary = output_node.get_meta("brick_data")
+		if str(data.get("brick_type", "")) == "controller" and _controller_reaches_terminal(output_node, connections, next_visited):
+			return true
+	return false
+
+
+func _controller_has_trigger_upstream(controller_node: GraphNode, connections: Array, visited: Dictionary) -> bool:
+	if visited.has(controller_node.name):
+		return false
+	var next_visited := visited.duplicate()
+	next_visited[controller_node.name] = true
+	for input_node in trace_inputs(controller_node.name, connections):
+		if not input_node.has_meta("brick_data"):
+			continue
+		var data: Dictionary = input_node.get_meta("brick_data")
+		var brick_type := str(data.get("brick_type", ""))
+		if brick_type == "sensor":
+			return true
+		if brick_type == "controller" and _controller_has_trigger_upstream(input_node, connections, next_visited):
+			return true
+	return false
+
+
+func _controller_reaches_terminal(controller_node: GraphNode, connections: Array, visited: Dictionary) -> bool:
+	if visited.has(controller_node.name):
+		return false
+	var data: Dictionary = controller_node.get_meta("brick_data")
+	if str(data.get("brick_class", "")) == "ScriptController":
+		return true
+	var next_visited := visited.duplicate()
+	next_visited[controller_node.name] = true
+	for output_node in trace_outputs(controller_node.name, connections):
+		if not output_node.has_meta("brick_data"):
+			continue
+		var output_data: Dictionary = output_node.get_meta("brick_data")
+		var brick_type := str(output_data.get("brick_type", ""))
+		if brick_type == "actuator":
+			return true
+		if brick_type == "controller" and _controller_reaches_terminal(output_node, connections, next_visited):
+			return true
+	return false
+
+
+func _actuator_has_trigger_upstream(actuator_node: GraphNode, connections: Array) -> bool:
+	for input_node in trace_inputs(actuator_node.name, connections):
+		if not input_node.has_meta("brick_data"):
+			continue
+		var data: Dictionary = input_node.get_meta("brick_data")
+		if str(data.get("brick_type", "")) == "controller" and _controller_has_trigger_upstream(input_node, connections, {}):
+			return true
+	return false
+
+
 func extract_chains_from_graph(include_incomplete: bool = false) -> Array:
 	var chains = []
 	var connections = panel.graph_edit.get_connection_list()

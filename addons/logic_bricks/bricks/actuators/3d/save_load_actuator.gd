@@ -47,6 +47,8 @@ func get_property_definitions() -> Array:
 		},
 		{
 			"name": "target",
+			"group_picker": true,
+			"group_picker_if": {"scope": "group"},
 			"type": TYPE_STRING,
 			"default": "",
 			"placeholder": "Node name or group name"

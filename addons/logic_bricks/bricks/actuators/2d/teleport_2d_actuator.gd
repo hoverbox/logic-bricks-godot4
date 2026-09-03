@@ -37,7 +37,7 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	return [
 		{
-			"name": "target_node_name",
+			"name": "target_node_name", "required": true, "required_label": "a target node name", "required_if": {"mode": "target_node"},
 			"type": TYPE_STRING,
 			"default": "Target",
 			"placeholder": "Target Node2D node name"
@@ -60,7 +60,7 @@ func get_property_definitions() -> Array:
 			"default": 0.0
 		},
 		{
-			"name": "vector_variable",
+			"name": "vector_variable", "required": true, "required_label": "a Vector2 variable", "required_if": {"mode": "vector_variable"},
 			"type": TYPE_STRING,
 			"default": "",
 			"visible_if": {"mode": "vector_variable"}

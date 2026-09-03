@@ -5,7 +5,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ## Handles gravity, ground detection, and move_and_slide() in one brick.
 ## Jumping is handled by the separate Jump Actuator.
 ## Pair with an Always Sensor so it runs every frame.
-## Horizontal movement is handled by separate Motion / Move Towards Actuators.
+## Horizontal movement is handled by separate Position / Steering Actuators.
 ##
 ## Execution order (guaranteed):
 ##   1. Pre-process: reset horizontal velocity
@@ -18,6 +18,22 @@ func _init() -> void:
 	super._init()
 	brick_type = BrickType.ACTUATOR
 	brick_name = "Character Physics"
+
+
+
+func get_brick_info() -> Dictionary:
+	return {
+		"class": "CharacterActuator",
+		"name": "Character Physics",
+		"type": "actuator",
+		"category": "Motion",
+		"description": "Applies character gravity, grounding, acceleration, friction, and move_and_slide().",
+		"menu_order": 10,
+		"domain": "3d"
+	}
+
+func get_compatibility_error(node: Node) -> String:
+	return "" if node is CharacterBody3D else "Requires CharacterBody3D"
 
 
 func _initialize_properties() -> void:
@@ -84,11 +100,15 @@ func get_property_definitions() -> Array:
 		},
 		{
 			"name": "ground_groups",
+			"group_picker": true,
+			"group_picker_multi": true,
 			"type": TYPE_STRING,
 			"default": ""
 		},
 		{
 			"name": "platform_groups",
+			"group_picker": true,
+			"group_picker_multi": true,
 			"type": TYPE_STRING,
 			"default": "",
 			"placeholder": "e.g. moving_platform"

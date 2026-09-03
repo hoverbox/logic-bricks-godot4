@@ -17,10 +17,12 @@ func _init() -> void:
 
 	# Create main container
 	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
 	add_child(vbox)
 
 	# Properties container
 	properties_container = VBoxContainer.new()
+	properties_container.add_theme_constant_override("separation", 8)
 	vbox.add_child(properties_container)
 
 

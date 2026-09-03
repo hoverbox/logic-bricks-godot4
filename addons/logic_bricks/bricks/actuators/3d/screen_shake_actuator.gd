@@ -31,7 +31,7 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	return [
 		{
-			"name": "camera_node_name",
+			"name": "camera_node_name", "required": true, "required_label": "a Camera3D node name",
 			"type": TYPE_STRING,
 			"default": "Camera3D"
 		},

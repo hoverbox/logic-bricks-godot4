@@ -12,6 +12,13 @@ func _init() -> void:
 	brick_name = "Physics"
 
 
+func get_compatibility_error(node: Node) -> String:
+	var action = str(properties.get("physics_action", "suspend_physics")).to_lower().replace(" ", "_")
+	if action in ["suspend_physics", "resume_physics", "suspend", "resume"]:
+		return "" if node is RigidBody3D or node is CharacterBody3D else "Requires RigidBody3D or CharacterBody3D"
+	return "" if node is RigidBody3D else "This Physics action requires RigidBody3D"
+
+
 func _initialize_properties() -> void:
 	properties = {
 		"physics_action": "suspend_physics",  # Default matches normalized enum value

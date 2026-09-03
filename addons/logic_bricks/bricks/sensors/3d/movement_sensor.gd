@@ -2,14 +2,14 @@
 
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Movement Sensor - Detect object movement in specific directions
+## Movement Detected Trigger - Detect object movement in specific directions
 ## Check which directions to monitor. Active when any checked direction moves past the threshold.
 
 
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.SENSOR
-	brick_name = "Movement"
+	brick_name = "Movement Detected"
 
 
 func _initialize_properties() -> void:

@@ -60,6 +60,7 @@ func _build_overlay() -> void:
 	_panel.add_child(margin)
 
 	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 8)
 	margin.add_child(box)
 
 	var title := Label.new()

@@ -15,6 +15,9 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
+		# Target light. Blank means this node.
+		"target_node_name":   "",
+
 		# Light type
 		"light_type":         "omni",
 
@@ -71,6 +74,15 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
+		{
+			"name": "target_node_name",
+			"type": TYPE_STRING,
+			"default": "",
+			"placeholder": "blank = self, or light node name",
+			"node_reference": true,
+			"accepted_node_types": ["OmniLight3D", "SpotLight3D", "DirectionalLight3D"]
+		},
+
 		# ── Light Type ──
 		{"name": "light_type_group", "type": TYPE_NIL, "hint": 999, "hint_string": "Light Type"},
 		{
@@ -145,8 +157,9 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description":        "Control a light node's properties and apply animated FX effects.\nSelect the light type to expose its specific properties.",
-		"light_type":          "The type of light node this actuator targets.\nMust match the actual node type in your scene.",
+		"_description":        "Control a light node's properties and apply animated FX effects.\nLeave Target Light blank to affect this node, or enter another light node name.",
+		"target_node_name":     "Leave blank to affect this node, or enter/drag an OmniLight3D, SpotLight3D, or DirectionalLight3D node name.",
+		"light_type":          "The type of light node this actuator targets.\nMust match the actual target light type in your scene.",
 		"set_color":           "Enable to set the light's color.",
 		"color":               "The color to set on the light.",
 		"set_energy":          "Enable to set the light's energy (brightness).",
@@ -184,6 +197,7 @@ func get_tooltip_definitions() -> Dictionary:
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
+	var target_node_name   = str(properties.get("target_node_name", "")).strip_edges()
 	var light_type         = str(properties.get("light_type", "omni")).to_lower().replace(" ", "_")
 	var fx                 = str(properties.get("fx", "normal")).to_lower().replace(" ", "_")
 
@@ -236,11 +250,22 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if fx in ["strobe", "pulse"]:
 		member_vars.append("var %s: float = 0.0" % timer_var)
 
-	# Resolve the light node — it IS self (the actuator is added to the light node directly)
+	# Resolve the target light. Blank target means self.
+	var light_class = _godot_class(light_type)
 	code_lines.append("# Light Actuator")
-	code_lines.append("var %s = self as %s" % [light_var, _godot_class(light_type)])
-	code_lines.append("if not %s:" % light_var)
-	code_lines.append("\tpush_warning(\"Light Actuator: This node is not a %s\")" % _godot_class(light_type))
+	if target_node_name.is_empty():
+		code_lines.append("var %s = self as %s" % [light_var, light_class])
+		code_lines.append("if not %s:" % light_var)
+		code_lines.append("\tpush_warning(\"Light Actuator: This node is not a %s\")" % light_class)
+	else:
+		var escaped_target = _gd_string(target_node_name)
+		var target_var = "_light_target_%s" % chain_name
+		code_lines.append("var %s = find_child(\"%s\", true, false)" % [target_var, escaped_target])
+		code_lines.append("if %s == null and get_tree().current_scene:" % target_var)
+		code_lines.append("\t%s = get_tree().current_scene.find_child(\"%s\", true, false)" % [target_var, escaped_target])
+		code_lines.append("var %s = %s as %s" % [light_var, target_var, light_class])
+		code_lines.append("if not %s:" % light_var)
+		code_lines.append("\tpush_warning(\"Light Actuator: Could not find %s named '%s'\")" % [light_class, escaped_target])
 	code_lines.append("else:")
 
 	# ── Static property sets ──

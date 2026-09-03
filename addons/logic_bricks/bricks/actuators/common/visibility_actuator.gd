@@ -3,7 +3,7 @@
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Visibility Actuator - Show, hide, or toggle a node by name.
-## Uses the same node-name lookup pattern as the Text Actuator.
+## Uses the same node-name lookup pattern as the Text Action.
 ## Type the node name you want affected, or use "self" to affect the node this generated script is attached to.
 
 
@@ -40,7 +40,7 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Shows, hides, or toggles visibility of a node by name. Uses the same current-scene recursive name lookup as the Text Actuator.",
+		"_description": "Shows, hides, or toggles visibility of a node by name. Uses the same current-scene recursive name lookup as the Text Action.",
 		"target_node_name": "Type the node name to show/hide/toggle. Use \"self\" to affect the scripted node and its children.",
 		"action": "Show: set visible = true\nHide: set visible = false\nToggle: flip current visibility",
 	}

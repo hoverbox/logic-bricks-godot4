@@ -44,7 +44,7 @@ func get_property_definitions() -> Array:
 		},
 		# === Tracks ===
 		{
-			"name": "tracks",
+			"name": "tracks", "required": true, "required_label": "at least one music track", "required_if": {"music_mode": "tracks"},
 			"type": TYPE_ARRAY,
 			"default": [],
 			"item_hint": PROPERTY_HINT_FILE,

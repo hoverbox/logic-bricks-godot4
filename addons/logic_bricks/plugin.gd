@@ -68,7 +68,13 @@ func _on_selection_changed() -> void:
 		var selected_nodes = get_editor_interface().get_selection().get_selected_nodes()
 		if selected_nodes.size() > 0:
 			var sel = selected_nodes[0]
-			panel.set_selected_node(sel)
+
+			# Ctrl/Cmd + Scene-dock drag is a node-reference gesture. Godot selects
+			# the dragged Scene node before the drop begins; keep Logic Bricks on
+			# the node being programmed so the destination field does not disappear.
+			var reference_drag_modifier := Input.is_key_pressed(KEY_CTRL) or Input.is_key_pressed(KEY_META)
+			if not reference_drag_modifier:
+				panel.set_selected_node(sel)
 
 			# Show waypoint handles if node has WaypointPath actuators
 			# Keep showing if we were dragging (handle click deselects the node briefly)
@@ -78,8 +84,10 @@ func _on_selection_changed() -> void:
 				else:
 					_update_waypoint_node(null)
 		else:
-			# No selection — but keep handles if dragging
-			if not _dragging_handle:
+			# No selection — but keep the Logic Bricks target during a Ctrl/Cmd
+			# reference drag, and keep waypoint handles while they are dragged.
+			var reference_drag_modifier := Input.is_key_pressed(KEY_CTRL) or Input.is_key_pressed(KEY_META)
+			if not _dragging_handle and not reference_drag_modifier:
 				panel.set_selected_node(null)
 				_update_waypoint_node(null)
 

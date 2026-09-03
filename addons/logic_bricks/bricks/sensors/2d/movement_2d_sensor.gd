@@ -2,14 +2,14 @@
 
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Movement 2D Sensor - Detect 2D object movement in specific directions.
+## Movement Detected Trigger - Detect 2D object movement in specific directions.
 ## Check which directions to monitor. Active when any checked direction moves past the threshold.
 
 
 func get_brick_info() -> Dictionary:
 	return {
 		"class": "Movement2DSensor",
-		"name": "Movement 2D",
+		"name": "Movement Detected",
 		"type": "sensor",
 		"category": "",
 		"domain": "2d",
@@ -20,7 +20,7 @@ func get_brick_info() -> Dictionary:
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.SENSOR
-	brick_name = "Movement 2D"
+	brick_name = "Movement Detected"
 
 
 func _initialize_properties() -> void:

@@ -7,16 +7,16 @@ extends RefCounted
 
 const TOOLTIPS = {
 	# =========================================================================
-	# SENSORS
+	# TRIGGERS
 	# =========================================================================
 	"ActuatorSensor": {
-		"_description": "Fires TRUE when the named actuator on this node matches the chosen state.\nThe actuator must have an instance name set.",
-		"actuator_name": "The instance name of the actuator to watch.\nMust match the Name field on the actuator's graph node.",
-		"trigger_on": "Active: fires TRUE while the actuator is running.\nInactive: fires TRUE while the actuator is NOT running.",
+		"_description": "Fires TRUE when the named action on this node matches the chosen state.\nThe action must have an instance name set.",
+		"actuator_name": "The instance name of the action to watch.\nMust match the Name field on the action's graph node.",
+		"trigger_on": "Active: fires TRUE while the action is running.\nInactive: fires TRUE while the action is NOT running.",
 	},
 
 	"AlwaysSensor": {
-		"_description": "Always active sensor. Fires every frame.\nUseful for continuous actions like gravity or idle animations.",
+		"_description": "Always active trigger. Fires every frame.\nUseful for continuous actions like gravity or idle animations.",
 	},
 
 	"AnimationTreeSensor": {
@@ -40,7 +40,7 @@ const TOOLTIPS = {
 		"_description": "Adds a delay before activating. Stays active for a set duration.\nUseful for timed sequences or delayed triggers.",
 		"delay_frames": "Number of frames to wait before activating.",
 		"duration_frames": "Number of frames to stay active after the delay.",
-		"repeat": "If true, the sensor repeats after completing its cycle.",
+		"repeat": "If true, the trigger repeats after completing its cycle.",
 	},
 
 	"InputMapSensor": {
@@ -50,8 +50,8 @@ const TOOLTIPS = {
 	},
 
 	"MessageSensor": {
-		"_description": "Listens for signals sent by a Signal Actuator.\nThe sending node must target a group that this node belongs to.",
-		"subject": "The signal name to listen for. Must match what the Signal Actuator sends.",
+		"_description": "Listens for signals sent by a Signal Send Action.\nThe sending node must target a group that this node belongs to.",
+		"subject": "The signal name to listen for. Must match what the Signal Send Action sends.",
 		"match_mode": "How to match: Exact (full match), Contains (substring), or Starts With (prefix).",
 	},
 
@@ -61,7 +61,7 @@ const TOOLTIPS = {
 		"mouse_button": "Which mouse button to detect: Left, Right, or Middle.",
 		"button_state": "When to activate: Pressed, Released, or Held.",
 		"wheel_direction": "Which wheel direction to detect.",
-		"movement_threshold": "Minimum mouse movement before the sensor activates.",
+		"movement_threshold": "Minimum mouse movement before the trigger activates.",
 		"target_node_name": "For Hover Object: self, or the name/path of a child node to detect under the mouse. The target or one of its child collision objects must be hit by the ray.",
 	},
 
@@ -79,7 +79,7 @@ const TOOLTIPS = {
 
 	"ProximitySensor": {
 		"_description": "Detects nodes within a certain distance.\nChecks against nodes in a specified group.",
-		"distance": "Detection radius in units. Nodes closer than this distance will trigger the sensor.",
+		"distance": "Detection radius in units. Nodes closer than this distance will activate the trigger.",
 		"target_group": "Only detect nodes in this group. The group must be assigned in the Godot editor.",
 		"detection_mode": "Nearest: only detect the closest node. Any: detect if any node is in range.",
 	},
@@ -106,23 +106,23 @@ const TOOLTIPS = {
 	},
 
 	# =========================================================================
-	# CONTROLLERS
+	# GATES
 	# =========================================================================
 	"Controller": {
-		"_description": "Logic gate that combines sensor inputs.\nAND: all sensors must be active. OR: any sensor active.\nNAND/NOR/XOR: inverted and exclusive logic.",
-		"logic_mode": "Logic gate type:\n• AND: All connected sensors must be active\n• OR: At least one sensor must be active\n• NAND: NOT AND — active when not all sensors are active\n• NOR: NOT OR — active only when no sensors are active\n• XOR: Exclusive OR — active when exactly one sensor is active",
-		"state": "Which state this chain runs in (1-30). Use State Actuator to change states.",
+		"_description": "Logic gate that combines Trigger inputs.\nAND: all Triggers must be active. OR: any Trigger active.\nNAND/NOR/XOR: inverted and exclusive logic.",
+		"logic_mode": "Logic gate type:\n• AND: All connected Triggers must be active\n• OR: At least one Trigger must be active\n• NAND: NOT AND — active when not all Triggers are active\n• NOR: NOT OR — active only when no Triggers are active\n• XOR: Exclusive OR — active when exactly one Trigger is active",
+		"state": "Which state this chain runs in (1-30). Use State Action to change states.",
 	},
 
 	"ScriptController": {
-		"_description": "Calls a function in a custom .gd script when sensors fire.\nWorks like UPBGE's Python Controller (module mode):\nno actuator needed — the script is the action.",
-		"logic_mode": "Logic gate type:\n• AND: All connected sensors must be active\n• OR: At least one sensor must be active\n• NAND: NOT AND — active when not all sensors are active\n• NOR: NOT OR — active only when no sensors are active\n• XOR: Exclusive OR — active when exactly one sensor is active",
+		"_description": "Calls a function in a custom .gd script when triggers fire.\nRuns a custom GDScript module function:\nno separate Action is needed — the script performs the action.",
+		"logic_mode": "Logic gate type:\n• AND: All connected Triggers must be active\n• OR: At least one Trigger must be active\n• NAND: NOT AND — active when not all Triggers are active\n• NOR: NOT OR — active only when no Triggers are active\n• XOR: Exclusive OR — active when exactly one Trigger is active",
 		"script_path": "Path to the .gd script file to run.\nThe script must define: func run(node: Node) -> void:\n'node' is the scene object this brick is attached to.\nDo NOT add 'extends' to the script — it is called as a module.",
-		"state": "Which state this chain runs in (1-30). Use State Actuator to change states.",
+		"state": "Which state this chain runs in (1-30). Use State Action to change states.",
 	},
 
 	# =========================================================================
-	# ACTUATORS
+	# ACTIONS
 	# =========================================================================
 	"SpriteFramesActuator": {
 		"_description": "Play, stop, or pause Sprite3D / AnimatedSprite3D frame animations.\nFinds the target by name anywhere in the scene tree.\nLeave Target Node empty to target self.",
@@ -162,14 +162,14 @@ const TOOLTIPS = {
 	},
 
 	"CharacterActuator": {
-		"_description": "CharacterBody3D body rules: gravity, fall speed, floor snapping, slope limit, acceleration, friction, bounce, ground detection, and move_and_slide().\nHorizontal speed is still controlled by Motion-style actuators. Jumping is handled by the Jump Actuator.",
+		"_description": "CharacterBody3D body rules: gravity, fall speed, floor snapping, slope limit, acceleration, friction, bounce, ground detection, and move_and_slide().\nHorizontal speed is still controlled by movement Actions. Jumping is handled by the Character Jump Action.",
 		"gravity_strength": "Downward acceleration applied while airborne. Accepts a number, variable name, or expression.",
 		"max_fall_speed": "Maximum downward speed. Accepts a number, variable name, or expression.",
 		"floor_snap_length": "How strongly the character sticks to floors, ramps, and small uneven surfaces. Larger values help stay grounded.",
 		"slope_limit": "Steepest walkable slope in degrees. Higher values allow steeper slopes.",
-		"use_acceleration": "Off by default. When enabled, the character eases toward Motion actuator speed instead of instantly reaching it.",
+		"use_acceleration": "Off by default. When enabled, the character eases toward Position/Steering Action speed instead of instantly reaching it.",
 		"acceleration": "Normalized 0 to 1. 0 = barely accelerates; 1 = reaches requested speed quickly.",
-		"friction": "Normalized 0 to 1 slowdown when no Motion actuator is pushing the character. 0 = icy/no slowdown; 1 = quick stop.",
+		"friction": "Normalized 0 to 1 slowdown when no Position/Steering Action is moving the character. 0 = icy/no slowdown; 1 = quick stop.",
 		"bounce": "How much the character rebounds after hitting a surface. 0 = no bounce; 1 = full rebound.",
 		"ground_groups": "Optional comma-separated groups that count as ground. Empty = any floor.",
 		"platform_groups": "Optional comma-separated groups used as moving platforms.",
@@ -227,21 +227,21 @@ const TOOLTIPS = {
 	},
 
 	"MessageActuator": {
-		"_description": "Sends a signal to all nodes in a target group.\nReceivers need a Signal Sensor listening for the same subject.",
+		"_description": "Sends a signal to all nodes in a target group.\nReceivers need a Signal Receive Trigger listening for the same subject.",
 		"target_group": "Group name to send the signal to. Receiving nodes must be in this group.",
-		"subject": "Signal name/identifier. The Signal Sensor filters by this.",
+		"subject": "Signal name/identifier. The Signal Receive Trigger filters by this.",
 		"body": "Optional message body/data. Can carry extra information.",
 	},
 
 	"MotionActuator": {
-		"_description": "Moves or rotates the node.\nFor physics forces/torque, use the Physics actuators in the Physics submenu.",
+		"_description": "Moves or rotates the node.\nFor physics forces/torque, use the Physics Actions in the Physics submenu.",
 		"motion_type": "Type of motion:\n• Location: move by offset, set character velocity, or set position\n• Rotation: rotate by degrees each frame",
 		"movement_method": "How to apply location:\n• Character Velocity: set velocity on active axes (CharacterBody3D)\n• Translate: move by offset each frame\n• Position: set absolute position",
 		"x": "Value for X axis. Enter a number (e.g. 5.0) or a variable name (e.g. speed).",
 		"y": "Value for Y axis. Enter a number or variable name.",
 		"z": "Value for Z axis. Enter a number or variable name.",
 		"space": "Coordinate space: Local (relative to node's rotation) or Global (world axes).",
-		"call_move_and_slide": "If true, call move_and_slide() after setting velocity. Enable if no other actuator does this.",
+		"call_move_and_slide": "If true, call move_and_slide() after setting velocity. Enable if no other Action does this.",
 	},
 
 	"MouseActuator": {
@@ -265,11 +265,18 @@ const TOOLTIPS = {
 	},
 
 	"MoveTowardsActuator": {
-		"_description": "Moves toward or away from a target node.\nFind target by group (nearest member) or by node name (scene-wide search).\nCan use NavigationAgent3D for pathfinding.",
-		"behavior": "Seek: move directly toward the target.\nFlee: move directly away from the target.\nPath Follow: use NavigationAgent3D to navigate around obstacles.",
+		"_description": "Steers a node using reusable AI movement behaviors: Seek, Flee, Arrive, Wander, Maintain Distance, Orbit, or Path Follow.",
+		"behavior": "Seek moves toward a target. Flee moves away. Arrive slows near the target. Wander changes heading randomly. Maintain Distance holds a preferred range. Orbit circles the target. Path Follow uses NavigationAgent3D.",
 		"target_mode": "How to find the target:\nGroup: find the nearest node in the named group.\nNode Name: find a node anywhere in the scene tree by name.",
 		"target_name": "Group name or node name to target.\nFor Group: the nearest node in this group is used.\nFor Node Name: searches the entire scene tree.",
 		"arrival_distance": "Distance at which the target is considered reached.",
+		"slowing_distance": "Arrive: distance where slowing begins.",
+		"desired_distance": "Maintain Distance: preferred target range.",
+		"distance_tolerance": "Maintain Distance: allowed range around the preferred distance.",
+		"orbit_distance": "Orbit: preferred radius around the target.",
+		"orbit_direction": "Orbit: clockwise or counterclockwise.",
+		"wander_amount": "Wander: maximum randomized heading change in degrees.",
+		"wander_frequency": "Wander: seconds between heading changes.",
 		"velocity": "Movement speed in units per second.",
 		"acceleration": "Acceleration rate. 0 = instant full speed.",
 		"turn_speed": "Rotation speed in degrees/sec when facing target. 0 = instant.",
@@ -293,7 +300,7 @@ const TOOLTIPS = {
 	},
 
 	"GravityActuator": {
-		"_description": "Applies custom gravity to a RigidBody3D physics object.\nUse the Character Actuator for CharacterBody3D gravity.",
+		"_description": "Applies custom gravity to a RigidBody3D physics object.\nUse the Character Physics Action for CharacterBody3D gravity.",
 		"gravity_strength": "Gravity acceleration or raw force amount, depending on Use Mass.",
 		"direction_x": "Gravity direction X component.",
 		"direction_y": "Gravity direction Y component. -1 pulls downward.",

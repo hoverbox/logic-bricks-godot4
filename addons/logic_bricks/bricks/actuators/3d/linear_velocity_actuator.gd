@@ -12,6 +12,10 @@ func _init() -> void:
 	brick_name = "Linear Velocity"
 
 
+func get_compatibility_error(node: Node) -> String:
+	return "" if node is RigidBody3D or node is CharacterBody3D else "Requires RigidBody3D or CharacterBody3D"
+
+
 func _initialize_properties() -> void:
 	properties = {
 		"velocity_x": "0.0",       # Velocity on X axis
@@ -86,6 +90,13 @@ func _is_zero(val) -> bool:
 	# It's a variable name — not zero
 	return false
 
+
+
+func get_configuration_warnings(node: Node = null) -> Array[String]:
+	var warnings := super.get_configuration_warnings(node)
+	if _validation_all_numeric_zero(["velocity_x", "velocity_y", "velocity_z"]):
+		warnings.append("Put a Value or Variable in X,Y, or Z")
+	return warnings
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var velocity_x = properties.get("velocity_x", "0.0")

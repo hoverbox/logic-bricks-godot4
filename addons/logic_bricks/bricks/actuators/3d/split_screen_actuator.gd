@@ -38,10 +38,10 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	var layouts = "Vertical,Horizontal,2x2 Grid,Top Wide,Bottom Wide"
 	return [
-		{ "name": "camera_1_node_name", "type": TYPE_STRING, "default": "Camera3D", "placeholder": "Player 1 Camera3D node name" },
-		{ "name": "camera_2_node_name", "type": TYPE_STRING, "default": "Camera3D2", "placeholder": "Player 2 Camera3D node name" },
-		{ "name": "camera_3_node_name", "type": TYPE_STRING, "default": "Camera3D3", "placeholder": "Player 3 Camera3D node name" },
-		{ "name": "camera_4_node_name", "type": TYPE_STRING, "default": "Camera3D4", "placeholder": "Player 4 Camera3D node name" },
+		{ "name": "camera_1_node_name", "required": true, "required_label": "Player 1 camera", "type": TYPE_STRING, "default": "Camera3D", "placeholder": "Player 1 Camera3D node name" },
+		{ "name": "camera_2_node_name", "required": true, "required_label": "Player 2 camera", "type": TYPE_STRING, "default": "Camera3D2", "placeholder": "Player 2 Camera3D node name" },
+		{ "name": "camera_3_node_name", "required": true, "required_label": "Player 3 camera", "required_if": {"player_count": ["3", "4"]}, "type": TYPE_STRING, "default": "Camera3D3", "placeholder": "Player 3 Camera3D node name" },
+		{ "name": "camera_4_node_name", "required": true, "required_label": "Player 4 camera", "required_if": {"player_count": "4"}, "type": TYPE_STRING, "default": "Camera3D4", "placeholder": "Player 4 Camera3D node name" },
 		{
 			"name": "player_count",
 			"type": TYPE_STRING,

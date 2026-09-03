@@ -29,7 +29,7 @@ func get_property_definitions() -> Array:
 			"default": "set_parent"
 		},
 		{
-			"name": "parent_node",
+			"name": "parent_node", "required": true, "required_label": "a parent node", "required_if": {"mode": "set_parent"},
 			"type": TYPE_STRING,
 			"default": "",
 			"visible_if": {"mode": "set_parent"}

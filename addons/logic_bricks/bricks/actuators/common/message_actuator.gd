@@ -2,7 +2,7 @@
 
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Signal Actuator - Send signals to other objects
+## Signal Send Action - Send signals to other objects
 ## Calls a message handler on all nodes in a target group
 ## If no group is specified, broadcasts to ALL nodes with a message handler
 
@@ -10,7 +10,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.ACTUATOR
-	brick_name = "Signal"
+	brick_name = "Signal Send"
 
 
 func _initialize_properties() -> void:
@@ -25,11 +25,14 @@ func get_property_definitions() -> Array:
 	return [
 		{
 			"name": "target_group",
+			"group_picker": true,
 			"type": TYPE_STRING,
 			"default": ""
 		},
 		{
 			"name": "subject",
+			"required": true,
+			"required_label": "a signal subject",
 			"type": TYPE_STRING,
 			"default": ""
 		},
@@ -43,9 +46,9 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Sends a signal to other nodes.\nReceiving nodes need a Signal Sensor listening for the subject.",
-		"target_group": "Group name to send to.\nLeave empty to broadcast to ALL nodes with a Signal Sensor.",
-		"subject": "Signal name (must match the Signal Sensor's subject).",
+		"_description": "Sends a signal to other nodes.\nReceiving nodes need a Signal Receive Trigger listening for the subject.",
+		"target_group": "Group name to send to.\nLeave empty to broadcast to ALL nodes with a Signal Receive Trigger.",
+		"subject": "Signal name (must match the Signal Receive Trigger's subject).",
 		"body": "Optional data to send with the message.",
 	}
 

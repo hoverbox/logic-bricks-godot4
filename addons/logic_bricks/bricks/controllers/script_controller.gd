@@ -42,7 +42,7 @@ func get_property_definitions() -> Array:
 			"default": "and"
 		},
 		{
-			"name": "script_path",
+			"name": "script_path", "required": true, "required_label": "a script file",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_FILE,
 			"hint_string": "*.gd",

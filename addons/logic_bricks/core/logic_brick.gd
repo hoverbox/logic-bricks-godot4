@@ -141,6 +141,79 @@ func get_property_definitions() -> Array:
 	return []
 
 
+## Editor-time validation shown only after the user presses Apply Code.
+## Bricks opt in by adding required=true to a property definition.
+func get_configuration_warnings(_node: Node = null) -> Array[String]:
+	var warnings: Array[String] = []
+	for prop_def in get_property_definitions():
+		if not prop_def.get("required", false):
+			continue
+		if prop_def.has("required_if") and not _validation_conditions_match(prop_def["required_if"]):
+			continue
+		if prop_def.has("required_unless") and _validation_conditions_match(prop_def["required_unless"]):
+			continue
+		var prop_name = str(prop_def.get("name", ""))
+		var value = get_property(prop_name, prop_def.get("default", null))
+		if _validation_value_is_empty(value):
+			var label = str(prop_def.get("required_label", prop_name.replace("_", " ").capitalize()))
+			warnings.append("Select or enter %s." % label)
+	return warnings
+
+
+func _validation_conditions_match(conditions: Dictionary) -> bool:
+	for property_name in conditions:
+		var actual = get_property(str(property_name), null)
+		var expected = conditions[property_name]
+		if expected is Array:
+			var matched := false
+			for option in expected:
+				if _validation_values_match(actual, option):
+					matched = true
+					break
+			if not matched:
+				return false
+		elif not _validation_values_match(actual, expected):
+			return false
+	return true
+
+
+func _validation_values_match(actual, expected) -> bool:
+	if typeof(actual) == TYPE_STRING or typeof(expected) == TYPE_STRING:
+		var a = str(actual).strip_edges().to_lower().replace(" ", "_")
+		var e = str(expected).strip_edges().to_lower().replace(" ", "_")
+		return a == e
+	return actual == expected
+
+
+func _validation_value_is_empty(value) -> bool:
+	if value == null:
+		return true
+	if typeof(value) in [TYPE_STRING, TYPE_STRING_NAME, TYPE_NODE_PATH]:
+		return str(value).strip_edges().is_empty()
+	if value is Array:
+		return value.is_empty()
+	return false
+
+
+## Treat blank or literal numeric zero as zero, while variables/expressions count as values.
+func _validation_value_is_numeric_zero(value) -> bool:
+	if typeof(value) == TYPE_FLOAT or typeof(value) == TYPE_INT:
+		return float(value) == 0.0
+	var text := str(value).strip_edges()
+	if text.is_empty():
+		return true
+	if text.is_valid_float() or text.is_valid_int():
+		return float(text) == 0.0
+	return false
+
+
+func _validation_all_numeric_zero(property_names: Array[String]) -> bool:
+	for property_name in property_names:
+		if not _validation_value_is_numeric_zero(properties.get(property_name, "0.0")):
+			return false
+	return true
+
+
 ## Get tooltip definitions for UI hover hints.
 ## Returns a dictionary mapping property names to tooltip strings.
 ## Include "_description" key for the overall brick description.

@@ -27,7 +27,7 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	return [
 		{
-			"name": "variable_name",
+			"name": "variable_name", "required": true, "required_label": "a variable name",
 			"type": TYPE_STRING,
 			"default": ""
 		},
@@ -39,12 +39,12 @@ func get_property_definitions() -> Array:
 			"default": "assign"
 		},
 		{
-			"name": "value",
+			"name": "value", "required": true, "required_label": "a value", "required_if": {"mode": ["assign", "add"]},
 			"type": TYPE_STRING,
 			"default": ""
 		},
 		{
-			"name": "source_variable",
+			"name": "source_variable", "required": true, "required_label": "a source variable", "required_if": {"mode": "copy"},
 			"type": TYPE_STRING,
 			"default": ""
 		},

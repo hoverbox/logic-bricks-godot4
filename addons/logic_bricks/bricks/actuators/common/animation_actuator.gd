@@ -35,6 +35,8 @@ func get_property_definitions() -> Array:
 		},
 		{
 			"name": "animation_name",
+			"required": true,
+			"required_label": "an animation",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
 			"hint_string": "__ANIMATION_LIST__",

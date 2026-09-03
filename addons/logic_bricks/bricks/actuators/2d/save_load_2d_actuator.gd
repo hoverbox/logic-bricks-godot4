@@ -36,7 +36,7 @@ func get_property_definitions() -> Array:
 	return [
 		{"name": "mode", "type": TYPE_STRING, "hint": PROPERTY_HINT_ENUM, "hint_string": "Save,Load", "default": "save"},
 		{"name": "scope", "type": TYPE_STRING, "hint": PROPERTY_HINT_ENUM, "hint_string": "This Node,Target Node,Group", "default": "this_node"},
-		{"name": "target", "type": TYPE_STRING, "default": ""},
+		{"name": "target", "type": TYPE_STRING, "default": "", "group_picker": true, "group_picker_if": {"scope": "group"}},
 		{"name": "slot", "type": TYPE_STRING, "default": "slot1"},
 		{"name": "save_position", "type": TYPE_BOOL, "default": true},
 		{"name": "save_rotation", "type": TYPE_BOOL, "default": true},

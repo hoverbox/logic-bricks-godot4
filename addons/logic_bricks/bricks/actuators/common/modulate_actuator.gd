@@ -21,7 +21,7 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
-		{"name": "target_node_name", "type": TYPE_STRING, "default": ""},
+		{"name": "target_node_name", "required": true, "required_label": "a target node name", "type": TYPE_STRING, "default": ""},
 		{"name": "node_name_source", "type": TYPE_STRING, "hint": PROPERTY_HINT_ENUM, "hint_string": "Literal Node Name,String Variable", "default": "literal"},
 		{"name": "export_node_name", "type": TYPE_BOOL, "default": false},
 		{"name": "target_modulate", "type": TYPE_STRING, "hint": PROPERTY_HINT_ENUM, "hint_string": "Self Modulate,Modulate", "default": "self_modulate"},

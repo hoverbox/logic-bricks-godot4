@@ -28,7 +28,7 @@ func get_property_definitions() -> Array:
 			"default": "restart"
 		},
 		{
-			"name": "scene_path",
+			"name": "scene_path", "required": true, "required_label": "a scene", "required_if": {"mode": "set_scene"},
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_FILE,
 			"hint_string": "*.tscn,*.scn",

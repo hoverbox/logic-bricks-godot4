@@ -38,7 +38,7 @@ func get_property_definitions() -> Array:
 			"default": "spawn"
 		},
 		{
-			"name": "scenes",
+			"name": "scenes", "required": true, "required_label": "at least one scene", "required_if": {"action": "spawn"},
 			"type": TYPE_ARRAY,
 			"default": [],
 			"item_hint": PROPERTY_HINT_FILE,
@@ -72,7 +72,7 @@ func get_property_definitions() -> Array:
 			"default": true
 		},
 		{
-			"name": "spawn_node",
+			"name": "spawn_node", "required": true, "required_label": "a spawn node", "required_if": {"action": "spawn", "spawn_at_self": false},
 			"type": TYPE_STRING,
 			"default": ""
 		},

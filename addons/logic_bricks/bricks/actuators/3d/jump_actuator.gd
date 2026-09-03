@@ -21,7 +21,9 @@ func get_brick_info() -> Dictionary:
 		"name": "Character Jump",
 		"type": "actuator",
 		"category": "Motion",
-		"description": "Applies a jump impulse to a CharacterBody3D. Pair with the Character Actuator for gravity and ground detection.",
+		"description": "Applies a jump impulse to a CharacterBody3D. Pair with Character Physics for gravity and ground detection.",
+		"menu_order": 20,
+		"domain": "3d"
 	}
 
 
@@ -29,6 +31,10 @@ func _init() -> void:
 	super._init()
 	brick_type = BrickType.ACTUATOR
 	brick_name = "Character Jump"
+
+
+func get_compatibility_error(node: Node) -> String:
+	return "" if node is CharacterBody3D else "Requires CharacterBody3D"
 
 
 func _initialize_properties() -> void:

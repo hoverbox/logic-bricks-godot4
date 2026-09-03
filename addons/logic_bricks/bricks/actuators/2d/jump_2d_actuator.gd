@@ -1,7 +1,9 @@
 @tool
 extends "res://addons/logic_bricks/core/logic_brick.gd"
-func get_brick_info() -> Dictionary: return {"class":"Jump2DActuator","name":"Character Jump 2D","type":"actuator","category":"Motion","domain":"2d","menu_order":120}
+func get_brick_info() -> Dictionary: return {"class":"Jump2DActuator","name":"Character Jump 2D","type":"actuator","category":"Motion","domain":"2d","menu_order":20}
 func _init()->void: super._init(); brick_type=BrickType.ACTUATOR; brick_name="Character Jump 2D"
+func get_compatibility_error(node: Node) -> String:
+	return "" if node is CharacterBody2D else "Requires CharacterBody2D"
 func _initialize_properties()->void: properties={"jump_height":"80.0","gravity_strength":"980.0","max_jumps":"1"}
 func get_property_definitions()->Array: return [{"name":"jump_height","type":TYPE_STRING,"default":"80.0"},{"name":"gravity_strength","type":TYPE_STRING,"default":"980.0"},{"name":"max_jumps","type":TYPE_STRING,"default":"1"}]
 func _to_expr(v)->String: var s=str(v).strip_edges(); return "0.0" if s.is_empty() else ("%.3f"%float(s) if s.is_valid_float() or s.is_valid_int() else s)

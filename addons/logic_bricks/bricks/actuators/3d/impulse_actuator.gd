@@ -12,6 +12,10 @@ func _init() -> void:
 	brick_name = "Impulse"
 
 
+func get_compatibility_error(node: Node) -> String:
+	return "" if node is RigidBody3D else "Requires RigidBody3D"
+
+
 func _initialize_properties() -> void:
 	properties = {
 		"impulse_type": "central",  # central, positional, torque
@@ -73,6 +77,13 @@ func get_property_definitions() -> Array:
 		},
 	]
 
+
+
+func get_configuration_warnings(node: Node = null) -> Array[String]:
+	var warnings := super.get_configuration_warnings(node)
+	if _validation_all_numeric_zero(["x", "y", "z"]):
+		warnings.append("Put a Value or Variable in X,Y, or Z")
+	return warnings
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
