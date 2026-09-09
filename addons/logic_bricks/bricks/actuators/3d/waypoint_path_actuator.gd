@@ -10,7 +10,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.ACTUATOR
-	brick_name = "Waypoint Path"
+	brick_name = "Path Follow"
 
 
 func _initialize_properties() -> void:

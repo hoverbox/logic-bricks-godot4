@@ -521,7 +521,7 @@
            Rumble
           </a>
 <a href="actuators-3d.html#sprite-frames-3d">
-           Sprite Frames
+           Sprite3D Animation
           </a>
 <a href="actuators-3d.html#animation-state-3d">
            Animation State
@@ -927,13 +927,13 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="3d" data-search="Sprite Frames Play, stop, or pause Sprite3D / AnimatedSprite3D frame animations.\nFinds the target by name anywhere in the scene tree.\nLeave Target Node empty to use the node this script is on. General" id="sprite-frames-3d">
+<section class="brick actuator" data-compatibility="3d" data-search="Sprite3D Animation Play, stop, or pause Sprite3D / AnimatedSprite3D frame animations.\nFinds the target by name anywhere in the scene tree.\nLeave Target Node empty to use the node this script is on. General" id="sprite-frames-3d">
 <div class="brick-heading">
 <span class="badge">
          action • 3d
         </span>
 <h2>
-         Sprite Frames
+         Sprite3D Animation
         </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
@@ -1085,7 +1085,7 @@
             →
            </span>
 <span class="chain-node">
-            Sprite Frames
+            Sprite3D Animation
            </span>
 </div>
 </section>
@@ -1126,11 +1126,11 @@
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Sprite Frames screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/sprite-frames.png"/>
+<img alt="Sprite3D Animation screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/sprite-frames.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-          Sprite Frames screenshot
+          Sprite3D Animation screenshot
          </strong>
 <span>
 </span>
@@ -1471,7 +1471,7 @@
            Music
           </a>
 <a href="actuators-3d.html#sprite-frames-3d">
-           Sprite Frames
+           Sprite3D Animation
           </a>
 <a href="actuators-2d.html#sprite-animation-2d">
            Sprite Animation
@@ -1797,7 +1797,7 @@
            Animation
           </a>
 <a href="actuators-2d.html#get-transforms-2d">
-           Get Transforms
+           Get Transform
           </a>
 </div>
 </section>
@@ -2128,7 +2128,7 @@
            Rumble
           </a>
 <a href="actuators-3d.html#sprite-frames-3d">
-           Sprite Frames
+           Sprite3D Animation
           </a>
 </div>
 </section>
@@ -3818,17 +3818,17 @@
        Environment
       </h2>
 <p>
-       Right-click → Actions → Environment
+       Right-click → Actions → World Environment
       </p>
 </div>
 <div class="category-bricks">
-<section class="brick actuator" data-compatibility="3d" data-search="Environment Modifies WorldEnvironment properties at runtime.\nDrag your WorldEnvironment node into the inspector slot.\nAll value fields accept a number or a variable name / expression. General" id="environment-3d">
+<section class="brick actuator" data-compatibility="3d" data-search="World Environment Modifies WorldEnvironment properties at runtime.\nDrag your WorldEnvironment node into the inspector slot.\nAll value fields accept a number or a variable name / expression. General" id="environment-3d">
 <div class="brick-heading">
 <span class="badge">
          action • 3d
         </span>
 <h2>
-         Environment
+         World Environment
         </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
@@ -3849,7 +3849,7 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actions → Environment
+          Add Logic Brick → Actions → World Environment
          </span>
 </div>
 </div>
@@ -4910,11 +4910,11 @@
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Environment screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/environment.png"/>
+<img alt="World Environment screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/environment.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-          Environment screenshot
+          World Environment screenshot
          </strong>
 <span>
 </span>
@@ -4944,7 +4944,7 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actions → Environment
+          Add Logic Brick → Actions → World Environment
          </span>
 </div>
 </div>
@@ -6629,7 +6629,7 @@
            Linear Velocity
           </a>
 <a href="actuators-2d.html#modulate-2d">
-           Modulate
+           Color / Transparency
           </a>
 </div>
 </section>
@@ -7757,7 +7757,7 @@
            Object Flash
           </a>
 <a href="actuators-2d.html#modulate-2d">
-           Modulate
+           Color / Transparency
           </a>
 <a href="actuators-3d.html#3rd-person-camera-3d">
            3rd Person Camera
@@ -8261,7 +8261,7 @@
          </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#get-transforms-2d">
-           Get Transforms
+           Get Transform
           </a>
 <a href="actuators-2d.html#modify-variable-2d">
            Modify Variable
@@ -8498,7 +8498,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
            Environment
           </a>
 <a href="actuators-2d.html#modulate-2d">
-           Modulate
+           Color / Transparency
           </a>
 </div>
 </section>
@@ -10953,7 +10953,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
 <tr><td><code>self_terminate</code></td><td>Stops execution when a target is reached for applicable behaviors.</td></tr>
 <tr><td><code>lock_y_velocity</code></td><td>Keeps steering on the XZ plane. Leave enabled for grounded CharacterBody3D enemies.</td></tr>
 </tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Seek a player for a simple chase.</li><li>Flee from danger or a stronger character.</li><li>Use Arrive for smoother movement that does not stop abruptly.</li><li>Use Wander for animals, civilians, ghosts, or idle enemies.</li><li>Use Maintain Distance for ranged enemies.</li><li>Use Orbit for circling or strafing enemies.</li></ul></section><section class="guidance-panel example"><h4>Example enemy states</h4><p>Patrol: Waypoint Path in Random mode. Chase: Steering set to Seek with the player as target. Ranged combat: Steering set to Maintain Distance.</p></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>The old Move Towards brick is now Steering → Seek. Existing saved brick IDs remain compatible.</div></div></details>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Seek a player for a simple chase.</li><li>Flee from danger or a stronger character.</li><li>Use Arrive for smoother movement that does not stop abruptly.</li><li>Use Wander for animals, civilians, ghosts, or idle enemies.</li><li>Use Maintain Distance for ranged enemies.</li><li>Use Orbit for circling or strafing enemies.</li></ul></section><section class="guidance-panel example"><h4>Example enemy states</h4><p>Patrol: Path Follow in Random mode. Chase: Steering set to Seek with the player as target. Ranged combat: Steering set to Maintain Distance.</p></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>The old Move Towards brick is now Steering → Seek. Existing saved brick IDs remain compatible.</div></div></details>
 <figure class="screenshot compact"><div class="screenshot-image"><img alt="Steering action screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/move-towards.png"/></div><figcaption><strong class="screenshot-caption-title">Steering screenshot</strong><span></span></figcaption></figure>
 </section>
 <section class="brick actuator" data-compatibility="3d" data-search="Rotate Towards Rotates this node to face a target found by name or group.\nUseful for turrets, enemies tracking a player, or any look-at behaviour. General" id="rotate-towards-3d">
@@ -11499,13 +11499,13 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="3d" data-search="Waypoint Path Sequential Random patrol wandering waypoints Path3D Motion" id="waypoint-path-3d">
+<section class="brick actuator" data-compatibility="3d" data-search="Path Follow Sequential Random patrol wandering waypoints Path3D Motion" id="waypoint-path-3d">
 <div class="brick-heading">
 <span class="badge">
          action • 3d
         </span>
 <h2>
-         Waypoint Path
+         Path Follow
         </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
@@ -11729,7 +11729,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
             →
            </span>
 <span class="chain-node">
-            Waypoint Path
+            Path Follow
            </span>
 </div>
 </section>
@@ -11770,11 +11770,11 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Waypoint Path screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/waypoint-path.png"/>
+<img alt="Path Follow screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/waypoint-path.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-          Waypoint Path screenshot
+          Path Follow screenshot
          </strong>
 <span>
 </span>
@@ -11796,13 +11796,13 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
       </p>
 </div>
 <div class="category-bricks">
-<section class="brick actuator" data-compatibility="3d" data-search="Get Transforms Gets position, rotation, and scale from a node or the nearest member of a group and stores the values as variables. Object" id="get-transforms-3d">
+<section class="brick actuator" data-compatibility="3d" data-search="Get Transform Gets position, rotation, and scale from a node or the nearest member of a group and stores the values as variables. Object" id="get-transforms-3d">
 <div class="brick-heading">
 <span class="badge">
          action • shared
         </span>
 <h2>
-         Get Transforms
+         Get Transform
         </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
@@ -11995,7 +11995,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
             →
            </span>
 <span class="chain-node">
-            Get Transforms
+            Get Transform
            </span>
 </div>
 </section>
@@ -12020,7 +12020,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
          </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#set-transforms-2d">
-           Set Transforms
+           Set Transform
           </a>
 <a href="actuators-3d.html#save-load-3d">
            Save / Load
@@ -12036,24 +12036,24 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Get Transforms screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/get-transforms.png"/>
+<img alt="Get Transform screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/get-transforms.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-          Get Transforms screenshot
+          Get Transform screenshot
          </strong>
 <span>
 </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="3d" data-search="Set Transforms Sets position, rotation, and scale from entered values or variables, instantly or over time. Object" id="set-transforms-3d">
+<section class="brick actuator" data-compatibility="3d" data-search="Set Transform Sets position, rotation, and scale from entered values or variables, instantly or over time. Object" id="set-transforms-3d">
 <div class="brick-heading">
 <span class="badge">
          action • shared
         </span>
 <h2>
-         Set Transforms
+         Set Transform
         </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
@@ -12116,7 +12116,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
             →
            </span>
 <span class="chain-node">
-            Set Transforms
+            Set Transform
            </span>
 </div>
 </section>
@@ -12141,7 +12141,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
          </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#get-transforms-2d">
-           Get Transforms
+           Get Transform
           </a>
 <a href="actuators-3d.html#save-load-3d">
            Save / Load
@@ -12157,11 +12157,11 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Set Transforms screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/set-transforms.png"/>
+<img alt="Set Transform screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/set-transforms.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-          Set Transforms screenshot
+          Set Transform screenshot
          </strong>
 <span>
 </span>
@@ -12972,13 +12972,13 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="3d" data-search="Property Sets properties on a target node.\nChoose the node type to see its available properties.\nLeave a field empty to skip setting that property.\n⚠ Adds @export in Inspector — assign the target node. General" id="property-3d">
+<section class="brick actuator" data-compatibility="3d" data-search="Node Properties Sets properties on a target node.\nChoose the node type to see its available properties.\nLeave a field empty to skip setting that property.\n⚠ Adds @export in Inspector — assign the target node. General" id="property-3d">
 <div class="brick-heading">
 <span class="badge">
          action • shared
         </span>
 <h2>
-         Property
+         Node Properties
         </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
@@ -14300,7 +14300,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
          </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#modulate-2d">
-           Modulate
+           Color / Transparency
           </a>
 <a href="actuators-3d.html#text-3d">
            Text
@@ -15970,13 +15970,13 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
       </p>
 </div>
 <div class="category-bricks">
-<section class="brick actuator" data-compatibility="3d" data-search="Modulate Sets or smoothly transitions the color/alpha of a UI or 2D node found by name anywhere in the current scene tree. General" id="modulate-3d">
+<section class="brick actuator" data-compatibility="3d" data-search="Color / Transparency Sets or smoothly transitions the color/alpha of a UI or 2D node found by name anywhere in the current scene tree. General" id="modulate-3d">
 <div class="brick-heading">
 <span class="badge">
          action • shared
         </span>
 <h2>
-         Modulate
+         Color / Transparency
         </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
@@ -16173,7 +16173,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
             →
            </span>
 <span class="chain-node">
-            Modulate
+            Color / Transparency
            </span>
 </div>
 </section>
@@ -16207,7 +16207,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
            Screen Shake
           </a>
 <a href="actuators-3d.html#sprite-frames-3d">
-           Sprite Frames
+           Sprite3D Animation
           </a>
 </div>
 </section>
@@ -16524,7 +16524,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
          </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#modulate-2d">
-           Modulate
+           Color / Transparency
           </a>
 <a href="actuators-3d.html#tween-3d">
            Tween
@@ -16781,7 +16781,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
            Progress Bar
           </a>
 <a href="actuators-3d.html#sprite-frames-3d">
-           Sprite Frames
+           Sprite3D Animation
           </a>
 <a href="actuators-3d.html#tween-3d">
            Tween
@@ -17091,7 +17091,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
          </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#modulate-2d">
-           Modulate
+           Color / Transparency
           </a>
 <a href="actuators-3d.html#progress-bar-3d">
            Progress Bar

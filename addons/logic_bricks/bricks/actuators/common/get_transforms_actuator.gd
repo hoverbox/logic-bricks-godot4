@@ -1,19 +1,19 @@
 @tool
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Get Transforms Actuator - Reads position, rotation, and/or scale from a Node2D or Node3D.
+## Get Transform Actuator - Reads position, rotation, and/or scale from a Node2D or Node3D.
 ## A target can be found by node name or by the nearest member of a group.
 
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.ACTUATOR
-	brick_name = "Get Transforms"
+	brick_name = "Get Transform"
 
 
 func get_brick_info() -> Dictionary:
 	return {
 		"class": "GetTransformsActuator",
-		"name": "Get Transforms",
+		"name": "Get Transform",
 		"type": "actuator",
 		"category": "Object",
 		"description": "Gets position, rotation, and scale from a node or the nearest member of a group and stores the values as variables.",
@@ -122,14 +122,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if get_scale and scale_variable.is_empty():
 		errors.append("Scale is selected but Scale Variable is empty")
 	if not errors.is_empty():
-		return {"actuator_code": "push_warning(\"Get Transforms: %s.\")" % ", ".join(errors)}
+		return {"actuator_code": "push_warning(\"Get Transform: %s.\")" % ", ".join(errors)}
 
 	var label := _unique_label(chain_name)
 	var target_var := "_%s_target" % label
 	var candidates_var := "_%s_candidates" % label
 	var best_distance_var := "_%s_best_distance" % label
 	var member_vars: Array[String] = []
-	var code_lines: Array[String] = ["# Get Transforms Actuator", "var %s: Node = null" % target_var]
+	var code_lines: Array[String] = ["# Get Transform Actuator", "var %s: Node = null" % target_var]
 
 	if get_position and not _node_has_logic_variable(node, position_variable):
 		member_vars.append("var %s = null" % position_variable)
@@ -175,9 +175,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if get_scale:
 		code_lines.append("\t%s = %s.global_basis.get_scale()" % [scale_variable, target_var])
 	code_lines.append("elif %s:" % target_var)
-	code_lines.append("\tpush_warning(\"Get Transforms: target '%s' is not a Node2D or Node3D\")" % safe_target)
+	code_lines.append("\tpush_warning(\"Get Transform: target '%s' is not a Node2D or Node3D\")" % safe_target)
 	code_lines.append("else:")
-	code_lines.append("\tpush_warning(\"Get Transforms: no compatible target found for '%s'\")" % safe_target)
+	code_lines.append("\tpush_warning(\"Get Transform: no compatible target found for '%s'\")" % safe_target)
 
 	return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
 

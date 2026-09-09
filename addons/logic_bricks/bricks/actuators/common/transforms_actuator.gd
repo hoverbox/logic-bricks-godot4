@@ -6,12 +6,12 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.ACTUATOR
-	brick_name = "Set Transforms"
+	brick_name = "Set Transform"
 
 func get_brick_info() -> Dictionary:
 	return {
 		"class": "TransformsActuator",
-		"name": "Set Transforms",
+		"name": "Set Transform",
 		"type": "actuator",
 		"category": "Object",
 		"description": "Sets position, rotation, and scale from entered values or variables, instantly or over time.",

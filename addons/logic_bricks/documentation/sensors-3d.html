@@ -112,12 +112,12 @@
 <div class="page-tools">
 <input class="search" id="docSearch" placeholder="Filter triggers on this page…" type="search"/>
 </div>
-<section class="brick sensor" data-compatibility="3d" data-search="Action Triggered Fires TRUE when the named action on this node matches the chosen state.\nThe action must have an instance name set. General" id="actuator-3d">
+<section class="brick sensor" data-compatibility="3d" data-search="Action Active Fires TRUE when the named action on this node matches the chosen state.\nThe action must have an instance name set. General" id="actuator-3d">
 <div class="brick-heading">
 <span class="badge">
        trigger • 3d
       </span>
-<h2>Action Triggered</h2>
+<h2>Action Active</h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
         3D
@@ -518,7 +518,7 @@
          Progress Bar
         </a>
 <a href="actuators-2d.html#modulate-2d">
-         Modulate
+         Color / Transparency
         </a>
 <a href="sensors-3d.html#movement-3d">Movement Detected</a>
 </div>
@@ -1087,12 +1087,12 @@
 </section>
 </details>
 </section>
-<section class="brick sensor" data-compatibility="3d" data-search="Character Physics Checks CharacterBody3D collision state: on floor, on wall, or on ceiling.\nUse this for jump checks, wall checks, ceiling bumps, and platformer logic. General" id="physics-3d">
+<section class="brick sensor" data-compatibility="3d" data-search="Surface Check Checks CharacterBody3D collision state: on floor, on wall, or on ceiling.\nUse this for jump checks, wall checks, ceiling bumps, and platformer logic. General" id="physics-3d">
 <div class="brick-heading">
 <span class="badge">
        trigger • 3d
       </span>
-<h2>Character Physics</h2>
+<h2>Surface Check</h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
         3D
@@ -1210,7 +1210,7 @@
          Example chain
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">Character Physics</span>
+<span class="chain-node">Surface Check</span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
@@ -1245,9 +1245,9 @@
         Related bricks
        </h4>
 <div class="related-link-list">
-<a href="sensors-2d.html#physics-2d-2d">Character Physics</a>
+<a href="sensors-2d.html#physics-2d-2d">Surface Check</a>
 <a href="actuators-3d.html#character-physics-3d">
-         Character Physics
+         Surface Check
         </a>
 <a href="sensors-3d.html#actuator-3d">Action Triggered</a>
 <a href="sensors-3d.html#raycast-3d">
@@ -1520,13 +1520,13 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick sensor" data-compatibility="3d" data-search="Raycast Detects along a RayCast3D. This can be used for objects, groups, walls, ground, or ledges.\nThe RayCast3D's direction, length, and collision mask are set on the RayCast3D node itself. General" id="raycast-3d">
+<section class="brick sensor" data-compatibility="3d" data-search="Raycast Hit Detects along a RayCast3D. This can be used for objects, groups, walls, ground, or ledges.\nThe RayCast3D's direction, length, and collision mask are set on the RayCast3D node itself. General" id="raycast-3d">
 <div class="brick-heading">
 <span class="badge">
        trigger • 3d
       </span>
 <h2>
-       Raycast
+       Raycast Hit
       </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
@@ -1569,7 +1569,7 @@
          </code>
 </td>
 <td>
-         Raycast Node Name
+         Raycast Hit Node Name
          <br/>
 <small>
           Default:
@@ -1859,7 +1859,7 @@
          Character Jump 2D
         </a>
 <a href="actuators-3d.html#character-physics-3d">
-         Character Physics
+         Surface Check
         </a>
 </div>
 </section>
@@ -2765,13 +2765,13 @@ When <code>variable_name</code> matches an Array variable, the Evaluation Type m
 </figcaption>
 </figure>
 </section>
-<section class="brick sensor" data-compatibility="3d 2d" data-search="Random Activates randomly each time it is evaluated.\\nPair with a Delay Trigger to control how often it rolls.\\nUseful for random behaviors, AI variation, and loot rolls. General" id="random-common">
+<section class="brick sensor" data-compatibility="3d 2d" data-search="Random Chance Activates randomly each time it is evaluated.\\nPair with a Delay Trigger to control how often it rolls.\\nUseful for random behaviors, AI variation, and loot rolls. General" id="random-common">
 <div class="brick-heading">
 <span class="badge">
        trigger • 3d
       </span>
 <h2>
-       Random
+       Random Chance
       </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">

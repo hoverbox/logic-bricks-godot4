@@ -571,7 +571,7 @@
            Sprite Animation
           </a>
 <a href="actuators-2d.html#get-transforms-2d">
-           Get Transforms
+           Get Transform
           </a>
 <a href="actuators-3d.html#object-shake-3d">
            Object Shake
@@ -913,7 +913,7 @@
            Animation
           </a>
 <a href="actuators-2d.html#get-transforms-2d">
-           Get Transforms
+           Get Transform
           </a>
 </div>
 </section>
@@ -2624,7 +2624,7 @@
            Linear Velocity
           </a>
 <a href="actuators-2d.html#modulate-2d">
-           Modulate
+           Color / Transparency
           </a>
 </div>
 </section>
@@ -3514,7 +3514,7 @@
            Object Flash
           </a>
 <a href="actuators-2d.html#modulate-2d">
-           Modulate
+           Color / Transparency
           </a>
 <a href="actuators-3d.html#3rd-person-camera-3d">
            3rd Person Camera
@@ -3740,7 +3740,7 @@
          </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#get-transforms-2d">
-           Get Transforms
+           Get Transform
           </a>
 <a href="actuators-2d.html#modify-variable-2d">
            Modify Variable
@@ -3977,7 +3977,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
            Environment
           </a>
 <a href="actuators-2d.html#modulate-2d">
-           Modulate
+           Color / Transparency
           </a>
 </div>
 </section>
@@ -5366,7 +5366,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
           </a>
 <a href="actuators-2d.html#position-2d">Position 2D</a>
 <a href="actuators-2d.html#set-transforms-2d">
-           Set Transforms
+           Set Transform
           </a>
 </div>
 </section>
@@ -6057,13 +6057,13 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
 <h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>target_mode</code></td><td>Node Name or Group.</td></tr><tr><td><code>target_name</code></td><td>Target node or group.</td></tr><tr><td><code>speed</code></td><td>Rotation speed in degrees per second.</td></tr><tr><td><code>angle_offset</code></td><td>Additional angle offset in degrees.</td></tr></tbody></table>
 <details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Rotate Towards after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Rotate Towards</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use Angle Offset when the artwork faces up or another direction instead of Godot’s positive X axis.</div><div class="mini-callout caution"><strong>Common mistake</strong>Entering a group with no active Node2D members leaves the action without a valid target.</div></div></details>
 <figure class="screenshot compact"><div class="screenshot-image"><img alt="Rotate Towards action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/rotate-towards.png"/></div><figcaption><strong class="screenshot-caption-title">Rotate Towards screenshot</strong><span></span></figcaption></figure>
-</section><section class="brick actuator" data-compatibility="2d" data-search="Waypoint Path Moves a Node2D along the points of a Path2D curve with optional looping and direction-facing. Motion" id="waypoint-path-2d">
-<div class="brick-heading"><span class="badge">action • 2d</span><h2>Waypoint Path</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+</section><section class="brick actuator" data-compatibility="2d" data-search="Path Follow Moves a Node2D along the points of a Path2D curve with optional looping and direction-facing. Motion" id="waypoint-path-2d">
+<div class="brick-heading"><span class="badge">action • 2d</span><h2>Path Follow</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
 <p>Moves a Node2D along the points of a Path2D curve with optional looping and direction-facing.</p>
 <div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Motion</span></div></div>
 <h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>path_node_name</code></td><td>Path2D containing the Curve2D to follow.</td></tr><tr><td><code>speed</code></td><td>Movement speed in pixels per second.</td></tr><tr><td><code>loop</code></td><td>Return to the first waypoint after the last point.</td></tr><tr><td><code>face_direction</code></td><td>Rotate the moving node to face its travel direction.</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Waypoint Path after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Waypoint Path</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Add at least two points to the Path2D curve before testing.</div><div class="mini-callout caution"><strong>Common mistake</strong>The action follows the Path2D curve points; an empty curve cannot produce movement.</div></div></details>
-<figure class="screenshot compact"><div class="screenshot-image"><img alt="Waypoint Path action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/waypoint-path.png"/></div><figcaption><strong class="screenshot-caption-title">Waypoint Path screenshot</strong><span></span></figcaption></figure>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Path Follow after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Path Follow</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Add at least two points to the Path2D curve before testing.</div><div class="mini-callout caution"><strong>Common mistake</strong>The action follows the Path2D curve points; an empty curve cannot produce movement.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Path Follow action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/waypoint-path.png"/></div><figcaption><strong class="screenshot-caption-title">Path Follow screenshot</strong><span></span></figcaption></figure>
 </section></div>
 </section>
 <section class="actuator-category" id="object">
@@ -6079,13 +6079,13 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
       </p>
 </div>
 <div class="category-bricks">
-<section class="brick actuator" data-compatibility="2d" data-search="Get Transforms Gets position, rotation, and scale from a node or the nearest member of a group and stores the values as variables. Object" id="get-transforms-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Get Transform Gets position, rotation, and scale from a node or the nearest member of a group and stores the values as variables. Object" id="get-transforms-2d">
 <div class="brick-heading">
 <span class="badge">
          action • shared
         </span>
 <h2>
-         Get Transforms
+         Get Transform
         </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
@@ -6278,7 +6278,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
             →
            </span>
 <span class="chain-node">
-            Get Transforms
+            Get Transform
            </span>
 </div>
 </section>
@@ -6303,7 +6303,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
          </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#set-transforms-2d">
-           Set Transforms
+           Set Transform
           </a>
 <a href="actuators-3d.html#save-load-3d">
            Save / Load
@@ -6319,24 +6319,24 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Get Transforms screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/get-transforms.png"/>
+<img alt="Get Transform screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/get-transforms.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-          Get Transforms screenshot
+          Get Transform screenshot
          </strong>
 <span>
 </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Set Transforms Sets position, rotation, and scale from entered values or variables, instantly or over time. Object" id="set-transforms-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Set Transform Sets position, rotation, and scale from entered values or variables, instantly or over time. Object" id="set-transforms-2d">
 <div class="brick-heading">
 <span class="badge">
          action • shared
         </span>
 <h2>
-         Set Transforms
+         Set Transform
         </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
@@ -6399,7 +6399,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
             →
            </span>
 <span class="chain-node">
-            Set Transforms
+            Set Transform
            </span>
 </div>
 </section>
@@ -6424,7 +6424,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
          </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#get-transforms-2d">
-           Get Transforms
+           Get Transform
           </a>
 <a href="actuators-3d.html#save-load-3d">
            Save / Load
@@ -6440,24 +6440,24 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Set Transforms screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/set-transforms.png"/>
+<img alt="Set Transform screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/set-transforms.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-          Set Transforms screenshot
+          Set Transform screenshot
          </strong>
 <span>
 </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Property Sets properties on a target node.\nChoose the node type to see its available properties.\nLeave a field empty to skip setting that property.\n⚠ Adds @export in Inspector — assign the target node. General" id="property-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Node Properties Sets properties on a target node.\nChoose the node type to see its available properties.\nLeave a field empty to skip setting that property.\n⚠ Adds @export in Inspector — assign the target node. General" id="property-2d">
 <div class="brick-heading">
 <span class="badge">
          action • 2d
         </span>
 <h2>
-         Property
+         Node Properties
         </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
@@ -7779,7 +7779,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
          </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#modulate-2d">
-           Modulate
+           Color / Transparency
           </a>
 <a href="actuators-3d.html#text-3d">
            Text
@@ -8213,13 +8213,13 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
       </p>
 </div>
 <div class="category-bricks">
-<section class="brick actuator" data-compatibility="2d" data-search="Modulate Sets or smoothly transitions the color/alpha of a UI or 2D node found by name anywhere in the current scene tree. General" id="modulate-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Color / Transparency Sets or smoothly transitions the color/alpha of a UI or 2D node found by name anywhere in the current scene tree. General" id="modulate-2d">
 <div class="brick-heading">
 <span class="badge">
          action • shared
         </span>
 <h2>
-         Modulate
+         Color / Transparency
         </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
@@ -8416,7 +8416,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
             →
            </span>
 <span class="chain-node">
-            Modulate
+            Color / Transparency
            </span>
 </div>
 </section>
@@ -8615,7 +8615,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
 <thead>
 <tr>
 <th>
-         Property
+         Node Properties
         </th>
 <th>
          Details
@@ -8853,7 +8853,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
 <thead>
 <tr>
 <th>
-         Property
+         Node Properties
         </th>
 <th>
          Details
@@ -8937,7 +8937,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
          </code>
 </td>
 <td>
-         Property
+         Node Properties
          <br/>
 <small>
           Default:
@@ -9108,7 +9108,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
        </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#modulate-2d">
-         Modulate
+         Color / Transparency
         </a>
 <a href="actuators-3d.html#progress-bar-3d">
          Progress Bar

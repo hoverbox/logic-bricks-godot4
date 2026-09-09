@@ -721,7 +721,7 @@
     "cls": "ThirdPersonCameraActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Orbits a Camera3D around the character via a pivot Node3D.\\nAssign both the pivot and the camera in the Inspector.\\nThe camera can live anywhere in the scene — including inside a SubViewport for split screen.",
+    "description": "Orbits a Camera3D around the character via a pivot Node3D.\\nAssign both the pivot and the camera in the Inspector.\\nThe camera can live anywhere in the scene \u2014 including inside a SubViewport for split screen.",
     "props": [
       [
         "camera_node_name",
@@ -1221,7 +1221,7 @@
   },
   {
     "type": "actuator",
-    "name": "Environment",
+    "name": "World Environment",
     "cls": "EnvironmentActuatorActuator",
     "domain": "3d",
     "category": "General",
@@ -1666,7 +1666,7 @@
     "cls": "ImpulseActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Applies a one-shot impulse to a RigidBody3D.\\nFires once per activation — does not accumulate each frame.",
+    "description": "Applies a one-shot impulse to a RigidBody3D.\\nFires once per activation \u2014 does not accumulate each frame.",
     "props": [
       [
         "impulse_type",
@@ -2476,7 +2476,7 @@
     "cls": "MoveTowardsActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Moves toward or away from a target.\\nSeek: move directly toward target\\nFlee: move away from target\\nPath Follow: use NavigationAgent3D to pathfind toward target.\\n\\n⚠ Path Follow finds the NavigationAgent3D by typed node name.",
+    "description": "Moves toward or away from a target.\\nSeek: move directly toward target\\nFlee: move away from target\\nPath Follow: use NavigationAgent3D to pathfind toward target.\\n\\n\u26a0 Path Follow finds the NavigationAgent3D by typed node name.",
     "props": [
       [
         "navigation_agent_node_name",
@@ -2606,7 +2606,7 @@
     "cls": "ObjectPoolActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Spawns objects from reusable pools.\\nFaster than instancing — reuses inactive nodes.\\nPools are created at startup.",
+    "description": "Spawns objects from reusable pools.\\nFaster than instancing \u2014 reuses inactive nodes.\\nPools are created at startup.",
     "props": [
       [
         "action",
@@ -2924,7 +2924,7 @@
     "cls": "SaveLoadActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Three scopes: This Node   — saves position, rotation, and variables for the node this brick is on Target Node — saves position, rotation, and variables for a specific named node Group       — saves position, rotation, and variables for every node in a named group No custom save()/load() methods required on any node. Pair with an Input Trigger or Collision Trigger to trigger",
+    "description": "Three scopes: This Node   \u2014 saves position, rotation, and variables for the node this brick is on Target Node \u2014 saves position, rotation, and variables for a specific named node Group       \u2014 saves position, rotation, and variables for every node in a named group No custom save()/load() methods required on any node. Pair with an Input Trigger or Collision Trigger to trigger",
     "props": [
       [
         "mode",
@@ -3048,7 +3048,7 @@
     "cls": "SetCameraActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Makes the assigned Camera3D the active camera.\\nUse a one-shot trigger (e.g. Delay or a state transition) to avoid\\ncalling make_current() every frame unnecessarily.\\n\\n⚠ Adds an @export in the Inspector — assign your Camera3D there.",
+    "description": "Makes the assigned Camera3D the active camera.\\nUse a one-shot trigger (e.g. Delay or a state transition) to avoid\\ncalling make_current() every frame unnecessarily.\\n\\n\u26a0 Adds an @export in the Inspector \u2014 assign your Camera3D there.",
     "props": [
       [
         "camera_node_name",
@@ -3065,7 +3065,7 @@
     "cls": "SmoothFollowCameraActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Smoothly follows this node with the assigned Camera3D,\\nmaintaining the camera's initial offset from the target.\\n\\nPosition follow: camera tracks the node's position per axis.\\nRotation follow: camera orbits the node, keeping it in frame.\\nDead zone: camera only moves once the node exceeds the threshold.\\n\\n⚠ Adds an @export in the Inspector — assign your Camera3D there.",
+    "description": "Smoothly follows this node with the assigned Camera3D,\\nmaintaining the camera's initial offset from the target.\\n\\nPosition follow: camera tracks the node's position per axis.\\nRotation follow: camera orbits the node, keeping it in frame.\\nDead zone: camera only moves once the node exceeds the threshold.\\n\\n\u26a0 Adds an @export in the Inspector \u2014 assign your Camera3D there.",
     "props": [
       [
         "camera_node_name",
@@ -3209,7 +3209,7 @@
   },
   {
     "type": "actuator",
-    "name": "Sprite Frames",
+    "name": "Sprite3D Animation",
     "cls": "SpriteFramesActuatorActuator",
     "domain": "3d",
     "category": "General",
@@ -3254,7 +3254,7 @@
     "cls": "TeleportActuatorActuator",
     "domain": "3d",
     "category": "General",
-    "description": "Instantly sets position to a target node or coordinates.\\nUseful for respawning, portals, checkpoints.\\n\\n⚠ Target Node mode adds an @export in the Inspector — assign the destination node there.",
+    "description": "Instantly sets position to a target node or coordinates.\\nUseful for respawning, portals, checkpoints.\\n\\n\u26a0 Target Node mode adds an @export in the Inspector \u2014 assign the destination node there.",
     "props": [
       [
         "target_node_name",
@@ -3403,7 +3403,7 @@
   },
   {
     "type": "actuator",
-    "name": "Waypoint Path",
+    "name": "Path Follow",
     "cls": "WaypointPathActuatorActuator",
     "domain": "3d",
     "category": "General",
@@ -3891,11 +3891,11 @@
   },
   {
     "type": "actuator",
-    "name": "Property",
+    "name": "Node Properties",
     "cls": "PropertyActuatorActuator",
     "domain": "common",
     "category": "General",
-    "description": "Sets properties on a target node.\\nChoose the node type to see its available properties.\\nLeave a field empty to skip setting that property.\\n⚠ Adds @export in Inspector — assign the target node.",
+    "description": "Sets properties on a target node.\\nChoose the node type to see its available properties.\\nLeave a field empty to skip setting that property.\\n\u26a0 Adds @export in Inspector \u2014 assign the target node.",
     "props": [
       [
         "node_type",
@@ -4523,7 +4523,7 @@
     "cls": "RumbleActuatorActuator",
     "domain": "common",
     "category": "General",
-    "description": "Trigger controller haptic vibration.\\nVibrate: manual motor control for a set duration.\\nStop: immediately stop all vibration.\\nPattern: built-in presets that play to completion.\\nThe trigger only needs to fire once — the pattern finishes even if the trigger stops.",
+    "description": "Trigger controller haptic vibration.\\nVibrate: manual motor control for a set duration.\\nStop: immediately stop all vibration.\\nPattern: built-in presets that play to completion.\\nThe trigger only needs to fire once \u2014 the pattern finishes even if the trigger stops.",
     "props": [
       [
         "action",
@@ -5481,7 +5481,7 @@
     "cls": "ScriptControllerController",
     "domain": "script_controller.gd",
     "category": "General",
-    "description": "Runs a custom GDScript module function: - Point to a .gd file - That file defines a top-level function: func run(node: Node) -> void: - When the trigger fires, run(node) is called — node is the scene object Example script (my_script.gd): func run(node: Node) -> void: node.health -= 10 print(\"Health: \", node.health) The script does NOT need extends — it is called as a module, not instantiated.",
+    "description": "Runs a custom GDScript module function: - Point to a .gd file - That file defines a top-level function: func run(node: Node) -> void: - When the trigger fires, run(node) is called \u2014 node is the scene object Example script (my_script.gd): func run(node: Node) -> void: node.health -= 10 print(\"Health: \", node.health) The script does NOT need extends \u2014 it is called as a module, not instantiated.",
     "props": [
       [
         "logic_mode",
@@ -5630,7 +5630,7 @@
   },
   {
     "type": "sensor",
-    "name": "Character Physics",
+    "name": "Surface Check",
     "cls": "Physics2DSensor",
     "domain": "2d",
     "category": "General",
@@ -5971,7 +5971,7 @@
   },
   {
     "type": "sensor",
-    "name": "Character Physics",
+    "name": "Surface Check",
     "cls": "PhysicsSensorSensor",
     "domain": "3d",
     "category": "General",

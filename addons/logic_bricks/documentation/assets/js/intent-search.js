@@ -21,24 +21,24 @@
       [["Character Jump 2D"],"Add jumping behavior to a 2D character."] ] },
     { id:"jump", terms:["jump","hop","leap","double jump","platformer"], suggestions:[
       [["Character Jump 2D","Character Jump"],"Apply a jump to a character."],
-      [["Character Physics"],"Check whether the character is on the floor before jumping."],
+      [["Surface Check"],"Check whether the character is on the floor before jumping."],
       [["Input"],"Detect the jump action."] ] },
     { id:"collision", terms:["collision","collide","touch","hit","overlap","contact","bump","trigger","trigger area","trigger zone","enter area","walk into","run into"], suggestions:[
       [["Collision 2D","Collision"],"Detect when objects touch or enter a collision area."],
-      [["Character Physics"],"Check floor, wall, or ceiling contact for a character."] ] },
+      [["Surface Check"],"Check floor, wall, or ceiling contact for a character."] ] },
     { id:"near", terms:["near","nearby","close","close to","distance","range","within range","approach","radius","proximity","get close","comes close"], suggestions:[
       [["Proximity 2D","Proximity"],"Detect when a target is within a chosen distance or angle."],
-      [["Raycast 2D","Raycast"],"Check whether something is directly detectable along a ray."] ] },
+      [["Raycast Hit 2D","Raycast Hit"],"Check whether something is directly detectable along a ray."] ] },
     { id:"see", terms:["see","sight","line of sight","vision","detect","detect player","sense","notice","spot","find player","visible to enemy","can see","look for"], suggestions:[
-      [["Raycast 2D","Raycast"],"Test line of sight or whether an object is in front of something."],
+      [["Raycast Hit 2D","Raycast Hit"],"Test line of sight or whether an object is in front of something."],
       [["Proximity 2D","Proximity"],"Limit detection to a nearby distance or viewing angle."] ] },
     { id:"chase", terms:["chase","follow","follow player","pursue","hunt","track player","come after","go after","run after","enemy follow"], suggestions:[
       [["Proximity 2D","Proximity"],"Decide when the target is close enough to react to."],
       [["Steering"],"Move an enemy toward a target or pathfind toward it."],
       [["Rotate Towards"],"Turn an enemy so it faces the target."],
-      [["Raycast 2D","Raycast"],"Optionally require clear line of sight before chasing."] ] },
+      [["Raycast Hit 2D","Raycast Hit"],"Optionally require clear line of sight before chasing."] ] },
     { id:"patrol", terms:["patrol","waypoint","route","path","guard route","walk between"], suggestions:[
-      [["Waypoint Path"],"Move through a sequence of waypoints."],
+      [["Path Follow"],"Move through a sequence of waypoints."],
       [["Steering"],"Move toward a current patrol target."],
       [["Delay"],"Pause at a waypoint before continuing."] ] },
     { id:"rotate", terms:["rotate","turn","face","aim","look at","point toward","track target"], suggestions:[
@@ -61,7 +61,7 @@
     { id:"door", terms:["door","locked","unlock","key door","gate","open door","close door","locked door","doorway"], suggestions:[
       [["Compare Variable","Variable"],"Check whether the required key or condition exists."],
       [["Animation"],"Play an opening or closing animation."],
-      [["Property"],"Change a door property when it unlocks or opens."],
+      [["Node Properties"],"Change a door property when it unlocks or opens."],
       [["Collision"],"Enable or disable collision on a 3D door or barrier."] ] },
     { id:"timer", terms:["timer","time","delay","wait","seconds","countdown","after a while","cooldown","interval","every few","every second","pause before"], suggestions:[
       [["Delay"],"Wait before firing logic, or repeat logic at an interval."] ] },
@@ -74,10 +74,10 @@
       [["Input"],"Detect the player's interact/use action."],
       [["Collision 2D","Collision"],"Detect when the player is close enough or touching the interactive object."],
       [["Signal Send"],"Tell another node or logic chain that the interaction happened."],
-      [["Property"],"Change the target object's state or properties after interaction."] ] },
+      [["Node Properties"],"Change the target object's state or properties after interaction."] ] },
     { id:"combat", terms:["attack","combat","fight","hit enemy","damage","hurt","shoot","shooting","fire weapon","weapon","gun","sword","melee","bullet","projectile","kill enemy","enemy dies","die","death"], suggestions:[
       [["Input"],"Detect an attack, fire, or action input from the player."],
-      [["Raycast 2D","Raycast"],"Detect a target for hitscan attacks, aiming, or line-of-sight hits."],
+      [["Raycast Hit 2D","Raycast Hit"],"Detect a target for hitscan attacks, aiming, or line-of-sight hits."],
       [["Collision 2D","Collision"],"Detect projectile, melee, or contact hits."],
       [["Modify Variable"],"Change health, ammo, damage counters, or other combat values."],
       [["Object Pool"],"Spawn reusable bullets or projectiles efficiently."] ] },
@@ -87,8 +87,8 @@
       [["Progress Bar"],"Display health as a changing bar in the interface."],
       [["Text"],"Display health, lives, or other status values as text."] ] },
     { id:"object", terms:["object","thing","item","entity","actor","prop","node","scene object"], suggestions:[
-      [["Property"],"Change a property on an object or node."],
-      [["Set Transforms"],"Change an object's position, rotation, or scale."],
+      [["Node Properties"],"Change a property on an object or node."],
+      [["Set Transform"],"Change an object's position, rotation, or scale."],
       [["Visibility"],"Show or hide an object."],
       [["Edit Object"],"Create, remove, or otherwise edit a scene object."] ] },
     { id:"state_logic", terms:["state","mode","phase","status","on off","enabled disabled","only once","one time","do once","every frame","always"], suggestions:[
@@ -157,10 +157,10 @@
       [["Hit Stop"],"Briefly slow or freeze time on an impact."] ] },
     { id:"visibility", terms:["show","hide","visible","invisible","toggle visibility","appear","disappear"], suggestions:[
       [["Visibility"],"Show, hide, or toggle a node's visibility."],
-      [["Modulate"],"Change color or transparency for a 2D/UI node."] ] },
+      [["Color / Transparency"],"Change color or transparency for a 2D/UI node."] ] },
     { id:"property", terms:["property","change property","set property","color","scale","size","position value"], suggestions:[
-      [["Property"],"Set supported properties on another node."],
-      [["Set Transforms"],"Set position, rotation, or scale values."],
+      [["Node Properties"],"Set supported properties on another node."],
+      [["Set Transform"],"Set position, rotation, or scale values."],
       [["Tween","Tween Animation"],"Change a property smoothly over time."] ] }
   ];
 
@@ -172,26 +172,26 @@
   // either "moving" or "platform" by itself).
   const COMMON_MECHANICS = [
     { id:"moving_platform", phrases:["moving platform","platform moves","platform move","move platform","back and forth platform","platform back and forth","platform between points","platform between waypoints","elevator","lift platform","moving elevator"], suggestions:[
-      [["Waypoint Path"],"Move the platform repeatedly through a sequence of points or along a Path3D curve."],
+      [["Path Follow"],"Move the platform repeatedly through a sequence of points or along a Path3D curve."],
       [["Tween","Tween Animation"],"Smoothly animate a platform property or transform when a waypoint path is not needed."],
       [["Always"],"Keep continuous platform movement logic active when the behavior should run all the time."] ] },
     { id:"enemy_patrol", phrases:["enemy patrol","monster patrol","npc patrol","guard patrol","patrol between points","patrol between waypoints","walk between points","walk between waypoints","follow patrol route"], suggestions:[
-      [["Waypoint Path"],"Move an enemy or NPC through a predefined patrol route."],
+      [["Path Follow"],"Move an enemy or NPC through a predefined patrol route."],
       [["Delay"],"Pause at patrol points before continuing."],
       [["Rotate Towards"],"Turn the patrolling character toward its next target when needed."] ] },
     { id:"rotating_platform", phrases:["rotating platform","spinning platform","platform rotates","platform spins","spin object","rotating object"], suggestions:[
-      [["Set Transforms"],"Change rotation values on a platform or object."],
+      [["Set Transform"],"Change rotation values on a platform or object."],
       [["Tween","Tween Animation"],"Animate rotation smoothly over time."],
       [["Always"],"Keep a continuously rotating object updating."] ] },
     { id:"falling_platform", phrases:["falling platform","platform falls","drop platform","platform drops","breakaway platform"], suggestions:[
       [["Collision"],"Detect when the player reaches or stands on the platform."],
       [["Delay"],"Wait briefly before the platform falls."],
-      [["Set Transforms"],"Move the platform downward after it is triggered."] ] },
+      [["Set Transform"],"Move the platform downward after it is triggered."] ] },
     { id:"disappearing_platform", phrases:["disappearing platform","platform disappears","vanishing platform","platform vanishes","temporary platform"], suggestions:[
       [["Collision"],"Detect when the player reaches the platform."],
       [["Delay"],"Control how long the platform remains before disappearing or returning."],
       [["Visibility"],"Show or hide the platform."],
-      [["Property"],"Change a platform property such as collision state when it disappears."] ] },
+      [["Node Properties"],"Change a platform property such as collision state when it disappears."] ] },
     { id:"jump_pad", phrases:["jump pad","bounce pad","spring pad","launch pad","bounce player","launch player"], suggestions:[
       [["Collision"],"Detect when the player touches the pad."],
       [["Character Jump"],"Apply an upward jump-like impulse to a 3D character."],
@@ -199,7 +199,7 @@
     { id:"locked_door", phrases:["locked door","key opens door","open door with key","door needs key","unlock door","key door"], suggestions:[
       [["Compare Variable","Variable"],"Check whether the player has the required key or condition."],
       [["Animation"],"Play the door opening animation after it unlocks."],
-      [["Property"],"Change the door's state or collision-related properties after unlocking."] ] },
+      [["Node Properties"],"Change the door's state or collision-related properties after unlocking."] ] },
     { id:"switch_door", phrases:["switch opens door","button opens door","lever opens door","pressure plate opens door","floor switch","pressure plate","door switch"], suggestions:[
       [["Collision"],"Detect a player or object activating a pressure plate or trigger."],
       [["Input"],"Detect an interact action for a button, switch, or lever."],
@@ -218,8 +218,8 @@
       [["Compare Variable","Variable"],"Check that the Array does not already contain the item."],
       [["Modify Variable"],"Add the item only after the comparison succeeds."] ] },
     { id:"checkpoint", phrases:["checkpoint","save point","respawn point","return to checkpoint","go back to checkpoint","respawn at checkpoint"], suggestions:[
-      [["Get Transforms"],"Read and remember a checkpoint position or transform."],
-      [["Set Transforms"],"Move the player back to the saved checkpoint transform."],
+      [["Get Transform"],"Read and remember a checkpoint position or transform."],
+      [["Set Transform"],"Move the player back to the saved checkpoint transform."],
       [["Modify Variable"],"Store checkpoint state or which checkpoint is active."],
       [["Collision"],"Detect when the player reaches a checkpoint."] ] },
     { id:"teleporter", phrases:["teleporter","teleport","portal","warp","warp point","move player instantly","teleport player"], suggestions:[
@@ -237,7 +237,7 @@
       [["Modify Variable"],"Track ammo, health, or damage values when needed."] ] },
     { id:"enemy_shoots", phrases:["enemy shoots player","enemy fires at player","turret shoots player","enemy projectile","enemy gun"], suggestions:[
       [["Proximity"],"Decide when the player is close enough for the enemy to attack."],
-      [["Raycast"],"Optionally check line of sight before firing."],
+      [["Raycast Hit"],"Optionally check line of sight before firing."],
       [["Rotate Towards"],"Aim the enemy toward the player."],
       [["Object Pool"],"Spawn reusable enemy projectiles efficiently."] ] },
     { id:"take_damage", phrases:["take damage","lose health","hurt player","damage player","damage enemy","enemy takes damage","player gets hurt"], suggestions:[
@@ -260,7 +260,7 @@
       [["Proximity"],"Decide when the player is close enough for the enemy to react."],
       [["Steering"],"Move or pathfind the enemy toward the player."],
       [["Rotate Towards"],"Keep the enemy facing its target."],
-      [["Raycast"],"Optionally require clear line of sight before chasing."] ] },
+      [["Raycast Hit"],"Optionally require clear line of sight before chasing."] ] },
     { id:"camera_follow", phrases:["camera follows player","follow camera","camera follow","third person camera","3rd person camera","camera tracks player"], suggestions:[
       [["Smooth Follow Camera"],"Have the camera smoothly follow a target."],
       [["3rd Person Camera"],"Use a third-person camera setup around the player."],
@@ -285,7 +285,7 @@
 
   const RECIPE_BOOSTS = [
     { all:["inventory","door"], extra:[[["Compare Variable","Variable"],"Check the inventory for the required item before opening the door."],[["Animation"],"Play the door opening animation after the condition succeeds."]] },
-    { any:["shoot","gun","weapon","fire"], extra:[[["Input"],"Detect the fire action."],[["Object Pool"],"Spawn reusable bullets or projectiles efficiently."],[["Raycast 2D","Raycast"],"Use a ray for hitscan weapons or aiming checks."]] },
+    { any:["shoot","gun","weapon","fire"], extra:[[["Input"],"Detect the fire action."],[["Object Pool"],"Spawn reusable bullets or projectiles efficiently."],[["Raycast Hit 2D","Raycast Hit"],"Use a ray for hitscan weapons or aiming checks."]] },
     { any:["enemy","monster","npc","bad guy"], all:["chase"], extra:[[["Steering"],"Move or pathfind toward the player."],[["Rotate Towards"],"Keep the enemy facing its target."]] },
     { any:["collect","pickup","coin","gem","key"], extra:[[["Collision 2D","Collision"],"Detect the collection event."],[["Modify Variable"],"Record the item or update a score/count."]] }
     ,{ any:["enemy","monster","npc","boss","bad guy"], extra:[[["Character Physics"],"Use character physics for a moving 3D enemy or NPC."],[["Proximity 2D","Proximity"],"Detect when the player is near enough for the enemy to react."]] }

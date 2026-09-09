@@ -1,14 +1,14 @@
 @tool
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Character Physics Trigger - Detects CharacterBody3D contact state.
+## Surface Check Trigger - Detects CharacterBody3D contact state.
 ## Useful for platformers: on floor, touching wall, or touching ceiling.
 
 
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.SENSOR
-	brick_name = "Character Physics"
+	brick_name = "Surface Check"
 
 
 func _initialize_properties() -> void:

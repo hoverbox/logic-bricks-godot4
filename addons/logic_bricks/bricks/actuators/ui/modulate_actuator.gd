@@ -1,18 +1,18 @@
 @tool
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Modulate Actuator - Set or lerp the color/alpha of a CanvasItem found by node name
+## Color / Transparency Actuator - Set or lerp the color/alpha of a CanvasItem found by node name
 
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.ACTUATOR
-	brick_name = "Modulate"
+	brick_name = "Color / Transparency"
 
 
 func get_brick_info() -> Dictionary:
 	return {
 		"class": "UIModulateActuator",
-		"name": "Modulate",
+		"name": "Color / Transparency",
 		"type": "actuator",
 		"category": "UI",
 		"description": "Sets or transitions color/alpha on a Control or CanvasItem node.",

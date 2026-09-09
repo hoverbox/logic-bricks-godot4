@@ -5,12 +5,12 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 ## Supports Loop, Ping Pong, and Once traversal modes.
 
 func get_brick_info() -> Dictionary:
-	return {"class":"WaypointPath2DActuator","name":"Waypoint Path","type":"actuator","category":"Motion","domain":"2d","menu_order":160}
+	return {"class":"WaypointPath2DActuator","name":"Path Follow","type":"actuator","category":"Motion","domain":"2d","menu_order":160}
 
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.ACTUATOR
-	brick_name = "Waypoint Path"
+	brick_name = "Path Follow"
 
 func _initialize_properties() -> void:
 	properties = {

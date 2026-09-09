@@ -2,7 +2,7 @@
 
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Edit object actuator - Add a new object, end (remove) this object, or replace its mesh.
+## Edit Object actuator - Add a new object, end (remove) this object, or replace its mesh.
 ## Similar to UPBGE's Edit Object actuator.
 
 

@@ -16,14 +16,14 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.SENSOR
-	brick_name = "Random"
+	brick_name = "Random Chance"
 
 
 
 func get_brick_info() -> Dictionary:
 	return {
 		"class": "UIRandomSensor",
-		"name": "Random",
+		"name": "Random Chance",
 		"type": "sensor",
 		"category": "UI",
 		"description": "Randomly activates based on chance.",

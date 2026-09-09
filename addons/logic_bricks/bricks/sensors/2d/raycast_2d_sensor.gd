@@ -10,7 +10,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.SENSOR
-	brick_name = "Raycast"
+	brick_name = "Raycast Hit"
 
 
 func _initialize_properties() -> void:
@@ -136,4 +136,4 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 
 func get_brick_info() -> Dictionary:
-	return {"class":"Raycast2DSensor","name":"Raycast 2D","type":"sensor","category":"","domain":"2d","menu_order":90}
+	return {"class":"Raycast2DSensor","name":"Raycast Hit 2D","type":"sensor","category":"","domain":"2d","menu_order":90}

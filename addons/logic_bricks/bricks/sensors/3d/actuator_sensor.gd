@@ -2,7 +2,7 @@
 
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Action Triggered - Detects when a named action on this node is active.
+## Action Active - Detects when a named action on this node is active.
 ## Fires TRUE the frame an action runs, FALSE when it doesn't.
 ## The action must be on the same node and have an instance name set.
 ## Useful for chaining actions: "do X when Y action is running".
@@ -11,7 +11,7 @@ extends "res://addons/logic_bricks/core/logic_brick.gd"
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.SENSOR
-	brick_name = "Action Triggered"
+	brick_name = "Action Active"
 
 
 func _initialize_properties() -> void:
