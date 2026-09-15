@@ -1048,8 +1048,8 @@ func _parse_motion_actuator_props(act_block: String) -> Dictionary:
 		props["space"] = "global"
 	elif "# Set CharacterBody3D velocity" in act_block:
 		props["movement_method"] = "character_velocity"
-		# Local space builds a _motion_dir from global_transform.basis
-		if "global_transform.basis *" in act_block and "# Camera-relative" not in act_block:
+		# Local space builds a _motion_dir from the rotation-only global basis
+		if ("global_transform.basis *" in act_block or "global_transform.basis.orthonormalized() *" in act_block) and "# Camera-relative" not in act_block:
 			props["space"] = "local"
 		else:
 			props["space"] = "global"
@@ -1072,10 +1072,10 @@ func _parse_motion_actuator_props(act_block: String) -> Dictionary:
 		props["y"] = vm.get_string(2).strip_edges()
 		props["z"] = vm.get_string(3).strip_edges()
 
-	# character_velocity local space builds var _motion_dir = global_transform.basis * Vector3(...)
+	# character_velocity local space builds var _motion_dir from the rotation-only global basis
 	if props.get("movement_method", "") == "character_velocity" and props.get("space", "") == "local":
 		var local_vec3_rx := RegEx.new()
-		local_vec3_rx.compile(r'global_transform\.basis\s*\*\s*Vector3\(([^,)]+),\s*([^,)]+),\s*([^)]+)\)')
+		local_vec3_rx.compile(r'global_transform\.basis(?:\.orthonormalized\(\))?\s*\*\s*Vector3\(([^,)]+),\s*([^,)]+),\s*([^)]+)\)')
 		var lm := local_vec3_rx.search(act_block)
 		if lm:
 			props["x"] = lm.get_string(1).strip_edges()

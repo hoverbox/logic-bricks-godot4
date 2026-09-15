@@ -23,7 +23,7 @@ func _initialize_properties() -> void:
 		"velocity_local": false,           # Use local velocity (relative to spawn orientation)
 		"lifespan": 0.0,                   # Auto-destroy after seconds, 0 = infinite (Add mode)
 		"end_mode": "queue_free",          # "queue_free" or "free" (End mode)
-		"end_delay": 0.1,                  # Delay before ending object in seconds (End mode)
+		"end_delay": 0.0,                  # Delay before ending object in seconds (End mode)
 		"mesh_path": ""                    # Path to mesh resource (Replace Mesh mode)
 	}
 
@@ -92,7 +92,7 @@ func get_property_definitions() -> Array:
 		{
 			"name": "end_delay",
 			"type": TYPE_FLOAT,
-			"default": 0.1,
+			"default": 0.0,
 			"visible_if": {"edit_type": "End Object"}
 		},
 		{
@@ -116,7 +116,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var velocity_local = properties.get("velocity_local", false)
 	var lifespan = properties.get("lifespan", 0.0)
 	var end_mode = properties.get("end_mode", "queue_free")
-	var end_delay = properties.get("end_delay", 0.1)
+	var end_delay = properties.get("end_delay", 0.0)
 	var mesh_path = properties.get("mesh_path", "")
 
 	# Normalize edit_type to snake_case

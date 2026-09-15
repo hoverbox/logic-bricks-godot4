@@ -120,7 +120,7 @@ static var _fallback_categories: Dictionary = {
 	"PhysicsActuator": "Physics", "ForceActuator": "Physics", "GravityActuator": "Physics",
 	"TorqueActuator": "Physics", "LinearVelocityActuator": "Physics", "ImpulseActuator": "Physics",
 	"CollisionActuator": "Physics", "EditObjectActuator": "Object", "ObjectPoolActuator": "Object",
-	"ParentActuator": "Object", "PropertyActuator": "Object", "GetTransformsActuator": "Object", "TransformsActuator": "Object", "VisibilityActuator": "Object",
+	"ParentActuator": "Object", "GroupActuator": "Object", "PropertyActuator": "Object", "GetTransformsActuator": "Object", "TransformsActuator": "Object", "VisibilityActuator": "Object",
 	"EnvironmentActuator": "Environment", "LightActuator": "Environment", "SetCameraActuator": "Camera",
 	"SmoothFollowCameraActuator": "Camera", "CameraZoomActuator": "Camera", "ThirdPersonCameraActuator": "Camera",
 	"SetCamera2DActuator": "Camera", "SmoothFollowCamera2DActuator": "Camera", "CameraZoom2DActuator": "Camera",
@@ -191,6 +191,9 @@ static func _scan_dir(path: String) -> void:
 	dir.list_dir_end()
 
 static func _register_script(script_path: String) -> void:
+	# Keep the legacy 2D Node Properties script loadable for old projects, but do not register it as a second brick.
+	if script_path == "res://addons/logic_bricks/bricks/actuators/2d/property_actuator.gd":
+		return
 	var script = load(script_path)
 	if script == null or not script.can_instantiate():
 		return

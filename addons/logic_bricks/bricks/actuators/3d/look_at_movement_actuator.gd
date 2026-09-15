@@ -2,7 +2,7 @@
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Rotates a node to face the direction of movement
-## Target node is found by typed node name at runtime
+## Target node is found beneath the node that owns this Logic Bricks script
 ## Forward axis setting corrects for meshes whose front isn't -Z
 
 
@@ -27,7 +27,9 @@ func get_property_definitions() -> Array:
 			"name": "target_node_name",
 			"type": TYPE_STRING,
 			"default": "MeshInstance3D",
-			"placeholder": "Node3D node name"
+			"placeholder": "Node3D node name",
+			"node_reference": true,
+			"accepted_node_types": ["Node3D"]
 		},
 		{
 			"name": "forward_axis",
@@ -51,8 +53,8 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Rotates a Node3D to face the direction of movement. Type the node name; the generated script finds it in the current scene at runtime.",
-		"target_node_name": "The name of the Node3D to rotate, such as PlayerMesh or CharacterModel. Searches the whole current scene tree by node name.",
+		"_description": "Rotates a child Node3D to face the direction of movement. The target is resolved only beneath this Logic Bricks node.",
+		"target_node_name": "The name of a child Node3D to rotate, such as PlayerMesh or CharacterModel. Only children beneath this Logic Bricks node are searched.",
 		"forward_axis": "Which direction the mesh considers 'forward'.\n-Z is Godot's default forward direction.",
 		"smoothing": "How smoothly to rotate.\n0 = instant, higher = smoother.",
 		"ignore_platform_motion": "When enabled, moving-platform carry and inherited platform velocity are removed before choosing the look direction. This keeps the character facing the player's input movement instead of the platform's movement.",
@@ -91,7 +93,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	# Runtime Node3D reference — resolved by typed node name
 	member_vars.append("var %s: Node3D = null" % target_var)
-	_append_find_node_helpers(member_vars)
 	member_vars.append("var %s: Vector3 = Vector3.INF" % last_pos_var)
 	if ignore_platform_motion:
 		# Character/Gravity actuators write this after movement so next frame can ignore external carry.
@@ -104,7 +105,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\tpush_warning(\"Look At Movement: No target node name set\")")
 	code_lines.append("\t%s = null" % target_var)
 	code_lines.append("elif %s == null or %s.name != _target_name_%s:" % [target_var, target_var, label])
-	code_lines.append("\tvar _found_target_%s = _lb_find_node_in_current_scene(_target_name_%s)" % [label, label])
+	code_lines.append("\tvar _found_target_%s = find_child(_target_name_%s, true, false)" % [label, label])
 	code_lines.append("\tif _found_target_%s is Node3D:" % label)
 	code_lines.append("\t\t%s = _found_target_%s" % [target_var, label])
 	code_lines.append("\telif _found_target_%s:" % label)

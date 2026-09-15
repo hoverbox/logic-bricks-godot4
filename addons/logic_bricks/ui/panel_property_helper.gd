@@ -34,6 +34,8 @@ func _select_line_edit_text_on_focus(line_edit: LineEdit) -> void:
 		return
 	line_edit.focus_entered.connect(func():
 		line_edit.call_deferred("select_all")
+		if panel and panel.has_method("show_expanded_line_edit_if_needed"):
+			panel.call_deferred("show_expanded_line_edit_if_needed", line_edit)
 	)
 
 
@@ -72,6 +74,7 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 
 	# Add instance name field first
 	var name_hbox = HBoxContainer.new()
+	name_hbox.name = "BrickConnectionRow"
 	var name_label = Label.new()
 	name_label.text = "Name:"
 	name_hbox.add_child(name_label)
@@ -408,33 +411,33 @@ func _create_brick_ui(graph_node: GraphNode, brick_instance) -> void:
 			elif property_type == TYPE_STRING and prop_def.get("input_action_picker", false):
 				ui_element = _create_input_action_picker(graph_node, brick_instance, property_name, property_value)
 
+			# Logic Brick variable name: free text plus a dropdown of variables already created.
+			elif property_type == TYPE_STRING and prop_def.get("variable_picker", false):
+				ui_element = _create_variable_picker(graph_node, brick_instance, property_name, property_value)
+
 			# Group name: free text / node drag plus a picker of groups used by the project.
 			elif property_type == TYPE_STRING and prop_def.get("group_picker", false):
 				ui_element = _create_group_picker(graph_node, brick_instance, prop_def, property_name, property_value)
 
-			# Regular string line edit. Node-reference properties get a drop-aware
-			# LineEdit so nodes can be Ctrl-dragged directly from the Scene dock.
+			# Regular string line edit. Node-reference properties keep free typing and
+			# Ctrl-drag, and also expose a filtered child-node picker.
 			elif property_type == TYPE_STRING and hint != PROPERTY_HINT_ENUM:
-				var hbox = HBoxContainer.new()
-				var label = Label.new()
-				label.text = _format_property_name(property_name) + ":"
-				hbox.add_child(label)
-
-				var line_edit: LineEdit
 				if _is_node_reference_property(prop_def, property_name):
-					var node_edit = NodeReferenceLineEdit.new()
-					node_edit.configure(panel.editor_interface, property_name, _accepted_node_types(prop_def, property_name), panel.current_node)
-					node_edit.node_reference_dropped.connect(_on_property_changed.bind(graph_node, property_name))
-					line_edit = node_edit
+					ui_element = _create_node_reference_picker(graph_node, brick_instance, prop_def, property_name, property_value)
 				else:
-					line_edit = LineEdit.new()
-				_select_line_edit_text_on_focus(line_edit)
-				line_edit.name = "PropertyControl_" + property_name
-				line_edit.text = str(property_value) if typeof(property_value) != TYPE_STRING else property_value
-				line_edit.placeholder_text = "Enter " + _format_property_name(property_name).to_lower()
-				line_edit.text_changed.connect(_on_property_changed.bind(graph_node, property_name))
-				hbox.add_child(line_edit)
-				ui_element = hbox
+					var hbox = HBoxContainer.new()
+					var label = Label.new()
+					label.text = _format_property_name(property_name) + ":"
+					hbox.add_child(label)
+
+					var line_edit = LineEdit.new()
+					_select_line_edit_text_on_focus(line_edit)
+					line_edit.name = "PropertyControl_" + property_name
+					line_edit.text = str(property_value) if typeof(property_value) != TYPE_STRING else property_value
+					line_edit.placeholder_text = "Enter " + _format_property_name(property_name).to_lower()
+					line_edit.text_changed.connect(_on_property_changed.bind(graph_node, property_name))
+					hbox.add_child(line_edit)
+					ui_element = hbox
 
 			# Color picker
 			elif property_type == TYPE_COLOR:
@@ -977,6 +980,26 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 
 	# Define visibility rules for specific brick types
 	match brick_class:
+		"group_actuator":
+			var group_mode = str(properties.get("mode", "add")).to_lower().replace(" ", "_")
+			for child in graph_node.get_children():
+				if child.has_meta("property_name"):
+					var prop_name = child.get_meta("property_name")
+					if prop_name == "group_name":
+						child.visible = group_mode in ["add", "remove"]
+					elif prop_name in ["from_group", "to_group"]:
+						child.visible = group_mode == "change"
+
+		"smooth_follow_camera_actuator":
+			var on_camera := panel.current_node is Camera3D
+			for child in graph_node.get_children():
+				if child.has_meta("property_name"):
+					var prop_name = child.get_meta("property_name")
+					if prop_name == "camera_node_name":
+						child.visible = not on_camera
+					elif prop_name == "target_node_name":
+						child.visible = on_camera
+
 		"scale_tween_actuator", "scale_2d_actuator":  # Dedicated Scale Actuators
 			var use_tween = bool(properties.get("use_tween", false))
 			for child in graph_node.get_children():
@@ -1089,7 +1112,7 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 					var prop_name = child.get_meta("property_name")
 					match prop_name:
 						"value":
-							child.visible = (mode in ["assign", "add", "add_item", "remove_item", "set_item_at_index"])
+							child.visible = (mode in ["assign", "add", "replace", "prepend", "append", "add_item", "remove_item", "set_item_at_index"])
 						"source_variable":
 							child.visible = (mode == "copy")
 						"item_type":
@@ -1811,12 +1834,13 @@ func _logic_variable_type(variable_name: String) -> String:
 func _variable_brick_hint_override(brick_instance, property_name: String, fallback: String) -> String:
 	var script_name: String = str(brick_instance.get_script().resource_path.get_file().get_basename())
 	var var_type := _logic_variable_type(str(brick_instance.get_property("variable_name", "")))
-	if var_type != "Array":
-		return fallback
-	if script_name == "variable_sensor" and property_name == "evaluation_type":
-		return "Contains:contains,Does Not Contain:does_not_contain,Is Empty:is_empty,Is Not Empty:is_not_empty,Size Equals:size_equals,Size Greater Than:size_greater_than,Size Less Than:size_less_than,Changed:changed"
-	if script_name == "variable_actuator" and property_name == "mode":
-		return "Add Item:add_item,Remove Item:remove_item,Remove At Index:remove_at_index,Set Item At Index:set_item_at_index,Clear:clear,Assign:assign,Copy:copy"
+	if var_type == "Array":
+		if script_name == "variable_sensor" and property_name == "evaluation_type":
+			return "Contains:contains,Does Not Contain:does_not_contain,Is Empty:is_empty,Is Not Empty:is_not_empty,Size Equals:size_equals,Size Greater Than:size_greater_than,Size Less Than:size_less_than,Changed:changed"
+		if script_name == "variable_actuator" and property_name == "mode":
+			return "Add Item:add_item,Remove Item:remove_item,Remove At Index:remove_at_index,Set Item At Index:set_item_at_index,Clear:clear,Assign:assign,Copy:copy"
+	elif var_type == "String" and script_name == "variable_actuator" and property_name == "mode":
+		return "Replace:replace,Add Before:prepend,Add After:append,Copy:copy"
 	return fallback
 
 
@@ -1834,7 +1858,7 @@ func _refresh_variable_brick_operation_control(graph_node: GraphNode, brick_inst
 				break
 	if option == null:
 		return
-	var fallback := "Equal,Not Equal,Interval,Changed,Greater Than,Less Than,Greater or Equal,Less or Equal" if script_name == "variable_sensor" else "Assign,Add,Copy,Toggle"
+	var fallback := "Equal,Not Equal,Interval,Changed,Greater Than,Less Than,Greater or Equal,Less or Equal" if script_name == "variable_sensor" else "Assign:assign,Adjust By:add,Copy:copy,Toggle:toggle"
 	var hint := _variable_brick_hint_override(brick_instance, property_name, fallback)
 	var current := str(brick_instance.get_property(property_name, ""))
 	option.clear()
@@ -1865,6 +1889,149 @@ func _refresh_variable_brick_operation_control(graph_node: GraphNode, brick_inst
 	graph_node.reset_size()
 
 
+
+
+func _create_node_reference_picker(graph_node: GraphNode, brick_instance, prop_def: Dictionary, property_name: String, property_value) -> Control:
+	var hbox := HBoxContainer.new()
+	var label := Label.new()
+	label.text = _format_property_name(property_name) + ":"
+	hbox.add_child(label)
+
+	var accepted_types := _accepted_node_types(prop_def, property_name)
+	var line_edit = NodeReferenceLineEdit.new()
+	line_edit.configure(panel.editor_interface, property_name, accepted_types, panel.current_node)
+	_select_line_edit_text_on_focus(line_edit)
+	line_edit.name = "PropertyControl_" + property_name
+	line_edit.text = str(property_value)
+	line_edit.placeholder_text = "Enter " + _format_property_name(property_name).to_lower()
+	line_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line_edit.text_changed.connect(_on_property_changed.bind(graph_node, property_name))
+	line_edit.node_reference_dropped.connect(_on_property_changed.bind(graph_node, property_name))
+	hbox.add_child(line_edit)
+
+	var menu_button := MenuButton.new()
+	menu_button.text = "▾"
+	menu_button.tooltip_text = "Choose a compatible child node"
+	menu_button.custom_minimum_size = Vector2(28, 0)
+	hbox.add_child(menu_button)
+
+	var popup := menu_button.get_popup()
+	var rebuild_popup = func():
+		popup.clear()
+		var picker_root: Node = panel.current_node
+		if str(prop_def.get("node_picker_scope", "children")) == "scene" and panel.editor_interface != null:
+			picker_root = panel.editor_interface.get_edited_scene_root()
+		var matches := _compatible_child_nodes(picker_root, accepted_types)
+		if picker_root != panel.current_node and _node_matches_types(picker_root, accepted_types):
+			matches.push_front(picker_root)
+		var item_id := 0
+
+		# Collision sensors deliberately use a blank field to mean self when the
+		# Logic Bricks owner is already the matching Area node.
+		if property_name == "area_node_name" and _node_matches_types(panel.current_node, accepted_types):
+			popup.add_item("Use Self (" + str(panel.current_node.name) + ")", item_id)
+			popup.set_item_metadata(popup.get_item_index(item_id), "")
+			item_id += 1
+			if not matches.is_empty():
+				popup.add_separator()
+
+		for child in matches:
+			var relative_path := str(picker_root.get_path_to(child))
+			popup.add_item(relative_path, item_id)
+			# Existing bricks store node names, so preserve that format. The relative
+			# path is displayed to make similarly named/nested children easy to identify.
+			popup.set_item_metadata(popup.get_item_index(item_id), str(child.name))
+			item_id += 1
+
+		if matches.is_empty() and not _node_matches_types(panel.current_node, accepted_types):
+			var create_type := _creatable_reference_type(accepted_types)
+			if not create_type.is_empty():
+				if item_id > 0:
+					popup.add_separator()
+				popup.add_item("+ Create " + create_type, item_id)
+				popup.set_item_metadata(popup.get_item_index(item_id), {"create": create_type})
+			elif item_id == 0:
+				popup.add_item("No compatible child nodes", item_id)
+				popup.set_item_disabled(popup.get_item_index(item_id), true)
+
+	popup.about_to_popup.connect(rebuild_popup)
+	popup.id_pressed.connect(func(id: int):
+		var index := popup.get_item_index(id)
+		if index < 0:
+			return
+		var selected = popup.get_item_metadata(index)
+		if selected is Dictionary and selected.has("create"):
+			_create_reference_child(str(selected["create"]), line_edit, graph_node, property_name)
+			return
+		var value := str(selected)
+		line_edit.text = value
+		line_edit.caret_column = value.length()
+		_on_property_changed(value, graph_node, property_name)
+	)
+	rebuild_popup.call()
+	return hbox
+
+
+func _compatible_child_nodes(root: Node, accepted_types: Array) -> Array[Node]:
+	var result: Array[Node] = []
+	if root == null:
+		return result
+	var stack: Array[Node] = []
+	for child in root.get_children():
+		if child is Node:
+			stack.append(child)
+	while not stack.is_empty():
+		var node := stack.pop_front()
+		if _node_matches_types(node, accepted_types):
+			result.append(node)
+		for child in node.get_children():
+			if child is Node:
+				stack.append(child)
+	return result
+
+
+func _node_matches_types(node: Node, accepted_types: Array) -> bool:
+	if node == null:
+		return false
+	if accepted_types.is_empty():
+		return true
+	for type_name in accepted_types:
+		if node.is_class(str(type_name)):
+			return true
+	return false
+
+
+func _creatable_reference_type(accepted_types: Array) -> String:
+	if accepted_types.size() != 1:
+		return ""
+	var type_name := str(accepted_types[0])
+	return type_name if type_name in ["Area3D", "Area2D"] else ""
+
+
+func _create_reference_child(type_name: String, line_edit: LineEdit, graph_node: GraphNode, property_name: String) -> void:
+	if panel == null or panel.current_node == null or panel.editor_interface == null:
+		return
+	var created: Object = ClassDB.instantiate(type_name)
+	if not created is Node:
+		return
+	var new_node := created as Node
+	new_node.name = type_name
+	var parent: Node = panel.current_node
+	var scene_root: Node = panel.editor_interface.get_edited_scene_root()
+	var save_owner: Node = parent.owner if parent.owner != null else scene_root
+	var undo_redo: EditorUndoRedoManager = panel.editor_interface.get_editor_undo_redo()
+	undo_redo.create_action("Create " + type_name + " for Logic Bricks")
+	undo_redo.add_do_method(parent, "add_child", new_node, true)
+	if save_owner != null:
+		undo_redo.add_do_method(new_node, "set_owner", save_owner)
+	undo_redo.add_do_reference(new_node)
+	undo_redo.add_undo_method(parent, "remove_child", new_node)
+	undo_redo.commit_action()
+
+	var value := str(new_node.name)
+	line_edit.text = value
+	line_edit.caret_column = value.length()
+	_on_property_changed(value, graph_node, property_name)
 
 func _is_node_reference_property(prop_def: Dictionary, property_name: String) -> bool:
 	# Bricks may opt in/out explicitly. The naming fallback makes the feature
@@ -2216,6 +2383,73 @@ func _create_input_action_picker(graph_node: GraphNode, brick_instance, property
 	popup.id_pressed.connect(func(id: int):
 		var index := popup.get_item_index(id)
 		if index < 0:
+			return
+		var selected := str(popup.get_item_metadata(index))
+		if selected.is_empty():
+			return
+		line_edit.text = selected
+		_on_property_changed(selected, graph_node, property_name)
+	)
+	rebuild_popup.call()
+	return hbox
+
+
+func _create_variable_picker(graph_node: GraphNode, brick_instance, property_name: String, property_value) -> Control:
+	var hbox = HBoxContainer.new()
+	var label = Label.new()
+	label.text = _format_property_name(property_name) + ":"
+	hbox.add_child(label)
+
+	var line_edit = LineEdit.new()
+	_select_line_edit_text_on_focus(line_edit)
+	line_edit.name = "PropertyControl_" + property_name
+	line_edit.text = str(property_value)
+	line_edit.placeholder_text = "Enter variable name"
+	line_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line_edit.text_changed.connect(_on_property_changed.bind(graph_node, property_name))
+	hbox.add_child(line_edit)
+
+	var menu_button = MenuButton.new()
+	menu_button.text = "▾"
+	menu_button.tooltip_text = "Choose a Logic Bricks variable"
+	menu_button.custom_minimum_size = Vector2(28, 0)
+	hbox.add_child(menu_button)
+
+	var popup := menu_button.get_popup()
+	var rebuild_popup = func():
+		popup.clear()
+		var item_id := 0
+		var local_vars: Array = panel.variables_data if panel != null else []
+		var global_vars: Array = panel.global_vars_data if panel != null else []
+
+		if not local_vars.is_empty():
+			popup.add_separator("Local Variables")
+			for var_data in local_vars:
+				var local_name := str(var_data.get("name", "")).strip_edges()
+				if local_name.is_empty():
+					continue
+				popup.add_item(local_name, item_id)
+				popup.set_item_metadata(popup.get_item_index(item_id), local_name)
+				item_id += 1
+
+		if not global_vars.is_empty():
+			popup.add_separator("Global Variables")
+			for var_data in global_vars:
+				var global_name := str(var_data.get("name", "")).strip_edges()
+				if global_name.is_empty():
+					continue
+				popup.add_item(global_name, item_id)
+				popup.set_item_metadata(popup.get_item_index(item_id), global_name)
+				item_id += 1
+
+		if item_id == 0:
+			popup.add_item("No variables created yet")
+			popup.set_item_disabled(0, true)
+
+	popup.about_to_popup.connect(rebuild_popup)
+	popup.id_pressed.connect(func(id: int):
+		var index := popup.get_item_index(id)
+		if index < 0 or popup.is_item_disabled(index):
 			return
 		var selected := str(popup.get_item_metadata(index))
 		if selected.is_empty():

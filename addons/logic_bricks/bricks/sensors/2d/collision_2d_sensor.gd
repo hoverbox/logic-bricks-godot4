@@ -29,10 +29,10 @@ func get_property_definitions() -> Array:
 	return [
 		{
 			"name": "area_node_name",
-			"required": true,
-			"required_label": "an Area2D node name",
 			"type": TYPE_STRING,
-			"default": ""
+			"default": "",
+			"node_reference": true,
+			"accepted_node_types": ["Area2D"]
 		},
 		{
 			"name": "detection_mode",
@@ -71,10 +71,18 @@ func get_property_definitions() -> Array:
 	]
 
 
+func get_configuration_warnings(node: Node = null) -> Array[String]:
+	var warnings = super.get_configuration_warnings(node)
+	var area_node_name = str(properties.get("area_node_name", "")).strip_edges()
+	if area_node_name.is_empty() and not node is Area2D:
+		warnings.append("Select or enter an Area2D node name, or attach these Logic Bricks directly to an Area2D node.")
+	return warnings
+
+
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Detects collisions via an Area2D node located by name.\n\nType the node name (not the full path) into 'Area Node Name'.",
-		"area_node_name": "The name of the Area2D node to use for collision detection (e.g. \"HitArea\"). Searches the whole scene tree — the node can live anywhere, not just as a child.",
+		"_description": "Detects collisions via an Area2D node.\n\nLeave Area Node Name blank when these Logic Bricks are attached directly to the Area2D. Otherwise, enter the node name (not the full path).",
+		"area_node_name": "Leave blank to use this node when it is an Area2D. Otherwise, enter the name of the Area2D to use for collision detection (e.g. \"HitArea\"). Searches the whole scene tree.",
 		"detection_mode": "Entered: fires once when something enters.\nExited: fires once when something leaves.\nOverlapping: active every frame while overlapping.",
 		"detect_bodies":  "Detect physics bodies (CharacterBody2D, RigidBody2D, etc.).",
 		"detect_areas":   "Detect other Area2D nodes.",
@@ -183,32 +191,63 @@ func _generate_signal_code(detection_mode: String, area_var: String,
 	var area_signal   = "area_entered" if detection_mode == "entered" else "area_exited"
 	var body_callback = "_on_collision_%s_%s_body" % [chain_name, detection_mode]
 	var area_callback = "_on_collision_%s_%s_area" % [chain_name, detection_mode]
+	var active_contacts = "_collision_active_contacts_%s" % chain_name
 
 	# State tracking vars
 	member_vars.append("var %s: bool = false" % flag_var)
 	member_vars.append("var %s = null" % collided_var)
+	if detection_mode == "entered":
+		member_vars.append("var %s: Dictionary = {}" % active_contacts)
 
-	# Signal callback functions
-	if detect_bodies:
-		member_vars.append("")
-		member_vars.append("func %s(body) -> void:" % body_callback)
-		member_vars.append("\t%s = true" % flag_var)
-		member_vars.append("\t%s = body" % collided_var)
-
-	if detect_areas:
-		member_vars.append("")
-		member_vars.append("func %s(area) -> void:" % area_callback)
-		member_vars.append("\t%s = true" % flag_var)
-		member_vars.append("\t%s = area" % collided_var)
+	# Entered mode is contact-latched: one logical scene instance can only fire
+	# once until all of its body/area overlaps have exited. This prevents an
+	# enemy with both a physics body and child hitbox Areas from dealing damage
+	# multiple times for the same touch.
+	if detection_mode == "entered":
+		if detect_bodies:
+			var body_exit_callback = "_on_collision_%s_contact_exit_body" % chain_name
+			member_vars.append("")
+			member_vars.append("func %s(body) -> void:" % body_callback)
+			_append_contact_enter_lines(member_vars, "body", active_contacts, flag_var, collided_var, filter_type, filter_value)
+			member_vars.append("")
+			member_vars.append("func %s(body) -> void:" % body_exit_callback)
+			_append_contact_exit_lines(member_vars, "body", active_contacts)
+		if detect_areas:
+			var area_exit_callback = "_on_collision_%s_contact_exit_area" % chain_name
+			member_vars.append("")
+			member_vars.append("func %s(area) -> void:" % area_callback)
+			_append_contact_enter_lines(member_vars, "area", active_contacts, flag_var, collided_var, filter_type, filter_value)
+			member_vars.append("")
+			member_vars.append("func %s(area) -> void:" % area_exit_callback)
+			_append_contact_exit_lines(member_vars, "area", active_contacts)
+	else:
+		if detect_bodies:
+			member_vars.append("")
+			member_vars.append("func %s(body) -> void:" % body_callback)
+			member_vars.append("\t%s = true" % flag_var)
+			member_vars.append("\t%s = body" % collided_var)
+		if detect_areas:
+			member_vars.append("")
+			member_vars.append("func %s(area) -> void:" % area_callback)
+			member_vars.append("\t%s = true" % flag_var)
+			member_vars.append("\t%s = area" % collided_var)
 
 	# _ready(): connect signals on the located Area2D reference
 	ready_lines.append("if %s:" % area_var)
 	if detect_bodies:
 		ready_lines.append("\tif not %s.%s.is_connected(%s):" % [area_var, body_signal, body_callback])
 		ready_lines.append("\t\t%s.%s.connect(%s)" % [area_var, body_signal, body_callback])
+		if detection_mode == "entered":
+			var body_exit_callback = "_on_collision_%s_contact_exit_body" % chain_name
+			ready_lines.append("\tif not %s.body_exited.is_connected(%s):" % [area_var, body_exit_callback])
+			ready_lines.append("\t\t%s.body_exited.connect(%s)" % [area_var, body_exit_callback])
 	if detect_areas:
 		ready_lines.append("\tif not %s.%s.is_connected(%s):" % [area_var, area_signal, area_callback])
 		ready_lines.append("\t\t%s.%s.connect(%s)" % [area_var, area_signal, area_callback])
+		if detection_mode == "entered":
+			var area_exit_callback = "_on_collision_%s_contact_exit_area" % chain_name
+			ready_lines.append("\tif not %s.area_exited.is_connected(%s):" % [area_var, area_exit_callback])
+			ready_lines.append("\t\t%s.area_exited.connect(%s)" % [area_var, area_exit_callback])
 
 	# Sensor evaluation code (runs each frame)
 	sensor_lines.append("var sensor_active = (func():")
@@ -236,6 +275,41 @@ func _generate_signal_code(detection_mode: String, area_var: String,
 		"ready_lines": ready_lines,
 		"sensor_lines": sensor_lines
 	}
+
+
+func _append_contact_enter_lines(lines: Array[String], obj_name: String, active_contacts: String, flag_var: String, collided_var: String, filter_type: String, filter_value: String) -> void:
+	lines.append("\tvar _contact_target: Node = %s" % obj_name)
+	lines.append("\tvar _contact_owner: Node = %s.get_owner() if is_instance_valid(%s) else null" % [obj_name, obj_name])
+	if filter_type == "group" and not filter_value.is_empty():
+		lines.append("\tif not %s.is_in_group(\"%s\"):" % [obj_name, filter_value])
+		lines.append("\t\tif _contact_owner and _contact_owner.is_in_group(\"%s\"):" % filter_value)
+		lines.append("\t\t\t_contact_target = _contact_owner")
+		lines.append("\t\telse:")
+		lines.append("\t\t\treturn")
+	elif filter_type == "name" and not filter_value.is_empty():
+		lines.append("\tif %s.name != \"%s\":" % [obj_name, filter_value])
+		lines.append("\t\tif _contact_owner and _contact_owner.name == \"%s\":" % filter_value)
+		lines.append("\t\t\t_contact_target = _contact_owner")
+		lines.append("\t\telse:")
+		lines.append("\t\t\treturn")
+	lines.append("\tvar _contact_key: Node = _contact_owner if _contact_owner else _contact_target")
+	lines.append("\tvar _contact_count: int = int(%s.get(_contact_key, 0))" % active_contacts)
+	lines.append("\t%s[_contact_key] = _contact_count + 1" % active_contacts)
+	lines.append("\tif _contact_count == 0:")
+	lines.append("\t\t%s = true" % flag_var)
+	lines.append("\t\t%s = _contact_target" % collided_var)
+
+
+func _append_contact_exit_lines(lines: Array[String], obj_name: String, active_contacts: String) -> void:
+	lines.append("\tvar _contact_owner: Node = %s.get_owner() if is_instance_valid(%s) else null" % [obj_name, obj_name])
+	lines.append("\tvar _contact_key: Node = _contact_owner if _contact_owner else %s" % obj_name)
+	lines.append("\tif not %s.has(_contact_key):" % active_contacts)
+	lines.append("\t\treturn")
+	lines.append("\tvar _contact_count: int = int(%s[_contact_key]) - 1" % active_contacts)
+	lines.append("\tif _contact_count <= 0:")
+	lines.append("\t\t%s.erase(_contact_key)" % active_contacts)
+	lines.append("\telse:")
+	lines.append("\t\t%s[_contact_key] = _contact_count" % active_contacts)
 
 
 ## Generate overlap/polling detection code

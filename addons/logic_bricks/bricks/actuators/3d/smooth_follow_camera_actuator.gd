@@ -21,6 +21,9 @@ func _init() -> void:
 func _initialize_properties() -> void:
 	properties = {
 		"camera_node_name": "Camera3D",
+		"target_node_name": "",
+		"positioning": "Keep Offset",
+		"position_offset_amount": 3.0,
 		"follow_speed": 5.0,
 		"dead_zone_x": 0.0,
 		"dead_zone_y": 0.0,
@@ -42,7 +45,33 @@ func get_property_definitions() -> Array:
 			"name": "camera_node_name", "required": true, "required_label": "a Camera3D node name",
 			"type": TYPE_STRING,
 			"default": "Camera3D",
-			"placeholder": "Camera3D node name"
+			"placeholder": "Camera3D node name",
+			"node_reference": true,
+			"accepted_node_types": ["Camera3D"],
+			"node_picker_scope": "scene"
+		},
+		{
+			"name": "target_node_name", "required": true, "required_label": "a Node3D to follow",
+			"type": TYPE_STRING,
+			"default": "",
+			"placeholder": "Node3D to follow",
+			"node_reference": true,
+			"accepted_node_types": ["Node3D"],
+			"node_picker_scope": "scene"
+		},
+		{
+			"name": "positioning",
+			"type": TYPE_STRING,
+			"hint": PROPERTY_HINT_ENUM,
+			"hint_string": "Keep Offset,Left,Center,Right",
+			"default": "Keep Offset"
+		},
+		{
+			"name": "position_offset_amount",
+			"type": TYPE_FLOAT,
+			"hint": PROPERTY_HINT_RANGE,
+			"hint_string": "0.0,1000.0,0.1",
+			"default": 3.0
 		},
 		{
 			"name": "follow_speed",
@@ -108,9 +137,24 @@ func get_property_definitions() -> Array:
 	]
 
 
+func get_configuration_warnings(node: Node = null) -> Array[String]:
+	var warnings: Array[String] = []
+	if node is Camera3D:
+		if str(properties.get("target_node_name", "")).strip_edges().is_empty():
+			warnings.append("Select or enter a Node3D to follow.")
+	else:
+		if str(properties.get("camera_node_name", "")).strip_edges().is_empty():
+			warnings.append("Select or enter a Camera3D node name.")
+	return warnings
+
+
 func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Smoothly follows this node with the assigned Camera3D,\nmaintaining the camera's initial offset from the target.\n\nPosition follow: camera tracks the node's position per axis.\nRotation follow: camera orbits the node, keeping it in frame.\nDead zone: camera only moves once the node exceeds the threshold.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there.",
+		"camera_node_name": "Camera3D to move when this brick is on a character or other object.\nType a name, Ctrl-drag a node, or use the picker.",
+		"target_node_name": "Node3D this Camera3D should follow when the brick is placed directly on a Camera3D.\nType a node name, pick one from the dropdown, or enter the name of a Logic Bricks String variable. If a String variable is used, changing that variable at runtime retargets the camera.",
+		"positioning": "Horizontal framing relative to the followed node.\nKeep Offset preserves the camera's captured X offset.\nLeft places the camera to the left by Offset Amount.\nCenter aligns the camera's X with the target.\nRight places the camera to the right by Offset Amount.",
+		"position_offset_amount": "Horizontal distance used by Left or Right positioning. Center ignores this value.",
 		"follow_speed": "How quickly the camera interpolates toward the target position.\nHigher = snappier. Lower = more lag.",
 		"dead_zone_x": "X distance the target must move before the camera follows.\n0 = always follow.",
 		"dead_zone_y": "Y distance the target must move before the camera follows.\n0 = always follow.",
@@ -127,8 +171,12 @@ func get_tooltip_definitions() -> Dictionary:
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
+	var camera_mode := node is Camera3D
 	var camera_node_name = str(properties.get("camera_node_name", "Camera3D")).strip_edges()
+	var target_node_name = str(properties.get("target_node_name", "")).strip_edges()
 	var rotation_source_node_name = str(properties.get("rotation_source_node_name", "")).strip_edges()
+	var positioning := str(properties.get("positioning", "Keep Offset")).strip_edges().to_lower()
+	var position_offset_amount := abs(float(properties.get("position_offset_amount", 3.0)))
 	var follow_speed   = properties.get("follow_speed",   5.0)
 	var follow_pos_x   = properties.get("follow_pos_x",   true)
 	var follow_pos_y   = properties.get("follow_pos_y",   true)
@@ -145,37 +193,62 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var has_rotation = follow_rot_x or follow_rot_y or follow_rot_z
 	var has_dead_zone = dead_zone_x > 0.0 or dead_zone_y > 0.0 or dead_zone_z > 0.0
 
-	# instance_name IS the variable name when set (e.g. "player_cam" -> @export var player_cam).
-	# Falls back to a descriptive default when unnamed.
-	var _base = instance_name.to_lower().replace(" ", "_") if not instance_name.is_empty() else "smooth_follow"
+	# instance_name contributes to generated member names, so it must always be a valid GDScript identifier.
+	var _base := _safe_identifier(instance_name)
+	if _base.is_empty():
+		_base = "smooth_follow"
 	var camera_var     = _base
 	var offset_var     = "_%s_offset"   % _base
 	var rot_offset_var = "_%s_rot"      % _base
 	var init_flag_var  = "_%s_ready"    % _base
 
 	var member_vars: Array[String] = []
-	member_vars.append("var %s: Camera3D = null" % camera_var)
 	_append_find_node_helpers(member_vars)
+	var target_uses_string_variable := camera_mode and _node_has_string_variable(node, target_node_name)
+	if camera_mode:
+		if not target_uses_string_variable:
+			member_vars.append("@export var %s_target_node_name: String = \"%s\"" % [_base, _gd_string(target_node_name)])
+		member_vars.append("var %s_target: Node3D = null" % _base)
+		member_vars.append("var %s_last_target_name: String = \"\"" % _base)
+	else:
+		member_vars.append("var %s: Camera3D = null" % camera_var)
 	member_vars.append("var %s: Vector3 = Vector3.ZERO" % offset_var)
 	member_vars.append("var %s: Vector3 = Vector3.ZERO" % rot_offset_var)
 	member_vars.append("var %s: bool = false" % init_flag_var)
 
 	var lines: Array[String] = []
+	lines.append("# Smooth Follow Camera — maintains initial offset")
+	if camera_mode:
+		var target_name_expr := ("str(%s)" % target_node_name) if target_uses_string_variable else ("%s_target_node_name" % _base)
+		lines.append("var _follow_name_%s: String = %s" % [chain_name, target_name_expr])
+		lines.append("if _follow_name_%s != %s_last_target_name:" % [chain_name, _base])
+		lines.append("\t%s_last_target_name = _follow_name_%s" % [_base, chain_name])
+		lines.append("\t%s_target = null" % _base)
+		lines.append("\t%s = false" % init_flag_var)
+		lines.append("if %s_target == null and not _follow_name_%s.is_empty():" % [_base, chain_name])
+		lines.append("\tvar _found_target_%s = _lb_find_node_in_current_scene(_follow_name_%s)" % [chain_name, chain_name])
+		lines.append("\tif _found_target_%s is Node3D and _found_target_%s != self:" % [chain_name, chain_name])
+		lines.append("\t\t%s_target = _found_target_%s" % [_base, chain_name])
+		lines.append("if not %s_target:" % _base)
+		lines.append("\tpush_warning(\"Smooth Follow Camera: Follow Target '\" + _follow_name_%s + \"' was not found or is not a Node3D\")" % chain_name)
+		lines.append("else:")
+	else:
+		lines.append("var _node_name_%s = \"%s\"" % [chain_name, _gd_string(camera_node_name)])
+		lines.append("if _node_name_%s.is_empty():" % chain_name)
+		lines.append("\tpush_warning(\"Smooth Follow Camera: No node name set\")")
+		lines.append("\t" + camera_var + " = null")
+		lines.append("elif " + camera_var + " == null or " + camera_var + ".name != _node_name_%s:" % chain_name)
+		lines.append("\tvar _found_node_%s = _lb_find_node_in_current_scene(_node_name_%s)" % [chain_name, chain_name])
+		lines.append("\tif _found_node_%s is Camera3D:" % chain_name)
+		lines.append("\t\t" + camera_var + " = _found_node_%s" % chain_name)
+		lines.append("\telif _found_node_%s:" % chain_name)
+		lines.append("\t\tpush_warning(\"Smooth Follow Camera: node '\" + str(_node_name_%s) + \"' is not a Camera3D\")" % chain_name)
+		lines.append("if not %s:" % camera_var)
+		lines.append("\tpush_warning(\"Smooth Follow Camera: No Camera3D assigned\")")
+		lines.append("else:")
 
-	lines.append("# Smooth Follow Camera — tracks this node while maintaining initial offset")
-	lines.append("var _node_name_%s = \"%s\"" % [chain_name, _gd_string(camera_node_name)])
-	lines.append("if _node_name_%s.is_empty():" % chain_name)
-	lines.append("\tpush_warning(\"Smooth Follow Camera: No node name set\")")
-	lines.append("\t" + camera_var + " = null")
-	lines.append("elif " + camera_var + " == null or " + camera_var + ".name != _node_name_%s:" % chain_name)
-	lines.append("\tvar _found_node_%s = _lb_find_node_in_current_scene(_node_name_%s)" % [chain_name, chain_name])
-	lines.append("\tif _found_node_%s is Camera3D:" % chain_name)
-	lines.append("\t\t" + camera_var + " = _found_node_%s" % chain_name)
-	lines.append("\telif _found_node_%s:" % chain_name)
-	lines.append("\t\tpush_warning(\"Smooth Follow Camera: node '\" + str(_node_name_%s) + \"' is not a Camera3D\")" % chain_name)
-	lines.append("if not %s:" % camera_var)
-	lines.append("\tpush_warning(\"Smooth Follow Camera: No Camera3D assigned to '%s' — drag one into the inspector\")" % camera_var)
-	lines.append("else:")
+	var generated_camera: String = "self" if camera_mode else str(camera_var)
+	var generated_target: String = ("%s_target" % _base) if camera_mode else "self"
 
 	if not has_position and not has_rotation:
 		lines.append("\tpass  # No axes enabled — tick at least one Follow Pos or Follow Rot axis")
@@ -184,7 +257,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if has_rotation:
 		lines.append("\t# Optional rotation source — blank uses this/root node")
 		lines.append("\tvar _rot_source_name_%s = \"%s\"" % [chain_name, _gd_string(rotation_source_node_name)])
-		lines.append("\tvar _rot_source: Node3D = self")
+		lines.append("\tvar _rot_source: Node3D = %s" % generated_target)
 		lines.append("\tif not _rot_source_name_%s.is_empty():" % chain_name)
 		lines.append("\t\tvar _found_rot_source_%s = _lb_find_node_in_current_scene(_rot_source_name_%s)" % [chain_name, chain_name])
 		lines.append("\t\tif _found_rot_source_%s is Node3D:" % chain_name)
@@ -197,15 +270,21 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	# Lazy first-frame offset capture
 	lines.append("\tif not %s:" % init_flag_var)
-	lines.append("\t\t%s = %s.global_position - global_position" % [offset_var, camera_var])
+	lines.append("\t\t%s = %s.global_position - %s.global_position" % [offset_var, generated_camera, generated_target])
+	if positioning == "left":
+		lines.append("\t\t%s.x = -%.6f" % [offset_var, position_offset_amount])
+	elif positioning == "center":
+		lines.append("\t\t%s.x = 0.0" % offset_var)
+	elif positioning == "right":
+		lines.append("\t\t%s.x = %.6f" % [offset_var, position_offset_amount])
 	if has_rotation:
-		lines.append("\t\t%s = %s.global_rotation - _rot_source.global_rotation" % [rot_offset_var, camera_var])
+		lines.append("\t\t%s = %s.global_rotation - _rot_source.global_rotation" % [rot_offset_var, generated_camera])
 	else:
-		lines.append("\t\t%s = %s.global_rotation - global_rotation" % [rot_offset_var, camera_var])
+		lines.append("\t\t%s = %s.global_rotation - %s.global_rotation" % [rot_offset_var, generated_camera, generated_target])
 	lines.append("\t\t%s = true" % init_flag_var)
 	lines.append("\t\treturn")
 
-	lines.append("\tvar _cam_pos = %s.global_position" % camera_var)
+	lines.append("\tvar _cam_pos = %s.global_position" % generated_camera)
 	lines.append("\t")
 
 	# Build rotation basis for orbit mode
@@ -219,9 +298,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		if follow_rot_z:
 			lines.append("\t_rot_basis = _rot_basis.rotated(Vector3.FORWARD, _rot_source.global_rotation.z)")
 		lines.append("\t")
-		lines.append("\tvar _desired_pos = global_position + _rot_basis * %s" % offset_var)
+		lines.append("\tvar _desired_pos = %s.global_position + _rot_basis * %s" % [generated_target, offset_var])
 	else:
-		lines.append("\tvar _desired_pos = global_position + %s" % offset_var)
+		lines.append("\tvar _desired_pos = %s.global_position + %s" % [generated_target, offset_var])
 
 	if has_position:
 		lines.append("\tvar _diff = _desired_pos - _cam_pos")
@@ -274,13 +353,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if follow_pos_z:
 				lines.append("\t_new_pos.z = lerp(_cam_pos.z, _desired_pos.z, %.2f * _delta)" % follow_speed)
 
-		lines.append("\t%s.global_position = _new_pos" % camera_var)
+		lines.append("\t%s.global_position = _new_pos" % generated_camera)
 
 	if has_rotation:
 		lines.append("\t")
 		lines.append("\t# Smoothly rotate camera toward rotation source + initial offset")
 		lines.append("\tvar _desired_rot = _rot_source.global_rotation + %s" % rot_offset_var)
-		lines.append("\tvar _cam_rot = %s.global_rotation" % camera_var)
+		lines.append("\tvar _cam_rot = %s.global_rotation" % generated_camera)
 		lines.append("\tvar _new_rot = _cam_rot")
 		if follow_rot_x:
 			lines.append("\t_new_rot.x = lerp_angle(_cam_rot.x, _desired_rot.x, %.2f * _delta)" % rotation_speed)
@@ -288,7 +367,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			lines.append("\t_new_rot.y = lerp_angle(_cam_rot.y, _desired_rot.y, %.2f * _delta)" % rotation_speed)
 		if follow_rot_z:
 			lines.append("\t_new_rot.z = lerp_angle(_cam_rot.z, _desired_rot.z, %.2f * _delta)" % rotation_speed)
-		lines.append("\t%s.global_rotation = _new_rot" % camera_var)
+		lines.append("\t%s.global_rotation = _new_rot" % generated_camera)
 
 	return {
 		"actuator_code": "\n".join(lines),
@@ -296,3 +375,28 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	}
 
 
+
+
+func _node_has_string_variable(node: Node, variable_name: String) -> bool:
+	if node == null or variable_name.is_empty() or not node.has_meta("logic_bricks_variables"):
+		return false
+	var variables_data = node.get_meta("logic_bricks_variables")
+	if not (variables_data is Array):
+		return false
+	for var_data in variables_data:
+		if var_data is Dictionary and str(var_data.get("name", "")).strip_edges() == variable_name:
+			var var_type := str(var_data.get("type", "")).to_lower()
+			return var_type in ["string", "str"]
+	return false
+
+
+func _safe_identifier(value: String) -> String:
+	var sanitized := value.strip_edges().to_lower().replace(" ", "_")
+	var regex := RegEx.new()
+	regex.compile("[^a-zA-Z0-9_]")
+	sanitized = regex.sub(sanitized, "", true)
+	if sanitized.is_empty():
+		return ""
+	if sanitized.substr(0, 1).is_valid_int():
+		sanitized = "brick_" + sanitized
+	return sanitized

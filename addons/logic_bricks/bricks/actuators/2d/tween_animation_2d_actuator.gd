@@ -18,3 +18,7 @@ func get_brick_info() -> Dictionary:
 		"menu_order": 310,
 		"domain": "2d",
 	}
+
+func get_tooltip_definitions() -> Dictionary:
+	return super.get_tooltip_definitions()
+

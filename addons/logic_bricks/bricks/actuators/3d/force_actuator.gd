@@ -122,7 +122,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if not _is_zero(max_force):
 		code_lines.append("# Build and clamp force vector")
 		if space == "local":
-			code_lines.append("var _force = global_transform.basis * Vector3(%s, %s, %s)" % [vx, vy, vz])
+			code_lines.append("var _force = global_transform.basis.orthonormalized() * Vector3(%s, %s, %s)" % [vx, vy, vz])
 		else:
 			code_lines.append("var _force = Vector3(%s, %s, %s)" % [vx, vy, vz])
 		code_lines.append("if _force.length() > %s:" % vmax)
@@ -132,7 +132,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		# Generate force application code for RigidBody3D
 		if space == "local":
 			code_lines.append("# Apply force in local space")
-			code_lines.append("apply_central_force(global_transform.basis * Vector3(%s, %s, %s))" % [vx, vy, vz])
+			code_lines.append("apply_central_force(global_transform.basis.orthonormalized() * Vector3(%s, %s, %s))" % [vx, vy, vz])
 		else:
 			code_lines.append("# Apply force in global space")
 			code_lines.append("apply_central_force(Vector3(%s, %s, %s))" % [vx, vy, vz])

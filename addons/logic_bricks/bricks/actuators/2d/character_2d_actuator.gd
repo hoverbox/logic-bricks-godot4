@@ -36,8 +36,7 @@ func _initialize_properties() -> void:
 		"friction": "1.0",
 		"bounce": "0.0",
 		"ground_groups": "",
-		"platform_groups": "",
-		"inherit_platform_velocity_on_jump": true
+		"platform_groups": ""
 	}
 
 func get_property_definitions() -> Array:
@@ -51,8 +50,7 @@ func get_property_definitions() -> Array:
 		{"name": "friction", "type": TYPE_STRING, "default": "1.0"},
 		{"name": "bounce", "type": TYPE_STRING, "default": "0.0"},
 		{"name": "ground_groups", "type": TYPE_STRING, "default": "", "placeholder": "Enter ground groups", "group_picker": true, "group_picker_multi": true},
-		{"name": "platform_groups", "type": TYPE_STRING, "default": "", "placeholder": "Enter platform groups", "group_picker": true, "group_picker_multi": true},
-		{"name": "inherit_platform_velocity_on_jump", "type": TYPE_BOOL, "default": true}
+		{"name": "platform_groups", "type": TYPE_STRING, "default": "", "placeholder": "Enter platform groups", "group_picker": true, "group_picker_multi": true}
 	]
 
 func _to_expr(value) -> String:
@@ -63,8 +61,12 @@ func _to_expr(value) -> String:
 		return "%.3f" % float(text)
 	return text
 
-func _bool_text(value) -> String:
-	return "true" if value == true else "false"
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Applies reusable character physics to a CharacterBody2D. Pair with Position and Character Jump for player movement.",
+		"gravity_strength": "Downward acceleration. Accepts a number, variable, or expression.",
+		"max_fall_speed": "Maximum downward speed while falling.",
+	}
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var gravity_expr := _to_expr(properties.get("gravity_strength", "980.0"))
@@ -75,7 +77,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var friction_expr := _to_expr(properties.get("friction", "1.0"))
 	var bounce_expr := _to_expr(properties.get("bounce", "0.0"))
 	var use_acceleration: bool = bool(properties.get("use_acceleration", false))
-	var inherit_platform_velocity := _bool_text(properties.get("inherit_platform_velocity_on_jump", true))
 
 	var member_vars := []
 	member_vars.append("var _on_ground: bool = false")
@@ -148,7 +149,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	post_process.append("\t\tvelocity.x = 0.0")
 	post_process.append("\tif not _logic_brick_2d_gravity_active and absf(velocity.y) < 0.01:")
 	post_process.append("\t\tvelocity.y = 0.0")
-	post_process.append("\tif bool(%s) and not _on_ground and _inherited_platform_velocity_2d != Vector2.ZERO:" % inherit_platform_velocity)
+	post_process.append("\tif not _on_ground and _inherited_platform_velocity_2d != Vector2.ZERO:")
 	post_process.append("\t\tvelocity.x += _inherited_platform_velocity_2d.x")
 	post_process.append("\t_logic_brick_pre_slide_velocity_2d = velocity")
 	post_process.append("\tmove_and_slide()")

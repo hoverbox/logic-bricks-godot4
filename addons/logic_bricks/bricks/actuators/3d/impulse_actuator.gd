@@ -113,7 +113,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var vz = _to_expr(properties.get("z", "0.0"))
 	var vec = "Vector3(%s, %s, %s)" % [vx, vy, vz]
 	if space == "local":
-		vec = "global_transform.basis * Vector3(%s, %s, %s)" % [vx, vy, vz]
+		vec = "global_transform.basis.orthonormalized() * Vector3(%s, %s, %s)" % [vx, vy, vz]
 
 	var code_lines: Array[String] = []
 

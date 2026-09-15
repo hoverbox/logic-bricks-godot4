@@ -297,7 +297,7 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 				_append_character_horizontal_speed_clamp(body_lines, "%s.velocity" % target_var, "\t\t", clamp_suffix)
 				body_lines.append("\t# velocity.y intentionally preserved (gravity/jump from Character Actuator)")
 			elif space == "local":
-				body_lines.append("\tvar _motion_dir = %s.global_transform.basis * %s" % [target_var, vec])
+				body_lines.append("\tvar _motion_dir = %s.global_transform.basis.orthonormalized() * %s" % [target_var, vec])
 				body_lines.append("\tif _logic_brick_character_use_acceleration:")
 				body_lines.append("\t\t_logic_brick_character_target_velocity.x += _motion_dir.x")
 				body_lines.append("\t\t_logic_brick_character_target_velocity.z += _motion_dir.z")

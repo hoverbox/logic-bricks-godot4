@@ -43,6 +43,11 @@ func get_property_definitions() -> Array:
 	]
 
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Configures a 2D split-screen layout using SubViewports and Camera2D nodes.",
+	}
+
 func generate_code(_node: Node, chain_name: String) -> Dictionary:
 	var camera_1_name := _gd(str(properties.get("camera_1_node_name", "Camera2D")))
 	var camera_2_name := _gd(str(properties.get("camera_2_node_name", "Camera2D2")))

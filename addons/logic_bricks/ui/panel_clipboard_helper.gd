@@ -162,40 +162,27 @@ func duplicate_graph_node(original_node: GraphNode, record_change: bool = true) 
 		original_name = brick_data["brick_class"].replace("Sensor", "").replace("Controller", "").replace("Actuator", "")
 
 	var new_name = generate_unique_brick_name(original_name)
-	var new_position = original_node.position_offset + Vector2(50, 50)
-	panel._create_graph_node(brick_data["brick_type"], brick_data["brick_class"], new_position)
+	var node_data = {
+		"id": "brick_node_%d" % panel.next_node_id,
+		"position": original_node.position_offset + Vector2(50, 50),
+		"brick_type": brick_data["brick_type"],
+		"brick_class": brick_data["brick_class"],
+		"instance_name": new_name,
+		"debug_enabled": brick_instance.debug_enabled,
+		"debug_message": brick_instance.debug_message,
+		"properties": brick_instance.get_properties().duplicate(true)
+	}
+	panel.next_node_id += 1
 
-	var new_node = panel.graph_edit.get_child(panel.graph_edit.get_child_count() - 1)
-	if new_node and new_node.has_meta("brick_data"):
-		var new_brick_data = new_node.get_meta("brick_data")
-		var new_brick_instance = new_brick_data["brick_instance"]
-
-		var properties = brick_instance.get_properties()
-		for key in properties:
-			new_brick_instance.set_property(key, properties[key])
-
-		new_brick_instance.set_instance_name(new_name)
-		new_brick_instance.debug_enabled = brick_instance.debug_enabled
-		new_brick_instance.debug_message = brick_instance.debug_message
-
-		var name_edit = new_node.get_node_or_null("InstanceNameEdit")
-		if name_edit:
-			name_edit.text = new_name
-
-		for child in new_node.get_children():
-			if not child is PopupMenu:
-				child.queue_free()
-
-		await panel.get_tree().process_frame
-		panel._create_brick_ui(new_node, new_brick_instance)
-		panel._setup_graph_node_context_menu(new_node)
+	# Build the duplicate once from its final data. Rebuilding an already-created
+	# GraphNode caused stale sizing, lost controller-only controls, and shifted slots.
+	var new_node = panel._create_graph_node_from_data(node_data)
+	if new_node:
 		new_node.selected = true
 		save_graph_to_metadata("Duplicate Logic Brick", false)
 		if record_change:
 			record_undo("Duplicate Logic Brick", before_snapshot, take_graph_snapshot())
-		return new_node
-
-	return null
+	return new_node
 
 func generate_unique_brick_name(base_name: String) -> String:
 	var clean_name = base_name

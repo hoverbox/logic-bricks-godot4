@@ -15,6 +15,17 @@ func get_configuration_warnings(node: Node = null) -> Array[String]:
 		warnings.append("Put a Value or Variable in X or Y")
 	return warnings
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Applies continuous force to a RigidBody2D. X/Y fields accept numbers, variables, or expressions.",
+		"x": "Horizontal force. Positive pushes right; negative pushes left.",
+		"y": "Vertical force. Positive pushes down; negative pushes up.",
+		"space": "Apply the force in global or local orientation.",
+		"apply_at_point": "Apply away from the center of mass so the force can also create rotation.",
+		"point_x": "Horizontal offset from the body center where force is applied.",
+		"point_y": "Vertical offset from the body center where force is applied.",
+	}
+
 func generate_code(node:Node,chain_name:String)->Dictionary:
 	var f="Vector2(%s, %s)"%[_to_expr(properties.get("x","0.0")),_to_expr(properties.get("y","-100.0"))]
 	if str(properties.get("space","global")).to_lower()=="local":

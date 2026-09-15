@@ -50,6 +50,11 @@ func get_property_definitions() -> Array:
 	]
 
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Saves or restores 2D gameplay state for checkpoints and simple save systems.",
+	}
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode := str(properties.get("mode", "save")).to_lower()
 	var scope := str(properties.get("scope", "this_node")).to_lower().replace(" ", "_")

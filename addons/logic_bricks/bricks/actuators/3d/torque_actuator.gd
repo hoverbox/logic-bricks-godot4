@@ -115,7 +115,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		# Build, clamp, then apply
 		code_lines.append("# Build and clamp torque vector")
 		if space == "local":
-			code_lines.append("var _torque = global_transform.basis * Vector3(%s, %s, %s)" % [vx, vy, vz])
+			code_lines.append("var _torque = global_transform.basis.orthonormalized() * Vector3(%s, %s, %s)" % [vx, vy, vz])
 		else:
 			code_lines.append("var _torque = Vector3(%s, %s, %s)" % [vx, vy, vz])
 		code_lines.append("if _torque.length() > %s:" % vmax)
@@ -123,7 +123,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("apply_torque(_torque)")
 	else:
 		if space == "local":
-			code_lines.append("apply_torque(global_transform.basis * Vector3(%s, %s, %s))" % [vx, vy, vz])
+			code_lines.append("apply_torque(global_transform.basis.orthonormalized() * Vector3(%s, %s, %s))" % [vx, vy, vz])
 		else:
 			code_lines.append("apply_torque(Vector3(%s, %s, %s))" % [vx, vy, vz])
 

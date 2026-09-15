@@ -52,7 +52,6 @@ func _initialize_properties() -> void:
 		# Ground detection
 		"ground_groups": "",         # Comma-separated groups (empty = any floor)
 		"platform_groups": "",       # Comma-separated moving platform groups (empty = disabled)
-		"inherit_platform_velocity_on_jump": true, # Keep horizontal platform momentum when jumping
 	}
 
 
@@ -113,11 +112,6 @@ func get_property_definitions() -> Array:
 			"default": "",
 			"placeholder": "e.g. moving_platform"
 		},
-		{
-			"name": "inherit_platform_velocity_on_jump",
-			"type": TYPE_BOOL,
-			"default": true
-		},
 	]
 
 
@@ -146,7 +140,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var bounce = properties.get("bounce", "0.0")
 	var ground_groups = properties.get("ground_groups", "")
 	var platform_groups = properties.get("platform_groups", "")
-	var inherit_platform_velocity_on_jump = properties.get("inherit_platform_velocity_on_jump", true)
 
 	# Parse ground groups
 	var groups: Array[String] = []

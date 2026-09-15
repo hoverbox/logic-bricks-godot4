@@ -68,14 +68,36 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		_value_expression(properties.get("z", "1.0"), "1.0")
 	]
 
-	if bool(properties.get("use_tween", false)):
+	var use_tween := bool(properties.get("use_tween", false))
+	var duration := maxf(float(properties.get("duration", 1.0)), 0.0)
+	if use_tween and duration > 0.0:
 		var label := _unique_label(chain_name)
-		var duration := maxf(float(properties.get("duration", 1.0)), 0.001)
-		lines.append("\tvar _scale_tween_%s = create_tween()" % label)
-		lines.append("\t_scale_tween_%s.set_trans(%s).set_ease(%s)" % [label, _transition_constant(), _ease_constant()])
-		lines.append("\t_scale_tween_%s.tween_property(%s, \"scale\", %s, %.6f)" % [label, target, scale_value, duration])
+		var tween_var := "_scale_tween_%s" % label
+		members.append("var %s: Tween = null" % tween_var)
+		lines.append("\tvar _scale_shake_active_%s := int(%s.get_meta(\"_logic_bricks_scale_shake_count\", 0)) > 0" % [label, target])
+		lines.append("\tif _scale_shake_active_%s:" % label)
+		lines.append("\t\tvar _scale_base_%s: Vector3 = %s.get_meta(\"_logic_bricks_scale_shake_base\", %s.scale - %s.get_meta(\"_logic_bricks_scale_shake_offset\", Vector3.ZERO))" % [label, target, target, target])
+		lines.append("\t\tif not _scale_base_%s.is_equal_approx(%s):" % [label, scale_value])
+		lines.append("\t\t\tif %s == null or not %s.is_running():" % [tween_var, tween_var])
+		lines.append("\t\t\t\t%s = create_tween()" % tween_var)
+		lines.append("\t\t\t\t%s.set_trans(%s).set_ease(%s)" % [tween_var, _transition_constant(), _ease_constant()])
+		lines.append("\t\t\t\t%s.tween_method(func(_new_base: Vector3):" % tween_var)
+		lines.append("\t\t\t\t\t%s.set_meta(\"_logic_bricks_scale_shake_base\", _new_base)" % target)
+		lines.append("\t\t\t\t\tvar _offset: Vector3 = %s.get_meta(\"_logic_bricks_scale_shake_offset\", Vector3.ZERO)" % target)
+		lines.append("\t\t\t\t\t%s.scale = _new_base + _offset" % target)
+		lines.append("\t\t\t\t, _scale_base_%s, %s, %.6f)" % [label, scale_value, duration])
+		lines.append("\telse:")
+		lines.append("\t\tif not %s.scale.is_equal_approx(%s):" % [target, scale_value])
+		lines.append("\t\t\tif %s == null or not %s.is_running():" % [tween_var, tween_var])
+		lines.append("\t\t\t\t%s = create_tween()" % tween_var)
+		lines.append("\t\t\t\t%s.set_trans(%s).set_ease(%s)" % [tween_var, _transition_constant(), _ease_constant()])
+		lines.append("\t\t\t\t%s.tween_property(%s, \"scale\", %s, %.6f)" % [tween_var, target, scale_value, duration])
 	else:
-		lines.append("\t%s.scale = %s" % [target, scale_value])
+		lines.append("\tif int(%s.get_meta(\"_logic_bricks_scale_shake_count\", 0)) > 0:" % target)
+		lines.append("\t\t%s.set_meta(\"_logic_bricks_scale_shake_base\", %s)" % [target, scale_value])
+		lines.append("\t\t%s.scale = %s + %s.get_meta(\"_logic_bricks_scale_shake_offset\", Vector3.ZERO)" % [target, scale_value, target])
+		lines.append("\telse:")
+		lines.append("\t\t%s.scale = %s" % [target, scale_value])
 
 	return {"actuator_code": "\n".join(lines), "member_vars": members}
 

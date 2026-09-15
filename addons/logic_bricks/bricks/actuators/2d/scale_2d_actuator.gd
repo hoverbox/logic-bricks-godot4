@@ -58,12 +58,17 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var members: Array[String] = []
 	var target := _build_target(lines, members, chain_name)
 	var scale_value := "Vector2(%s, %s)" % [_value_expression(properties.get("x", "1.0"), "1.0"), _value_expression(properties.get("y", "1.0"), "1.0")]
-	if bool(properties.get("use_tween", false)):
+	var use_tween := bool(properties.get("use_tween", false))
+	var duration := maxf(float(properties.get("duration", 1.0)), 0.0)
+	if use_tween and duration > 0.0:
 		var label := _unique_label(chain_name)
-		var duration := maxf(float(properties.get("duration", 1.0)), 0.001)
-		lines.append("\tvar _scale2d_tween_%s = create_tween()" % label)
-		lines.append("\t_scale2d_tween_%s.set_trans(%s).set_ease(%s)" % [label, _transition_constant(), _ease_constant()])
-		lines.append("\t_scale2d_tween_%s.tween_property(%s, \"scale\", %s, %.6f)" % [label, target, scale_value, duration])
+		var tween_var := "_scale2d_tween_%s" % label
+		members.append("var %s: Tween = null" % tween_var)
+		lines.append("\tif not %s.scale.is_equal_approx(%s):" % [target, scale_value])
+		lines.append("\t\tif %s == null or not %s.is_running():" % [tween_var, tween_var])
+		lines.append("\t\t\t%s = create_tween()" % tween_var)
+		lines.append("\t\t\t%s.set_trans(%s).set_ease(%s)" % [tween_var, _transition_constant(), _ease_constant()])
+		lines.append("\t\t\t%s.tween_property(%s, \"scale\", %s, %.6f)" % [tween_var, target, scale_value, duration])
 	else:
 		lines.append("\t%s.scale = %s" % [target, scale_value])
 	return {"actuator_code": "\n".join(lines), "member_vars": members}

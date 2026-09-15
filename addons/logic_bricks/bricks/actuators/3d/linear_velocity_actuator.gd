@@ -125,7 +125,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# Calculate velocity vector
 	if local:
 		code_lines.append("\t# Local velocity")
-		code_lines.append("\tvar _velocity = global_transform.basis * Vector3(%s, %s, %s)" % [vx, vy, vz])
+		code_lines.append("\tvar _velocity = global_transform.basis.orthonormalized() * Vector3(%s, %s, %s)" % [vx, vy, vz])
 	else:
 		code_lines.append("\t# Global velocity")
 		code_lines.append("\tvar _velocity = Vector3(%s, %s, %s)" % [vx, vy, vz])
@@ -154,7 +154,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("elif \"velocity\" in self:")  # CharacterBody3D has velocity
 	code_lines.append("\t# For CharacterBody3D, set velocity directly")
 	if local:
-		code_lines.append("\tvar _velocity = global_transform.basis * Vector3(%s, %s, %s)" % [vx, vy, vz])
+		code_lines.append("\tvar _velocity = global_transform.basis.orthonormalized() * Vector3(%s, %s, %s)" % [vx, vy, vz])
 	else:
 		code_lines.append("\tvar _velocity = Vector3(%s, %s, %s)" % [vx, vy, vz])
 	code_lines.append("\tset(\"velocity\", _velocity)")

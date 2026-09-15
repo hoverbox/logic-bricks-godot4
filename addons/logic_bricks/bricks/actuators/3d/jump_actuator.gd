@@ -43,6 +43,7 @@ func _initialize_properties() -> void:
 		"gravity_strength": "9.8",         # Must match Character Actuator; accepts numbers, variables, or expressions
 		"max_jumps": "1",                  # 1 = single jump, 2 = double jump, etc.; accepts numbers, variables, or expressions
 		"inherit_platform_velocity": true, # Carry horizontal platform velocity on jump
+		"ignore_jump_limit": false,       # Force jump without using the shared jump counter
 	}
 
 
@@ -68,6 +69,11 @@ func get_property_definitions() -> Array:
 			"type": TYPE_BOOL,
 			"default": true
 		},
+		{
+			"name": "ignore_jump_limit",
+			"type": TYPE_BOOL,
+			"default": false
+		},
 	]
 
 
@@ -78,6 +84,7 @@ func get_tooltip_definitions() -> Dictionary:
 		"gravity_strength": "Must match the gravity_strength set on the Character Actuator. Accepts numbers, variable names, or math expressions.",
 		"max_jumps": "How many jumps are allowed before landing. Accepts numbers, variable names, or integer expressions. 1 = single, 2 = double jump, etc.",
 		"inherit_platform_velocity": "Carry horizontal moving-platform velocity when jumping from a platform.",
+		"ignore_jump_limit": "Jump even when no normal jumps remain. Useful for enemy stomps, bounce pads, knockback launches, and other forced jumps. Does not consume the normal jump counter.",
 	}
 
 
@@ -100,6 +107,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var gravity_strength = properties.get("gravity_strength", "9.8")
 	var max_jumps = properties.get("max_jumps", "1")
 	var inherit_platform_velocity = properties.get("inherit_platform_velocity", true)
+	var ignore_jump_limit = properties.get("ignore_jump_limit", false)
 
 	var member_vars: Array[String] = []
 	var ready_lines: Array[String] = []
@@ -137,13 +145,20 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("# Refresh only while truly grounded and not already moving upward")
 	code_lines.append("if is_on_floor() and velocity.y <= 0.0:")
 	code_lines.append("\t_jumps_remaining = _max_jumps")
-	code_lines.append("if _jumps_remaining > 0:")
-	if inherit_platform_velocity:
-		code_lines.append("\tif _on_ground and _moving_platform_velocity != Vector3.ZERO:")
-		code_lines.append("\t\t_inherited_platform_velocity = Vector3(_moving_platform_velocity.x, 0.0, _moving_platform_velocity.z)")
-	code_lines.append("\t# v = sqrt(2 * gravity * height)")
-	code_lines.append("\tvelocity.y = sqrt(2.0 * (%s) * (%s))" % [gravity_expr, jump_height_expr])
-	code_lines.append("\t_jumps_remaining -= 1")
+	if ignore_jump_limit:
+		code_lines.append("# Forced jump — ignore and preserve the normal jump counter")
+		if inherit_platform_velocity:
+			code_lines.append("if _on_ground and _moving_platform_velocity != Vector3.ZERO:")
+			code_lines.append("\t_inherited_platform_velocity = Vector3(_moving_platform_velocity.x, 0.0, _moving_platform_velocity.z)")
+		code_lines.append("velocity.y = sqrt(2.0 * (%s) * (%s))" % [gravity_expr, jump_height_expr])
+	else:
+		code_lines.append("if _jumps_remaining > 0:")
+		if inherit_platform_velocity:
+			code_lines.append("\tif _on_ground and _moving_platform_velocity != Vector3.ZERO:")
+			code_lines.append("\t\t_inherited_platform_velocity = Vector3(_moving_platform_velocity.x, 0.0, _moving_platform_velocity.z)")
+		code_lines.append("\t# v = sqrt(2 * gravity * height)")
+		code_lines.append("\tvelocity.y = sqrt(2.0 * (%s) * (%s))" % [gravity_expr, jump_height_expr])
+		code_lines.append("\t_jumps_remaining -= 1")
 
 	var result = {
 		"actuator_code": "\n".join(code_lines),

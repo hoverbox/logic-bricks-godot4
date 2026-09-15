@@ -50,6 +50,7 @@ func get_property_definitions() -> Array:
 		{
 			"name": "variable_name", "required": true, "required_label": "a variable name",
 			"type": TYPE_STRING,
+			"variable_picker": true,
 			"default": ""
 		},
 		{
@@ -87,7 +88,7 @@ func get_property_definitions() -> Array:
 func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Compares a variable's value.\nWorks with local, exported, and global variables.\nAutomatically checks GlobalVars if not found locally.",
-		"variable_name": "Name of the variable to check.\nCan be a local variable or a global variable.",
+		"variable_name": "Name of the variable to check.\nType a name or choose an existing local/global variable from the dropdown.",
 		"evaluation_type": "How to compare the variable.",
 		"value": "Value to compare against.\nAccepts numbers, booleans, strings, or variable names.",
 		"min_value": "Minimum value (for Interval mode).",

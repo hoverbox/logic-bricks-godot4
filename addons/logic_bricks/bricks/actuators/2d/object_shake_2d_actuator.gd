@@ -37,6 +37,15 @@ func get_property_definitions() -> Array:
 	]
 
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Shakes a Node2D temporarily and returns it to its original transform.",
+		"target_node_name": "Node2D to shake.",
+		"intensity": "Maximum position offset used during the shake.",
+		"rotation_intensity": "Maximum rotational shake in degrees.",
+		"duration": "How long the shake lasts in seconds.",
+	}
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target_name = str(properties.get("target_node_name", "")).strip_edges()
 	var intensity_expr = _to_expr(properties.get("intensity", "8.0"))

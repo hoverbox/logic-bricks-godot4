@@ -14,6 +14,13 @@ func get_configuration_warnings(node: Node = null) -> Array[String]:
 		warnings.append("Put a Value or Variable in X or Y")
 	return warnings
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Directly sets velocity on a RigidBody2D or CharacterBody2D.",
+		"x": "Horizontal velocity. Accepts a number, variable, or expression.",
+		"y": "Vertical velocity. Accepts a number, variable, or expression.",
+	}
+
 func generate_code(node:Node, chain_name:String)->Dictionary:
 	var v="Vector2(%s, %s)"%[_to_expr(properties.get("x","0.0")),_to_expr(properties.get("y","0.0"))]
 	var code = "var _lv_current = get(\"linear_velocity\")\nvar _vel_current = get(\"velocity\")\nif _lv_current is Vector2:\n\tset(\"linear_velocity\", %s)\nelif _vel_current is Vector2:\n\tset(\"velocity\", %s)\nelse:\n\tpush_warning(\"Linear Velocity 2D requires RigidBody2D or CharacterBody2D\")" % [v, v]

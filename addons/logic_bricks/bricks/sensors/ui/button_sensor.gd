@@ -42,6 +42,14 @@ func get_property_definitions() -> Array:
 		{"name": "store_pressed", "type": TYPE_STRING, "default": ""},
 	]
 
+func get_configuration_warnings(node: Node = null) -> Array[String]:
+	var warnings = super.get_configuration_warnings(node)
+	var target_node_name = str(properties.get("target_node_name", "")).strip_edges()
+	if target_node_name.is_empty() and not node is BaseButton:
+		warnings.append("Select or enter a Button node name, or attach these Logic Bricks directly to a Button node.")
+	return warnings
+
+
 func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Detects UI button state from a Button node. Leave Target Node Name blank to use self only when this Logic Bricks graph is on the Button itself.",

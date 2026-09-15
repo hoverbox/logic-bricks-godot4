@@ -66,7 +66,7 @@ func get_property_definitions() -> Array:
 func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Shakes a named object by rotation, translation, or scale, then returns it to its starting value.\nType a node name, not a path. Use multiple Object Shake actuators for multiple effects.",
-		"shake_type": "Choose which transform value this actuator shakes.\nUse more than one Object Shake actuator if you want rotate + translate + scale together.",
+		"shake_type": "Choose which transform value this actuator shakes.\nScale shake is applied as a temporary offset relative to the object\'s current scale.\nUse more than one Object Shake actuator if you want rotate + translate + scale together.",
 		"object_node_name": "Node name to shake, not a path.\nUse \"self\" for this node. Otherwise, the script searches this node and its children by name.",
 		"preset": "Populates X, Y, and Z below.\nThe preset does not do anything else, so you can edit the values after choosing it.",
 		"x": "Shake amount on the X axis. Accepts a number or variable name.",
@@ -76,7 +76,7 @@ func get_tooltip_definitions() -> Dictionary:
 
 
 ## Preset values: {shake_type: {preset: [x, y, z]}}
-## Rotate values are degrees. Translate values are local/world units. Scale values are additive scale amount.
+## Rotate values are degrees. Translate values are local/world units. Scale values are temporary offsets relative to the current scale.
 ## The same preset names intentionally map to different magnitudes so the UI feels natural for each transform type.
 const PRESETS_BY_TYPE = {
 	"rotate": {
@@ -177,9 +177,15 @@ func _run_object_shake_{helper_suffix}(target: Node3D, shake_mode: String, amoun
 		_base_value = target.get(_property_name)
 		{base_var}[_target_key] = _base_value
 
-	if is_instance_valid({tween_var}):
-		{tween_var}.kill()
-		target.set(_property_name, _base_value)
+	if shake_mode == "scale":
+		# A scale shake is a temporary offset around whatever scale other gameplay
+		# systems currently want. Do not restart it every frame while it is running.
+		if is_instance_valid({tween_var}) and {tween_var}.is_running():
+			return
+	else:
+		if is_instance_valid({tween_var}):
+			{tween_var}.kill()
+			target.set(_property_name, _base_value)
 
 	{tween_var} = create_tween()
 	var _shake_step_time = 0.035
@@ -195,12 +201,30 @@ func _run_object_shake_{helper_suffix}(target: Node3D, shake_mode: String, amoun
 				{tween_var}.tween_property(target, "position", _base_value + _offset, _shake_step_time)
 			{tween_var}.tween_property(target, "position", _base_value, _shake_step_time)
 		"scale":
+			var _shake_count := int(target.get_meta("_logic_bricks_scale_shake_count", 0))
+			target.set_meta("_logic_bricks_scale_shake_count", _shake_count + 1)
+			target.set_meta("_logic_bricks_scale_shake_base", target.scale)
+			target.set_meta("_logic_bricks_scale_shake_offset", Vector3.ZERO)
+			var _from_offset := Vector3.ZERO
 			for _i in range(_shake_steps):
 				var _dir = -1.0 if _i % 2 == 0 else 1.0
 				var _falloff = 1.0 - float(_i) / float(_shake_steps)
 				var _scale_offset = Vector3(amount.x, amount.y, amount.z) * _dir * _falloff
-				{tween_var}.tween_property(target, "scale", _base_value + _scale_offset, _shake_step_time)
-			{tween_var}.tween_property(target, "scale", _base_value, _shake_step_time)
+				{tween_var}.tween_method(func(_new_offset: Vector3):
+					if not is_instance_valid(target):
+						return
+					var _base_scale: Vector3 = target.get_meta("_logic_bricks_scale_shake_base", target.scale)
+					target.set_meta("_logic_bricks_scale_shake_offset", _new_offset)
+					target.scale = _base_scale + _new_offset
+				, _from_offset, _scale_offset, _shake_step_time)
+				_from_offset = _scale_offset
+			{tween_var}.tween_method(func(_new_offset: Vector3):
+				if not is_instance_valid(target):
+					return
+				var _base_scale: Vector3 = target.get_meta("_logic_bricks_scale_shake_base", target.scale)
+				target.set_meta("_logic_bricks_scale_shake_offset", _new_offset)
+				target.scale = _base_scale + _new_offset
+			, _from_offset, Vector3.ZERO, _shake_step_time)
 		_:
 			# Rotation values in the UI are degrees, but Godot stores Node3D.rotation in radians.
 			# Use tween_method instead of tween_property("rotation_degrees") because the generated
@@ -225,7 +249,18 @@ func _run_object_shake_{helper_suffix}(target: Node3D, shake_mode: String, amoun
 
 	{tween_var}.tween_callback(func():
 		if is_instance_valid(target):
-			target.set(_property_name, _base_value)
+			if shake_mode == "scale":
+				var _shake_count := maxi(0, int(target.get_meta("_logic_bricks_scale_shake_count", 1)) - 1)
+				var _final_base: Vector3 = target.get_meta("_logic_bricks_scale_shake_base", target.scale)
+				target.scale = _final_base
+				target.remove_meta("_logic_bricks_scale_shake_offset")
+				target.remove_meta("_logic_bricks_scale_shake_base")
+				if _shake_count == 0:
+					target.remove_meta("_logic_bricks_scale_shake_count")
+				else:
+					target.set_meta("_logic_bricks_scale_shake_count", _shake_count)
+			else:
+				target.set(_property_name, _base_value)
 		{base_var}.erase(_target_key)
 	)
 ''').format({

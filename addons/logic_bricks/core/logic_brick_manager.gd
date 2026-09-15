@@ -1161,6 +1161,11 @@ func _chain_needs_physics_process(chain: Dictionary) -> bool:
 			var call_move_and_slide = props.get("call_move_and_slide", false) == true
 			if motion_type == "location" or movement_method == "character_velocity" or call_move_and_slide:
 				return true
+		if brick_type == "PositionActuator" or brick_type == "Position2DActuator":
+			var props = actuator_data.get("properties", {})
+			var movement_method = str(props.get("movement_method", "character_velocity")).to_lower().replace(" ", "_")
+			if movement_method == "character_velocity":
+				return true
 	return false
 
 
@@ -1200,17 +1205,20 @@ func _logic_brick_actuator_requires_physics(actuator_data: Dictionary) -> bool:
 		var movement_method = str(props.get("movement_method", "character_velocity")).to_lower().replace(" ", "_")
 		var call_move_and_slide = props.get("call_move_and_slide", false) == true
 		return motion_type == "location" or movement_method == "character_velocity" or call_move_and_slide
+	if brick_type == "PositionActuator" or brick_type == "Position2DActuator":
+		var props = actuator_data.get("properties", {})
+		var movement_method = str(props.get("movement_method", "character_velocity")).to_lower().replace(" ", "_")
+		return movement_method == "character_velocity"
 	return false
 
 
 func _logic_brick_actuator_is_timing_sensitive_non_physics(brick_type: String) -> bool:
 	# These are actuators that are actually timing-sensitive if forced into
 	# _physics_process by a movement chain. Avoid warning for common frame-safe
-	# pairings like SpriteAnimation2D or SmoothFollowCamera2D, because those are
-	# expected to be used beside CharacterBody2D movement and the warning becomes
-	# noisy rather than helpful.
+	# pairings like AnimationActuator, SpriteAnimation2D, or SmoothFollowCamera2D,
+	# because those are expected to be used beside character movement and the
+	# warning becomes noisy rather than helpful.
 	return brick_type in [
-		"AnimationActuator",
 		"AnimationTreeActuator",
 		"Audio2DActuator",
 		"CameraZoomActuator",

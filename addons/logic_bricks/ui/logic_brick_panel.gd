@@ -8,6 +8,7 @@ const BrickGraphNode    = preload("res://addons/logic_bricks/ui/brick_graph_node
 const VariableUtils = preload("res://addons/logic_bricks/core/logic_brick_variable_utils.gd")
 const BrickRegistry = preload("res://addons/logic_bricks/core/brick_registry.gd")
 const DocumentationHelper = preload("res://addons/logic_bricks/core/documentation_helper.gd")
+const VariableReorderItem = preload("res://addons/logic_bricks/ui/variable_reorder_item.gd")
 
 var manager = null
 var editor_interface = null
@@ -98,6 +99,9 @@ const DEFAULT_BRICK_HEADER_TEXT_COLOR := Color("FFFFFF")
 const DEFAULT_BRICK_BODY_COLOR := Color("202020")
 const DEFAULT_GRAPH_BACKGROUND_COLOR := Color("111111")
 const EDITOR_COLOR_SETTING_PREFIX := "logic_bricks/editor_colors/"
+const EDITOR_SIZE_SETTING_PREFIX := "logic_bricks/editor_sizes/"
+const DEFAULT_MENU_SIZE_SCALE := 1.0
+const DEFAULT_BRICK_SIZE_SCALE := 1.0
 
 var _brick_sensor_color := DEFAULT_BRICK_SENSOR_COLOR
 var _brick_controller_color := DEFAULT_BRICK_CONTROLLER_COLOR
@@ -106,6 +110,100 @@ var _brick_header_text_color := DEFAULT_BRICK_HEADER_TEXT_COLOR
 var _brick_body_color := DEFAULT_BRICK_BODY_COLOR
 var _graph_background_color := DEFAULT_GRAPH_BACKGROUND_COLOR
 var _customize_color_pickers: Dictionary = {}
+var _menu_size_scale := DEFAULT_MENU_SIZE_SCALE
+var _brick_size_scale := DEFAULT_BRICK_SIZE_SCALE
+var _customize_size_sliders: Dictionary = {}
+var _customize_size_labels: Dictionary = {}
+var _crisp_brick_font: Font = null
+var _crisp_brick_title_font: Font = null
+var _expanded_text_popup: PopupPanel = null
+var _expanded_text_edit: LineEdit = null
+var _expanded_text_source: LineEdit = null
+var _expanded_text_syncing := false
+
+
+func show_expanded_line_edit_if_needed(source: LineEdit) -> void:
+	if not is_instance_valid(source) or not source.is_visible_in_tree():
+		return
+	# SpinBox already owns a purpose-built numeric editor; this helper is for
+	# normal brick text fields that can hide longer names, paths, and expressions.
+	if source.get_parent() is SpinBox:
+		return
+	var font := source.get_theme_font("font")
+	var font_size := source.get_theme_font_size("font_size")
+	var text_width := font.get_string_size(source.text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x if font else 0.0
+	if text_width <= maxf(0.0, source.size.x - 24.0):
+		return
+	_ensure_expanded_text_popup()
+	_expanded_text_source = source
+	_expanded_text_syncing = true
+	_expanded_text_edit.text = source.text
+	_expanded_text_syncing = false
+
+	var usable := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
+	var desired_width := int(ceil(maxf(source.size.x + 80.0, text_width + 48.0)))
+	desired_width = mini(desired_width, maxi(320, usable.size.x - 24))
+	var desired_height := maxi(int(ceil(source.size.y + 12.0)), 42)
+	var pos := Vector2i(source.get_screen_position()) - Vector2i(6, 6)
+	pos.x = clampi(pos.x, usable.position.x + 8, usable.end.x - desired_width - 8)
+	pos.y = clampi(pos.y, usable.position.y + 8, usable.end.y - desired_height - 8)
+	_expanded_text_popup.position = pos
+	_expanded_text_popup.size = Vector2i(desired_width, desired_height)
+	_expanded_text_popup.popup()
+	_expanded_text_edit.grab_focus()
+	_expanded_text_edit.call_deferred("select_all")
+
+
+func _ensure_expanded_text_popup() -> void:
+	if is_instance_valid(_expanded_text_popup):
+		return
+	_expanded_text_popup = PopupPanel.new()
+	_expanded_text_popup.name = "ExpandedBrickTextPopup"
+	add_child(_expanded_text_popup)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 6)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_right", 6)
+	margin.add_theme_constant_override("margin_bottom", 6)
+	_expanded_text_popup.add_child(margin)
+
+	_expanded_text_edit = LineEdit.new()
+	_expanded_text_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_expanded_text_edit.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(_expanded_text_edit)
+	_expanded_text_edit.text_changed.connect(_on_expanded_text_changed)
+	_expanded_text_edit.text_submitted.connect(func(_text): _expanded_text_popup.hide())
+	_expanded_text_edit.focus_exited.connect(func():
+		if is_instance_valid(_expanded_text_popup):
+			_expanded_text_popup.call_deferred("hide")
+	)
+	_expanded_text_popup.popup_hide.connect(_on_expanded_text_popup_hidden)
+
+
+func _on_expanded_text_popup_hidden() -> void:
+	var source := _expanded_text_source
+	_expanded_text_source = null
+	if is_instance_valid(source):
+		# PopupPanel may restore focus to the control that opened it after hiding.
+		# Defer this so the original field ends in a fully inactive state.
+		call_deferred("_release_expanded_text_source_focus", source)
+
+
+func _release_expanded_text_source_focus(source: LineEdit) -> void:
+	if not is_instance_valid(source):
+		return
+	source.deselect()
+	source.release_focus()
+
+
+func _on_expanded_text_changed(new_text: String) -> void:
+	if _expanded_text_syncing or not is_instance_valid(_expanded_text_source):
+		return
+	_expanded_text_syncing = true
+	_expanded_text_source.text = new_text
+	_expanded_text_source.caret_column = new_text.length()
+	_expanded_text_syncing = false
 
 
 func _init() -> void:
@@ -410,6 +508,7 @@ func _refresh_add_menu_from_registry(force_rescan: bool = false) -> void:
 	_populate_brick_menu_flat(sensors_menu, BrickRegistry.get_bricks_by_type("sensor", domain))
 	_populate_brick_menu_flat(controllers_menu, BrickRegistry.get_bricks_by_type("controller", domain))
 	_populate_actuator_menu(BrickRegistry.get_bricks_by_type("actuator", domain))
+	_apply_popup_menu_sizes()
 
 
 func _enable_brick_menu_doc_right_click(menu: PopupMenu) -> void:
@@ -683,14 +782,19 @@ func _set_side_panel_collapsed(collapsed: bool) -> void:
 
 
 func _apply_side_collapse_split() -> void:
-	if not _main_hsplit or not side_panel or not _side_nav_panel:
+	if not side_panel or not _side_nav_panel:
+		return
+	var active_hsplit: HSplitContainer = side_panel.get_parent() as HSplitContainer
+	if not active_hsplit:
 		return
 	if _side_collapsed:
-		var rail_width := maxi(int(_side_nav_panel.size.x), 40)
-		_main_hsplit.split_offset = -rail_width
+		# The nav panel stretches to fill the old sidebar width once the content is hidden,
+		# so its live size is not a valid collapse target. Keep the icon rail fixed.
+		var rail_width := 40
+		active_hsplit.split_offset = -rail_width
 	else:
 		var target_width := maxi(_expanded_side_width, 140)
-		_main_hsplit.split_offset = -target_width
+		active_hsplit.split_offset = -target_width
 
 
 func _update_collapse_button_icon() -> void:
@@ -811,7 +915,7 @@ func _create_customize_tab() -> void:
 	customize_panel.add_child(title)
 
 	var hint = Label.new()
-	hint.text = "Colors are saved for this editor user."
+	hint.text = "Colors and display sizes are saved for this editor user."
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65))
 	hint.add_theme_font_size_override("font_size", 10)
@@ -824,6 +928,21 @@ func _create_customize_tab() -> void:
 	_add_customize_color_row("Header Text", "header_text", _brick_header_text_color)
 	_add_customize_color_row("Brick Body", "brick_body", _brick_body_color)
 	_add_customize_color_row("Graph Background", "graph_background", _graph_background_color)
+
+	customize_panel.add_child(HSeparator.new())
+	var size_title = Label.new()
+	size_title.text = "Screenshot Sizing"
+	if title_font:
+		size_title.add_theme_font_override("font", title_font)
+	customize_panel.add_child(size_title)
+	_add_customize_size_row("Menu Size", "menu", _menu_size_scale)
+	_add_customize_size_row("Brick Size", "brick", _brick_size_scale)
+
+	var reset_sizes_button = Button.new()
+	reset_sizes_button.text = "Reset Sizes"
+	reset_sizes_button.tooltip_text = "Restore the default menu and brick sizes"
+	reset_sizes_button.pressed.connect(_reset_editor_sizes)
+	customize_panel.add_child(reset_sizes_button)
 
 	customize_panel.add_child(HSeparator.new())
 	var reset_button = Button.new()
@@ -850,6 +969,48 @@ func _add_customize_color_row(label_text: String, key: String, color: Color) -> 
 	picker.color_changed.connect(_on_customize_color_changed.bind(key))
 	row.add_child(picker)
 	_customize_color_pickers[key] = picker
+
+
+func _add_customize_size_row(label_text: String, key: String, value: float) -> void:
+	var row = HBoxContainer.new()
+	customize_panel.add_child(row)
+
+	var label = Label.new()
+	label.text = label_text
+	label.custom_minimum_size = Vector2(78, 0)
+	row.add_child(label)
+
+	var slider = HSlider.new()
+	slider.min_value = 0.5
+	slider.max_value = 2.0
+	slider.step = 0.05
+	slider.value = value
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.tooltip_text = "Scale " + label_text.to_lower() + " for clearer screenshots"
+	slider.value_changed.connect(_on_customize_size_changed.bind(key))
+	row.add_child(slider)
+
+	var value_label = Label.new()
+	value_label.text = "%d%%" % int(round(value * 100.0))
+	value_label.custom_minimum_size = Vector2(48, 0)
+	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(value_label)
+
+	_customize_size_sliders[key] = slider
+	_customize_size_labels[key] = value_label
+
+
+func _on_customize_size_changed(value: float, key: String) -> void:
+	_set_customization_size(key, value)
+	_save_editor_customization_size(key, value)
+	_sync_customize_size_controls()
+	_apply_editor_sizes()
+
+
+func _set_customization_size(key: String, value: float) -> void:
+	match key:
+		"menu": _menu_size_scale = clampf(value, 0.5, 2.0)
+		"brick": _brick_size_scale = clampf(value, 0.5, 2.0)
 
 
 func _on_customize_color_changed(color: Color, key: String) -> void:
@@ -883,8 +1044,17 @@ func _load_editor_customization() -> void:
 				var saved = settings.get_setting(setting_name)
 				if saved is Color:
 					_set_customization_color(key, saved)
+	if settings:
+		for key in ["menu", "brick"]:
+			var setting_name = EDITOR_SIZE_SETTING_PREFIX + key
+			if settings.has_setting(setting_name):
+				var saved = settings.get_setting(setting_name)
+				if typeof(saved) == TYPE_FLOAT or typeof(saved) == TYPE_INT:
+					_set_customization_size(key, float(saved))
 	_sync_customize_color_pickers()
+	_sync_customize_size_controls()
 	_apply_editor_customization()
+	_apply_editor_sizes()
 
 
 func _save_editor_customization_color(key: String, color: Color) -> void:
@@ -906,6 +1076,64 @@ func _sync_customize_color_pickers() -> void:
 		var picker = _customize_color_pickers.get(key)
 		if is_instance_valid(picker):
 			picker.color = colors[key]
+
+
+func _save_editor_customization_size(key: String, value: float) -> void:
+	var settings = _get_logic_bricks_editor_settings()
+	if settings:
+		settings.set_setting(EDITOR_SIZE_SETTING_PREFIX + key, value)
+
+
+func _sync_customize_size_controls() -> void:
+	var sizes = {"menu": _menu_size_scale, "brick": _brick_size_scale}
+	for key in sizes:
+		var slider = _customize_size_sliders.get(key)
+		if is_instance_valid(slider) and not is_equal_approx(slider.value, sizes[key]):
+			slider.set_value_no_signal(sizes[key])
+		var value_label = _customize_size_labels.get(key)
+		if is_instance_valid(value_label):
+			value_label.text = "%d%%" % int(round(sizes[key] * 100.0))
+
+
+func _reset_editor_sizes() -> void:
+	_set_customization_size("menu", DEFAULT_MENU_SIZE_SCALE)
+	_set_customization_size("brick", DEFAULT_BRICK_SIZE_SCALE)
+	_save_editor_customization_size("menu", _menu_size_scale)
+	_save_editor_customization_size("brick", _brick_size_scale)
+	_sync_customize_size_controls()
+	_apply_editor_sizes()
+
+
+func _apply_popup_menu_size(menu: PopupMenu) -> void:
+	if not is_instance_valid(menu):
+		return
+	if not menu.has_meta("logic_bricks_base_menu_metrics"):
+		menu.set_meta("logic_bricks_base_menu_metrics", {
+			"font_size": menu.get_theme_font_size("font_size", "PopupMenu"),
+			"separator_size": menu.get_theme_font_size("font_separator_size", "PopupMenu"),
+			"v_separation": menu.get_theme_constant("v_separation", "PopupMenu"),
+			"start_padding": menu.get_theme_constant("item_start_padding", "PopupMenu"),
+			"end_padding": menu.get_theme_constant("item_end_padding", "PopupMenu"),
+		})
+	var base: Dictionary = menu.get_meta("logic_bricks_base_menu_metrics")
+	menu.add_theme_font_size_override("font_size", maxi(8, int(round(float(base["font_size"]) * _menu_size_scale))))
+	menu.add_theme_font_size_override("font_separator_size", maxi(8, int(round(float(base["separator_size"]) * _menu_size_scale))))
+	menu.add_theme_constant_override("v_separation", maxi(1, int(round(float(base["v_separation"]) * _menu_size_scale))))
+	menu.add_theme_constant_override("item_start_padding", maxi(1, int(round(float(base["start_padding"]) * _menu_size_scale))))
+	menu.add_theme_constant_override("item_end_padding", maxi(1, int(round(float(base["end_padding"]) * _menu_size_scale))))
+
+
+func _apply_editor_sizes() -> void:
+	if is_instance_valid(graph_edit):
+		graph_edit.zoom = _brick_size_scale
+	_apply_popup_menu_sizes()
+
+
+func _apply_popup_menu_sizes() -> void:
+	for menu in [add_menu, sensors_menu, controllers_menu, actuators_menu, options_menu, _brick_menu_context_popup]:
+		_apply_popup_menu_size(menu)
+	for submenu in actuator_submenus.values():
+		_apply_popup_menu_size(submenu)
 
 
 func _reset_editor_customization() -> void:
@@ -959,23 +1187,12 @@ func _create_variables_tab() -> void:
 	variables_panel.name = "Variables"
 	variables_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
-	# ── Local Variables header ──
-	var header = HBoxContainer.new()
-	variables_panel.add_child(header)
-
-	var title = Label.new()
-	title.text = "Node Variables"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var title_font = title.get_theme_font("bold", "EditorFonts")
-	if title_font:
-		title.add_theme_font_override("font", title_font)
-	header.add_child(title)
-
-	# Add Variable button
+	# Add Variable button doubles as the tab header so it stays visible in narrow panels.
 	var add_var_button = Button.new()
-	add_var_button.text = "+ Add"
+	add_var_button.text = "+ Add Variable"
+	add_var_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_var_button.pressed.connect(_on_add_variable_pressed)
-	header.add_child(add_var_button)
+	variables_panel.add_child(add_var_button)
 
 	var sep = HSeparator.new()
 	variables_panel.add_child(sep)
@@ -998,24 +1215,12 @@ func _create_global_variables_tab() -> void:
 	global_vars_panel.name = "Globals"
 	global_vars_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
-	var header = HBoxContainer.new()
-	global_vars_panel.add_child(header)
-
-	var title = Label.new()
-	title.text = "Global Variables"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.clip_text = true
-	title.custom_minimum_size = Vector2(0, 0)
-	var title_font = title.get_theme_font("bold", "EditorFonts")
-	if title_font:
-		title.add_theme_font_override("font", title_font)
-	header.add_child(title)
-
+	# Add Global Variable button doubles as the tab header so it stays visible in narrow panels.
 	var add_global_button = Button.new()
-	add_global_button.text = "+ Add"
-	add_global_button.size_flags_horizontal = Control.SIZE_SHRINK_END
+	add_global_button.text = "+ Add Global Variable"
+	add_global_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_global_button.pressed.connect(_on_add_global_variable_pressed)
-	header.add_child(add_global_button)
+	global_vars_panel.add_child(add_global_button)
 
 	var sep = HSeparator.new()
 	global_vars_panel.add_child(sep)
@@ -1339,6 +1544,7 @@ func _create_state_item_ui(index: int, state_data: Dictionary) -> void:
 	item_panel.add_child(vbox)
 
 	var header = HBoxContainer.new()
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(header)
 
 	var name_edit = LineEdit.new()
@@ -2265,14 +2471,59 @@ func _apply_brick_visual_style(graph_node: GraphNode, brick_type: String) -> voi
 	graph_node.add_theme_stylebox_override("panel", body)
 	graph_node.add_theme_stylebox_override("panel_selected", body_selected)
 
-	# Connections carry the color of the brick type they are flowing toward:
-	# sensor -> controller is cyan; controller -> actuator is magenta.
+
+func _apply_brick_connection_ports(graph_node: GraphNode, brick_type: String) -> void:
+	var connection_row = graph_node.get_node_or_null("BrickConnectionRow")
+	if connection_row == null:
+		return
+	var slot_index = connection_row.get_index()
+
+	# Put ports on the first content row, a few pixels below the colored header.
+	# Port numbers remain 0 because this is the only enabled connection slot.
 	if brick_type == "sensor":
-		graph_node.set_slot(0, false, 0, Color.WHITE, true, 0, _brick_sensor_color)
+		graph_node.set_slot(slot_index, false, 0, Color.WHITE, true, 0, _brick_sensor_color)
 	elif brick_type == "controller":
-		graph_node.set_slot(0, true, 0, _brick_sensor_color, true, 0, _brick_actuator_color)
+		graph_node.set_slot(slot_index, true, 0, _brick_sensor_color, true, 0, _brick_actuator_color)
 	else:
-		graph_node.set_slot(0, true, 0, _brick_actuator_color, false, 0, Color.WHITE)
+		graph_node.set_slot(slot_index, true, 0, _brick_actuator_color, false, 0, Color.WHITE)
+
+
+func _font_with_graph_oversampling(source: Font) -> Font:
+	if source == null:
+		return null
+	var copy := source.duplicate(true) as Font
+	if copy == null:
+		return source
+	for property in copy.get_property_list():
+		if property.get("name", "") == "oversampling":
+			copy.set("oversampling", 3.0)
+			break
+	return copy
+
+
+func _apply_crisp_brick_fonts(graph_node: GraphNode) -> void:
+	# GraphEdit zoom scales Controls after they are rendered. Oversampling gives
+	# the editor font extra resolution so text stays much sharper when zoomed in.
+	if _crisp_brick_font == null:
+		_crisp_brick_font = _font_with_graph_oversampling(graph_node.get_theme_font("font"))
+	if _crisp_brick_title_font == null:
+		_crisp_brick_title_font = _font_with_graph_oversampling(graph_node.get_theme_font("title_font", "GraphNode"))
+	if _crisp_brick_title_font != null:
+		graph_node.add_theme_font_override("title_font", _crisp_brick_title_font)
+	if _crisp_brick_font == null:
+		return
+	graph_node.add_theme_font_override("font", _crisp_brick_font)
+	for child in graph_node.find_children("*", "Control", true, false):
+		if child is Control:
+			(child as Control).add_theme_font_override("font", _crisp_brick_font)
+
+
+func _add_brick_bottom_padding(graph_node: GraphNode) -> void:
+	var spacer := Control.new()
+	spacer.name = "BrickBottomPadding"
+	spacer.custom_minimum_size = Vector2(0, 8)
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	graph_node.add_child(spacer)
 
 
 func _create_graph_node(brick_type: String, brick_class: String, position: Vector2) -> void:
@@ -2306,6 +2557,7 @@ func _create_graph_node(brick_type: String, brick_class: String, position: Vecto
 
 	# Create UI for brick properties
 	_create_brick_ui(graph_node, brick_instance)
+	_apply_brick_connection_ports(graph_node, brick_type)
 
 	# Add "View Code" button to controller nodes
 	if brick_type == "controller":
@@ -2315,6 +2567,9 @@ func _create_graph_node(brick_type: String, brick_class: String, position: Vecto
 		view_code_btn.tooltip_text = "Open the generated script and jump to this chain's code"
 		view_code_btn.pressed.connect(_on_view_chain_code.bind(graph_node))
 		graph_node.add_child(view_code_btn)
+
+	_add_brick_bottom_padding(graph_node)
+	_apply_crisp_brick_fonts(graph_node)
 
 	# Add context menu for duplicate/delete
 	_setup_graph_node_context_menu(graph_node)
@@ -2402,6 +2657,7 @@ func _create_graph_node_from_data(node_data: Dictionary) -> GraphNode:
 
 	# Create UI
 	_create_brick_ui(graph_node, brick_instance)
+	_apply_brick_connection_ports(graph_node, brick_type)
 
 	# Add "View Code" button to controller nodes
 	if brick_type == "controller":
@@ -2411,6 +2667,9 @@ func _create_graph_node_from_data(node_data: Dictionary) -> GraphNode:
 		view_code_btn.tooltip_text = "Open the generated script and jump to this chain's code"
 		view_code_btn.pressed.connect(_on_view_chain_code.bind(graph_node))
 		graph_node.add_child(view_code_btn)
+
+	_add_brick_bottom_padding(graph_node)
+	_apply_crisp_brick_fonts(graph_node)
 
 	# Add context menu for duplicate/delete
 	_setup_graph_node_context_menu(graph_node)
@@ -2475,6 +2734,7 @@ func _setup_graph_node_context_menu(graph_node: GraphNode) -> void:
 	popup_menu.add_item("View Documentation", 2)
 	popup_menu.add_separator()
 	popup_menu.add_item("Delete", 1)
+	_apply_popup_menu_size(popup_menu)
 
 	popup_menu.id_pressed.connect(_on_graph_node_context_menu.bind(graph_node))
 	graph_node.add_child(popup_menu)
@@ -3194,8 +3454,43 @@ func _style_debug_watch_button(button: Button, active: bool) -> void:
 	button.add_theme_color_override("font_focus_color", icon_color)
 
 
+func _style_variable_collapse_button(button: Button) -> void:
+	button.flat = true
+	button.custom_minimum_size = Vector2(18, 0)
+	button.add_theme_font_size_override("font_size", 12)
+	button.tooltip_text = "Expand/collapse variable"
+
+
+func _clear_variable_drop_indicators() -> void:
+	for list in [variables_list, global_vars_list]:
+		if list == null:
+			continue
+		for child in list.get_children():
+			if child.has_method("clear_drop_indicator"):
+				child.clear_drop_indicator()
+
+
+func _reorder_variable(from_index: int, target_index: int, is_global: bool) -> void:
+	var data: Array = global_vars_data if is_global else variables_data
+	if from_index < 0 or from_index >= data.size():
+		return
+	var moved = data.pop_at(from_index)
+	if target_index > from_index:
+		target_index -= 1
+	target_index = clampi(target_index, 0, data.size())
+	data.insert(target_index, moved)
+	if is_global:
+		_refresh_global_vars_ui()
+		_save_global_vars_to_metadata()
+	else:
+		_refresh_variables_ui()
+		_save_variables_to_metadata()
+
+
 func _create_variable_ui(index: int, var_data: Dictionary) -> void:
-	var panel = PanelContainer.new()
+	var panel = VariableReorderItem.new()
+	panel.setup(self, index, false, str(var_data.get("name", "Variable")))
+	panel.tooltip_text = "Drag the header to reorder this variable"
 	variables_list.add_child(panel)
 
 	var vbox = VBoxContainer.new()
@@ -3203,17 +3498,19 @@ func _create_variable_ui(index: int, var_data: Dictionary) -> void:
 	panel.add_child(vbox)
 
 	var header = HBoxContainer.new()
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(header)
 
 	var collapse_btn = Button.new()
 	collapse_btn.text = "▼"
-	collapse_btn.custom_minimum_size = Vector2(24, 0)
+	_style_variable_collapse_button(collapse_btn)
 	collapse_btn.name = "CollapseBtn"
 	header.add_child(collapse_btn)
 
 	var name_display = Label.new()
 	name_display.text = "%s: %s" % [var_data["name"], var_data["type"]]
 	name_display.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_display.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_display.name = "NameDisplay"
 	header.add_child(name_display)
 
@@ -3561,7 +3858,9 @@ func _on_variable_exported_changed(exported: bool, index: int) -> void:
 
 
 func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
-	var panel = PanelContainer.new()
+	var panel = VariableReorderItem.new()
+	panel.setup(self, index, true, str(var_data.get("name", "Global Variable")))
+	panel.tooltip_text = "Drag the header to reorder this global variable"
 	global_vars_list.add_child(panel)
 
 	var vbox = VBoxContainer.new()
@@ -3569,16 +3868,18 @@ func _create_global_variable_ui(index: int, var_data: Dictionary) -> void:
 	panel.add_child(vbox)
 
 	var header = HBoxContainer.new()
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(header)
 
 	var collapse_btn = Button.new()
 	collapse_btn.text = "▼"
-	collapse_btn.custom_minimum_size = Vector2(24, 0)
+	_style_variable_collapse_button(collapse_btn)
 	header.add_child(collapse_btn)
 
 	var name_display = Label.new()
 	name_display.text = "%s: %s" % [var_data.get("name", ""), var_data.get("type", "int")]
 	name_display.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_display.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.add_child(name_display)
 
 	var debug_btn = Button.new()

@@ -17,7 +17,7 @@ func _initialize_properties() -> void:
 	properties = {
 		"variable_name": "",        # Name of the variable to modify
 		"mode": "assign",           # assign, add, copy, toggle
-		"value": "",                # Value to assign/add
+		"value": "",                # Value to assign/adjust/replace/append/prepend
 		"source_variable": "",      # For copy mode: source variable name
 		"item_type": "String",        # Array item type
 		"index": "0"                 # Array item index
@@ -29,23 +29,25 @@ func get_property_definitions() -> Array:
 		{
 			"name": "variable_name", "required": true, "required_label": "a variable name",
 			"type": TYPE_STRING,
+			"variable_picker": true,
 			"default": ""
 		},
 		{
 			"name": "mode",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Assign,Add,Copy,Toggle",
+			"hint_string": "Assign:assign,Adjust By:add,Copy:copy,Toggle:toggle",
 			"default": "assign"
 		},
 		{
-			"name": "value", "required": true, "required_label": "a value", "required_if": {"mode": ["assign", "add"]},
+			"name": "value", "required": true, "required_label": "a value", "required_if": {"mode": ["assign", "add", "replace", "prepend", "append"]},
 			"type": TYPE_STRING,
 			"default": ""
 		},
 		{
 			"name": "source_variable", "required": true, "required_label": "a source variable", "required_if": {"mode": "copy"},
 			"type": TYPE_STRING,
+			"variable_picker": true,
 			"default": ""
 		},
 		{
@@ -66,10 +68,10 @@ func get_property_definitions() -> Array:
 func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Modifies a variable's value.\nWorks with local and global variables.\nAutomatically uses GlobalVars if not found locally.",
-		"variable_name": "Name of the variable to modify.",
-		"mode": "Assign: set to value\nAdd: add value to current\nCopy: copy from another variable\nToggle: flip a boolean",
-		"value": "Value to assign or add.\nAccepts numbers, booleans, strings, or expressions.",
-		"source_variable": "Source variable name (Copy mode only).",
+		"variable_name": "Name of the variable to modify. Type a name or choose an existing local/global variable from the dropdown.",
+		"mode": "Number: Assign, Adjust By, Copy, Toggle\nString: Replace, Add Before, Add After, Copy\nArray: item operations, Assign, Copy",
+		"value": "Value used by the selected operation. String values are plain text — do not add quotation marks. Numeric values can use variables or math expressions (for example: MinSpeed * 2).",
+		"source_variable": "Source variable name (Copy mode only). Type a name or choose an existing variable from the dropdown.",
 	}
 
 
@@ -107,6 +109,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# Normalize mode
 	if typeof(mode) == TYPE_STRING:
 		mode = mode.to_lower().replace(" ", "_")
+		# Keep the existing Add behavior while using the clearer Adjust By label.
+		if mode == "adjust_by":
+			mode = "add"
 
 	if var_name.is_empty():
 		return {"actuator_code": "push_warning(\"Modify Variable: No variable name set — open the brick and enter a variable name\")"}
@@ -132,6 +137,18 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			else:
 				var parsed_value = _parse_value(value)
 				code_lines.append("\t_target.set(\"%s\", _target.get(\"%s\") + %s)" % [sanitized_name, sanitized_name, parsed_value])
+
+		"replace", "prepend", "append":
+			if value.is_empty():
+				code_lines.append("\tpush_warning(\"Modify Variable: No text set for '%s' — open the brick and enter text\")" % sanitized_name)
+			else:
+				var string_value := _quote_string(value)
+				if mode == "replace":
+					code_lines.append("\t_target.set(\"%s\", %s)" % [sanitized_name, string_value])
+				elif mode == "prepend":
+					code_lines.append("\t_target.set(\"%s\", %s + str(_target.get(\"%s\")))" % [sanitized_name, string_value, sanitized_name])
+				else:
+					code_lines.append("\t_target.set(\"%s\", str(_target.get(\"%s\")) + %s)" % [sanitized_name, sanitized_name, string_value])
 
 		"copy":
 			if source_var.is_empty():
@@ -200,6 +217,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	}
 
 
+func _quote_string(value_str: String) -> String:
+	var text := value_str.strip_edges()
+	if text.length() >= 2 and text.begins_with("\"") and text.ends_with("\""):
+		text = text.substr(1, text.length() - 2)
+	return "\"%s\"" % text.replace("\\", "\\\\").replace("\"", "\\\"")
+
+
 func _parse_value(value_str: String) -> String:
 	value_str = value_str.strip_edges()
 
@@ -220,12 +244,36 @@ func _parse_value(value_str: String) -> String:
 	if value_str.begins_with("[") and value_str.ends_with("]"):
 		return value_str
 
-	# Could be a variable name or expression
+	# A single variable name can be emitted directly.
 	if value_str.is_valid_identifier():
+		return value_str
+
+	# Preserve explicitly quoted strings.
+	if value_str.length() >= 2 and value_str.begins_with("\"") and value_str.ends_with("\""):
+		return value_str
+
+	# Math expressions such as MinSpeed * 2 should be emitted as code, not text.
+	# Keep this intentionally limited to arithmetic so ordinary text with spaces
+	# still behaves like a String value.
+	if _is_math_expression(value_str):
 		return value_str
 
 	# Default: string
 	return "\"%s\"" % value_str.replace("\"", "\\\"")
+
+
+func _is_math_expression(value_str: String) -> bool:
+	var has_operator := false
+	for operator in ["+", "-", "*", "/", "%"]:
+		if value_str.contains(operator):
+			has_operator = true
+			break
+	if not has_operator:
+		return false
+
+	var regex := RegEx.new()
+	regex.compile("^[a-zA-Z0-9_+\\-*/%(). \t]+$")
+	return regex.search(value_str) != null
 
 
 func _parse_typed_value(value_str: String, type_name: String) -> String:

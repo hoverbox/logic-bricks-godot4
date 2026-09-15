@@ -15,6 +15,8 @@ func _init() -> void:
 func _initialize_properties() -> void:
 	properties = {
 		"camera_node_name": "Camera2D",
+		"positioning": "Keep Offset",
+		"position_offset_amount": 100.0,
 		"follow_speed": 5.0,
 		"dead_zone_x": 0.0,
 		"dead_zone_y": 0.0,
@@ -28,6 +30,8 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	return [
 		{"name":"camera_node_name", "required": true, "required_label": "a Camera2D node name","type":TYPE_STRING,"default":"Camera2D","placeholder":"Camera2D node name"},
+		{"name":"positioning","type":TYPE_STRING,"hint":PROPERTY_HINT_ENUM,"hint_string":"Keep Offset,Left,Center,Right","default":"Keep Offset"},
+		{"name":"position_offset_amount","type":TYPE_FLOAT,"hint":PROPERTY_HINT_RANGE,"hint_string":"0.0,10000.0,1.0","default":100.0},
 		{"name":"follow_speed","type":TYPE_FLOAT,"default":5.0},
 		{"name":"dead_zone_x","type":TYPE_FLOAT,"default":0.0},
 		{"name":"dead_zone_y","type":TYPE_FLOAT,"default":0.0},
@@ -42,6 +46,8 @@ func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Smoothly follows this Node2D with the named Camera2D while maintaining the camera's initial offset from the target.",
 		"camera_node_name": "Name of the Camera2D node to move.",
+		"positioning": "Horizontal framing relative to the followed node. Keep Offset preserves the captured X offset; Left/Center/Right set an explicit horizontal framing.",
+		"position_offset_amount": "Horizontal distance used by Left or Right positioning, in pixels. Center ignores this value.",
 		"follow_speed": "How quickly the camera catches up to the target.",
 		"dead_zone_x": "Camera ignores X movement smaller than this many pixels.",
 		"dead_zone_y": "Camera ignores Y movement smaller than this many pixels.",
@@ -52,6 +58,8 @@ func get_tooltip_definitions() -> Dictionary:
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var camera_node_name = str(properties.get("camera_node_name", "Camera2D")).strip_edges()
+	var positioning := str(properties.get("positioning", "Keep Offset")).strip_edges().to_lower()
+	var position_offset_amount := abs(float(properties.get("position_offset_amount", 100.0)))
 	var follow_speed = float(properties.get("follow_speed", 5.0))
 	var dead_zone_x = float(properties.get("dead_zone_x", 0.0))
 	var dead_zone_y = float(properties.get("dead_zone_y", 0.0))
@@ -99,6 +107,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	lines.append("if %s and self is Node2D:" % camera_var)
 	lines.append("\tif not %s:" % ready_var)
 	lines.append("\t\t%s = %s.global_position - global_position" % [offset_var, camera_var])
+	if positioning == "left":
+		lines.append("\t\t%s.x = -%.6f" % [offset_var, position_offset_amount])
+	elif positioning == "center":
+		lines.append("\t\t%s.x = 0.0" % offset_var)
+	elif positioning == "right":
+		lines.append("\t\t%s.x = %.6f" % [offset_var, position_offset_amount])
 	lines.append("\t\t%s = true" % ready_var)
 	lines.append("\tvar _target_pos_%s = global_position + %s" % [chain_name, offset_var])
 	lines.append("\tvar _desired_pos_%s = %s.global_position" % [chain_name, camera_var])

@@ -47,6 +47,11 @@ func get_property_definitions() -> Array:
 	]
 
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Runs continuously while this logic chain is active. Useful for UI updates that need to happen every frame.",
+	}
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var enabled = properties.get("enabled", true)
 

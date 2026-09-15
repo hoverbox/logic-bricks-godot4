@@ -32,7 +32,9 @@ func get_property_definitions() -> Array:
 			"name": "target_node_name",
 			"type": TYPE_STRING,
 			"default": "MeshInstance3D",
-			"placeholder": "Node3D node name"
+			"placeholder": "Node3D node name",
+			"node_reference": true,
+			"accepted_node_types": ["Node3D"]
 		},
 		{
 			"name": "forward_action",
@@ -83,15 +85,17 @@ func get_property_definitions() -> Array:
 			"name": "camera_name",
 			"type": TYPE_STRING,
 			"default": "",
-			"placeholder": "Optional camera node name"
+			"placeholder": "Optional camera node name",
+			"node_reference": true,
+			"accepted_node_types": ["Camera3D"]
 		},
 	]
 
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Rotates a Node3D to face the combined Input Map direction instead of the movement/slide direction. Type the node name; the generated script finds it in the current scene at runtime.",
-		"target_node_name": "The name of the Node3D to rotate, such as PlayerMesh or CharacterModel. Searches the whole current scene tree by node name.",
+		"_description": "Rotates a child Node3D to face the combined Input Map direction instead of the movement/slide direction. The target is resolved only beneath this Logic Bricks node.",
+		"target_node_name": "The name of a child Node3D to rotate, such as PlayerMesh or CharacterModel. Only children beneath this Logic Bricks node are searched.",
 		"forward_action": "Input Map action for forward/up input.",
 		"backward_action": "Input Map action for backward/down input.",
 		"left_action": "Input Map action for left input.",
@@ -99,7 +103,7 @@ func get_tooltip_definitions() -> Dictionary:
 		"forward_axis": "Which direction the mesh considers forward. -Z is Godot's default forward direction.",
 		"smoothing": "How smoothly to rotate. 0 = instant, higher = smoother.",
 		"camera_relative": "When enabled, the input direction is rotated by the camera yaw, matching camera-relative movement.",
-		"camera_name": "Optional camera node name. If blank, uses the active viewport camera.",
+		"camera_name": "Optional child camera node name. If blank, uses the active viewport camera. If named, only children beneath this Logic Bricks node are searched.",
 	}
 
 
@@ -158,7 +162,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var code_lines: Array[String] = []
 
 	member_vars.append("var %s: Node3D = null" % target_var)
-	_append_find_node_helpers(member_vars)
 
 	code_lines.append("# Rotate target node to face combined Input Map direction")
 	code_lines.append("var _target_name_%s = \"%s\"" % [label, _gd_string(target_node_name)])
@@ -166,7 +169,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\tpush_warning(\"Look At Input: No target node name set\")")
 	code_lines.append("\t%s = null" % target_var)
 	code_lines.append("elif %s == null or %s.name != _target_name_%s:" % [target_var, target_var, label])
-	code_lines.append("\tvar _found_target_%s = _lb_find_node_in_current_scene(_target_name_%s)" % [label, label])
+	code_lines.append("\tvar _found_target_%s = find_child(_target_name_%s, true, false)" % [label, label])
 	code_lines.append("\tif _found_target_%s is Node3D:" % label)
 	code_lines.append("\t\t%s = _found_target_%s" % [target_var, label])
 	code_lines.append("\telif _found_target_%s:" % label)
@@ -181,7 +184,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\t\t_input_dir = _input_dir.normalized()")
 	if camera_relative:
 		if not camera_name.is_empty():
-			code_lines.append("\tvar _look_input_cam = get_tree().root.find_child(\"%s\", true, false)" % camera_name.c_escape())
+			code_lines.append("\tvar _look_input_cam = find_child(\"%s\", true, false)" % camera_name.c_escape())
 		else:
 			code_lines.append("\tvar _look_input_cam = get_viewport().get_camera_3d()")
 		code_lines.append("\tif _look_input_cam:")

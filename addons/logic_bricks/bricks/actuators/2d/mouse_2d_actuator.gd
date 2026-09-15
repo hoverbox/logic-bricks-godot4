@@ -74,6 +74,18 @@ func get_property_definitions() -> Array:
 		{"name":"click_button","type":TYPE_STRING,"hint":PROPERTY_HINT_ENUM,"hint_string":"Left,Right,Middle","default":"left"},
 	]
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Uses the mouse for 2D cursor visibility, aiming, rotation, and move-toward behavior.",
+		"mode": "Choose what the mouse controls.",
+		"mouse_target": "Node2D to rotate or move. Use self for the node running the brick chain.",
+		"mouse_velocity": "Movement speed toward the cursor. Accepts a number, variable, or expression.",
+		"mouse_acceleration": "How quickly movement reaches its target speed. Use 0 for immediate movement.",
+		"mouse_turn_speed": "Rotation speed toward the mouse. Use 0 to face it instantly.",
+		"mouse_arrival_distance": "Distance from the cursor where movement stops.",
+		"click_button": "Mouse button used by Move To Mouse Click.",
+	}
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = properties.get("mode", "cursor_visibility")
 	if typeof(mode) == TYPE_STRING:
