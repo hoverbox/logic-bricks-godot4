@@ -4,3 +4,67 @@
 @import url("components.css");
 @import url("home.css");
 @import url("enhancements.css");
+
+/* Bri The 3D Guy brand integration */
+:root {
+  --bg:#0A0A0F;
+  --panel:#13131C;
+  --panel2:#1a1a25;
+  --text:#F0EEE8;
+  --muted:#9999aa;
+  --line:rgba(255,255,255,.11);
+  --blue:#FF5722;
+  --green:#62d28f;
+  --orange:#FF5722;
+  --red:#ff6b73;
+  --purple:#b58cff;
+  --cyan:#00E5FF;
+  --yellow:#FFD600;
+  --max:1240px;
+  --font-display:'Arial Black','Segoe UI Black',Arial,system-ui,sans-serif;
+  --font-head:'Trebuchet MS','Segoe UI',Arial,system-ui,sans-serif;
+  --font-body:'Segoe UI',Arial,system-ui,sans-serif;
+}
+body {
+  font-family:var(--font-body);
+  background:linear-gradient(180deg,#0A0A0F 0,#101018 45%,#0A0A0F 100%);
+}
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:999;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:.028;
+}
+.site-header { background:rgba(10,10,15,.9); border-bottom-color:var(--line); }
+.header-inner { max-width:var(--max); }
+.brand { font-family:var(--font-head); }
+.brand-mark {
+  width:38px; height:38px; border-radius:10px;
+  background:linear-gradient(135deg,#FF5722,#ff7b50);
+  color:white; font-family:var(--font-display); font-size:12px;
+  box-shadow:0 8px 28px rgba(255,87,34,.3);
+}
+.brand small { color:var(--muted); }
+.bri-site-links { margin-left:auto; display:flex; align-items:center; gap:8px; }
+.bri-site-links a { color:var(--muted); font-size:13px; font-weight:700; padding:8px 11px; border-radius:999px; }
+.bri-site-links a:hover { color:white; text-decoration:none; background:rgba(255,255,255,.06); }
+.bri-site-links .hub-link { color:white; border:1px solid rgba(255,87,34,.45); }
+.sidebar nav a:hover,.sidebar nav a.active { background:rgba(255,87,34,.14); color:white; }
+.sidebar nav a.active { box-shadow:inset 3px 0 0 #FF5722; }
+.hero,.home-hero {
+  background:radial-gradient(circle at 85% 20%,rgba(255,87,34,.22) 0,transparent 38%),linear-gradient(145deg,#181820,#101016);
+  border-color:var(--line);
+}
+h1,h2,h3 { font-family:var(--font-head); }
+h1 { font-weight:800; }
+.home-hero h1 { font-family:var(--font-display); }
+.home-hero h1 span,.eyebrow,.section-kicker,.hero-category-mark { color:#FF5722; }
+.btn { background:#FF5722; color:white; border-radius:999px; }
+.btn.secondary { border-color:rgba(255,255,255,.22); }
+a { color:#00E5FF; }
+.card,.brick,.home-search-panel,.journey-card,.popular-card,.workflow-domain { background:#13131C; border-color:var(--line); }
+input[type='search'],input[type='text'] { background:#0f0f16; border-color:var(--line); color:var(--text); }
+.footer { border-top:1px solid var(--line); color:var(--muted); }
+.footer a { color:#00E5FF; }
+@media (max-width:760px) {
+  .bri-site-links { display:none; }
+}

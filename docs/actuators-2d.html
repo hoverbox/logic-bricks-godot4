@@ -4,13 +4,19 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<meta content="63 actuators available for 2D workflows." name="description"/>
+<meta content="47 actions available for 2D workflows." name="description"/>
 <title>
-   2D Actuators | Logic Bricks Documentation
+   2D Actions | Logic Bricks Documentation
   </title>
+<link href="https://brithe3dguy.com/logic-bricks/docs/actuators-2d.html" rel="canonical"/>
 <link href="assets/css/site.css" rel="stylesheet"/>
 <link href="assets/images/favicon.svg" rel="icon" type="image/svg+xml"/>
-<meta content="#08101d" name="theme-color"/>
+<meta content="#0A0A0F" name="theme-color"/>
+<meta content="website" property="og:type"/>
+<meta content="2D Actions | Bri The 3D Guy" property="og:title"/>
+<meta content="Official Logic Bricks documentation for Godot 4." property="og:description"/>
+<meta content="https://brithe3dguy.com/logic-bricks/docs/actuators-2d.html" property="og:url"/>
+<meta content="https://brithe3dguy.com/images/bricks_thumb.png" property="og:image"/>
 </head>
 <body class="actuator2d" data-page="actuators-2d.html">
 <div data-site-header="">
@@ -27,13 +33,13 @@
       ›
      </span>
 <span>
-      Actuators
+      Actions
      </span>
 <span aria-hidden="true">
       ›
      </span>
 <span aria-current="page">
-      2D Actuators
+      2D Actions
      </span>
 </nav>
 <section class="hero">
@@ -41,12 +47,12 @@
       2D Workflow
      </div>
 <h1>
-      2D Actuators
+      2D Actions
      </h1>
 <p class="lead">
       Setup guidance and the complete
-      <span aria-label="actuator: A brick that performs an action after a sensor and optional controller succeed." class="glossary-term" data-tooltip="A brick that performs an action after a sensor and optional controller succeed." tabindex="0">
-       actuator
+      <span aria-label="action: A brick that performs an action after a trigger and optional gate succeed." class="glossary-term" data-tooltip="A brick that performs an action after a trigger and optional gate succeed." tabindex="0">
+       action
       </span>
       reference organized exactly like the 2D right-click menu.
      </p>
@@ -70,7 +76,7 @@
       </button>
 </div>
 </div>
-<nav aria-label="Actuator submenu links" class="submenu-jump">
+<nav aria-label="Action submenu links" class="submenu-jump">
 <a href="#setup">
 <span>
        2D setup
@@ -84,7 +90,7 @@
        Animation
       </span>
 <small>
-       2 actuators
+       2 actions
       </small>
 </a>
 <a href="#audio">
@@ -92,67 +98,61 @@
        Audio
       </span>
 <small>
-       2 actuators
+       2 actions
       </small>
 </a>
 <a href="#camera">
 <span>
        Camera
       </span>
-<small>4 actuators</small>
+<small>4 actions</small>
 </a>
 <a href="#game">
 <span>
        Game
       </span>
-<small>4 actuators</small>
+<small>4 actions</small>
 </a>
 <a href="#game-feel">
 <span>
        Game Feel
       </span>
-<small>6 actuators</small>
+<small>6 actions</small>
 </a>
 <a href="#logic">
 <span>
        Logic
       </span>
 <small>
-       5 actuators
+       5 actions
       </small>
 </a>
 <a href="#motion">
 <span>
        Motion
       </span>
-<small>8 actuators</small>
+<small>8 actions</small>
 </a>
 <a href="#object">
 <span>
        Object
       </span>
 <small>
-       4 actuators
+       4 actions
       </small>
 </a>
 <a href="#physics">
 <span>
        Physics
       </span>
-<small>5 actuators</small>
-</a>
-<a href="#ui">
-<span>
-       UI
-      </span>
-<small>3 actuators</small>
+<small>5 actions</small>
 </a>
 <a href="#general-shared">
 <span>
        General
       </span>
 <small>
-       20 actuators
+       20 actions
       </small>
 </a>
 </nav>
@@ -171,7 +171,7 @@
        Building 2D actions
       </h2>
 <p>
-       These actuators are grouped exactly like the 2D right-click menu and use 2D node types and Vector2-based values where appropriate.
+       These actions are grouped exactly like the 2D right-click menu and use 2D node types and Vector2-based values where appropriate.
       </p>
 </div>
 <ol class="chapter-steps">
@@ -194,10 +194,10 @@
       2D WORKFLOW
      </span>
 <h2>
-      2D Setup and Actuators
+      2D Setup and Actions
      </h2>
 <p class="domain-lead">
-      Use this section for Node2D-based scenes. The documentation categories below mirror the actuator submenus displayed when a supported 2D node is selected.
+      Use this section for Node2D-based scenes. The documentation categories below mirror the action submenus displayed when a supported 2D node is selected.
      </p>
 <div class="setup-grid">
 <article>
@@ -267,14 +267,14 @@
        Animation
       </h2>
 <p>
-       Right-click → Actuators → Animation
+       Right-click → Actions → Animation
       </p>
 </div>
 <div class="category-bricks">
 <section class="brick actuator" data-compatibility="2d" data-search="Sprite Animation Play, stop, or pause AnimatedSprite2D animations. Animation" id="sprite-animation-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • 2d
+         action • 2d
         </span>
 <h2>
          Sprite Animation
@@ -294,18 +294,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Animation
+          Add Logic Brick → Actions → Animation
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/2d/sprite_animation_2d_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -395,12 +385,12 @@
 <ul>
 <li>
             Perform the animation action described above after a
-            <span aria-label="sensor: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
-             sensor
+            <span aria-label="trigger: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
+             trigger
             </span>
             /
-            <span aria-label="controller: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
-             controller
+            <span aria-label="gate: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
+             gate
             </span>
             chain succeeds.
            </li>
@@ -418,13 +408,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -446,7 +436,7 @@
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -485,7 +475,7 @@
 <section class="brick actuator" data-compatibility="2d" data-search="Tween Smoothly change a 2D property over time. Animation" id="tween-animation-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • 2d
+         action • 2d
         </span>
 <h2>Tween</h2>
 <div class="brick-xp-meta">
@@ -501,18 +491,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Animation
+          Add Logic Brick → Actions → Animation
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/2d/tween_animation_2d_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <p class="muted">
@@ -529,13 +509,13 @@
           </h4>
 <ul>
 <li>
-            Perform the animation action described above after a sensor/controller chain succeeds.
+            Perform the animation action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -545,13 +525,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -567,13 +547,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -585,7 +565,7 @@
            Sprite Animation
           </a>
 <a href="actuators-2d.html#get-transforms-2d">
-           Get Transforms
+           Get Transform
           </a>
 <a href="actuators-3d.html#object-shake-3d">
            Object Shake
@@ -598,7 +578,7 @@
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Tween actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/tween.png"/>
+<img alt="Tween action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/tween.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">Tween screenshot</strong>
@@ -618,14 +598,14 @@
        Audio
       </h2>
 <p>
-       Right-click → Actuators → Audio
+       Right-click → Actions → Audio
       </p>
 </div>
 <div class="category-bricks">
 <section class="brick actuator" data-compatibility="2d" data-search="2D Audio Play 2D or UI audio from a file. Audio" id="2d-audio-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
          2D Audio
@@ -645,18 +625,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Audio
+          Add Logic Brick → Actions → Audio
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/audio_2d_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -875,13 +845,13 @@
           </h4>
 <ul>
 <li>
-            Perform the audio action described above after a sensor/controller chain succeeds.
+            Perform the audio action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -891,13 +861,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -913,13 +883,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -937,7 +907,7 @@
            Animation
           </a>
 <a href="actuators-2d.html#get-transforms-2d">
-           Get Transforms
+           Get Transform
           </a>
 </div>
 </section>
@@ -958,7 +928,7 @@
 <section class="brick actuator" data-compatibility="2d" data-search="Music Three modes:\nTracks: define and create music players at startup.\nSet: set which track is current (and optionally play it).\nControl: play, stop, pause, resume, or crossfade from current to another track. General" id="music-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
          Music
@@ -978,18 +948,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Audio
+          Add Logic Brick → Actions → Audio
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/music_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -1216,13 +1176,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -1232,13 +1192,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -1254,13 +1214,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -1307,14 +1267,14 @@
        Camera
       </h2>
 <p>
-       Right-click → Actuators → Camera
+       Right-click → Actions → Camera
       </p>
 </div>
 <div class="category-bricks">
-<section class="brick actuator" data-compatibility="2d" data-search="Set Camera Makes the assigned Camera3D the active camera.\nUse a one-shot sensor (e.g. Delay or a state transition) to avoid\ncalling make_current() every frame unnecessarily.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there. General" id="set-camera-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Set Camera Makes the named Camera2D active for the current viewport. Camera" id="set-camera-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • 2d
+         action • 2d
         </span>
 <h2>
          Set Camera
@@ -1325,31 +1285,15 @@
          </span>
 </div>
 </div>
-<p>
-        Makes the assigned Camera3D the active camera.\nUse a one-shot sensor (e.g. Delay or a
-        <span aria-label="state: A named mode that can enable one group of logic while disabling another." class="glossary-term" data-tooltip="A named mode that can enable one group of logic while disabling another." tabindex="0">
-         state
-        </span>
-        transition) to avoid\ncalling make_current() every frame unnecessarily.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there.
-       </p>
+<p>Makes the named Camera2D active for the current viewport. Use a one-shot trigger when possible so make_current() is not called every frame.</p>
 <div class="meta-grid">
 <div>
 <strong>
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Camera
+          Add Logic Brick → Actions → Camera
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/3d/set_camera_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -1373,20 +1317,7 @@
             camera_node_name
            </code>
 </td>
-<td>
-           Camera Node Name
-           <br/>
-<small>
-            Default:
-            <code>
-             Camera3D
-            </code>
-</small>
-<br/>
-<small>
-            Camera3D node name
-           </small>
-</td>
+<td>Camera2D node name. Default: Camera2D. Use the scene node picker.</td>
 </tr>
 </tbody>
 </table>
@@ -1401,7 +1332,7 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
@@ -1417,13 +1348,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -1445,7 +1376,7 @@
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -1461,9 +1392,6 @@
           </a>
 <a href="actuators-3d.html#gravity-3d">
            Gravity
-          </a>
-<a href="actuators-3d.html#3rd-person-camera-3d">
-           3rd Person Camera
           </a>
 </div>
 </section>
@@ -1481,10 +1409,10 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Camera Zoom Changes camera FOV (3D) or zoom (2D).\nDrag your camera into the inspector slot. General" id="camera-zoom-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Camera Zoom Changes Camera2D zoom. 1.0 normal, 2.0 zoomed in, 0.5 zoomed out. Camera" id="camera-zoom-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • 2d
+         action • 2d
         </span>
 <h2>
          Camera Zoom
@@ -1495,27 +1423,15 @@
          </span>
 </div>
 </div>
-<p>
-        Changes camera FOV (3D) or zoom (2D).\nDrag your camera into the inspector slot.
-       </p>
+<p>Changes Camera2D zoom. 1.0 = normal, 2.0 = zoomed in, 0.5 = zoomed out.</p>
 <div class="meta-grid">
 <div>
 <strong>
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Camera
+          Add Logic Brick → Actions → Camera
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/3d/camera_zoom_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -1539,20 +1455,7 @@
             camera_node_name
            </code>
 </td>
-<td>
-           Camera Node Name
-           <br/>
-<small>
-            Default:
-            <code>
-             Camera3D
-            </code>
-</small>
-<br/>
-<small>
-            Camera3D or Camera2D node name
-           </small>
-</td>
+<td>Camera2D node name. Default: Camera2D. Use the scene node picker.</td>
 </tr>
 <tr>
 <td>
@@ -1656,7 +1559,7 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
@@ -1672,13 +1575,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -1736,10 +1639,10 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Smooth Follow Camera Smoothly follows this node with the assigned Camera3D,\nmaintaining the camera's initial offset from the target.\n\nPosition follow: camera tracks the node's position per axis.\nRotation follow: camera orbits the node, keeping it in frame.\nDead zone: camera only moves once the node exceeds the threshold.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there. General" id="smooth-follow-camera-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Smooth Follow Camera Smoothly follows this Node2D with a named Camera2D while maintaining the camera offset. Camera" id="smooth-follow-camera-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • 2d
+         action • 2d
         </span>
 <h2>
          Smooth Follow Camera
@@ -1750,27 +1653,15 @@
          </span>
 </div>
 </div>
-<p>
-        Smoothly follows this node with the assigned Camera3D,\nmaintaining the camera's initial offset from the target.\n\nPosition follow: camera tracks the node's position per axis.\nRotation follow: camera orbits the node, keeping it in frame.\nDead zone: camera only moves once the node exceeds the threshold.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there.
-       </p>
+<p>Smoothly follows this Node2D with the named Camera2D while maintaining the camera's initial offset from the target.</p>
 <div class="meta-grid">
 <div>
 <strong>
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Camera
+          Add Logic Brick → Actions → Camera
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/3d/smooth_follow_camera_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -1794,20 +1685,7 @@
             camera_node_name
            </code>
 </td>
-<td>
-           Camera Node Name
-           <br/>
-<small>
-            Default:
-            <code>
-             Camera3D
-            </code>
-</small>
-<br/>
-<small>
-            Camera3D node name
-           </small>
-</td>
+<td>Camera2D node name. Default: Camera2D. Use the scene node picker.</td>
 </tr>
 <tr>
 <td>
@@ -2023,7 +1901,7 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
@@ -2039,13 +1917,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -2067,7 +1945,7 @@
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -2081,8 +1959,8 @@
 <a href="actuators-3d.html#teleport-3d">
            Teleport
           </a>
-<a href="actuators-3d.html#move-towards-3d">
-           Move Towards
+<a href="actuators-3d.html#steering-3d">
+           Steering
           </a>
 <a href="actuators-2d.html#property-2d">
            Property
@@ -2104,12 +1982,12 @@
 </figure>
 </section>
 <section class="brick actuator" data-compatibility="2d" data-search="Split Screen Creates a two-player 2D split-screen view using two Camera2D nodes and isolated SubViewports. Camera" id="split-screen-2d">
-<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Split Screen</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<div class="brick-heading"><span class="badge">action • 2d</span><h2>Split Screen</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
 <p>Creates a two-player 2D split-screen view using two Camera2D nodes and isolated SubViewports.</p>
-<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Camera</span></div><div><strong>Source</strong><span><code>actuators/2d/split_screen_2d_actuator.gd</code></span></div></div>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Camera</span></div></div>
 <h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>camera_1_node_name</code></td><td>First Camera2D node name. Default: Camera2D</td></tr><tr><td><code>camera_2_node_name</code></td><td>Second Camera2D node name. Default: Camera2D2</td></tr><tr><td><code>layout</code></td><td>Screen division: Vertical or Horizontal. Default: Vertical</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Split Screen after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Split Screen</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Both camera names must resolve to Camera2D nodes in the active scene.</div><div class="mini-callout caution"><strong>Common mistake</strong>Do not place the split-screen display on a canvas layer rendered by its own SubViewports; the actuator excludes its display layer automatically.</div></div></details>
-<figure class="screenshot compact"><div class="screenshot-image"><img alt="Split Screen actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/split-screen.png"/></div><figcaption><strong class="screenshot-caption-title">Split Screen screenshot</strong><span></span></figcaption></figure>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Split Screen after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Split Screen</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Both camera names must resolve to Camera2D nodes in the active scene.</div><div class="mini-callout caution"><strong>Common mistake</strong>Do not place the split-screen display on a canvas layer rendered by its own SubViewports; the action excludes its display layer automatically.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Split Screen action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/split-screen.png"/></div><figcaption><strong class="screenshot-caption-title">Split Screen screenshot</strong><span></span></figcaption></figure>
 </section></div>
 </section>
 <section class="actuator-category" id="game">
@@ -2121,14 +1999,14 @@
        Game
       </h2>
 <p>
-       Right-click → Actuators → Game
+       Right-click → Actions → Game
       </p>
 </div>
 <div class="category-bricks">
 <section class="brick actuator" data-compatibility="2d" data-search="Game Exit, restart, pause, and screenshot functionality General" id="game-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
          Game
@@ -2139,27 +2017,15 @@
          </span>
 </div>
 </div>
-<p>
-        Exit, restart, pause, and screenshot functionality
-       </p>
+<p>Controls game flow: exit, reload the scene, pause, unpause, toggle pause, or save a screenshot.</p>
 <div class="meta-grid">
 <div>
 <strong>
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Game
+          Add Logic Brick → Actions → Game
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/game_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -2183,20 +2049,7 @@
             action
            </code>
 </td>
-<td>
-           Action
-           <br/>
-<small>
-            Choices: Exit,Reload Scene,Pause,Screenshot
-           </small>
-<br/>
-<small>
-            Default:
-            <code>
-             exit
-            </code>
-</small>
-</td>
+<td>Exit, Reload Scene, Pause, Unpause, Toggle Pause, or Screenshot. Default: Exit.</td>
 </tr>
 <tr>
 <td>
@@ -2228,13 +2081,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -2244,13 +2097,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -2266,13 +2119,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -2294,7 +2147,7 @@
           </a>
 </div>
 </section>
-</details>
+<div class="mini-callout tip"><strong>Pause controls</strong> Unpause and Toggle Pause are generated with pause-safe input handling so they can resume a paused SceneTree. Use a one-shot input such as Just Pressed for toggles.</div></details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
 <img alt="Game screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/game.png"/>
@@ -2311,7 +2164,7 @@
 <section class="brick actuator" data-compatibility="2d" data-search="Preload Preloads resources (materials, scenes, textures, audio, meshes) into memory before they are needed, preventing runtime hitches and frame drops. General" id="preload-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
          Preload
@@ -2331,18 +2184,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Game
+          Add Logic Brick → Actions → Game
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/preload_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -2476,13 +2319,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -2492,13 +2335,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -2514,13 +2357,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -2556,10 +2399,10 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Scene Similar to UPBGE's Scene actuator General" id="scene-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Scene Similar to UPBGE's Scene action General" id="scene-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
          Scene
@@ -2571,7 +2414,7 @@
 </div>
 </div>
 <p>
-        Similar to UPBGE's Scene actuator
+        Similar to UPBGE's Scene action
        </p>
 <div class="meta-grid">
 <div>
@@ -2579,18 +2422,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Game
+          Add Logic Brick → Actions → Game
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/scene_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -2656,13 +2489,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -2672,13 +2505,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -2694,13 +2527,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -2718,7 +2551,7 @@
            Linear Velocity
           </a>
 <a href="actuators-2d.html#modulate-2d">
-           Modulate
+           Color / Transparency
           </a>
 </div>
 </section>
@@ -2737,12 +2570,12 @@
 </figure>
 </section>
 <section class="brick actuator" data-compatibility="2d" data-search="Save / Load Saves or restores 2D transforms, selected script variables, and optional RigidBody2D motion state. Game" id="save-load-2d">
-<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Save / Load</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<div class="brick-heading"><span class="badge">action • 2d</span><h2>Save / Load</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
 <p>Saves or restores 2D transforms, selected script variables, and optional RigidBody2D motion state.</p>
-<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Game</span></div><div><strong>Source</strong><span><code>actuators/2d/save_load_2d_actuator.gd</code></span></div></div>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Game</span></div></div>
 <h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>mode</code></td><td>Choose Save or Load.</td></tr><tr><td><code>scope</code></td><td>This Node, Target Node, or Group.</td></tr><tr><td><code>target</code></td><td>Node name or group used by the selected scope.</td></tr><tr><td><code>slot</code></td><td>Save-slot filename. Default: slot1</td></tr><tr><td><code>save_position</code></td><td>Include global position.</td></tr><tr><td><code>save_rotation</code></td><td>Include global rotation.</td></tr><tr><td><code>save_variables</code></td><td>Include supported script variables.</td></tr><tr><td><code>restore_velocity</code></td><td>When loading a RigidBody2D, restore saved velocity instead of stopping at the loaded transform.</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Save / Load after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Save / Load</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Leave Restore Velocity disabled when loading should place a physics body at rest.</div><div class="mini-callout caution"><strong>Common mistake</strong>A target path must still exist when loading; renamed or reparented nodes may not match an older save file.</div></div></details>
-<figure class="screenshot compact"><div class="screenshot-image"><img alt="Save / Load actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/save-load.png"/></div><figcaption><strong class="screenshot-caption-title">Save / Load screenshot</strong><span></span></figcaption></figure>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Save / Load after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Save / Load</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Leave Restore Velocity disabled when loading should place a physics body at rest.</div><div class="mini-callout caution"><strong>Common mistake</strong>A target path must still exist when loading; renamed or reparented nodes may not match an older save file.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Save / Load action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/save-load.png"/></div><figcaption><strong class="screenshot-caption-title">Save / Load screenshot</strong><span></span></figcaption></figure>
 </section></div>
 </section>
 <section class="actuator-category" id="game-feel">
@@ -2754,14 +2587,14 @@
        Game Feel
       </h2>
 <p>
-       Right-click → Actuators → Game Feel
+       Right-click → Actions → Game Feel
       </p>
 </div>
 <div class="category-bricks">
 <section class="brick actuator" data-compatibility="2d" data-search="Object Flash Flashes a mesh/object with a temporary color overlay.\nType a node name, not a path.\n\ General" id="object-flash-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • 2d
+         action • 2d
         </span>
 <h2>
          Object Flash
@@ -2781,18 +2614,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Game Feel
+          Add Logic Brick → Actions → Game Feel
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/3d/object_flash_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -2895,13 +2718,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -2911,13 +2734,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -2933,13 +2756,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -2956,8 +2779,8 @@
 <a href="sensors-2d.html#collision-2d-2d">
            Collision 2D
           </a>
-<a href="actuators-3d.html#move-towards-3d">
-           Move Towards
+<a href="actuators-3d.html#steering-3d">
+           Steering
           </a>
 </div>
 </section>
@@ -2978,7 +2801,7 @@
 <section class="brick actuator" data-compatibility="2d" data-search="Hit Stop Briefly pauses or slows game time when an impact lands.\nUse for attacks, damage, blocks, heavy landings, and breaks.\nThis is also called hit pause or impact freeze. General" id="hit-stop-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
          Hit Stop
@@ -2998,18 +2821,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Game Feel
+          Add Logic Brick → Actions → Game Feel
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/hit_stop_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -3112,13 +2925,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -3128,13 +2941,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -3150,7 +2963,7 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
@@ -3192,10 +3005,10 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Rumble Trigger controller haptic vibration.\nVibrate: manual motor control for a set duration.\nStop: immediately stop all vibration.\nPattern: built-in presets that play to completion.\nThe sensor only needs to fire once — the pattern finishes even if the sensor stops. General" id="rumble-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Rumble Trigger controller haptic vibration.\nVibrate: manual motor control for a set duration.\nStop: immediately stop all vibration.\nPattern: built-in presets that play to completion.\nThe trigger only needs to fire once — the pattern finishes even if the trigger stops. General" id="rumble-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
          Rumble
@@ -3207,7 +3020,7 @@
 </div>
 </div>
 <p>
-        Trigger controller haptic vibration.\nVibrate: manual motor control for a set duration.\nStop: immediately stop all vibration.\nPattern: built-in presets that play to completion.\nThe sensor only needs to fire once — the pattern finishes even if the sensor stops.
+        Trigger gate haptic vibration.\nVibrate: manual motor control for a set duration.\nStop: immediately stop all vibration.\nPattern: built-in presets that play to completion.\nThe trigger only needs to fire once — the pattern finishes even if the trigger stops.
        </p>
 <div class="meta-grid">
 <div>
@@ -3215,18 +3028,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Game Feel
+          Add Logic Brick → Actions → Game Feel
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/rumble_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -3396,13 +3199,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -3412,13 +3215,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -3434,7 +3237,7 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
@@ -3479,7 +3282,7 @@
 <section class="brick actuator" data-compatibility="2d" data-search="Screen Flash Flashes a color over the screen.\nPress \ General" id="screen-flash-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
          Screen Flash
@@ -3499,18 +3302,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Game Feel
+          Add Logic Brick → Actions → Game Feel
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/screen_flash_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -3592,13 +3385,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -3608,13 +3401,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -3630,7 +3423,7 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
@@ -3648,7 +3441,7 @@
            Object Flash
           </a>
 <a href="actuators-2d.html#modulate-2d">
-           Modulate
+           Color / Transparency
           </a>
 <a href="actuators-3d.html#3rd-person-camera-3d">
            3rd Person Camera
@@ -3673,19 +3466,19 @@
 </figure>
 </section>
 <section class="brick actuator" data-compatibility="2d" data-search="Camera Shake Temporarily shakes a Camera2D by changing its offset and rotation, then restores the original camera state. Game-Feel" id="camera-shake-2d">
-<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Camera Shake</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<div class="brick-heading"><span class="badge">action • 2d</span><h2>Camera Shake</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
 <p>Temporarily shakes a Camera2D by changing its offset and rotation, then restores the original camera state.</p>
-<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Game Feel</span></div><div><strong>Source</strong><span><code>actuators/2d/screen_shake_2d_actuator.gd</code></span></div></div>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Game Feel</span></div></div>
 <h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>camera_node_name</code></td><td>Camera2D node to shake. Default: Camera2D</td></tr><tr><td><code>intensity</code></td><td>Maximum positional shake amount.</td></tr><tr><td><code>duration</code></td><td>Shake duration in seconds.</td></tr><tr><td><code>rotation_intensity</code></td><td>Maximum rotational shake in degrees.</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Camera Shake after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Camera Shake</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use a just-pressed or one-shot sensor to start a single shake.</div><div class="mini-callout caution"><strong>Common mistake</strong>A continuously active sensor can restart the shake repeatedly.</div></div></details>
-<figure class="screenshot compact"><div class="screenshot-image"><img alt="Camera Shake actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/screen-shake.png"/></div><figcaption><strong class="screenshot-caption-title">Camera Shake screenshot</strong><span></span></figcaption></figure>
-</section><section class="brick actuator" data-compatibility="2d" data-search="Object Shake Shakes a Node2D around a captured baseline transform and restores its exact original position and rotation. Game-Feel" id="object-shake-2d">
-<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Object Shake</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
-<p>Shakes a Node2D around a captured baseline transform and restores its exact original position and rotation.</p>
-<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Game Feel</span></div><div><strong>Source</strong><span><code>actuators/2d/object_shake_2d_actuator.gd</code></span></div></div>
-<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>target_node_name</code></td><td>Node2D to shake. Empty uses the brick owner.</td></tr><tr><td><code>intensity</code></td><td>Maximum positional offset.</td></tr><tr><td><code>duration</code></td><td>Shake duration in seconds.</td></tr><tr><td><code>rotation_intensity</code></td><td>Maximum rotational offset in degrees.</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Object Shake after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Object Shake</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>The actuator keeps a persistent baseline so repeated triggers do not cause positional drift.</div><div class="mini-callout caution"><strong>Common mistake</strong>Avoid moving the target through another system during the same shake unless that movement is intended to be overwritten by the final restore.</div></div></details>
-<figure class="screenshot compact"><div class="screenshot-image"><img alt="Object Shake actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/object-shake.png"/></div><figcaption><strong class="screenshot-caption-title">Object Shake screenshot</strong><span></span></figcaption></figure>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Camera Shake after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Camera Shake</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use a just-pressed or one-shot trigger to start a single shake.</div><div class="mini-callout caution"><strong>Common mistake</strong>A continuously active trigger can restart the shake repeatedly.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Camera Shake action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/screen-shake.png"/></div><figcaption><strong class="screenshot-caption-title">Camera Shake screenshot</strong><span></span></figcaption></figure>
+</section><section class="brick actuator" data-compatibility="2d" data-search="Object Shake Shakes a Node2D by position, rotation, or scale and restores its original transform afterward. Game-Feel" id="object-shake-2d">
+<div class="brick-heading"><span class="badge">action • 2d</span><h2>Object Shake</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<p>Shakes a Node2D by position, rotation, or scale and restores its original transform afterward.</p>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Game Feel</span></div></div>
+<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>shake_type</code></td><td>Translate, Rotate, or Scale.</td></tr><tr><td><code>target_node_name</code></td><td>Node2D to shake. Use self or select another Node2D in the scene.</td></tr><tr><td><code>preset</code></td><td>Starting intensity preset; values remain editable.</td></tr><tr><td><code>x / y</code></td><td>Translate pixel offsets or temporary scale offsets.</td></tr><tr><td><code>rotation_degrees</code></td><td>Maximum temporary rotation when Rotate is selected.</td></tr></tbody></table>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Object Shake after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Object Shake</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>The action keeps a persistent baseline so repeated triggers do not cause positional drift.</div><div class="mini-callout caution"><strong>Common mistake</strong>Avoid moving the target through another system during the same shake unless that movement is intended to be overwritten by the final restore.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Object Shake action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/object-shake.png"/></div><figcaption><strong class="screenshot-caption-title">Object Shake screenshot</strong><span></span></figcaption></figure>
 </section></div>
 </section>
 <section class="actuator-category" id="logic">
@@ -3697,14 +3490,14 @@
        Logic
       </h2>
 <p>
-       Right-click → Actuators → Logic
+       Right-click → Actions → Logic
       </p>
 </div>
 <div class="category-bricks">
 <section class="brick actuator" data-compatibility="2d" data-search="Get Variable Reads a variable from self, another node, or GlobalVars and stores it for later bricks. Logic" id="get-variable-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
          Get Variable
@@ -3728,18 +3521,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Logic
+          Add Logic Brick → Actions → Logic
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/get_variable_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -3831,13 +3614,13 @@
           </h4>
 <ul>
 <li>
-            Perform the logic action described above after a sensor/controller chain succeeds.
+            Perform the logic action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -3847,13 +3630,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -3869,13 +3652,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -3884,7 +3667,7 @@
          </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#get-transforms-2d">
-           Get Transforms
+           Get Transform
           </a>
 <a href="actuators-2d.html#modify-variable-2d">
            Modify Variable
@@ -3914,7 +3697,7 @@
 <section class="brick actuator" data-compatibility="2d" data-search="Modify Variable Modifies a variable's value.\nWorks with local and global variables.\nAutomatically uses GlobalVars if not found locally. General" id="modify-variable-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
          Modify Variable
@@ -3938,18 +3721,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Logic
+          Add Logic Brick → Actions → Logic
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/variable_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -3987,7 +3760,9 @@
            Mode
            <br/>
 <small>
-            Choices: Assign,Add,Copy,Toggle
+            Standard variable choices: Assign, Add, Copy, Toggle.
+            <br/>
+            Array choices (selected automatically for Array variables): Add Item, Remove Item, Remove At Index, Set Item At Index, Clear, Assign, Copy.
            </small>
 <br/>
 <small>
@@ -4018,8 +3793,44 @@
            Source Variable
           </td>
 </tr>
+<tr>
+<td>
+<code>
+            item_type
+           </code>
+</td>
+<td>
+           Array Item Type
+           <br/>
+<small>
+            Shown for Add Item, Remove Item, and Set Item At Index. Choices: bool, int, float, String, Vector2, Vector3.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            index
+           </code>
+</td>
+<td>
+           Array Index
+           <br/>
+<small>
+            Shown for Remove At Index and Set Item At Index. Indexes begin at 0. Out-of-range indexes are ignored with a warning.
+           </small>
+</td>
+</tr>
 </tbody>
 </table>
+<div class="callout tip">
+<strong>Array modification</strong>
+When <code>variable_name</code> matches an Array variable, the Mode menu changes automatically. <strong>Add Item</strong> appends an item, <strong>Remove Item</strong> removes the matching value, <strong>Remove At Index</strong> removes an item by position, <strong>Set Item At Index</strong> replaces an item at a position, and <strong>Clear</strong> removes all items. <strong>Copy</strong> makes an independent copy of an Array rather than sharing the same Array reference.
+</div>
+<div class="callout tip">
+<strong>Prevent duplicate items</strong>
+Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a Modify Variable action set to <strong>Add Item</strong>. The action will only run when the item is not already in the Array.
+</div>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
          Using this brick
@@ -4031,13 +3842,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -4047,13 +3858,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -4069,13 +3880,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -4093,7 +3904,7 @@
            Environment
           </a>
 <a href="actuators-2d.html#modulate-2d">
-           Modulate
+           Color / Transparency
           </a>
 </div>
 </section>
@@ -4111,10 +3922,10 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Random Similar to UPBGE's Random actuator General" id="random-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Random Similar to UPBGE's Random action General" id="random-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
          Random
@@ -4126,7 +3937,7 @@
 </div>
 </div>
 <p>
-        Similar to UPBGE's Random actuator
+        Similar to UPBGE's Random action
        </p>
 <div class="meta-grid">
 <div>
@@ -4134,18 +3945,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Logic
+          Add Logic Brick → Actions → Logic
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/random_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -4445,13 +4246,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -4461,13 +4262,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -4483,13 +4284,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -4525,14 +4326,12 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Signal Sends a signal to other nodes.\nReceiving nodes need a Signal Sensor listening for the subject. General" id="signal-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Signal Send Sends a signal to other nodes.\nReceiving nodes need a Signal Receive Trigger listening for the subject. General" id="signal-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
-<h2>
-         Signal
-        </h2>
+<h2>Signal Send</h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
           2D
@@ -4540,7 +4339,7 @@
 </div>
 </div>
 <p>
-        Sends a signal to other nodes.\nReceiving nodes need a Signal Sensor listening for the subject.
+        Sends a signal to other nodes.\nReceiving nodes need a Signal Trigger listening for the subject.
        </p>
 <div class="meta-grid">
 <div>
@@ -4548,18 +4347,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Logic
+          Add Logic Brick → Actions → Logic
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/message_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -4620,13 +4409,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -4636,13 +4425,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -4658,13 +4447,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -4672,9 +4461,7 @@
           Related bricks
          </h4>
 <div class="related-link-list">
-<a href="sensors-2d.html#signal-common">
-           Signal
-          </a>
+<a href="sensors-2d.html#signal-common">Signal Receive</a>
 <a href="actuators-3d.html#animation-3d">
            Animation
           </a>
@@ -4687,23 +4474,11 @@
 </div>
 </section>
 </details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Signal screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/signal.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-          Signal screenshot
-         </strong>
-<span>
-</span>
-</figcaption>
-</figure>
 </section>
 <section class="brick actuator" data-compatibility="2d" data-search="State State logic brick. General" id="state-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
          State
@@ -4723,18 +4498,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Logic
+          Add Logic Brick → Actions → Logic
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/state_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -4779,13 +4544,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -4795,13 +4560,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -4817,13 +4582,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -4870,270 +4635,15 @@
        Motion
       </h2>
 <p>
-       Right-click → Actuators → Motion
+       Right-click → Actions → Motion
       </p>
 </div>
 <div class="category-bricks">
-<section class="brick actuator" data-compatibility="2d" data-search="Motion 2D For CharacterBody2D movement, this only requests/accumulates velocity for the frame. Character 2D Physics should be used once on the character to apply friction, gravity, diagonal normalization, and move_and_slide(). Motion" id="motion-2d-2d">
+<span aria-hidden="true" class="legacy-anchor" id="motion-2d-2d"></span><section class="brick actuator" data-compatibility="2d" data-search="Position 2D Changes 2D position using Character Velocity, a translation offset, or an exact position. Motion" id="position-2d"><div class="brick-heading"><span class="badge">action • 2d</span><h2>Position 2D</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div><p>Changes 2D position using Character Velocity, a translation offset, or an exact position.</p><div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Motion → Position 2D</span></div></div><table class="property-table"><thead><tr><th>Property</th><th>Description / Default</th></tr></thead><tbody><tr><td><code>target_node_name</code></td><td>Blank = self, or enter a child/node name.</td></tr><tr><td><code>movement_method</code></td><td>Character Velocity, Translate, or Set Position.</td></tr><tr><td><code>x</code></td><td>X value; number, variable, or expression. Default 0.0.</td></tr><tr><td><code>y</code></td><td>Y value; number, variable, or expression. Default 0.0.</td></tr><tr><td><code>space</code></td><td>Local or Global.</td></tr></tbody></table><details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="mini-callout tip"><strong>Tip</strong> Connect the Action after a Gate. Apply Code will warn if required values are missing.</div></details></section><section class="brick actuator" data-compatibility="2d" data-search="Rotation 2D Rotates a 2D object by a number of degrees. Motion" id="rotation-2d"><div class="brick-heading"><span class="badge">action • 2d</span><h2>Rotation 2D</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div><p>Rotates a 2D object by a number of degrees.</p><div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Motion → Rotation 2D</span></div></div><table class="property-table"><thead><tr><th>Property</th><th>Description / Default</th></tr></thead><tbody><tr><td><code>target_node_name</code></td><td>Blank = self, or enter a child/node name.</td></tr><tr><td><code>degrees</code></td><td>Degrees to rotate; number, variable, or expression. Default 0.0.</td></tr><tr><td><code>space</code></td><td>Local or Global.</td></tr></tbody></table><details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="mini-callout tip"><strong>Tip</strong> Connect the Action after a Gate. Apply Code will warn if required values are missing.</div></details></section><section class="brick actuator" data-compatibility="2d" data-search="Scale 2D Changes a 2D object's scale, instantly or with a tween. Motion" id="scale-2d"><div class="brick-heading"><span class="badge">action • 2d</span><h2>Scale 2D</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div><p>Changes a 2D object's scale, instantly or with a tween.</p><div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Motion → Scale 2D</span></div></div><table class="property-table"><thead><tr><th>Property</th><th>Description / Default</th></tr></thead><tbody><tr><td><code>target_node_name</code></td><td>Blank = self, or enter a child/node name.</td></tr><tr><td><code>x</code></td><td>Target X scale. Default 1.0.</td></tr><tr><td><code>y</code></td><td>Target Y scale. Default 1.0.</td></tr><tr><td><code>use_tween</code></td><td>Animate smoothly to the target scale.</td></tr><tr><td><code>duration</code></td><td>Tween duration in seconds.</td></tr><tr><td><code>transition</code></td><td>Tween transition curve.</td></tr><tr><td><code>ease</code></td><td>Tween easing direction.</td></tr></tbody></table><details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="mini-callout tip"><strong>Tip</strong> Connect the Action after a Gate. Apply Code will warn if required values are missing.</div></details></section>
+<section class="brick actuator" data-compatibility="2d" data-search="Character 2D Physics Finalizes CharacterBody2D movement once per physics frame. Position 2D Actions add requested movement; this brick applies gravity, friction, acceleration, snapping, slope limits, bounce, and move_and_slide(). Motion" id="character-2d-physics-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • 2d
-        </span>
-<h2>
-         Motion 2D
-        </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
-          2D
-         </span>
-</div>
-</div>
-<p>
-        For CharacterBody2D movement, this only requests/accumulates velocity for the frame. Character 2D Physics should be used once on the character to apply friction, gravity, diagonal normalization, and move_and_slide().
-       </p>
-<div class="meta-grid">
-<div>
-<strong>
-          Menu
-         </strong>
-<span>
-          Add Logic Brick → Actuators → Motion
-         </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/2d/motion_2d_actuator.gd
-          </code>
-</span>
-</div>
-</div>
-<h3>
-        Options
-       </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-           Property
-          </th>
-<th>
-           Details
-          </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-            target_node_name
-           </code>
-</td>
-<td>
-           Target Node Name
-           <br/>
-<small>
-            blank = self, or child/node name
-           </small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            motion_type
-           </code>
-</td>
-<td>
-           Motion Type
-           <br/>
-<small>
-            Choices: Location,Rotation
-           </small>
-<br/>
-<small>
-            Default:
-            <code>
-             location
-            </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            movement_method
-           </code>
-</td>
-<td>
-           Movement Method
-           <br/>
-<small>
-            Choices: Character Velocity,Translate,Position
-           </small>
-<br/>
-<small>
-            Default:
-            <code>
-             character_velocity
-            </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            x
-           </code>
-</td>
-<td>
-           X
-           <br/>
-<small>
-            Default:
-            <code>
-             0.0
-            </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            y
-           </code>
-</td>
-<td>
-           Y
-           <br/>
-<small>
-            Default:
-            <code>
-             0.0
-            </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            space
-           </code>
-</td>
-<td>
-           Space
-           <br/>
-<small>
-            Choices: Local,Global
-           </small>
-<br/>
-<small>
-            Default:
-            <code>
-             local
-            </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-         Using this brick
-        </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-           Typical uses
-          </h4>
-<ul>
-<li>
-            Perform the motion action described above after a sensor/controller chain succeeds.
-           </li>
-<li>
-            Reuse the brick in multiple states or chains with different option values.
-           </li>
-<li>
-            Target a specific node by configuring the node field before testing the chain.
-           </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-           Example chain
-          </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-            Choose a sensor
-           </span>
-<span aria-hidden="true" class="chain-arrow">
-            →
-           </span>
-<span class="chain-node">
-            Controller
-           </span>
-<span aria-hidden="true" class="chain-arrow">
-            →
-           </span>
-<span class="chain-node">
-            Motion 2D
-           </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-           Tip
-          </strong>
-          Confirm the target node name and node type before troubleshooting the rest of the chain.
-         </div>
-<div class="mini-callout caution">
-<strong>
-           Common mistake
-          </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
-         </div>
-</div>
-<section class="related-bricks">
-<h4>
-          Related bricks
-         </h4>
-<div class="related-link-list">
-<a href="actuators-2d.html#character-2d-physics-2d">
-           Character 2D Physics
-          </a>
-<a href="actuators-3d.html#character-physics-3d">
-           Character Physics
-          </a>
-<a href="actuators-3d.html#character-jump-3d">
-           Character Jump
-          </a>
-<a href="actuators-3d.html#gravity-3d">
-           Gravity
-          </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Motion 2D screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/motion-2d.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-          Motion 2D screenshot
-         </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick actuator" data-compatibility="2d" data-search="Character 2D Physics Finalizes CharacterBody2D movement once per physics frame. Motion 2D bricks add requested movement; this brick applies gravity, friction, acceleration, snapping, slope limits, bounce, and move_and_slide(). Motion" id="character-2d-physics-2d">
-<div class="brick-heading">
-<span class="badge">
-         actuator • 2d
+         action • 2d
         </span>
 <h2>
          Character 2D Physics
@@ -5145,7 +4655,7 @@
 </div>
 </div>
 <p>
-        Finalizes CharacterBody2D movement once per physics frame. Motion 2D bricks add requested movement; this brick applies gravity, friction, acceleration, snapping, slope limits, bounce, and move_and_slide().
+        Finalizes CharacterBody2D movement once per physics frame. Position 2D Actions add requested movement; this brick applies gravity, friction, acceleration, snapping, slope limits, bounce, and move_and_slide().
        </p>
 <div class="meta-grid">
 <div>
@@ -5153,18 +4663,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Motion
+          Add Logic Brick → Actions → Motion
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/2d/character_2d_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -5376,13 +4876,13 @@
           </h4>
 <ul>
 <li>
-            Perform the motion action described above after a sensor/controller chain succeeds.
+            Perform the motion action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -5392,13 +4892,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -5414,13 +4914,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -5428,9 +4928,7 @@
           Related bricks
          </h4>
 <div class="related-link-list">
-<a href="actuators-2d.html#motion-2d-2d">
-           Motion 2D
-          </a>
+<a href="actuators-2d.html#position-2d">Position 2D</a>
 <a href="actuators-3d.html#character-physics-3d">
            Character Physics
           </a>
@@ -5459,7 +4957,7 @@
 <section class="brick actuator" data-compatibility="2d" data-search="Character Jump 2D Character Jump 2D logic brick. General" id="character-jump-2d-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • 2d
+         action • 2d
         </span>
 <h2>
          Character Jump 2D
@@ -5479,18 +4977,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Motion
+          Add Logic Brick → Actions → Motion
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/2d/jump_2d_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <p class="muted">
@@ -5507,13 +4995,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -5523,13 +5011,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -5545,13 +5033,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -5590,7 +5078,7 @@
 <section class="brick actuator" data-compatibility="2d" data-search="Teleport 2D Instantly sets position to a target Node2D or coordinates.\nUseful for respawning, portals, checkpoints, and spawn points. Motion" id="teleport-2d-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • 2d
+         action • 2d
         </span>
 <h2>
          Teleport 2D
@@ -5610,18 +5098,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Motion
+          Add Logic Brick → Actions → Motion
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/2d/teleport_2d_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -5755,7 +5233,7 @@
           </h4>
 <ul>
 <li>
-            Perform the motion action described above after a sensor/controller chain succeeds.
+            Perform the motion action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
@@ -5771,13 +5249,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -5799,7 +5277,7 @@
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -5813,11 +5291,9 @@
 <a href="actuators-2d.html#character-2d-physics-2d">
            Character 2D Physics
           </a>
-<a href="actuators-2d.html#motion-2d-2d">
-           Motion 2D
-          </a>
+<a href="actuators-2d.html#position-2d">Position 2D</a>
 <a href="actuators-2d.html#set-transforms-2d">
-           Set Transforms
+           Set Transform
           </a>
 </div>
 </section>
@@ -5838,7 +5314,7 @@
 <section class="brick actuator" data-compatibility="2d" data-search="Mouse Toggle cursor visibility or rotate object based on mouse movement General" id="mouse-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • 2d
+         action • 2d
         </span>
 <h2>
          Mouse
@@ -5858,18 +5334,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Motion
+          Add Logic Brick → Actions → Motion
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/3d/mouse_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -6413,13 +5879,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -6429,13 +5895,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -6451,13 +5917,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -6493,27 +5959,38 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Move Towards Moves or flees from a node, group member, or 2D coordinate with optional facing and navigation support. Motion" id="move-towards-2d">
-<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Move Towards</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
-<p>Moves or flees from a node, group member, or 2D coordinate with optional facing and navigation support.</p>
-<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Motion</span></div><div><strong>Source</strong><span><code>actuators/2d/move_towards_2d_actuator.gd</code></span></div></div>
-<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>behavior</code></td><td>Seek or Flee.</td></tr><tr><td><code>target_mode</code></td><td>Node Name, Group, or Coordinates.</td></tr><tr><td><code>target_name</code></td><td>Target node name or group name.</td></tr><tr><td><code>coordinate_x / coordinate_y</code></td><td>Literal values or variables used for coordinate targeting.</td></tr><tr><td><code>speed</code></td><td>Movement speed in pixels per second.</td></tr><tr><td><code>arrival_distance</code></td><td>Distance at which seeking stops.</td></tr><tr><td><code>face_target</code></td><td>Rotate to face the movement direction.</td></tr><tr><td><code>use_navigation</code></td><td>Use a NavigationAgent2D when available.</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Move Towards after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Move Towards</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use Coordinates with variables to move toward a position captured by Get Transforms.</div><div class="mini-callout caution"><strong>Common mistake</strong>CharacterBody2D movement requires collision-aware velocity handling; test against walls and slopes.</div></div></details>
-<figure class="screenshot compact"><div class="screenshot-image"><img alt="Move Towards actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/move-towards.png"/></div><figcaption><strong class="screenshot-caption-title">Move Towards screenshot</strong><span></span></figcaption></figure>
-</section><section class="brick actuator" data-compatibility="2d" data-search="Rotate Towards Rotates a Node2D toward a target node or nearest group member using 2D angular interpolation. Motion" id="rotate-towards-2d">
-<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Rotate Towards</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<section class="brick actuator" data-compatibility="2d" data-search="Steering Seek Flee Arrive Wander Maintain Distance Orbit AI Motion" id="steering-2d">
+<div class="brick-heading"><span class="badge">action • 2d</span><h2>Steering</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<p>Steers a Node2D using Seek, Flee, Arrive, Wander, Maintain Distance, or Orbit behavior.</p>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Motion</span></div></div>
+<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody>
+<tr><td><code>behavior</code></td><td>Seek, Flee, Arrive, Wander, Maintain Distance, or Orbit.</td></tr>
+<tr><td><code>target_mode</code></td><td>Node Name, Group, or Coordinates. Wander does not need a target.</td></tr>
+<tr><td><code>speed / arrival_distance</code></td><td>Base speed and normal stopping distance.</td></tr>
+<tr><td><code>slowing_distance</code></td><td>Arrive only. Distance where slowing begins.</td></tr>
+<tr><td><code>desired_distance / distance_tolerance</code></td><td>Maintain Distance only.</td></tr>
+<tr><td><code>orbit_distance / orbit_direction</code></td><td>Orbit only.</td></tr>
+<tr><td><code>wander_amount / wander_frequency</code></td><td>Wander only. Random heading change and timing.</td></tr>
+<tr><td><code>face_target</code></td><td>Rotate to face the steering direction.</td></tr>
+<tr><td><code>use_navigation</code></td><td>Use NavigationAgent2D for Seek or Arrive when available.</td></tr>
+</tbody></table>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Chasing and fleeing enemies.</li><li>Wandering NPCs.</li><li>Ranged enemies that maintain a preferred distance.</li><li>Enemies that orbit or strafe around a target.</li></ul></section><section class="guidance-panel example"><h4>Compatibility</h4><p>The previous Move Towards behavior is now Steering → Seek.</p></section></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Steering action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/move-towards.png"/></div><figcaption><strong class="screenshot-caption-title">Steering screenshot</strong><span></span></figcaption></figure>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Rotate Towards Rotates a Node2D toward a target node or nearest group member using 2D angular interpolation. Motion" id="rotate-towards-2d">
+<div class="brick-heading"><span class="badge">action • 2d</span><h2>Rotate Towards</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
 <p>Rotates a Node2D toward a target node or nearest group member using 2D angular interpolation.</p>
-<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Motion</span></div><div><strong>Source</strong><span><code>actuators/2d/rotate_towards_2d_actuator.gd</code></span></div></div>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Motion</span></div></div>
 <h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>target_mode</code></td><td>Node Name or Group.</td></tr><tr><td><code>target_name</code></td><td>Target node or group.</td></tr><tr><td><code>speed</code></td><td>Rotation speed in degrees per second.</td></tr><tr><td><code>angle_offset</code></td><td>Additional angle offset in degrees.</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Rotate Towards after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Rotate Towards</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use Angle Offset when the artwork faces up or another direction instead of Godot’s positive X axis.</div><div class="mini-callout caution"><strong>Common mistake</strong>Entering a group with no active Node2D members leaves the actuator without a valid target.</div></div></details>
-<figure class="screenshot compact"><div class="screenshot-image"><img alt="Rotate Towards actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/rotate-towards.png"/></div><figcaption><strong class="screenshot-caption-title">Rotate Towards screenshot</strong><span></span></figcaption></figure>
-</section><section class="brick actuator" data-compatibility="2d" data-search="Waypoint Path Moves a Node2D along the points of a Path2D curve with optional looping and direction-facing. Motion" id="waypoint-path-2d">
-<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Waypoint Path</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Rotate Towards after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Rotate Towards</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use Angle Offset when the artwork faces up or another direction instead of Godot’s positive X axis.</div><div class="mini-callout caution"><strong>Common mistake</strong>Entering a group with no active Node2D members leaves the action without a valid target.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Rotate Towards action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/rotate-towards.png"/></div><figcaption><strong class="screenshot-caption-title">Rotate Towards screenshot</strong><span></span></figcaption></figure>
+</section><section class="brick actuator" data-compatibility="2d" data-search="Path Follow Moves a Node2D along the points of a Path2D curve with optional looping and direction-facing. Motion" id="waypoint-path-2d">
+<div class="brick-heading"><span class="badge">action • 2d</span><h2>Path Follow</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
 <p>Moves a Node2D along the points of a Path2D curve with optional looping and direction-facing.</p>
-<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Motion</span></div><div><strong>Source</strong><span><code>actuators/2d/waypoint_path_2d_actuator.gd</code></span></div></div>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Motion</span></div></div>
 <h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>path_node_name</code></td><td>Path2D containing the Curve2D to follow.</td></tr><tr><td><code>speed</code></td><td>Movement speed in pixels per second.</td></tr><tr><td><code>loop</code></td><td>Return to the first waypoint after the last point.</td></tr><tr><td><code>face_direction</code></td><td>Rotate the moving node to face its travel direction.</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Waypoint Path after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Waypoint Path</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Add at least two points to the Path2D curve before testing.</div><div class="mini-callout caution"><strong>Common mistake</strong>The actuator follows the Path2D curve points; an empty curve cannot produce movement.</div></div></details>
-<figure class="screenshot compact"><div class="screenshot-image"><img alt="Waypoint Path actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/waypoint-path.png"/></div><figcaption><strong class="screenshot-caption-title">Waypoint Path screenshot</strong><span></span></figcaption></figure>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Path Follow after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Path Follow</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Add at least two points to the Path2D curve before testing.</div><div class="mini-callout caution"><strong>Common mistake</strong>The action follows the Path2D curve points; an empty curve cannot produce movement.</div></div><div class="mini-callout tip"><strong>After editing waypoints</strong> Click Refresh Waypoints so the brick rebuilds its waypoint list before testing.</div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Path Follow action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/waypoint-path.png"/></div><figcaption><strong class="screenshot-caption-title">Path Follow screenshot</strong><span></span></figcaption></figure>
 </section></div>
 </section>
 <section class="actuator-category" id="object">
@@ -6525,17 +6002,23 @@
        Object
       </h2>
 <p>
-       Right-click → Actuators → Object
+       Right-click → Actions → Object
       </p>
 </div>
 <div class="category-bricks">
-<section class="brick actuator" data-compatibility="2d" data-search="Get Transforms Gets position, rotation, and scale from a node or the nearest member of a group and stores the values as variables. Object" id="get-transforms-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Parent Changes this 2D node's parent using a scene node or group, or reparents it back to the scene root. Object" id="parent-2d">
+<div class="brick-heading"><span class="badge">action • 2d</span><h2>Parent</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<p>Changes this 2D node's parent using a scene node or group, or reparents it back to the scene root.</p>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Object → Parent</span></div></div>
+<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>mode</code></td><td>Set Parent or Remove Parent.</td></tr><tr><td><code>parent_target_mode</code></td><td>Node Name or Group.</td></tr><tr><td><code>parent_node</code></td><td>Scene node used when Node Name is selected.</td></tr><tr><td><code>parent_group</code></td><td>Uses the first node in the selected group.</td></tr><tr><td><code>keep_transform</code></td><td>Preserve global 2D transform while reparenting.</td></tr></tbody></table>
+</section>
+<section class="brick actuator" data-compatibility="2d" data-search="Get Transform Gets position, rotation, and scale from a node or the nearest member of a group and stores the values as variables. Object" id="get-transforms-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
-         Get Transforms
+         Get Transform
         </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
@@ -6552,18 +6035,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Object
+          Add Logic Brick → Actions → Object
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/get_transforms_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -6710,13 +6183,13 @@
           </h4>
 <ul>
 <li>
-            Perform the object action described above after a sensor/controller chain succeeds.
+            Perform the object action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -6726,19 +6199,19 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Get Transforms
+            Get Transform
            </span>
 </div>
 </section>
@@ -6748,13 +6221,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -6763,7 +6236,7 @@
          </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#set-transforms-2d">
-           Set Transforms
+           Set Transform
           </a>
 <a href="actuators-3d.html#save-load-3d">
            Save / Load
@@ -6779,24 +6252,24 @@
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Get Transforms screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/get-transforms.png"/>
+<img alt="Get Transform screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/get-transforms.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-          Get Transforms screenshot
+          Get Transform screenshot
          </strong>
 <span>
 </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Set Transforms Sets position, rotation, and scale from entered values or variables, instantly or over time. Object" id="set-transforms-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Set Transform Sets position, rotation, and scale from entered values or variables, instantly or over time. Object" id="set-transforms-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
-         Set Transforms
+         Set Transform
         </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
@@ -6813,18 +6286,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Object
+          Add Logic Brick → Actions → Object
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/scale_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <p class="muted">
@@ -6841,13 +6304,13 @@
           </h4>
 <ul>
 <li>
-            Perform the object action described above after a sensor/controller chain succeeds.
+            Perform the object action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -6857,19 +6320,19 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Set Transforms
+            Set Transform
            </span>
 </div>
 </section>
@@ -6879,13 +6342,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -6894,7 +6357,7 @@
          </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#get-transforms-2d">
-           Get Transforms
+           Get Transform
           </a>
 <a href="actuators-3d.html#save-load-3d">
            Save / Load
@@ -6910,24 +6373,24 @@
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Set Transforms screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/set-transforms.png"/>
+<img alt="Set Transform screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/set-transforms.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-          Set Transforms screenshot
+          Set Transform screenshot
          </strong>
 <span>
 </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Property Sets properties on a target node.\nChoose the node type to see its available properties.\nLeave a field empty to skip setting that property.\n⚠ Adds @export in Inspector — assign the target node. General" id="property-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Node Properties Sets properties on a target node.\nChoose the node type to see its available properties.\nLeave a field empty to skip setting that property.\n⚠ Adds @export in Inspector — assign the target node. General" id="property-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • 2d
+         action • 2d
         </span>
 <h2>
-         Property
+         Node Properties
         </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
@@ -6944,18 +6407,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Object
+          Add Logic Brick → Actions → Object
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/property_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -8029,7 +7482,7 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
@@ -8045,13 +7498,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -8073,7 +7526,7 @@
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -8109,10 +7562,10 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Visibility Shows, hides, or toggles visibility of a node by name. Uses the same current-scene recursive name lookup as the Text Actuator. General" id="visibility-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Visibility Shows, hides, or toggles visibility of a node by name. Uses the same current-scene recursive name lookup as the Text Action. General" id="visibility-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • shared
+         action • shared
         </span>
 <h2>
          Visibility
@@ -8124,7 +7577,7 @@
 </div>
 </div>
 <p>
-        Shows, hides, or toggles visibility of a node by name. Uses the same current-scene recursive name lookup as the Text Actuator.
+        Shows, hides, or toggles visibility of a node by name. Uses the same current-scene recursive name lookup as the Text Action.
        </p>
 <div class="meta-grid">
 <div>
@@ -8132,18 +7585,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Object
+          Add Logic Brick → Actions → Object
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/visibility_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <h3>
@@ -8216,7 +7659,7 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
@@ -8232,13 +7675,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -8260,7 +7703,7 @@
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -8269,7 +7712,7 @@
          </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#modulate-2d">
-           Modulate
+           Color / Transparency
           </a>
 <a href="actuators-3d.html#text-3d">
            Text
@@ -8307,14 +7750,14 @@
        Physics
       </h2>
 <p>
-       Right-click → Actuators → Physics
+       Right-click → Actions → Physics
       </p>
 </div>
 <div class="category-bricks">
 <section class="brick actuator" data-compatibility="2d" data-search="Force 2D Force 2D logic brick. General" id="force-2d-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • 2d
+         action • 2d
         </span>
 <h2>
          Force 2D
@@ -8334,18 +7777,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Physics
+          Add Logic Brick → Actions → Physics
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/2d/force_2d_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <p class="muted">
@@ -8362,13 +7795,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -8378,13 +7811,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -8400,13 +7833,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -8445,7 +7878,7 @@
 <section class="brick actuator" data-compatibility="2d" data-search="Impulse 2D Impulse 2D logic brick. General" id="impulse-2d-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • 2d
+         action • 2d
         </span>
 <h2>
          Impulse 2D
@@ -8465,18 +7898,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Physics
+          Add Logic Brick → Actions → Physics
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/2d/impulse_2d_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <p class="muted">
@@ -8493,13 +7916,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -8509,13 +7932,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -8531,13 +7954,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -8576,7 +7999,7 @@
 <section class="brick actuator" data-compatibility="2d" data-search="Linear Velocity 2D Linear Velocity 2D logic brick. General" id="linear-velocity-2d-2d">
 <div class="brick-heading">
 <span class="badge">
-         actuator • 2d
+         action • 2d
         </span>
 <h2>
          Linear Velocity 2D
@@ -8596,18 +8019,8 @@
           Menu
          </strong>
 <span>
-          Add Logic Brick → Actuators → Physics
+          Add Logic Brick → Actions → Physics
          </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/2d/linear_velocity_2d_actuator.gd
-          </code>
-</span>
 </div>
 </div>
 <p class="muted">
@@ -8624,13 +8037,13 @@
           </h4>
 <ul>
 <li>
-            Perform the general action described above after a sensor/controller chain succeeds.
+            Perform the general action described above after a trigger/gate chain succeeds.
            </li>
 <li>
             Reuse the brick in multiple states or chains with different option values.
            </li>
 <li>
-            Pair it with an appropriate sensor to control when the action occurs.
+            Pair it with an appropriate trigger to control when the action occurs.
            </li>
 </ul>
 </section>
@@ -8640,13 +8053,13 @@
           </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-            Choose a sensor
+            Choose a trigger
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
            </span>
 <span class="chain-node">
-            Controller
+            Gate
            </span>
 <span aria-hidden="true" class="chain-arrow">
             →
@@ -8662,13 +8075,13 @@
 <strong>
            Tip
           </strong>
-          Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+          Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
          </div>
 <div class="mini-callout caution">
 <strong>
            Common mistake
           </strong>
-          A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+          A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
          </div>
 </div>
 <section class="related-bricks">
@@ -8705,313 +8118,19 @@
 </figure>
 </section>
 <section class="brick actuator" data-compatibility="2d" data-search="Gravity Applies directional gravity to a RigidBody2D using the project gravity as a strength multiplier. Physics" id="gravity-2d">
-<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Gravity</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<div class="brick-heading"><span class="badge">action • 2d</span><h2>Gravity</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
 <p>Applies directional gravity to a RigidBody2D using the project gravity as a strength multiplier.</p>
-<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Physics</span></div><div><strong>Source</strong><span><code>actuators/2d/gravity_2d_actuator.gd</code></span></div></div>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Physics</span></div></div>
 <h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>strength</code></td><td>Gravity multiplier: 1 is project gravity, 2 is double, and 0.5 is half.</td></tr><tr><td><code>direction_x / direction_y</code></td><td>2D gravity direction. Positive Y points down in Godot.</td></tr><tr><td><code>use_mass</code></td><td>Scale force by the RigidBody2D mass.</td></tr><tr><td><code>override_world_gravity</code></td><td>Disable the body’s normal project-gravity contribution.</td></tr><tr><td><code>reset_velocity_on_direction_change</code></td><td>Clear existing momentum when the gravity direction changes.</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Gravity after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gravity</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>For upward gravity, use X = 0 and Y = -1.</div><div class="mini-callout caution"><strong>Common mistake</strong>Strength is a multiplier, not a raw pixel acceleration. A value of 10 means ten times project gravity.</div></div></details>
-<figure class="screenshot compact"><div class="screenshot-image"><img alt="Gravity actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/gravity.png"/></div><figcaption><strong class="screenshot-caption-title">Gravity screenshot</strong><span></span></figcaption></figure>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Gravity after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gravity</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>For upward gravity, use X = 0 and Y = -1.</div><div class="mini-callout caution"><strong>Common mistake</strong>Strength is a multiplier, not a raw pixel acceleration. A value of 10 means ten times project gravity.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Gravity action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/gravity.png"/></div><figcaption><strong class="screenshot-caption-title">Gravity screenshot</strong><span></span></figcaption></figure>
 </section><section class="brick actuator" data-compatibility="2d" data-search="Collisions Enables or disables 2D collision shapes, collision layer or mask bits, and Area2D monitoring. Physics" id="collisions-2d">
-<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Collisions</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
+<div class="brick-heading"><span class="badge">action • 2d</span><h2>Collisions</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
 <p>Enables or disables 2D collision shapes, collision layer or mask bits, and Area2D monitoring.</p>
-<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Physics</span></div><div><strong>Source</strong><span><code>actuators/2d/collision_2d_actuator.gd</code></span></div></div>
+<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Physics</span></div></div>
 <h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>action</code></td><td>Disable Shape, Enable Shape, Set Layer Bit, Set Mask Bit, Enable Monitoring, or Disable Monitoring.</td></tr><tr><td><code>target_node</code></td><td>CollisionShape2D, CollisionPolygon2D, CollisionObject2D, or Area2D target.</td></tr><tr><td><code>layer_value</code></td><td>Collision layer or mask bit from 1 through 32.</td></tr><tr><td><code>bit_enabled</code></td><td>Whether the selected layer or mask bit is enabled.</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Collisions after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Collisions</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use deferred collision-shape changes when toggling during a physics callback; the actuator handles shape changes safely.</div><div class="mini-callout caution"><strong>Common mistake</strong>Collision layers and masks are one-based in the brick UI but converted to Godot’s zero-based bit index internally.</div></div></details>
-<figure class="screenshot compact"><div class="screenshot-image"><img alt="Collisions actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/collision-2d.png"/></div><figcaption><strong class="screenshot-caption-title">Collisions screenshot</strong><span></span></figcaption></figure>
-</section></div>
-</section>
-<section class="actuator-category" id="ui">
-<div class="category-heading">
-<span class="eyebrow">
-       RIGHT-CLICK SUBMENU
-      </span>
-<h2>
-       UI
-      </h2>
-<p>
-       Right-click → Actuators → UI
-      </p>
-</div>
-<div class="category-bricks">
-<section class="brick actuator" data-compatibility="2d" data-search="Modulate Sets or smoothly transitions the color/alpha of a UI or 2D node found by name anywhere in the current scene tree. General" id="modulate-2d">
-<div class="brick-heading">
-<span class="badge">
-         actuator • shared
-        </span>
-<h2>
-         Modulate
-        </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
-          2D
-         </span>
-</div>
-</div>
-<p>
-        Sets or smoothly transitions the color/alpha of a UI or 2D node found by name anywhere in the current scene tree.
-       </p>
-<div class="meta-grid">
-<div>
-<strong>
-          Menu
-         </strong>
-<span>
-          Add Logic Brick → Actuators → UI
-         </span>
-</div>
-<div>
-<strong>
-          Source
-         </strong>
-<span>
-<code>
-           actuators/common/modulate_actuator.gd
-          </code>
-</span>
-</div>
-</div>
-<h3>
-        Options
-       </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-           Property
-          </th>
-<th>
-           Details
-          </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-            target_node_name
-           </code>
-</td>
-<td>
-           Target Node Name
-          </td>
-</tr>
-<tr>
-<td>
-<code>
-            node_name_source
-           </code>
-</td>
-<td>
-           Node Name Source
-           <br/>
-<small>
-            Choices: Literal Node Name,String Variable
-           </small>
-<br/>
-<small>
-            Default:
-            <code>
-             literal
-            </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            export_node_name
-           </code>
-</td>
-<td>
-           Export Node Name
-           <br/>
-<small>
-            Default:
-            <code>
-             false
-            </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            target_modulate
-           </code>
-</td>
-<td>
-           Target Modulate
-           <br/>
-<small>
-            Choices: Self Modulate,Modulate
-           </small>
-<br/>
-<small>
-            Default:
-            <code>
-             self_modulate
-            </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            color
-           </code>
-</td>
-<td>
-           Color
-           <br/>
-<small>
-            Default:
-            <code>
-             Color(1
-            </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            transition
-           </code>
-</td>
-<td>
-           Transition
-           <br/>
-<small>
-            Default:
-            <code>
-             false
-            </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            transition_speed
-           </code>
-</td>
-<td>
-           Transition Speed
-           <br/>
-<small>
-            Default:
-            <code>
-             5.0
-            </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-         Using this brick
-        </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-           Typical uses
-          </h4>
-<ul>
-<li>
-            Perform the general action described above after a sensor/controller chain succeeds.
-           </li>
-<li>
-            Reuse the brick in multiple states or chains with different option values.
-           </li>
-<li>
-            Target a specific node by configuring the node field before testing the chain.
-           </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-           Example chain
-          </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-            Choose a sensor
-           </span>
-<span aria-hidden="true" class="chain-arrow">
-            →
-           </span>
-<span class="chain-node">
-            Controller
-           </span>
-<span aria-hidden="true" class="chain-arrow">
-            →
-           </span>
-<span class="chain-node">
-            Modulate
-           </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-           Tip
-          </strong>
-          Confirm the target node name and node type before troubleshooting the rest of the chain.
-         </div>
-<div class="mini-callout caution">
-<strong>
-           Common mistake
-          </strong>
-          Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
-         </div>
-</div>
-<section class="related-bricks">
-<h4>
-          Related bricks
-         </h4>
-<div class="related-link-list">
-<a href="actuators-3d.html#progress-bar-3d">
-           Progress Bar
-          </a>
-<a href="actuators-3d.html#tween-3d">
-           Tween
-          </a>
-<a href="actuators-3d.html#screen-shake-3d">
-           Screen Shake
-          </a>
-<a href="actuators-3d.html#sprite-frames-3d">
-           Sprite Frames
-          </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Modulate screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/modulate.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-          Modulate screenshot
-         </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick actuator" data-compatibility="2d" data-search="Progress Bar Sets or smoothly updates the value, minimum, or maximum of a ProgressBar, Slider, or other Range node. Ui" id="progress-bar-2d">
-<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Progress Bar</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
-<p>Sets or smoothly updates the value, minimum, or maximum of a ProgressBar, Slider, or other Range node.</p>
-<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Ui</span></div><div><strong>Source</strong><span><code>actuators/2d/progress_bar_2d_actuator.gd</code></span></div></div>
-<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>target_node_name</code></td><td>Target ProgressBar, Slider, or Range node.</td></tr><tr><td><code>node_name_source</code></td><td>Literal Node Name or String Variable.</td></tr><tr><td><code>set_value / value</code></td><td>Enable and provide the new value.</td></tr><tr><td><code>set_min / min_value</code></td><td>Enable and provide a new minimum.</td></tr><tr><td><code>set_max / max_value</code></td><td>Enable and provide a new maximum.</td></tr><tr><td><code>transition / transition_speed</code></td><td>Smoothly approach the requested value instead of changing instantly.</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Progress Bar after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Progress Bar</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Values can reference variables, making this useful for health, stamina, loading, and score meters.</div><div class="mini-callout caution"><strong>Common mistake</strong>The target must inherit Range; a plain Control node does not have value, min_value, or max_value properties.</div></div></details>
-<figure class="screenshot compact"><div class="screenshot-image"><img alt="Progress Bar actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/progress-bar.png"/></div><figcaption><strong class="screenshot-caption-title">Progress Bar screenshot</strong><span></span></figcaption></figure>
-</section><section class="brick actuator" data-compatibility="2d" data-search="Text Updates a Label, RichTextLabel, or compatible text UI node from a variable or static string. Ui" id="text-2d">
-<div class="brick-heading"><span class="badge">actuator • 2d</span><h2>Text</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
-<p>Updates a Label, RichTextLabel, or compatible text UI node from a variable or static string.</p>
-<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actuators → Ui</span></div><div><strong>Source</strong><span><code>actuators/2d/text_2d_actuator.gd</code></span></div></div>
-<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>target_node_name</code></td><td>Target text node.</td></tr><tr><td><code>node_name_source</code></td><td>Literal Node Name or String Variable.</td></tr><tr><td><code>mode</code></td><td>Variable or Static.</td></tr><tr><td><code>variable_name</code></td><td>Variable converted to text in Variable mode.</td></tr><tr><td><code>prefix / suffix</code></td><td>Text placed before or after the variable value.</td></tr><tr><td><code>static_text</code></td><td>Exact text used in Static mode.</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Text after a sensor and controller chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Sensor</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Controller</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Text</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use Prefix and Suffix for labels such as “Health: 75 / 100”.</div><div class="mini-callout caution"><strong>Common mistake</strong>Variable mode requires a valid variable name on the generated script or accessible target context.</div></div></details>
-<figure class="screenshot compact"><div class="screenshot-image"><img alt="Text actuator screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/text.png"/></div><figcaption><strong class="screenshot-caption-title">Text screenshot</strong><span></span></figcaption></figure>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Collisions after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Collisions</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use deferred collision-shape changes when toggling during a physics callback; the action handles shape changes safely.</div><div class="mini-callout caution"><strong>Common mistake</strong>Collision layers and masks are one-based in the brick UI but converted to Godot’s zero-based bit index internally.</div></div></details>
+<figure class="screenshot compact"><div class="screenshot-image"><img alt="Collisions action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/collision-2d.png"/></div><figcaption><strong class="screenshot-caption-title">Collisions screenshot</strong><span></span></figcaption></figure>
 </section></div>
 </section>
 <div class="page-nav">
@@ -9020,7 +8139,7 @@
        ← Previous
       </span>
 <strong>
-       Previous 3D Actuators
+       Previous 3D Actions
       </strong>
 </a>
 <a class="page-nav-card next" href="actuators-ui.html">
@@ -9028,11 +8147,11 @@
        Next →
       </span>
 <strong>
-       Next  UI Actuators
+       Next  UI Actions
       </strong>
 </a>
 </div>
-</main>
+<span aria-hidden="true" class="legacy-anchor" id="modulate-2d"></span><span aria-hidden="true" class="legacy-anchor" id="progress-bar-2d"></span><span aria-hidden="true" class="legacy-anchor" id="text-2d"></span></main>
 <aside aria-label="On this page" class="page-toc">
 <div class="toc-box">
 <h3>
@@ -9041,7 +8160,7 @@
 <ul>
 <li>
 <a data-toc-target="setup" href="#setup">
-        2D Setup and Actuators
+        2D Setup and Actions
        </a>
 </li>
 <li>
@@ -9090,9 +8209,6 @@
        </a>
 </li>
 <li>
-<a data-toc-target="ui" href="#ui">
-        UI
-       </a>
 </li>
 </ul>
 </div>
@@ -9107,14 +8223,14 @@
      General
     </h2>
 <p>
-     Actuators available in the 2D workflow.
+     Actions available in the 2D workflow.
     </p>
 </div>
 <div class="category-bricks">
 <section class="brick actuator" data-compatibility="2d" data-search="Animation Play, stop, or control animations by name.\nAutomatically finds the AnimationPlayer that owns the animation.\nWorks with AnimationPlayers nested at any depth. General" id="animation-2d">
 <div class="brick-heading">
 <span class="badge">
-       actuator • 2d
+       action • 2d
       </span>
 <h2>
        Animation
@@ -9134,18 +8250,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators → General
+        Add Logic Brick → Actions → General
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/common/animation_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -9155,7 +8261,7 @@
 <thead>
 <tr>
 <th>
-         Property
+         Node Properties
         </th>
 <th>
          Details
@@ -9279,13 +8385,13 @@
         </h4>
 <ul>
 <li>
-          Perform the general action described above after a sensor/controller chain succeeds.
+          Perform the general action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
          </li>
 <li>
-          Pair it with an appropriate sensor to control when the action occurs.
+          Pair it with an appropriate trigger to control when the action occurs.
          </li>
 </ul>
 </section>
@@ -9295,13 +8401,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -9317,13 +8423,13 @@
 <strong>
          Tip
         </strong>
-        Test the actuator with the simplest possible sensor first, then add variables, timing, or additional conditions.
+        Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
        </div>
 <div class="mini-callout caution">
 <strong>
          Common mistake
         </strong>
-        A continuously active sensor may run this actuator every frame. Use a one-shot condition when the action should happen only once.
+        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
        </div>
 </div>
 <section class="related-bricks">
@@ -9362,7 +8468,7 @@
 <section class="brick actuator" data-compatibility="2d" data-search="Tween Animates any property on self or on a node found by name anywhere in the current scene tree. General" id="tween-2d">
 <div class="brick-heading">
 <span class="badge">
-       actuator • 2d
+       action • 2d
       </span>
 <h2>
        Tween
@@ -9382,18 +8488,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Actuators → General
+        Add Logic Brick → Actions → General
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         actuators/common/tween_actuator.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -9403,7 +8499,7 @@
 <thead>
 <tr>
 <th>
-         Property
+         Node Properties
         </th>
 <th>
          Details
@@ -9487,7 +8583,7 @@
          </code>
 </td>
 <td>
-         Property
+         Node Properties
          <br/>
 <small>
           Default:
@@ -9603,7 +8699,7 @@
         </h4>
 <ul>
 <li>
-          Perform the general action described above after a sensor/controller chain succeeds.
+          Perform the general action described above after a trigger/gate chain succeeds.
          </li>
 <li>
           Reuse the brick in multiple states or chains with different option values.
@@ -9619,13 +8715,13 @@
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a sensor
+          Choose a trigger
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
@@ -9658,7 +8754,7 @@
        </h4>
 <div class="related-link-list">
 <a href="actuators-2d.html#modulate-2d">
-         Modulate
+         Color / Transparency
         </a>
 <a href="actuators-3d.html#progress-bar-3d">
          Progress Bar

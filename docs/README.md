@@ -13,15 +13,15 @@ This static website is ready for GitHub Pages.
 Screenshot placeholders are in `assets/images/screenshots/`. Replace a placeholder while keeping the same filename, or update the matching `<img src>` path in the page.
 
 
-## Actuator page organization
+## Action page organization
 
-The 3D and 2D actuator pages mirror the addon right-click menu. Each submenu has an in-page anchor, so links can point directly to sections such as `actuators-3d.html#motion` or `actuators-2d.html#camera`. The UI actuator page remains flat because the addon intentionally shows UI actuators in a flat menu. Each domain page also begins with its own setup workflow.
+The 3D and 2D action pages mirror the addon right-click menu. Each submenu has an in-page anchor, so links can point directly to sections such as `actions-3d.html#motion` or `actions-2d.html#camera`. The UI action page remains flat because the addon intentionally shows UI actions in a flat menu. Each domain page also begins with its own setup workflow.
 
 ## Phase 2 visual system
 
 The site includes a shared visual presentation layer in `assets/css/site.css`.
 
-- Page accents identify Sensors, Controllers, Actuators, UI, debugging, and interface content.
+- Page accents identify Triggers, Gates, Actions, UI, debugging, and interface content.
 - Brick cards use a consistent title, metadata, options, and screenshot layout.
 - Screenshot placeholders are stored in `assets/images/screenshots/` at 1600 x 900. Replace a placeholder while keeping its filename to update the site.
 - All images use lazy loading to improve long-page performance.

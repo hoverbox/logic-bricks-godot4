@@ -136,6 +136,37 @@
       ? window.LOGIC_BRICKS_SEARCH_INDEX
       : [];
 
+    const renderDocumentationMatches = (query) => {
+      const terms = query.split(/\s+/).filter(Boolean);
+      return index
+        .map((item) => {
+          const title = item.title.toLowerCase();
+          const searchableText = `${item.title} ${item.label} ${item.description}`.toLowerCase();
+          const score = terms.reduce(
+            (total, term) => total + (title.includes(term) ? 4 : 0) + (searchableText.includes(term) ? 1 : 0),
+            0
+          );
+          return { item, score };
+        })
+        .filter(({ score }) => score > 0)
+        .sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title))
+        .slice(0, 6);
+    };
+
+    const addHeading = (text, detail) => {
+      const heading = document.createElement("div");
+      heading.className = "home-search-group-heading";
+      const strong = document.createElement("strong");
+      strong.textContent = text;
+      heading.append(strong);
+      if (detail) {
+        const span = document.createElement("span");
+        span.textContent = detail;
+        heading.append(span);
+      }
+      results.append(heading);
+    };
+
     const render = (value) => {
       const query = value.trim().toLowerCase();
       if (!query) {
@@ -144,56 +175,56 @@
         return;
       }
 
-      const terms = query.split(/\s+/).filter(Boolean);
-      const matches = index
-        .map((item) => {
-          const title = item.title.toLowerCase();
-          const searchableText = `${item.title} ${item.label} ${item.description}`.toLowerCase();
-          const score = terms.reduce(
-            (total, term) =>
-              total +
-              (title.includes(term) ? 4 : 0) +
-              (searchableText.includes(term) ? 1 : 0),
-            0
-          );
-          return { item, score };
-        })
-        .filter(({ score }) => score > 0)
-        .sort(
-          (first, second) =>
-            second.score - first.score ||
-            first.item.title.localeCompare(second.item.title)
-        )
-        .slice(0, 10);
-
+      const suggestions = window.LOGIC_BRICKS_INTENT?.getSuggestions(query, index, 6) || [];
+      const matches = renderDocumentationMatches(query);
       results.classList.add("visible");
       results.replaceChildren();
 
-      if (!matches.length) {
-        const empty = document.createElement("div");
-        empty.className = "home-search-empty";
-        empty.textContent =
-          "No matching documentation found. Try a brick name, menu category, or workflow.";
-        results.append(empty);
-        return;
+      if (suggestions.length) {
+        addHeading("Logic bricks you might use", "Suggestions, not a complete solution — choose the bricks that fit your design.");
+        suggestions.forEach((item) => {
+          const link = document.createElement("a");
+          link.className = "home-search-result home-search-suggestion";
+          link.href = item.url;
+
+          const top = document.createElement("div");
+          top.className = "home-search-result-top";
+          const title = document.createElement("strong");
+          title.textContent = item.title;
+          const badge = document.createElement("span");
+          badge.className = "home-search-domain";
+          badge.textContent = item.label;
+          top.append(title, badge);
+
+          const reason = document.createElement("span");
+          reason.className = "home-search-reason";
+          reason.textContent = item.reason;
+          link.append(top, reason);
+          results.append(link);
+        });
       }
 
-      matches.forEach(({ item }) => {
-        const link = document.createElement("a");
-        link.className = "home-search-result";
-        link.href = item.url;
+      if (matches.length) {
+        addHeading("Documentation matches", suggestions.length ? "Pages and brick references containing your words." : "Search results from the manual.");
+        matches.forEach(({ item }) => {
+          const link = document.createElement("a");
+          link.className = "home-search-result";
+          link.href = item.url;
+          const title = document.createElement("strong");
+          title.textContent = item.title;
+          const description = document.createElement("span");
+          description.textContent = `${item.label}${item.description ? ` · ${item.description}` : ""}`;
+          link.append(title, description);
+          results.append(link);
+        });
+      }
 
-        const title = document.createElement("strong");
-        title.textContent = item.title;
-
-        const description = document.createElement("span");
-        description.textContent = `${item.label}${
-          item.description ? ` · ${item.description}` : ""
-        }`;
-
-        link.append(title, description);
-        results.append(link);
-      });
+      if (!suggestions.length && !matches.length) {
+        const empty = document.createElement("div");
+        empty.className = "home-search-empty";
+        empty.innerHTML = "<strong>Nothing confident yet.</strong><br>Describe the behavior with a little more detail, such as what should trigger it and what should happen.";
+        results.append(empty);
+      }
     };
 
     input.addEventListener("input", () => render(input.value));

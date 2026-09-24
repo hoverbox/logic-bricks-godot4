@@ -510,3 +510,37 @@
     padding:25px
   }
 }
+
+
+/* Build-intent search */
+.home-search-group-heading {
+  grid-column:1/-1;
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  align-items:end;
+  margin-top:4px;
+  padding:8px 2px 2px;
+}
+.home-search-group-heading strong { color:var(--text); font-size:14px; }
+.home-search-group-heading span { color:var(--muted); font-size:12px; text-align:right; }
+.home-search-suggestion { border-color:rgba(255,87,34,.36); background:linear-gradient(145deg,#151823,#10151f); }
+.home-search-suggestion:hover { border-color:#FF5722; }
+.home-search-result-top { display:flex; align-items:center; gap:10px; justify-content:space-between; }
+.home-search-result-top strong { margin:0; }
+.home-search-domain {
+  flex:0 0 auto;
+  margin:0 !important;
+  padding:3px 7px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:999px;
+  color:#b9b7c7 !important;
+  font-size:10px !important;
+  font-weight:700;
+}
+.home-search-reason { margin-top:7px !important; font-size:13px !important; line-height:1.45; }
+.home-search-empty strong { color:var(--text); }
+@media (max-width:650px) {
+  .home-search-group-heading { display:block; }
+  .home-search-group-heading span { display:block; margin-top:3px; text-align:left; }
+}

@@ -4,13 +4,19 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<meta content="7 sensors available for UI workflows." name="description"/>
+<meta content="7 triggers available for UI workflows." name="description"/>
 <title>
-   UI Sensors | Logic Bricks Documentation
+   UI Triggers | Logic Bricks Documentation
   </title>
+<link href="https://brithe3dguy.com/logic-bricks/docs/sensors-ui.html" rel="canonical"/>
 <link href="assets/css/site.css" rel="stylesheet"/>
 <link href="assets/images/favicon.svg" rel="icon" type="image/svg+xml"/>
-<meta content="#08101d" name="theme-color"/>
+<meta content="#0A0A0F" name="theme-color"/>
+<meta content="website" property="og:type"/>
+<meta content="UI Triggers | Bri The 3D Guy" property="og:title"/>
+<meta content="Official Logic Bricks documentation for Godot 4." property="og:description"/>
+<meta content="https://brithe3dguy.com/logic-bricks/docs/sensors-ui.html" property="og:url"/>
+<meta content="https://brithe3dguy.com/images/bricks_thumb.png" property="og:image"/>
 </head>
 <body class="sensors-ui" data-page="sensors-ui.html">
 <div data-site-header="">
@@ -27,21 +33,21 @@
       ›
      </span>
 <span aria-current="page">
-      UI Sensors
+      UI Triggers
      </span>
 </nav>
 <section class="hero">
 <div aria-hidden="true" class="hero-category-mark">
-<span aria-label="Sensor: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
-       Sensor
+<span aria-label="Trigger: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
+       Trigger
       </span>
       Reference
      </div>
 <h1>
-      UI Sensors
+      UI Triggers
      </h1>
 <p class="lead">
-      7 sensors available for UI workflows.
+      7 triggers available for UI workflows.
      </p>
 <div aria-label="Page information" class="page-reading-meta">
 <span>
@@ -77,10 +83,10 @@
        Chapter guide
       </span>
 <h2>
-       How sensors fit into a chain
+       How triggers fit into a chain
       </h2>
 <p>
-       Sensors detect input,
+       Triggers detect input,
        <span aria-label="state: A named mode that can enable one group of logic while disabling another." class="glossary-term" data-tooltip="A named mode that can enable one group of logic while disabling another." tabindex="0">
         state
        </span>
@@ -95,21 +101,21 @@
        Configure filters, thresholds, or stored values.
       </li>
 <li>
-       Connect the sensor to a
-       <span aria-label="Controller: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
-        Controller
+       Connect the trigger to a
+       <span aria-label="Gate: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
+        Gate
        </span>
-       , then to one or more Actuators.
+       , then to one or more Actions.
       </li>
 </ol>
 </section>
 <div class="page-tools">
-<input class="search" id="docSearch" placeholder="Filter sensors on this page…" type="search"/>
+<input class="search" id="docSearch" placeholder="Filter triggers on this page…" type="search"/>
 </div>
 <section class="brick sensor" data-compatibility="ui" data-search="Always Always active while enabled. General" id="always-ui">
 <div class="brick-heading">
 <span class="badge">
-       sensor • ui
+       trigger • ui
       </span>
 <h2>
        Always
@@ -129,18 +135,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Sensors
+        Add Logic Brick → Triggers
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         sensors/ui/always_sensor.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -191,7 +187,7 @@
           Start a logic chain when always active while enabled.
          </li>
 <li>
-          Gate an action through a Controller so multiple conditions can be combined.
+          Gate an action through a Gate so multiple conditions can be combined.
          </li>
 <li>
           Use it as the event or condition at the beginning of a reusable chain.
@@ -210,13 +206,13 @@
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Choose an actuator
+          Choose an action
          </span>
 </div>
 </section>
@@ -226,13 +222,13 @@
 <strong>
          Tip
         </strong>
-        Connect the sensor to a Controller even when only one condition is needed; this keeps the chain easy to expand later.
+        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
        </div>
 <div class="mini-callout caution">
 <strong>
          Common mistake
         </strong>
-        A sensor only detects a condition. It does not perform an action until it is connected through a Controller to an Actuator.
+        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
        </div>
 </div>
 <section class="related-bricks">
@@ -271,7 +267,7 @@
 <section class="brick sensor" data-compatibility="ui" data-search="Button Detects when a Button is pressed, toggled, hovered, or focused. General" id="button-ui">
 <div class="brick-heading">
 <span class="badge">
-       sensor • ui
+       trigger • ui
       </span>
 <h2>
        Button
@@ -291,18 +287,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Sensors
+        Add Logic Brick → Triggers
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         sensors/ui/button_sensor.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -377,7 +363,7 @@
           Start a logic chain when detects when a Button is pressed, toggled, hovered, or focused.
          </li>
 <li>
-          Gate an action through a Controller so multiple conditions can be combined.
+          Gate an action through a Gate so multiple conditions can be combined.
          </li>
 <li>
           Use it as the event or condition at the beginning of a reusable chain.
@@ -396,13 +382,13 @@
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Choose an actuator
+          Choose an action
          </span>
 </div>
 </section>
@@ -412,13 +398,13 @@
 <strong>
          Tip
         </strong>
-        Connect the sensor to a Controller even when only one condition is needed; this keeps the chain easy to expand later.
+        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
        </div>
 <div class="mini-callout caution">
 <strong>
          Common mistake
         </strong>
-        A sensor only detects a condition. It does not perform an action until it is connected through a Controller to an Actuator.
+        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
        </div>
 </div>
 <section class="related-bricks">
@@ -426,18 +412,10 @@
         Related bricks
        </h4>
 <div class="related-link-list">
-<a href="sensors-2d.html#input-map-common">
-         Input Map
-        </a>
-<a href="sensors-ui.html#input-map-ui">
-         Input Map
-        </a>
-<a href="sensors-3d.html#movement-3d">
-         Movement
-        </a>
-<a href="sensors-2d.html#movement-2d-2d">
-         Movement 2D
-        </a>
+<a href="sensors-2d.html#input-map-common">Input</a>
+<a href="sensors-ui.html#input-map-ui">Input</a>
+<a href="sensors-3d.html#movement-3d">Movement Detected</a>
+<a href="sensors-2d.html#movement-2d-2d">Movement Detected</a>
 </div>
 </section>
 </details>
@@ -457,7 +435,7 @@
 <section class="brick sensor" data-compatibility="ui" data-search="Delay Triggers after a delay or at an interval. General" id="delay-ui">
 <div class="brick-heading">
 <span class="badge">
-       sensor • ui
+       trigger • ui
       </span>
 <h2>
        Delay
@@ -477,18 +455,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Sensors
+        Add Logic Brick → Triggers
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         sensors/ui/delay_sensor.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -573,7 +541,7 @@
           Start a logic chain when triggers after a delay or at an interval.
          </li>
 <li>
-          Gate an action through a Controller so multiple conditions can be combined.
+          Gate an action through a Gate so multiple conditions can be combined.
          </li>
 <li>
           Use it as the event or condition at the beginning of a reusable chain.
@@ -592,13 +560,13 @@
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Choose an actuator
+          Choose an action
          </span>
 </div>
 </section>
@@ -608,13 +576,13 @@
 <strong>
          Tip
         </strong>
-        Connect the sensor to a Controller even when only one condition is needed; this keeps the chain easy to expand later.
+        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
        </div>
 <div class="mini-callout caution">
 <strong>
          Common mistake
         </strong>
-        A sensor only detects a condition. It does not perform an action until it is connected through a Controller to an Actuator.
+        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
        </div>
 </div>
 <section class="related-bricks">
@@ -650,14 +618,12 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick sensor" data-compatibility="ui" data-search="Input Map Detects Godot Input Map actions for UI logic. General" id="input-map-ui">
+<section class="brick sensor" data-compatibility="ui" data-search="Input Detects Godot Input Map actions for UI logic. General" id="input-map-ui">
 <div class="brick-heading">
 <span class="badge">
-       sensor • ui
+       trigger • ui
       </span>
-<h2>
-       Input Map
-      </h2>
+<h2>Input</h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
         UI
@@ -673,18 +639,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Sensors
+        Add Logic Brick → Triggers
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         sensors/ui/input_map_sensor.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -735,7 +691,7 @@
 <small>
           Default:
           <code>
-           ui_accept
+           (blank)
           </code>
 </small>
 </td>
@@ -820,7 +776,7 @@
           Start a logic chain when detects Godot Input Map actions for UI logic.
          </li>
 <li>
-          Gate an action through a Controller so multiple conditions can be combined.
+          Gate an action through a Gate so multiple conditions can be combined.
          </li>
 <li>
           Capture or compare a value as part of variable-driven gameplay logic.
@@ -832,20 +788,18 @@
          Example chain
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">Input</span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
 <span class="chain-node">
-          Input Map
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an actuator
+          Choose an action
          </span>
 </div>
 </section>
@@ -861,7 +815,7 @@
 <strong>
          Common mistake
         </strong>
-        A sensor only detects a condition. It does not perform an action until it is connected through a Controller to an Actuator.
+        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
        </div>
 </div>
 <section class="related-bricks">
@@ -869,41 +823,25 @@
         Related bricks
        </h4>
 <div class="related-link-list">
-<a href="sensors-2d.html#input-map-common">
-         Input Map
-        </a>
+<a href="sensors-2d.html#input-map-common">Input</a>
 <a href="actuators-ui.html#button-ui">
          Button
         </a>
-<a href="sensors-ui.html#signal-ui">
-         Signal
-        </a>
+<a href="sensors-ui.html#signal-ui">Signal Receive</a>
 <a href="sensors-2d.html#always-common">
          Always
         </a>
 </div>
 </section>
 </details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Input Map screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/input-map.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Input Map screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
 </section>
-<section class="brick sensor" data-compatibility="ui" data-search="Random Randomly activates based on chance. General" id="random-ui">
+<section class="brick sensor" data-compatibility="ui" data-search="Random Chance Randomly activates based on chance. General" id="random-ui">
 <div class="brick-heading">
 <span class="badge">
-       sensor • ui
+       trigger • ui
       </span>
 <h2>
-       Random
+       Random Chance
       </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
@@ -920,18 +858,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Sensors
+        Add Logic Brick → Triggers
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         sensors/ui/random_sensor.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -1119,7 +1047,7 @@
           Start a logic chain when randomly activates based on chance.
          </li>
 <li>
-          Gate an action through a Controller so multiple conditions can be combined.
+          Gate an action through a Gate so multiple conditions can be combined.
          </li>
 <li>
           Capture or compare a value as part of variable-driven gameplay logic.
@@ -1138,13 +1066,13 @@
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Choose an actuator
+          Choose an action
          </span>
 </div>
 </section>
@@ -1154,13 +1082,13 @@
 <strong>
          Tip
         </strong>
-        Connect the sensor to a Controller even when only one condition is needed; this keeps the chain easy to expand later.
+        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
        </div>
 <div class="mini-callout caution">
 <strong>
          Common mistake
         </strong>
-        A sensor only detects a condition. It does not perform an action until it is connected through a Controller to an Actuator.
+        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
        </div>
 </div>
 <section class="related-bricks">
@@ -1196,14 +1124,12 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick sensor" data-compatibility="ui" data-search="Signal Receives a Logic Bricks message. General" id="signal-ui">
+<section class="brick sensor" data-compatibility="ui" data-search="Signal Receive Receives a Logic Bricks message. General" id="signal-ui">
 <div class="brick-heading">
 <span class="badge">
-       sensor • ui
+       trigger • ui
       </span>
-<h2>
-       Signal
-      </h2>
+<h2>Signal Receive</h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
         UI
@@ -1219,18 +1145,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Sensors
+        Add Logic Brick → Triggers
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         sensors/ui/message_sensor.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -1312,7 +1228,7 @@
           Start a logic chain when receives a Logic Bricks message.
          </li>
 <li>
-          Gate an action through a Controller so multiple conditions can be combined.
+          Gate an action through a Gate so multiple conditions can be combined.
          </li>
 <li>
           Use it as the event or condition at the beginning of a reusable chain.
@@ -1324,20 +1240,18 @@
          Example chain
         </h4>
 <div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">Signal Receive</span>
+<span aria-hidden="true" class="chain-arrow">
+          →
+         </span>
 <span class="chain-node">
-          Signal
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Controller
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an actuator
+          Choose an action
          </span>
 </div>
 </section>
@@ -1347,13 +1261,13 @@
 <strong>
          Tip
         </strong>
-        Connect the sensor to a Controller even when only one condition is needed; this keeps the chain easy to expand later.
+        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
        </div>
 <div class="mini-callout caution">
 <strong>
          Common mistake
         </strong>
-        A sensor only detects a condition. It does not perform an action until it is connected through a Controller to an Actuator.
+        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
        </div>
 </div>
 <section class="related-bricks">
@@ -1361,9 +1275,7 @@
         Related bricks
        </h4>
 <div class="related-link-list">
-<a href="sensors-ui.html#input-map-ui">
-         Input Map
-        </a>
+<a href="sensors-ui.html#input-map-ui">Input</a>
 <a href="sensors-2d.html#always-common">
          Always
         </a>
@@ -1376,23 +1288,11 @@
 </div>
 </section>
 </details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Signal screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/signal.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Signal screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
 </section>
 <section class="brick sensor" data-compatibility="ui" data-search="Variable Compares a variable value. General" id="variable-ui">
 <div class="brick-heading">
 <span class="badge">
-       sensor • ui
+       trigger • ui
       </span>
 <h2>
        Variable
@@ -1412,18 +1312,8 @@
         Menu
        </strong>
 <span>
-        Add Logic Brick → Sensors
+        Add Logic Brick → Triggers
        </span>
-</div>
-<div>
-<strong>
-        Source
-       </strong>
-<span>
-<code>
-         sensors/ui/variable_sensor.gd
-        </code>
-</span>
 </div>
 </div>
 <h3>
@@ -1518,7 +1408,7 @@
           Start a logic chain when compares a variable value.
          </li>
 <li>
-          Gate an action through a Controller so multiple conditions can be combined.
+          Gate an action through a Gate so multiple conditions can be combined.
          </li>
 <li>
           Capture or compare a value as part of variable-driven gameplay logic.
@@ -1537,13 +1427,13 @@
           →
          </span>
 <span class="chain-node">
-          Controller
+          Gate
          </span>
 <span aria-hidden="true" class="chain-arrow">
           →
          </span>
 <span class="chain-node">
-          Choose an actuator
+          Choose an action
          </span>
 </div>
 </section>
@@ -1553,13 +1443,13 @@
 <strong>
          Tip
         </strong>
-        Connect the sensor to a Controller even when only one condition is needed; this keeps the chain easy to expand later.
+        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
        </div>
 <div class="mini-callout caution">
 <strong>
          Common mistake
         </strong>
-        A sensor only detects a condition. It does not perform an action until it is connected through a Controller to an Actuator.
+        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
        </div>
 </div>
 <section class="related-bricks">
@@ -1609,7 +1499,7 @@
        Next →
       </span>
 <strong>
-       Controllers
+       Gates
       </strong>
 </a>
 </div>

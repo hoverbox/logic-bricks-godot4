@@ -147,12 +147,6 @@
       </span>
 <small>5 actions</small>
 </a>
-<a href="#ui">
-<span>
-       UI
-      </span>
-<small>3 actions</small>
-</a>
 <a href="#general-shared">
 <span>
        General
@@ -1277,7 +1271,7 @@
       </p>
 </div>
 <div class="category-bricks">
-<section class="brick actuator" data-compatibility="2d" data-search="Set Camera Makes the assigned Camera3D the active camera.\nUse a one-shot trigger (e.g. Delay or a state transition) to avoid\ncalling make_current() every frame unnecessarily.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there. General" id="set-camera-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Set Camera Makes the named Camera2D active for the current viewport. Camera" id="set-camera-2d">
 <div class="brick-heading">
 <span class="badge">
          action • 2d
@@ -1291,13 +1285,7 @@
          </span>
 </div>
 </div>
-<p>
-        Makes the assigned Camera3D the active camera.\nUse a one-shot trigger (e.g. Delay or a
-        <span aria-label="state: A named mode that can enable one group of logic while disabling another." class="glossary-term" data-tooltip="A named mode that can enable one group of logic while disabling another." tabindex="0">
-         state
-        </span>
-        transition) to avoid\ncalling make_current() every frame unnecessarily.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there.
-       </p>
+<p>Makes the named Camera2D active for the current viewport. Use a one-shot trigger when possible so make_current() is not called every frame.</p>
 <div class="meta-grid">
 <div>
 <strong>
@@ -1329,20 +1317,7 @@
             camera_node_name
            </code>
 </td>
-<td>
-           Camera Node Name
-           <br/>
-<small>
-            Default:
-            <code>
-             Camera3D
-            </code>
-</small>
-<br/>
-<small>
-            Camera3D node name
-           </small>
-</td>
+<td>Camera2D node name. Default: Camera2D. Use the scene node picker.</td>
 </tr>
 </tbody>
 </table>
@@ -1418,9 +1393,6 @@
 <a href="actuators-3d.html#gravity-3d">
            Gravity
           </a>
-<a href="actuators-3d.html#3rd-person-camera-3d">
-           3rd Person Camera
-          </a>
 </div>
 </section>
 </details>
@@ -1437,7 +1409,7 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Camera Zoom Changes camera FOV (3D) or zoom (2D).\nDrag your camera into the inspector slot. General" id="camera-zoom-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Camera Zoom Changes Camera2D zoom. 1.0 normal, 2.0 zoomed in, 0.5 zoomed out. Camera" id="camera-zoom-2d">
 <div class="brick-heading">
 <span class="badge">
          action • 2d
@@ -1451,9 +1423,7 @@
          </span>
 </div>
 </div>
-<p>
-        Changes camera FOV (3D) or zoom (2D).\nDrag your camera into the inspector slot.
-       </p>
+<p>Changes Camera2D zoom. 1.0 = normal, 2.0 = zoomed in, 0.5 = zoomed out.</p>
 <div class="meta-grid">
 <div>
 <strong>
@@ -1485,20 +1455,7 @@
             camera_node_name
            </code>
 </td>
-<td>
-           Camera Node Name
-           <br/>
-<small>
-            Default:
-            <code>
-             Camera3D
-            </code>
-</small>
-<br/>
-<small>
-            Camera3D or Camera2D node name
-           </small>
-</td>
+<td>Camera2D node name. Default: Camera2D. Use the scene node picker.</td>
 </tr>
 <tr>
 <td>
@@ -1682,7 +1639,7 @@
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="2d" data-search="Smooth Follow Camera Smoothly follows this node with the assigned Camera3D,\nmaintaining the camera's initial offset from the target.\n\nPosition follow: camera tracks the node's position per axis.\nRotation follow: camera orbits the node, keeping it in frame.\nDead zone: camera only moves once the node exceeds the threshold.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there. General" id="smooth-follow-camera-2d">
+<section class="brick actuator" data-compatibility="2d" data-search="Smooth Follow Camera Smoothly follows this Node2D with a named Camera2D while maintaining the camera offset. Camera" id="smooth-follow-camera-2d">
 <div class="brick-heading">
 <span class="badge">
          action • 2d
@@ -1696,9 +1653,7 @@
          </span>
 </div>
 </div>
-<p>
-        Smoothly follows this node with the assigned Camera3D,\nmaintaining the camera's initial offset from the target.\n\nPosition follow: camera tracks the node's position per axis.\nRotation follow: camera orbits the node, keeping it in frame.\nDead zone: camera only moves once the node exceeds the threshold.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there.
-       </p>
+<p>Smoothly follows this Node2D with the named Camera2D while maintaining the camera's initial offset from the target.</p>
 <div class="meta-grid">
 <div>
 <strong>
@@ -1730,20 +1685,7 @@
             camera_node_name
            </code>
 </td>
-<td>
-           Camera Node Name
-           <br/>
-<small>
-            Default:
-            <code>
-             Camera3D
-            </code>
-</small>
-<br/>
-<small>
-            Camera3D node name
-           </small>
-</td>
+<td>Camera2D node name. Default: Camera2D. Use the scene node picker.</td>
 </tr>
 <tr>
 <td>
@@ -2075,9 +2017,7 @@
          </span>
 </div>
 </div>
-<p>
-        Exit, restart, pause, and screenshot functionality
-       </p>
+<p>Controls game flow: exit, reload the scene, pause, unpause, toggle pause, or save a screenshot.</p>
 <div class="meta-grid">
 <div>
 <strong>
@@ -2109,20 +2049,7 @@
             action
            </code>
 </td>
-<td>
-           Action
-           <br/>
-<small>
-            Choices: Exit,Reload Scene,Pause,Screenshot
-           </small>
-<br/>
-<small>
-            Default:
-            <code>
-             exit
-            </code>
-</small>
-</td>
+<td>Exit, Reload Scene, Pause, Unpause, Toggle Pause, or Screenshot. Default: Exit.</td>
 </tr>
 <tr>
 <td>
@@ -2220,7 +2147,7 @@
           </a>
 </div>
 </section>
-</details>
+<div class="mini-callout tip"><strong>Pause controls</strong> Unpause and Toggle Pause are generated with pause-safe input handling so they can resume a paused SceneTree. Use a one-shot input such as Just Pressed for toggles.</div></details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
 <img alt="Game screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/game.png"/>
@@ -6062,7 +5989,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
 <p>Moves a Node2D along the points of a Path2D curve with optional looping and direction-facing.</p>
 <div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Motion</span></div></div>
 <h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>path_node_name</code></td><td>Path2D containing the Curve2D to follow.</td></tr><tr><td><code>speed</code></td><td>Movement speed in pixels per second.</td></tr><tr><td><code>loop</code></td><td>Return to the first waypoint after the last point.</td></tr><tr><td><code>face_direction</code></td><td>Rotate the moving node to face its travel direction.</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Path Follow after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Path Follow</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Add at least two points to the Path2D curve before testing.</div><div class="mini-callout caution"><strong>Common mistake</strong>The action follows the Path2D curve points; an empty curve cannot produce movement.</div></div></details>
+<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Path Follow after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Path Follow</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Add at least two points to the Path2D curve before testing.</div><div class="mini-callout caution"><strong>Common mistake</strong>The action follows the Path2D curve points; an empty curve cannot produce movement.</div></div><div class="mini-callout tip"><strong>After editing waypoints</strong> Click Refresh Waypoints so the brick rebuilds its waypoint list before testing.</div></details>
 <figure class="screenshot compact"><div class="screenshot-image"><img alt="Path Follow action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/waypoint-path.png"/></div><figcaption><strong class="screenshot-caption-title">Path Follow screenshot</strong><span></span></figcaption></figure>
 </section></div>
 </section>
@@ -8206,290 +8133,6 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
 <figure class="screenshot compact"><div class="screenshot-image"><img alt="Collisions action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/collision-2d.png"/></div><figcaption><strong class="screenshot-caption-title">Collisions screenshot</strong><span></span></figcaption></figure>
 </section></div>
 </section>
-<section class="actuator-category" id="ui">
-<div class="category-heading">
-<span class="eyebrow">
-       RIGHT-CLICK SUBMENU
-      </span>
-<h2>
-       UI
-      </h2>
-<p>
-       Right-click → Actions → UI
-      </p>
-</div>
-<div class="category-bricks">
-<section class="brick actuator" data-compatibility="2d" data-search="Color / Transparency Sets or smoothly transitions the color/alpha of a UI or 2D node found by name anywhere in the current scene tree. General" id="modulate-2d">
-<div class="brick-heading">
-<span class="badge">
-         action • shared
-        </span>
-<h2>
-         Color / Transparency
-        </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
-          2D
-         </span>
-</div>
-</div>
-<p>
-        Sets or smoothly transitions the color/alpha of a UI or 2D node found by name anywhere in the current scene tree.
-       </p>
-<div class="meta-grid">
-<div>
-<strong>
-          Menu
-         </strong>
-<span>
-          Add Logic Brick → Actions → UI
-         </span>
-</div>
-</div>
-<h3>
-        Options
-       </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-           Property
-          </th>
-<th>
-           Details
-          </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-            target_node_name
-           </code>
-</td>
-<td>
-           Target Node Name
-          </td>
-</tr>
-<tr>
-<td>
-<code>
-            node_name_source
-           </code>
-</td>
-<td>
-           Node Name Source
-           <br/>
-<small>
-            Choices: Literal Node Name,String Variable
-           </small>
-<br/>
-<small>
-            Default:
-            <code>
-             literal
-            </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            export_node_name
-           </code>
-</td>
-<td>
-           Export Node Name
-           <br/>
-<small>
-            Default:
-            <code>
-             false
-            </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            target_modulate
-           </code>
-</td>
-<td>
-           Target Modulate
-           <br/>
-<small>
-            Choices: Self Modulate,Modulate
-           </small>
-<br/>
-<small>
-            Default:
-            <code>
-             self_modulate
-            </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            color
-           </code>
-</td>
-<td>
-           Color
-           <br/>
-<small>
-            Default:
-            <code>
-             Color(1
-            </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            transition
-           </code>
-</td>
-<td>
-           Transition
-           <br/>
-<small>
-            Default:
-            <code>
-             false
-            </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-            transition_speed
-           </code>
-</td>
-<td>
-           Transition Speed
-           <br/>
-<small>
-            Default:
-            <code>
-             5.0
-            </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-         Using this brick
-        </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-           Typical uses
-          </h4>
-<ul>
-<li>
-            Perform the general action described above after a trigger/gate chain succeeds.
-           </li>
-<li>
-            Reuse the brick in multiple states or chains with different option values.
-           </li>
-<li>
-            Target a specific node by configuring the node field before testing the chain.
-           </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-           Example chain
-          </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-            Choose a trigger
-           </span>
-<span aria-hidden="true" class="chain-arrow">
-            →
-           </span>
-<span class="chain-node">
-            Gate
-           </span>
-<span aria-hidden="true" class="chain-arrow">
-            →
-           </span>
-<span class="chain-node">
-            Color / Transparency
-           </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-           Tip
-          </strong>
-          Confirm the target node name and node type before troubleshooting the rest of the chain.
-         </div>
-<div class="mini-callout caution">
-<strong>
-           Common mistake
-          </strong>
-          Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
-         </div>
-</div>
-<section class="related-bricks">
-<h4>
-          Related bricks
-         </h4>
-<div class="related-link-list">
-<a href="actuators-3d.html#progress-bar-3d">
-           Progress Bar
-          </a>
-<a href="actuators-3d.html#tween-3d">
-           Tween
-          </a>
-<a href="actuators-3d.html#screen-shake-3d">
-           Screen Shake
-          </a>
-<a href="actuators-3d.html#sprite-frames-3d">
-           Sprite Frames
-          </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Modulate screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/modulate.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-          Modulate screenshot
-         </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick actuator" data-compatibility="2d" data-search="Progress Bar Sets or smoothly updates the value, minimum, or maximum of a ProgressBar, Slider, or other Range node. Ui" id="progress-bar-2d">
-<div class="brick-heading"><span class="badge">action • 2d</span><h2>Progress Bar</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
-<p>Sets or smoothly updates the value, minimum, or maximum of a ProgressBar, Slider, or other Range node.</p>
-<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Ui</span></div></div>
-<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>target_node_name</code></td><td>Target ProgressBar, Slider, or Range node.</td></tr><tr><td><code>node_name_source</code></td><td>Literal Node Name or String Variable.</td></tr><tr><td><code>set_value / value</code></td><td>Enable and provide the new value.</td></tr><tr><td><code>set_min / min_value</code></td><td>Enable and provide a new minimum.</td></tr><tr><td><code>set_max / max_value</code></td><td>Enable and provide a new maximum.</td></tr><tr><td><code>transition / transition_speed</code></td><td>Smoothly approach the requested value instead of changing instantly.</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Progress Bar after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Progress Bar</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Values can reference variables, making this useful for health, stamina, loading, and score meters.</div><div class="mini-callout caution"><strong>Common mistake</strong>The target must inherit Range; a plain Control node does not have value, min_value, or max_value properties.</div></div></details>
-<figure class="screenshot compact"><div class="screenshot-image"><img alt="Progress Bar action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/progress-bar.png"/></div><figcaption><strong class="screenshot-caption-title">Progress Bar screenshot</strong><span></span></figcaption></figure>
-</section><section class="brick actuator" data-compatibility="2d" data-search="Text Updates a Label, RichTextLabel, or compatible text UI node from a variable or static string. Ui" id="text-2d">
-<div class="brick-heading"><span class="badge">action • 2d</span><h2>Text</h2><div class="brick-xp-meta"><span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">2D</span></div></div>
-<p>Updates a Label, RichTextLabel, or compatible text UI node from a variable or static string.</p>
-<div class="meta-grid"><div><strong>Menu</strong><span>Add Logic Brick → Actions → Ui</span></div></div>
-<h3>Options</h3><table class="option-table"><thead><tr><th>Property</th><th>Details</th></tr></thead><tbody><tr><td><code>target_node_name</code></td><td>Target text node.</td></tr><tr><td><code>node_name_source</code></td><td>Literal Node Name or String Variable.</td></tr><tr><td><code>mode</code></td><td>Variable or Static.</td></tr><tr><td><code>variable_name</code></td><td>Variable converted to text in Variable mode.</td></tr><tr><td><code>prefix / suffix</code></td><td>Text placed before or after the variable value.</td></tr><tr><td><code>static_text</code></td><td>Exact text used in Static mode.</td></tr></tbody></table>
-<details class="brick-guidance collapsible-guidance" open=""><summary>Using this brick</summary><div class="guidance-columns"><section class="guidance-panel uses"><h4>Typical uses</h4><ul><li>Run Text after a trigger and gate chain succeeds.</li><li>Combine it with states to enable the behavior only during the appropriate gameplay mode.</li></ul></section><section class="guidance-panel example"><h4>Example chain</h4><div aria-label="Example logic chain" class="logic-chain"><span class="chain-node">Trigger</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Gate</span><span aria-hidden="true" class="chain-arrow">→</span><span class="chain-node">Text</span></div></section></div><div class="guidance-notes"><div class="mini-callout tip"><strong>Tip</strong>Use Prefix and Suffix for labels such as “Health: 75 / 100”.</div><div class="mini-callout caution"><strong>Common mistake</strong>Variable mode requires a valid variable name on the generated script or accessible target context.</div></div></details>
-<figure class="screenshot compact"><div class="screenshot-image"><img alt="Text action screenshot" decoding="async" loading="lazy" src="assets/images/screenshots/text.png"/></div><figcaption><strong class="screenshot-caption-title">Text screenshot</strong><span></span></figcaption></figure>
-</section></div>
-</section>
 <div class="page-nav">
 <a class="page-nav-card previous" href="actuators-3d.html">
 <span class="page-nav-label">
@@ -8508,7 +8151,7 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
       </strong>
 </a>
 </div>
-</main>
+<span aria-hidden="true" class="legacy-anchor" id="modulate-2d"></span><span aria-hidden="true" class="legacy-anchor" id="progress-bar-2d"></span><span aria-hidden="true" class="legacy-anchor" id="text-2d"></span></main>
 <aside aria-label="On this page" class="page-toc">
 <div class="toc-box">
 <h3>
@@ -8566,9 +8209,6 @@ Use a Compare Variable trigger set to <strong>Does Not Contain</strong> before a
        </a>
 </li>
 <li>
-<a data-toc-target="ui" href="#ui">
-        UI
-       </a>
 </li>
 </ul>
 </div>
