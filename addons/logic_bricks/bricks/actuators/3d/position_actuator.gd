@@ -52,7 +52,7 @@ func get_property_definitions() -> Array:
 
 func get_configuration_warnings(node: Node = null) -> Array[String]:
 	var warnings := super.get_configuration_warnings(node)
-	if _is_zero(properties.get("x", "0.0")) and _is_zero(properties.get("y", "0.0")) and _is_zero(properties.get("z", "0.0")):
+	if _is_literal_zero(properties.get("x", "0.0")) and _is_literal_zero(properties.get("y", "0.0")) and _is_literal_zero(properties.get("z", "0.0")):
 		warnings.append("Put a Value or Variable in X,Y, or Z")
 	return warnings
 

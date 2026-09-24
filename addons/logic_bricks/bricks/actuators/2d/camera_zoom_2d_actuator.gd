@@ -38,9 +38,9 @@ func get_tooltip_definitions() -> Dictionary:
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var camera_node_name = str(properties.get("camera_node_name", "Camera2D")).strip_edges()
-	var zoom = _to_expr(properties.get("zoom", "1.0"))
+	var zoom = _expr(properties.get("zoom", "1.0"))
 	var transition = properties.get("transition", true)
-	var speed = _to_expr(properties.get("transition_speed", "3.0"))
+	var speed = _expr(properties.get("transition_speed", "3.0"))
 	var camera_var = instance_name.to_lower().replace(" ", "_") if not instance_name.is_empty() else "camera_zoom_2d"
 	var member_vars: Array[String] = []
 	var code_lines: Array[String] = []
@@ -65,13 +65,4 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("else:")
 	code_lines.append("\tpush_warning(\"Camera Zoom 2D Actuator: No Camera2D assigned to '%s'\")" % camera_var)
 	return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
-
-func _to_expr(val) -> String:
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return "0.0"
-	if s.is_valid_float() or s.is_valid_int():
-		return s
-	return s
-
 

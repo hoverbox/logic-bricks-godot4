@@ -74,7 +74,11 @@ func get_property_definitions() -> Array:
 		{
 			"name": "spawn_node", "required": true, "required_label": "a spawn node", "required_if": {"action": "spawn", "spawn_at_self": false},
 			"type": TYPE_STRING,
-			"default": ""
+			"default": "",
+			"node_reference": true,
+			"node_picker_scope": "scene",
+			"node_reference_store": "path",
+			"accepted_node_types": ["Node3D"]
 		},
 		{
 			"name": "inherit_rotation",
@@ -260,7 +264,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("\t%s = _now_%s" % [delay_var, chain_name])
 				ind = "\t"
 			# Spawn-amount loop
-			var amount_expr = _to_expr(spawn_amount)
+			var amount_expr = _expr(spawn_amount, "1")
 			var amount_is_var = _is_variable(spawn_amount)
 			var ind2 = ind + "\t"
 			if amount_is_var:
@@ -283,8 +287,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 						code_lines.append("%s\t\t\t%s[_spawn_obj.get_instance_id()] = Time.get_ticks_msec()" % [ind2, timers_var])
 					code_lines.append("%s\t\t\t_spawned = true" % ind2)
 					code_lines.append("%s\t\t\tbreak" % ind2)
-					code_lines.append("%s\tif not _spawned:" % ind2)
-					code_lines.append("%s\t\tpush_warning(\"Object Pool: Pool exhausted for random pick — increase pool size\")" % ind2)
 				"all":
 					code_lines.append("%sfor _sub_pool in %s:" % [ind2, pools_var])
 					code_lines.append("%s\tvar _spawned = false" % ind2)
@@ -298,8 +300,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 						code_lines.append("%s\t\t\t%s[_spawn_obj.get_instance_id()] = Time.get_ticks_msec()" % [ind2, timers_var])
 					code_lines.append("%s\t\t\t_spawned = true" % ind2)
 					code_lines.append("%s\t\t\tbreak" % ind2)
-					code_lines.append("%s\tif not _spawned:" % ind2)
-					code_lines.append("%s\t\tpush_warning(\"Object Pool: A sub-pool is exhausted — increase pool size\")" % ind2)
 
 		"despawn_all":
 			code_lines.append("for _sub_pool in %s:" % pools_var)
@@ -313,15 +313,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"ready_code":       ready_code,
 		"pre_process_code": pre_process_code,
 	}
-
-
-func _to_expr(val) -> String:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return str(val)
-	var s = str(val).strip_edges()
-	if s.is_empty(): return "1"
-	if s.is_valid_float() or s.is_valid_int(): return s
-	return s
 
 
 ## Returns true if val is a variable/expression name rather than a plain number literal.

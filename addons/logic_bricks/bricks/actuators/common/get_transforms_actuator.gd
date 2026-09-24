@@ -181,31 +181,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
 
-
-func _node_has_logic_variable(node: Node, variable_name: String) -> bool:
-	if node == null or variable_name.is_empty() or not node.has_meta("logic_bricks_variables"):
-		return false
-	var variables_data = node.get_meta("logic_bricks_variables")
-	if not (variables_data is Array):
-		return false
-	for var_data in variables_data:
-		if var_data is Dictionary and str(var_data.get("name", "")).strip_edges() == variable_name:
-			return true
-	return false
-
-
-func _sanitize_identifier(value: String) -> String:
-	var sanitized := value.strip_edges().replace(" ", "_")
-	var regex := RegEx.new()
-	regex.compile("[^a-zA-Z0-9_]")
-	sanitized = regex.sub(sanitized, "", true)
-	if sanitized.is_empty():
-		return ""
-	if sanitized.substr(0, 1).is_valid_int():
-		sanitized = "var_" + sanitized
-	return sanitized
-
-
 func _unique_label(chain_name: String) -> String:
 	var label := instance_name if not instance_name.is_empty() else "%s_%s_%s" % [brick_name, chain_name, str(abs(str(properties).hash()))]
 	label = label.to_lower().replace(" ", "_")

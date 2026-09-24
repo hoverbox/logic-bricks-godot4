@@ -63,7 +63,7 @@ func get_tooltip_definitions() -> Dictionary:
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var object_node_name = str(properties.get("object_node_name", "self")).strip_edges()
 	var effect = str(properties.get("effect", "single_flash")).to_lower().replace(" ", "_")
-	var speed_expr = _to_expr(properties.get("speed", "0.08"))
+	var speed_expr = _expr(properties.get("speed", "0.08"), "0.08")
 	var flash_color = properties.get("color", Color(1, 0, 0, 0.8))
 
 	if object_node_name.is_empty():
@@ -201,7 +201,6 @@ func _run_object_flash_{helper_suffix}(target: GeometryInstance3D, effect_mode: 
 	return {
 		"actuator_code": "\n".join(code_lines),
 		"member_vars": [
-			"var %s: GeometryInstance3D = null" % target_var,
 			"var %s: StandardMaterial3D = null" % overlay_var,
 			"var %s: Material = null" % prev_overlay_var,
 			"var %s: Tween = null" % tween_var,
@@ -210,10 +209,3 @@ func _run_object_flash_{helper_suffix}(target: GeometryInstance3D, effect_mode: 
 	}
 
 
-func _to_expr(val) -> String:
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return "0.08"
-	if s.is_valid_float() or s.is_valid_int():
-		return s
-	return s

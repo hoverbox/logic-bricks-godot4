@@ -118,10 +118,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var node_name_source = str(properties.get("node_name_source", "literal")).to_lower().replace(" ", "_")
 	var export_node_name = properties.get("export_node_name", false)
 	var export_params = properties.get("export_params", false)
-	var trauma        = _to_expr(properties.get("trauma",       "1.5"))
-	var max_offset    = _to_expr(properties.get("max_offset",   "3.5"))
-	var decay         = _to_expr(properties.get("decay",        "1.5"))
-	var noise_speed   = _to_expr(properties.get("noise_speed",  "8.0"))
+	var trauma        = _expr(properties.get("trauma",       "1.5"))
+	var max_offset    = _expr(properties.get("max_offset",   "3.5"))
+	var decay         = _expr(properties.get("decay",        "1.5"))
+	var noise_speed   = _expr(properties.get("noise_speed",  "8.0"))
 
 	# Use instance name if set; otherwise include the chain name and a settings hash.
 	# This prevents multiple Screen Shake actuators from generating the same helper
@@ -161,27 +161,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	member_vars.append("var %s: float = 0.0" % trauma_var)
 	member_vars.append("var %s: FastNoiseLite = FastNoiseLite.new()" % noise_var)
 	member_vars.append("var %s: float = 0.0" % time_var)
-	# Shared helper: search an entire subtree by node.name. Keeping this helper generic
-	# makes Screen Shake work like Collision/Animation-style bricks: users type a name, not a path.
-	member_vars.append("")
-	member_vars.append("func _lb_find_node_by_name_recursive(node: Node, target_name: String) -> Node:")
-	member_vars.append("\tif node == null or target_name.is_empty():")
-	member_vars.append("\t\treturn null")
-	member_vars.append("\tif node.name == target_name:")
-	member_vars.append("\t\treturn node")
-	member_vars.append("\tfor child in node.get_children():")
-	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(child, target_name)")
-	member_vars.append("\t\tif found:")
-	member_vars.append("\t\t\treturn found")
-	member_vars.append("\treturn null")
-	member_vars.append("")
-	member_vars.append("func _lb_find_node_in_current_scene(target_name: String) -> Node:")
-	member_vars.append("\tvar scene_root = get_tree().current_scene")
-	member_vars.append("\tif scene_root:")
-	member_vars.append("\t\tvar found = _lb_find_node_by_name_recursive(scene_root, target_name)")
-	member_vars.append("\t\tif found:")
-	member_vars.append("\t\t\treturn found")
-	member_vars.append("\treturn _lb_find_node_by_name_recursive(get_tree().root, target_name)")
+	_append_find_node_helpers(member_vars)
 	# Helper method — drives h_offset/v_offset so shake never conflicts with transform-based camera scripts
 	member_vars.append("")
 	member_vars.append("func %s(_delta: float) -> void:" % helper_func)
@@ -229,8 +209,3 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	}
 
 
-func _to_expr(val) -> String:
-	var s = str(val).strip_edges()
-	if s.is_empty(): return "0.0"
-	if s.is_valid_float() or s.is_valid_int(): return s
-	return s

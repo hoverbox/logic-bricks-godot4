@@ -6,9 +6,12 @@ extends RefCounted
 const LogicBrick = preload("res://addons/logic_bricks/core/logic_brick.gd")
 const VariableUtils = preload("res://addons/logic_bricks/core/logic_brick_variable_utils.gd")
 const BrickRegistry = preload("res://addons/logic_bricks/core/brick_registry.gd")
+const Migrations = preload("res://addons/logic_bricks/core/logic_brick_migrations.gd")
 
 ## Metadata key for storing brick chains
 const METADATA_KEY = "logic_bricks"
+const SCHEMA_VERSION_KEY = Migrations.SCHEMA_VERSION_KEY
+const CURRENT_SCHEMA_VERSION = Migrations.CURRENT_SCHEMA_VERSION
 
 ## Code generation markers
 const CODE_START_MARKER = "# === LOGIC BRICKS START ==="
@@ -20,6 +23,7 @@ var editor_interface = null
 
 ## Get all brick chains from a node's metadata
 func get_chains(node: Node) -> Array:
+	migrate_node_metadata(node)
 	if node.has_meta(METADATA_KEY):
 		var data = node.get_meta(METADATA_KEY)
 		if data is Array:
@@ -30,13 +34,34 @@ func get_chains(node: Node) -> Array:
 ## Save brick chains to node metadata
 func save_chains(node: Node, chains: Array) -> void:
 	node.set_meta(METADATA_KEY, chains)
+	Migrations.stamp_current_schema(node)
 
 	# Mark the scene as modified so changes are saved
 	_mark_scene_modified(node)
 
 
-## Regenerate the script for a node based on its brick chains
-func regenerate_script(node: Node, variables_code: String = "") -> void:
+## Upgrade old Logic Bricks metadata before the rest of the addon consumes it.
+## Returns true only when metadata changed.
+func migrate_node_metadata(node: Node) -> bool:
+	if node == null:
+		return false
+	var result: Dictionary = Migrations.migrate_node(node)
+	if bool(result.get("future_version", false)):
+		push_warning("Logic Bricks: Node '%s' uses newer saved-data schema v%d (this addon supports v%d). Metadata was left unchanged." % [node.name, int(result.get("from_version", 0)), CURRENT_SCHEMA_VERSION])
+		return false
+	if bool(result.get("changed", false)):
+		_mark_scene_modified(node)
+		return true
+	return false
+
+
+func stamp_current_schema(node: Node) -> void:
+	Migrations.stamp_current_schema(node)
+
+
+## Regenerate the script for a node based on its brick chains.
+## Returns true only when the candidate script validates and is safely written.
+func regenerate_script(node: Node, variables_code: String = "") -> bool:
 	var chains = get_chains(node)
 
 	# If no variables code was passed, generate it from node metadata
@@ -47,34 +72,86 @@ func regenerate_script(node: Node, variables_code: String = "") -> void:
 	var generated_code = _generate_code_for_chains(node, chains, variables_code)
 
 	# Only regenerate for nodes that already have a user-assigned script.
-	# This avoids silently attaching scripts to the wrong node when students
-	# accidentally build logic on an unscripted selection.
 	if not node.get_script():
 		push_warning("Logic Bricks: Node '%s' has no script. Add a script manually before applying Logic Bricks code." % node.name)
-		return
+		return false
 
-	var script_path = node.get_script().resource_path
+	var script_path: String = node.get_script().resource_path
+	if script_path.is_empty():
+		push_error("Logic Bricks: The selected script has no resource path. Existing script was not modified.")
+		return false
 
-	# Read existing script
-	var file = FileAccess.open(script_path, FileAccess.READ)
+	# Read existing script.
+	var file := FileAccess.open(script_path, FileAccess.READ)
 	if not file:
 		push_error("Logic Bricks: Could not open script file: " + script_path)
-		return
+		return false
 
-	var existing_code = file.get_as_text()
+	var existing_code: String = file.get_as_text()
 	file.close()
 
-	# Replace code between markers
-	var new_code = _replace_generated_code(existing_code, generated_code, node)
+	# Build the complete candidate without touching the working file.
+	var new_code: String = _replace_generated_code(existing_code, generated_code, node)
 
-	# Write the updated script
-	file = FileAccess.open(script_path, FileAccess.WRITE)
+	return safe_write_gdscript(script_path, new_code, "Apply Code")
+
+
+## Compile a generated GDScript candidate before replacing the working file.
+## Uses a sibling temp file plus a short-lived backup so callers such as Apply
+## Code and GlobalVars generation share the same rollback-safe write path.
+func safe_write_gdscript(script_path: String, source_code: String, operation_label: String = "Generated script update") -> bool:
+	var candidate := GDScript.new()
+	candidate.source_code = source_code
+	var validation_error: Error = candidate.reload()
+	if validation_error != OK:
+		push_error("Logic Bricks: %s aborted because the generated script did not compile (error %d). Existing script was not modified." % [operation_label, int(validation_error)])
+		return false
+
+	var temp_path := script_path + ".logic_bricks_tmp"
+	var backup_path := script_path + ".logic_bricks_backup"
+	_cleanup_regeneration_artifact(temp_path)
+	_cleanup_regeneration_artifact(backup_path)
+
+	var file := FileAccess.open(temp_path, FileAccess.WRITE)
 	if not file:
-		push_error("Logic Bricks: Could not write script file: " + script_path)
-		return
-
-	file.store_string(new_code)
+		push_error("Logic Bricks: %s could not create a temporary script file. Existing script was not modified." % operation_label)
+		return false
+	file.store_string(source_code)
 	file.close()
+
+	var original_exists := FileAccess.file_exists(script_path)
+	var original_abs := ProjectSettings.globalize_path(script_path)
+	var temp_abs := ProjectSettings.globalize_path(temp_path)
+	var backup_abs := ProjectSettings.globalize_path(backup_path)
+
+	if original_exists:
+		var move_old_error: Error = DirAccess.rename_absolute(original_abs, backup_abs)
+		if move_old_error != OK:
+			_cleanup_regeneration_artifact(temp_path)
+			push_error("Logic Bricks: %s could not prepare the script for safe replacement (error %d). Existing script was not modified." % [operation_label, int(move_old_error)])
+			return false
+
+	var install_error: Error = DirAccess.rename_absolute(temp_abs, original_abs)
+	if install_error != OK:
+		_cleanup_regeneration_artifact(temp_path)
+		if original_exists:
+			var rollback_error: Error = DirAccess.rename_absolute(backup_abs, original_abs)
+			if rollback_error != OK:
+				push_error("Logic Bricks: %s safe replacement failed and automatic rollback also failed. Backup remains at: %s" % [operation_label, backup_path])
+			else:
+				push_error("Logic Bricks: %s could not replace the script (error %d). Original script was restored." % [operation_label, int(install_error)])
+		else:
+			push_error("Logic Bricks: %s could not install the generated script (error %d)." % [operation_label, int(install_error)])
+		return false
+
+	_cleanup_regeneration_artifact(backup_path)
+	return true
+
+
+func _cleanup_regeneration_artifact(path: String) -> void:
+	var absolute_path := ProjectSettings.globalize_path(path)
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(absolute_path)
 
 
 
@@ -272,9 +349,23 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 	var input_handler_bodies: Array[String] = []  # Body lines for shared _input()
 	var message_handler_calls: Array[String] = []  # Call lines for shared _on_message_received()
 
-	# Check if any chain uses an ActuatorSensor — only then do we need the flags dict
-	# and the per-frame clear(). Generating it for every named actuator regardless
-	# emits an unused member variable and a .clear() call every frame.
+	# Pause controls need a way to evaluate while SceneTree.paused is true, but
+	# forcing the owning gameplay node to PROCESS_MODE_ALWAYS would also keep all
+	# of its movement/custom script running. Use an always-processing SceneTreeTimer
+	# as a tiny pause-only heartbeat instead; signals can resume this coroutine even
+	# while the owning gameplay node itself remains paused.
+	var pause_control_chain_names: Array[String] = []
+	for chain in chains:
+		if _chain_has_pause_control(chain):
+			pause_control_chain_names.append(str(chain.get("name", "")))
+	if not pause_control_chain_names.is_empty():
+		ready_code.append("_logic_bricks_start_pause_watch()")
+
+	# Check if any chain uses an ActuatorSensor — only then do we need the flags dict.
+	# Do NOT clear it independently in _process() / _physics_process(): Action Active
+	# may observe an actuator running in the other loop. Each source chain writes its
+	# own current true/false value whenever it runs, so the latest value must persist
+	# across loop boundaries. State changes clear the dictionary below.
 	var has_actuator_sensor = false
 	for chain in chains:
 		for sensor_data in _collect_all_sensors_for_chain(chain):
@@ -284,9 +375,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		if has_actuator_sensor:
 			break
 	if has_actuator_sensor:
-		member_vars.append("var _actuator_active_flags: Dictionary = {}  # Actuator Sensor: tracks which actuators fired this frame")
-		pre_process_code.append("_actuator_active_flags.clear()")
-		physics_pre_process_code.append("_actuator_active_flags.clear()")
+		member_vars.append("var _actuator_active_flags: Dictionary = {}  # Action Active: latest state of named actuators")
 	for chain in chains:
 		var this_chain_resets: Array[String] = []
 		var chain_needs_physics_process := _chain_needs_physics_process(chain)
@@ -447,7 +536,8 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			var parts = mv.replace("@export var ", "").split(":")
 			if parts.size() >= 2:
 				var var_name = parts[0].strip_edges()
-				var var_type = parts[1].strip_edges()
+				# Strip any initializer from the type. Example: `String = "Player"` -> `String`.
+				var var_type = parts[1].split("=", false, 1)[0].strip_edges()
 				# Skip null-checks for primitive types — they always have a value
 				if var_type in primitive_types:
 					continue
@@ -503,9 +593,11 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 		code_lines.append("\tif _logic_brick_state == new_state:")
 		code_lines.append("\t\treturn")
 		code_lines.append("\t_logic_brick_state = new_state")
+		if has_actuator_sensor:
+			code_lines.append("\t_actuator_active_flags.clear()")
 		code_lines.append("\t_on_logic_brick_state_enter(new_state)")
 		code_lines.append("")
-		code_lines.append("func _on_logic_brick_state_enter(state_id: String) -> void:")
+		code_lines.append("func _on_logic_brick_state_enter(_state_id: String) -> void:")
 		var _has_state_body := false
 		for _chain_name in chain_member_vars:
 			var _resets: Array = chain_member_vars[_chain_name]
@@ -514,7 +606,7 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 				continue
 			if not _has_state_body:
 				_has_state_body = true
-			code_lines.append("\tif state_id == %s:" % _gdscript_string_literal(_chain_name))
+			code_lines.append("\tif _state_id == %s:" % _gdscript_string_literal(_chain_name))
 			for _reset_line in _resets:
 				code_lines.append("\t\t" + _reset_line)
 			for _setup_call in _setups:
@@ -597,6 +689,35 @@ func _generate_code_for_chains(node: Node, chains: Array, variables_code: String
 			code_lines.append("	")
 			for pc in physics_post_process_code:
 				code_lines.append("	" + pc)
+		code_lines.append("")
+
+	# While paused, normal _process/_physics_process callbacks on this node stop.
+	# SceneTreeTimer can explicitly process while paused, and its timeout signal can
+	# resume a method on a paused node. Poll only the chains that contain a Game
+	# Pause/Unpause/Toggle Pause action; all other Logic Bricks and user callbacks
+	# remain genuinely paused.
+	if not pause_control_chain_names.is_empty():
+		code_lines.append("func _logic_bricks_start_pause_watch() -> void:")
+		code_lines.append("\tvar _was_paused := false")
+		code_lines.append("\twhile is_inside_tree():")
+		code_lines.append("\t\tawait get_tree().create_timer(0.01, true, false, true).timeout")
+		code_lines.append("\t\tif not is_inside_tree():")
+		code_lines.append("\t\t\treturn")
+		code_lines.append("\t\tvar _is_paused := get_tree().paused")
+		code_lines.append("\t\tif _is_paused:")
+		code_lines.append("\t\t\tif _was_paused:")
+		code_lines.append("\t\t\t\t_logic_bricks_pause_tick()")
+		code_lines.append("\t\t\t_was_paused = true")
+		code_lines.append("\t\telse:")
+		code_lines.append("\t\t\t_was_paused = false")
+		code_lines.append("")
+		code_lines.append("func _logic_bricks_pause_tick() -> void:")
+		for chain in chains:
+			var _pause_chain_name := str(chain.get("name", ""))
+			if _pause_chain_name not in pause_control_chain_names or not generated_chain_functions.has(_pause_chain_name):
+				continue
+			var _pause_delta := "get_physics_process_delta_time()" if _chain_needs_physics_process(chain) else "get_process_delta_time()"
+			code_lines.append("\t_logic_brick_%s(%s)" % [_pause_chain_name, _pause_delta])
 		code_lines.append("")
 
 	# Emit assembled _input() if any sensors contributed handler bodies
@@ -791,6 +912,7 @@ func _generate_chain_function(node: Node, chain: Dictionary, has_actuator_sensor
 		return ""  # No actuators — incomplete chain
 	else:
 		var actuator_lines_written = 0
+		var inactive_code_blocks: Array[String] = []
 		for actuator_index in range(actuators.size()):
 			var actuator_data = actuators[actuator_index]
 			var actuator_brick = _instantiate_brick(actuator_data)
@@ -818,11 +940,16 @@ func _generate_chain_function(node: Node, chain: Dictionary, has_actuator_sensor
 				if generated.has("inactive_code") and not str(generated["inactive_code"]).is_empty():
 					var inactive = str(generated["inactive_code"])
 					inactive = _uniquify_generated_local_vars(inactive, actuator_code_name + "_inactive")
-					lines.append("\telse:")
-					var inactive_lines = inactive.split("\n")
-					for il in inactive_lines:
-						if il.strip_edges() != "":
-							lines.append("\t\t" + il)
+					inactive_code_blocks.append(inactive)
+
+		# Emit one shared inactive branch after all active actuator code. This keeps
+		# additional actuators in the active branch when one actuator needs cleanup.
+		if not inactive_code_blocks.is_empty():
+			lines.append("\telse:")
+			for inactive in inactive_code_blocks:
+				for il in inactive.split("\n"):
+					if il.strip_edges() != "":
+						lines.append("\t\t" + il)
 
 		# If all actuators produced empty code, treat as incomplete — skip entirely
 		if actuator_lines_written == 0:
@@ -1139,6 +1266,16 @@ func _chain_is_complete(chain: Dictionary) -> bool:
 
 
 ## Check if a chain needs physics process (has force/torque actuators)
+func _chain_has_pause_control(chain: Dictionary) -> bool:
+	for actuator_data in chain.get("actuators", []):
+		if str(actuator_data.get("type", "")) != "GameActuator":
+			continue
+		var action := str(actuator_data.get("properties", {}).get("action", "exit")).to_lower().replace(" ", "_")
+		if action in ["pause", "unpause", "toggle_pause"]:
+			return true
+	return false
+
+
 func _chain_needs_physics_process(chain: Dictionary) -> bool:
 	# Physics-dependent sensors must also run in _physics_process.
 	# Example: PhysicsSensor uses is_on_floor()/is_on_wall()/is_on_ceiling(),
@@ -1152,7 +1289,7 @@ func _chain_needs_physics_process(chain: Dictionary) -> bool:
 	var actuators = chain.get("actuators", [])
 	for actuator_data in actuators:
 		var brick_type = actuator_data.get("type", "")
-		if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator", "WaypointPath2DActuator", "Force2DActuator", "Impulse2DActuator", "LinearVelocity2DActuator", "Character2DActuator", "Gravity2DActuator", "Jump2DActuator", "SaveLoad2DActuator"]:
+		if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "SoftBodyPointForceActuator", "SoftBodyPointImpulseActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator", "WaypointPath2DActuator", "Force2DActuator", "Impulse2DActuator", "LinearVelocity2DActuator", "Character2DActuator", "Gravity2DActuator", "Jump2DActuator", "SaveLoad2DActuator"]:
 			return true
 		if brick_type == "MotionActuator" or brick_type == "Motion2DActuator":
 			var props = actuator_data.get("properties", {})
@@ -1269,8 +1406,9 @@ func _replace_generated_code(existing_code: String, generated_code: String, node
 	var end_pos = existing_code.find(CODE_END_MARKER)
 
 	if start_pos == -1 or end_pos == -1:
-		# Markers don't exist, add them
-		return _create_script_with_markers(existing_code, generated_code, node)
+		# Markers don't exist, add them first, then resolve any user callback collisions.
+		var marked_code: String = _create_script_with_markers(existing_code, generated_code, node)
+		return _bridge_existing_process_callbacks(marked_code)
 
 	# Calculate positions correctly
 	# We want to keep everything BEFORE the start marker
@@ -1294,7 +1432,79 @@ func _replace_generated_code(existing_code: String, generated_code: String, node
 	# Add the end marker
 	new_code += CODE_END_MARKER + after
 
-	return new_code
+	return _bridge_existing_process_callbacks(new_code)
+
+
+## If the user's script already owns _process() or _physics_process(), keep that
+## callback and route Logic Bricks through a generated helper instead of emitting
+## a second engine callback with the same name. The bridge line lives outside
+## the generated region, so it is removed/re-added on each Apply Code.
+func _bridge_existing_process_callbacks(source_code: String) -> String:
+	var start_pos: int = source_code.find(CODE_START_MARKER)
+	var end_pos: int = source_code.find(CODE_END_MARKER)
+	if start_pos == -1 or end_pos == -1 or end_pos < start_pos:
+		return source_code
+
+	var generated_start: int = start_pos + CODE_START_MARKER.length()
+	var generated_code: String = source_code.substr(generated_start, end_pos - generated_start)
+	var user_before: String = _strip_logic_bricks_callback_bridges(source_code.substr(0, start_pos))
+	var user_after: String = _strip_logic_bricks_callback_bridges(source_code.substr(end_pos + CODE_END_MARKER.length()))
+	var user_code: String = user_before + user_after
+
+	var bridges: Array[Dictionary] = [
+		{
+			"callback": "_physics_process",
+			"generated_decl": "func _physics_process(delta: float) -> void:",
+			"helper_decl": "func _logic_bricks_physics_process(delta: float) -> void:",
+			"bridge_line": "\t_logic_bricks_physics_process(get_physics_process_delta_time())  # Logic Bricks callback bridge",
+		},
+		{
+			"callback": "_process",
+			"generated_decl": "func _process(delta: float) -> void:",
+			"helper_decl": "func _logic_bricks_process(delta: float) -> void:",
+			"bridge_line": "\t_logic_bricks_process(get_process_delta_time())  # Logic Bricks callback bridge",
+		},
+	]
+
+	for bridge in bridges:
+		var callback_name: String = bridge["callback"]
+		var generated_decl: String = bridge["generated_decl"]
+		if not generated_code.contains(generated_decl) or not _has_top_level_function(user_code, callback_name):
+			continue
+		generated_code = generated_code.replace(generated_decl, bridge["helper_decl"])
+		if _has_top_level_function(user_before, callback_name):
+			user_before = _inject_bridge_into_top_level_function(user_before, callback_name, bridge["bridge_line"])
+		else:
+			user_after = _inject_bridge_into_top_level_function(user_after, callback_name, bridge["bridge_line"])
+
+	return user_before + CODE_START_MARKER + generated_code + CODE_END_MARKER + user_after
+
+
+func _strip_logic_bricks_callback_bridges(source_code: String) -> String:
+	var kept: PackedStringArray = []
+	for line in source_code.split("\n"):
+		if line.contains("# Logic Bricks callback bridge"):
+			continue
+		kept.append(line)
+	return "\n".join(kept)
+
+
+func _has_top_level_function(source_code: String, function_name: String) -> bool:
+	var prefix: String = "func %s(" % function_name
+	for line in source_code.split("\n"):
+		if line.begins_with(prefix):
+			return true
+	return false
+
+
+func _inject_bridge_into_top_level_function(source_code: String, function_name: String, bridge_line: String) -> String:
+	var lines: PackedStringArray = source_code.split("\n")
+	var prefix: String = "func %s(" % function_name
+	for index in range(lines.size()):
+		if lines[index].begins_with(prefix):
+			lines.insert(index + 1, bridge_line)
+			break
+	return "\n".join(lines)
 
 
 ## Create a new script with markers

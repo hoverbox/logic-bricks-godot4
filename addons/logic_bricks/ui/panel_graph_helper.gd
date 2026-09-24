@@ -217,26 +217,34 @@ func build_controller_input_tree(controller_node: GraphNode, connections: Array,
 		"controller": controller_brick
 	}
 
-func trace_inputs(node_name: String, connections: Array) -> Array:
+func trace_inputs(node_name: String, connections: Array, visited: Dictionary = {}) -> Array:
+	if visited.has(node_name):
+		return []
+	var next_visited = visited.duplicate()
+	next_visited[node_name] = true
 	var results = []
 	for conn in connections:
 		if conn["to_node"] == node_name:
 			var from_node = panel.graph_edit.get_node_or_null(NodePath(conn["from_node"]))
 			if from_node:
 				if from_node.has_meta("is_reroute"):
-					results.append_array(trace_inputs(from_node.name, connections))
+					results.append_array(trace_inputs(from_node.name, connections, next_visited))
 				else:
 					results.append(from_node)
 	return results
 
-func trace_outputs(node_name: String, connections: Array) -> Array:
+func trace_outputs(node_name: String, connections: Array, visited: Dictionary = {}) -> Array:
+	if visited.has(node_name):
+		return []
+	var next_visited = visited.duplicate()
+	next_visited[node_name] = true
 	var results = []
 	for conn in connections:
 		if conn["from_node"] == node_name:
 			var to_node = panel.graph_edit.get_node_or_null(NodePath(conn["to_node"]))
 			if to_node:
 				if to_node.has_meta("is_reroute"):
-					results.append_array(trace_outputs(to_node.name, connections))
+					results.append_array(trace_outputs(to_node.name, connections, next_visited))
 				else:
 					results.append(to_node)
 	return results

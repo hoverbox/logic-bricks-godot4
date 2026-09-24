@@ -67,18 +67,18 @@ func get_tooltip_definitions() -> Dictionary:
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = str(properties.get("target_mode","node_name")).to_lower().replace(" ","_")
 	var behavior = str(properties.get("behavior","seek")).to_lower().replace(" ","_")
-	var name = _gd(str(properties.get("target_name","")))
-	var x = _to_expr(properties.get("coordinate_x","0.0"))
-	var y = _to_expr(properties.get("coordinate_y","0.0"))
-	var sp = _to_expr(properties.get("speed","200.0"))
-	var ar = _to_expr(properties.get("arrival_distance","4.0"))
-	var slow = _to_expr(properties.get("slowing_distance","80.0"))
-	var desired = _to_expr(properties.get("desired_distance","120.0"))
-	var tol = _to_expr(properties.get("distance_tolerance","10.0"))
-	var orbit = _to_expr(properties.get("orbit_distance","120.0"))
+	var name = _gd_string(str(properties.get("target_name","")))
+	var x = _expr(properties.get("coordinate_x","0.0"))
+	var y = _expr(properties.get("coordinate_y","0.0"))
+	var sp = _expr(properties.get("speed","200.0"))
+	var ar = _expr(properties.get("arrival_distance","4.0"))
+	var slow = _expr(properties.get("slowing_distance","80.0"))
+	var desired = _expr(properties.get("desired_distance","120.0"))
+	var tol = _expr(properties.get("distance_tolerance","10.0"))
+	var orbit = _expr(properties.get("orbit_distance","120.0"))
 	var orbit_dir = str(properties.get("orbit_direction","clockwise")).to_lower()
-	var wander_amount = _to_expr(properties.get("wander_amount","45.0"))
-	var wander_frequency = _to_expr(properties.get("wander_frequency","1.5"))
+	var wander_amount = _expr(properties.get("wander_amount","45.0"))
+	var wander_frequency = _expr(properties.get("wander_frequency","1.5"))
 	var face = bool(properties.get("face_target",false))
 	var nav = bool(properties.get("use_navigation",false))
 	var lines: Array[String] = []
@@ -153,9 +153,3 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		lines.append("\tif _steer2_dir.length_squared() > 0.000001: rotation = _steer2_dir.angle()")
 	return {"actuator_code":"\n".join(lines)}
 
-func _to_expr(v) -> String:
-	var s = str(v).strip_edges()
-	return "0.0" if s.is_empty() else s
-
-func _gd(s: String) -> String:
-	return s.replace("\\","\\\\").replace("\"","\\\"")

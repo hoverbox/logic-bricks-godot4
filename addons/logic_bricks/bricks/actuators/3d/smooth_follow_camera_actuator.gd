@@ -268,9 +268,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		lines.append("\t\t\tpush_warning(\"Smooth Follow Camera: rotation source '\" + str(_rot_source_name_%s) + \"' was not found\")" % chain_name)
 		lines.append("\t")
 
+	# Sample the followed target through Godot physics interpolation when available.
+	# This keeps a render-frame camera smooth while CharacterBody movement stays in physics ticks.
+	lines.append("\tvar _follow_transform_%s: Transform3D = %s.call(\"get_global_transform_interpolated\") if %s.has_method(\"get_global_transform_interpolated\") else %s.global_transform" % [chain_name, generated_target, generated_target, generated_target])
+	lines.append("\tvar _follow_pos_%s: Vector3 = _follow_transform_%s.origin" % [chain_name, chain_name])
+
 	# Lazy first-frame offset capture
 	lines.append("\tif not %s:" % init_flag_var)
-	lines.append("\t\t%s = %s.global_position - %s.global_position" % [offset_var, generated_camera, generated_target])
+	lines.append("\t\t%s = %s.global_position - _follow_pos_%s" % [offset_var, generated_camera, chain_name])
 	if positioning == "left":
 		lines.append("\t\t%s.x = -%.6f" % [offset_var, position_offset_amount])
 	elif positioning == "center":
@@ -298,9 +303,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		if follow_rot_z:
 			lines.append("\t_rot_basis = _rot_basis.rotated(Vector3.FORWARD, _rot_source.global_rotation.z)")
 		lines.append("\t")
-		lines.append("\tvar _desired_pos = %s.global_position + _rot_basis * %s" % [generated_target, offset_var])
+		lines.append("\tvar _desired_pos = _follow_pos_%s + _rot_basis * %s" % [chain_name, offset_var])
 	else:
-		lines.append("\tvar _desired_pos = %s.global_position + %s" % [generated_target, offset_var])
+		lines.append("\tvar _desired_pos = _follow_pos_%s + %s" % [chain_name, offset_var])
 
 	if has_position:
 		lines.append("\tvar _diff = _desired_pos - _cam_pos")

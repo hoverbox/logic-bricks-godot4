@@ -106,6 +106,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\t%s = null" % target_var)
 	code_lines.append("elif %s == null or %s.name != _target_name_%s:" % [target_var, target_var, label])
 	code_lines.append("\tvar _found_target_%s = find_child(_target_name_%s, true, false)" % [label, label])
+	code_lines.append("\tif _found_target_%s == null and get_tree().current_scene:" % label)
+	code_lines.append("\t\t_found_target_%s = get_tree().current_scene.find_child(_target_name_%s, true, false)" % [label, label])
+	code_lines.append("\tif _found_target_%s == null:" % label)
+	code_lines.append("\t\t_found_target_%s = get_tree().root.find_child(_target_name_%s, true, false)" % [label, label])
 	code_lines.append("\tif _found_target_%s is Node3D:" % label)
 	code_lines.append("\t\t%s = _found_target_%s" % [target_var, label])
 	code_lines.append("\telif _found_target_%s:" % label)
@@ -114,14 +118,18 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\tpush_warning(\"Look At Movement: could not find Node3D named '\" + str(_target_name_%s) + \"'\")" % label)
 	code_lines.append("else:")
 
-	# Track position change
-	code_lines.append("\t# Track position change for movement direction")
-	code_lines.append("\tif %s == Vector3.INF:" % last_pos_var)
-	code_lines.append("\t\t%s = global_position" % last_pos_var)
-	code_lines.append("\tvar _movement_dir = global_position - %s" % last_pos_var)
+	# CharacterBody movement is known before move_and_slide(), so use velocity.
+	# Position delta remains the fallback for ordinary Node3D movement.
+	code_lines.append("\t# Determine movement direction")
+	code_lines.append("\tvar _movement_dir: Vector3")
+	code_lines.append("\tif self is CharacterBody3D:")
+	code_lines.append("\t\t_movement_dir = (self as CharacterBody3D).velocity")
+	code_lines.append("\telse:")
+	code_lines.append("\t\tif %s == Vector3.INF:" % last_pos_var)
+	code_lines.append("\t\t\t%s = global_position" % last_pos_var)
+	code_lines.append("\t\t_movement_dir = global_position - %s" % last_pos_var)
 	if ignore_platform_motion:
-		code_lines.append("\t# Remove last frame's platform-carried/inherited motion so facing follows player movement")
-		code_lines.append("\t_movement_dir -= _logic_brick_external_motion_delta")
+		code_lines.append("\t\t_movement_dir -= _logic_brick_external_motion_delta")
 	code_lines.append("\t%s = global_position" % last_pos_var)
 
 	code_lines.append("\t")

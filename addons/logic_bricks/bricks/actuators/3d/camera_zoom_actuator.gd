@@ -75,10 +75,10 @@ func get_tooltip_definitions() -> Dictionary:
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var camera_node_name = str(properties.get("camera_node_name", "Camera3D")).strip_edges()
 	var camera_type = properties.get("camera_type", "camera_3d")
-	var fov         = _to_expr(properties.get("fov",   "75.0"))
-	var zoom        = _to_expr(properties.get("zoom",  "1.0"))
+	var fov         = _expr(properties.get("fov",   "75.0"))
+	var zoom        = _expr(properties.get("zoom",  "1.0"))
 	var transition  = properties.get("transition", true)
-	var speed       = _to_expr(properties.get("transition_speed", "3.0"))
+	var speed       = _expr(properties.get("transition_speed", "3.0"))
 
 	if typeof(camera_type) == TYPE_STRING:
 		camera_type = camera_type.to_lower().replace(" ", "_")
@@ -145,12 +145,5 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"actuator_code": "\n".join(code_lines),
 		"member_vars": member_vars
 	}
-
-
-func _to_expr(val) -> String:
-	var s = str(val).strip_edges()
-	if s.is_empty(): return "0.0"
-	if s.is_valid_float() or s.is_valid_int(): return s
-	return s
 
 

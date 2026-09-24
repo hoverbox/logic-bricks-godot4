@@ -76,8 +76,8 @@ func get_preset_values(preset_name: String) -> Array:
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var preset = str(properties.get("preset", "medium")).to_lower().replace(" ", "_")
-	var duration = _to_expr(properties.get("duration", "0.06"))
-	var time_scale = _to_expr(properties.get("time_scale", "0.0"))
+	var duration = _expr(properties.get("duration", "0.06"))
+	var time_scale = _expr(properties.get("time_scale", "0.0"))
 	var restart_if_active = properties.get("restart_if_active", false) == true
 
 	if preset != "custom" and PRESETS.has(preset):
@@ -139,10 +139,3 @@ func {method_name}(duration_seconds: float, stopped_time_scale: float, token: in
 	}
 
 
-func _to_expr(val) -> String:
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return "0.0"
-	if s.is_valid_float() or s.is_valid_int():
-		return s
-	return s

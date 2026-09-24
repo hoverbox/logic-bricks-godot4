@@ -38,6 +38,7 @@ func get_property_definitions() -> Array:
 		{
 			"name": "variable_name", "required": true, "required_label": "a variable name",
 			"type": TYPE_STRING,
+			"variable_picker": true,
 			"default": ""
 		},
 		{

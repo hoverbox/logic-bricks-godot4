@@ -86,21 +86,10 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
-func _to_expr(value) -> String:
-	if typeof(value) == TYPE_FLOAT or typeof(value) == TYPE_INT:
-		return "%.3f" % float(value)
-	var expression := str(value).strip_edges()
-	if expression.is_empty():
-		return "0.0"
-	if expression.is_valid_float() or expression.is_valid_int():
-		return "%.3f" % float(expression)
-	return expression
-
-
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var strength_expr := _to_expr(properties.get("strength", "1.0"))
-	var direction_x_expr := _to_expr(properties.get("direction_x", "0.0"))
-	var direction_y_expr := _to_expr(properties.get("direction_y", "1.0"))
+	var strength_expr := _numeric_expr(properties.get("strength", "1.0"))
+	var direction_x_expr := _numeric_expr(properties.get("direction_x", "0.0"))
+	var direction_y_expr := _numeric_expr(properties.get("direction_y", "1.0"))
 	var use_mass: bool = properties.get("use_mass", true)
 	var override_world_gravity: bool = properties.get("override_world_gravity", true)
 	var reset_velocity_on_direction_change: bool = properties.get("reset_velocity_on_direction_change", true)

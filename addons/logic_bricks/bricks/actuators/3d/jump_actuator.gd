@@ -91,17 +91,6 @@ func get_tooltip_definitions() -> Dictionary:
 ## Convert a value to a code expression.
 ## If it's a number (or string of a number), returns the numeric literal.
 ## Otherwise returns it as-is (a variable name or expression).
-func _to_expr(val) -> String:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return "%.3f" % val
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return "0.0"
-	if s.is_valid_float() or s.is_valid_int():
-		return "%.3f" % float(s)
-	return s
-
-
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var jump_height = properties.get("jump_height", "4.5")
 	var gravity_strength = properties.get("gravity_strength", "9.8")
@@ -122,9 +111,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	member_vars.append("var _moving_platform_velocity: Vector3 = Vector3.ZERO")
 	member_vars.append("var _inherited_platform_velocity: Vector3 = Vector3.ZERO")
 
-	var jump_height_expr = _to_expr(jump_height)
-	var gravity_expr = _to_expr(gravity_strength)
-	var max_jumps_expr = _to_expr(max_jumps)
+	var jump_height_expr = _numeric_expr(jump_height)
+	var gravity_expr = _numeric_expr(gravity_strength)
+	var max_jumps_expr = _numeric_expr(max_jumps)
 
 	# _ready: configure max jumps (runs after all member-var initialisers)
 	ready_lines.append("# Jump Actuator: set max_jumps")

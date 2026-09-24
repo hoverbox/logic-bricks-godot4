@@ -52,8 +52,8 @@ func get_property_definitions() -> Array:
 		{"name":"cursor_visible","type":TYPE_BOOL,"default":false},
 		{"name":"use_x_axis","type":TYPE_BOOL,"default":true},
 		{"name":"use_y_axis","type":TYPE_BOOL,"default":false},
-		{"name":"x_target","type":TYPE_STRING,"default":"self"},
-		{"name":"y_target","type":TYPE_STRING,"default":"self"},
+		{"name":"x_target","type":TYPE_STRING,"default":"self","node_reference":true,"node_picker_scope":"scene","accepted_node_types":["Node2D"]},
+		{"name":"y_target","type":TYPE_STRING,"default":"self","node_reference":true,"node_picker_scope":"scene","accepted_node_types":["Node2D"]},
 		{"name":"x_sensitivity","type":TYPE_FLOAT,"default":0.1},
 		{"name":"y_sensitivity","type":TYPE_FLOAT,"default":0.1},
 		{"name":"x_invert","type":TYPE_BOOL,"default":false},
@@ -65,7 +65,7 @@ func get_property_definitions() -> Array:
 		{"name":"y_min_degrees","type":TYPE_FLOAT,"default":0.0},
 		{"name":"y_max_degrees","type":TYPE_FLOAT,"default":0.0},
 		{"name":"recenter_cursor","type":TYPE_BOOL,"default":true},
-		{"name":"mouse_target","type":TYPE_STRING,"default":"self"},
+		{"name":"mouse_target","type":TYPE_STRING,"default":"self","node_reference":true,"node_picker_scope":"scene","accepted_node_types":["Node2D"]},
 		{"name":"mouse_velocity","type":TYPE_STRING,"default":"250.0"},
 		{"name":"mouse_acceleration","type":TYPE_STRING,"default":"0.0"},
 		{"name":"mouse_turn_speed","type":TYPE_STRING,"default":"0.0"},
@@ -143,7 +143,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("\t" + line)
 			for line in _generate_move_to_point_code(click_pos_var, properties.get("mouse_velocity", "250.0"), properties.get("mouse_acceleration", "0.0"), properties.get("mouse_arrival_distance", "4.0"), "_mouse_node").split("\n"):
 				code_lines.append("\t" + line)
-			code_lines.append("\tif _mouse_node and _mouse_node.global_position.distance_to(%s) <= (%s):" % [click_pos_var, _to_expr(properties.get("mouse_arrival_distance", "4.0"))])
+			code_lines.append("\tif _mouse_node and _mouse_node.global_position.distance_to(%s) <= (%s):" % [click_pos_var, _numeric_expr(properties.get("mouse_arrival_distance", "4.0"))])
 			code_lines.append("\t\t%s = false" % click_has_var)
 	var result = {"actuator_code":"\n".join(code_lines)}
 	if mode in ["look_towards", "move_towards_cursor", "move_to_mouse_click"]:
@@ -162,6 +162,10 @@ func _generate_mouse_look_axis_code(axis_name: String, target_name: String, sens
 	var delta_prop = "x" if axis_name == "x" else "y"
 	if target_name != "self" and not target_name.strip_edges().is_empty():
 		lines.append("var _%s_target = get_node_or_null(\"%s\")" % [axis_name, target_name.replace("\"", "\\\"")])
+		lines.append("if _%s_target == null and get_tree().current_scene:" % axis_name)
+		lines.append("\t_%s_target = get_tree().current_scene.find_child(\"%s\", true, false)" % [axis_name, target_name.replace("\"", "\\\"")])
+		lines.append("if _%s_target == null:" % axis_name)
+		lines.append("\t_%s_target = get_tree().root.find_child(\"%s\", true, false)" % [axis_name, target_name.replace("\"", "\\\"")])
 		lines.append("if _%s_target and _%s_target is Node2D:" % [axis_name, axis_name])
 		indent = "\t"
 	else:
@@ -190,12 +194,16 @@ func _generate_mouse_target_ref(target_name: String) -> String:
 		lines.append("var _mouse_node = self")
 	else:
 		lines.append("var _mouse_node = get_node_or_null(\"%s\")" % target_name.replace("\"", "\\\""))
+		lines.append("if _mouse_node == null and get_tree().current_scene:")
+		lines.append("\t_mouse_node = get_tree().current_scene.find_child(\"%s\", true, false)" % target_name.replace("\"", "\\\""))
+		lines.append("if _mouse_node == null:")
+		lines.append("\t_mouse_node = get_tree().root.find_child(\"%s\", true, false)" % target_name.replace("\"", "\\\""))
 	lines.append("if _mouse_node and _mouse_node is Node2D:")
 	return "\n".join(lines)
 
 func _generate_look_at_code(target_pos: String, axis: String, turn_speed, node_ref: String) -> String:
 	var lines: Array[String] = []
-	var turn_expr = _to_expr(turn_speed)
+	var turn_expr = _numeric_expr(turn_speed)
 	lines.append("\tvar _look_dir = %s - %s.global_position" % [target_pos, node_ref])
 	lines.append("\tif _look_dir.length() > 0.001:")
 	lines.append("\t\tvar _target_angle = _look_dir.angle()")
@@ -212,9 +220,9 @@ func _generate_look_at_code(target_pos: String, axis: String, turn_speed, node_r
 
 func _generate_move_to_point_code(target_pos: String, velocity, acceleration, arrival_distance, node_ref: String) -> String:
 	var lines: Array[String] = []
-	var arrival_expr = _to_expr(arrival_distance)
-	var velocity_expr = _to_expr(velocity)
-	var accel_expr = _to_expr(acceleration)
+	var arrival_expr = _numeric_expr(arrival_distance)
+	var velocity_expr = _numeric_expr(velocity)
+	var accel_expr = _numeric_expr(acceleration)
 	lines.append("\tvar _to_mouse_target = %s - %s.global_position" % [target_pos, node_ref])
 	lines.append("\tvar _mouse_dist = _to_mouse_target.length()")
 	lines.append("\tif _mouse_dist > (%s):" % arrival_expr)
@@ -233,6 +241,10 @@ func _generate_move_to_point_code(target_pos: String, velocity, acceleration, ar
 	lines.append("\t\t\t_cb2d.velocity = _new_vel")
 	lines.append("\t\telse:")
 	lines.append("\t\t\t%s.global_position += _new_vel * _delta" % node_ref)
+	lines.append("\telse:")
+	lines.append("\t\tvar _arrived_cb2d = (%s as Node) as CharacterBody2D" % node_ref)
+	lines.append("\t\tif _arrived_cb2d:")
+	lines.append("\t\t\t_arrived_cb2d.velocity = Vector2.ZERO")
 	return "\n".join(lines)
 
 func _generate_global_mouse_helper() -> String:
@@ -251,24 +263,6 @@ func _mouse_button_code(button: String) -> String:
 		"right": return "MOUSE_BUTTON_RIGHT"
 		"middle": return "MOUSE_BUTTON_MIDDLE"
 		_: return "MOUSE_BUTTON_LEFT"
-
-func _to_expr(val) -> String:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return "%.3f" % val
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return "0.0"
-	if s.is_valid_float() or s.is_valid_int():
-		return "%.3f" % float(s)
-	return s
-
-func _literal_gt_zero(val) -> bool:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return float(val) > 0.0
-	var s = str(val).strip_edges()
-	if s.is_valid_float() or s.is_valid_int():
-		return float(s) > 0.0
-	return true
 
 func _safe_var_suffix(raw_value) -> String:
 	var suffix = str(raw_value).strip_edges()

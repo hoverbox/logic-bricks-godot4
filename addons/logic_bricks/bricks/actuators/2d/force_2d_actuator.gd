@@ -27,9 +27,8 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 func generate_code(node:Node,chain_name:String)->Dictionary:
-	var f="Vector2(%s, %s)"%[_to_expr(properties.get("x","0.0")),_to_expr(properties.get("y","-100.0"))]
+	var f="Vector2(%s, %s)"%[_expr(properties.get("x","0.0")),_expr(properties.get("y","-100.0"))]
 	if str(properties.get("space","global")).to_lower()=="local":
 		f="global_transform.basis_xform(%s)"%f
-	var call="apply_force(%s, Vector2(%s, %s))"%[f,_to_expr(properties.get("point_x","0.0")),_to_expr(properties.get("point_y","0.0"))] if properties.get("apply_at_point",false) else "apply_central_force(%s)"%f
+	var call="apply_force(%s, Vector2(%s, %s))"%[f,_expr(properties.get("point_x","0.0")),_expr(properties.get("point_y","0.0"))] if properties.get("apply_at_point",false) else "apply_central_force(%s)"%f
 	return {"actuator_code":"if self is RigidBody2D:\n\t%s\nelse:\n\tpush_warning(\"Force requires RigidBody2D\")"%call}
-func _to_expr(v)->String: var s=str(v).strip_edges(); return "0.0" if s.is_empty() else s

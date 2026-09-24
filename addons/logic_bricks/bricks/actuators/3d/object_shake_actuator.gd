@@ -66,7 +66,7 @@ func get_property_definitions() -> Array:
 func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Shakes a named object by rotation, translation, or scale, then returns it to its starting value.\nType a node name, not a path. Use multiple Object Shake actuators for multiple effects.",
-		"shake_type": "Choose which transform value this actuator shakes.\nScale shake is applied as a temporary offset relative to the object\'s current scale.\nUse more than one Object Shake actuator if you want rotate + translate + scale together.",
+		"shake_type": "Choose which transform value this actuator shakes.\nScale shake is for visual Node3D children (MeshInstance3D, model root, etc.). It is skipped on CollisionObject3D physics bodies because Jolt does not reliably support non-uniform runtime body scaling.\nUse more than one Object Shake actuator if you want rotate + translate + scale together.",
 		"object_node_name": "Node name to shake, not a path.\nUse \"self\" for this node. Otherwise, the script searches this node and its children by name.",
 		"preset": "Populates X, Y, and Z below.\nThe preset does not do anything else, so you can edit the values after choosing it.",
 		"x": "Shake amount on the X axis. Accepts a number or variable name.",
@@ -120,9 +120,9 @@ func get_preset_values(preset_name: String) -> Array:
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var shake_type = str(properties.get("shake_type", "rotate")).to_lower().replace(" ", "_")
 	var object_node_name = str(properties.get("object_node_name", "self")).strip_edges()
-	var x_expr = _to_expr(properties.get("x", "0.0"))
-	var y_expr = _to_expr(properties.get("y", "8.0"))
-	var z_expr = _to_expr(properties.get("z", "0.0"))
+	var x_expr = _expr(properties.get("x", "0.0"))
+	var y_expr = _expr(properties.get("y", "8.0"))
+	var z_expr = _expr(properties.get("z", "0.0"))
 
 	if object_node_name.is_empty():
 		object_node_name = "self"
@@ -158,6 +158,11 @@ func _resolve_object_shake_target_{helper_suffix}(target_name: String) -> Node3D
 	methods.append(('''
 func _run_object_shake_{helper_suffix}(target: Node3D, shake_mode: String, amount: Vector3) -> void:
 	if not is_instance_valid(target):
+		return
+	if shake_mode == "scale" and target is CollisionObject3D:
+		if not target.has_meta("_logic_bricks_scale_shake_physics_warning"):
+			push_warning("Object Shake: Scale shake is skipped on physics bodies because non-uniform body scaling is not supported reliably by Jolt. Shake a visual child node instead.")
+			target.set_meta("_logic_bricks_scale_shake_physics_warning", true)
 		return
 
 	var _target_key = str(target.get_instance_id()) + ":" + shake_mode
@@ -286,10 +291,3 @@ func _run_object_shake_{helper_suffix}(target: Node3D, shake_mode: String, amoun
 	}
 
 
-func _to_expr(val) -> String:
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return "0.0"
-	if s.is_valid_float() or s.is_valid_int():
-		return s
-	return s

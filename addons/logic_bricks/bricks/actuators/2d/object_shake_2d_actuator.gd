@@ -1,7 +1,6 @@
 @tool
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-
 func get_brick_info() -> Dictionary:
 	return {
 		"class": "ObjectShake2DActuator",
@@ -12,144 +11,157 @@ func get_brick_info() -> Dictionary:
 		"menu_order": 510,
 	}
 
-
 func _init() -> void:
 	super._init()
 	brick_type = BrickType.ACTUATOR
 	brick_name = "Object Shake"
 
-
 func _initialize_properties() -> void:
 	properties = {
-		"target_node_name": "",
-		"intensity": "8.0",
-		"duration": "0.25",
-		"rotation_intensity": "2.0",
+		"shake_type": "translate",
+		"target_node_name": "self",
+		"preset": "medium",
+		"x": "8.0",
+		"y": "8.0",
+		"rotation_degrees": "8.0",
 	}
-
 
 func get_property_definitions() -> Array:
 	return [
-		{"name": "target_node_name", "type": TYPE_STRING, "default": ""},
-		{"name": "intensity", "type": TYPE_STRING, "default": "8.0"},
-		{"name": "duration", "type": TYPE_STRING, "default": "0.25"},
-		{"name": "rotation_intensity", "type": TYPE_STRING, "default": "2.0"},
+		{"name":"shake_type","type":TYPE_STRING,"hint":PROPERTY_HINT_ENUM,"hint_string":"Translate,Rotate,Scale","default":"translate"},
+		{"name":"target_node_name","type":TYPE_STRING,"default":"self","node_reference":true,"node_picker_scope":"scene","accepted_node_types":["Node2D"]},
+		{"name":"preset","type":TYPE_STRING,"hint":PROPERTY_HINT_ENUM,"hint_string":"Tiny,Light,Medium,Heavy,Side Hit,Vertical Hit,Scale Pop","default":"medium"},
+		{"name":"x","type":TYPE_STRING,"default":"8.0"},
+		{"name":"y","type":TYPE_STRING,"default":"8.0"},
+		{"name":"rotation_degrees","type":TYPE_STRING,"default":"8.0"},
 	]
-
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Shakes a Node2D temporarily and returns it to its original transform.",
-		"target_node_name": "Node2D to shake.",
-		"intensity": "Maximum position offset used during the shake.",
-		"rotation_intensity": "Maximum rotational shake in degrees.",
-		"duration": "How long the shake lasts in seconds.",
+		"_description": "Shakes a Node2D by position, rotation, or scale, then returns it to its starting transform.",
+		"shake_type": "Translate shakes position. Rotate shakes the single 2D rotation axis. Scale shakes X/Y scale.",
+		"target_node_name": "Node2D to shake. Use self for the node running the brick chain, or select another Node2D anywhere in the scene.",
+		"preset": "Fills the shake amount fields with useful starting values. You can edit them afterward.",
+		"x": "Translate: horizontal pixel offset. Scale: temporary X scale offset.",
+		"y": "Translate: vertical pixel offset. Scale: temporary Y scale offset.",
+		"rotation_degrees": "Maximum temporary rotation in degrees.",
 	}
 
-func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var target_name = str(properties.get("target_node_name", "")).strip_edges()
-	var intensity_expr = _to_expr(properties.get("intensity", "8.0"))
-	var duration_expr = _to_expr(properties.get("duration", "0.25"))
-	var rotation_expr = _to_expr(properties.get("rotation_intensity", "2.0"))
+const PRESETS_BY_TYPE = {
+	"translate": {
+		"tiny": ["2.0", "2.0"], "light": ["4.0", "4.0"], "medium": ["8.0", "8.0"], "heavy": ["16.0", "16.0"],
+		"side_hit": ["12.0", "2.0"], "vertical_hit": ["2.0", "12.0"], "scale_pop": ["8.0", "8.0"],
+	},
+	"rotate": {
+		"tiny": ["2.0"], "light": ["4.0"], "medium": ["8.0"], "heavy": ["16.0"],
+		"side_hit": ["10.0"], "vertical_hit": ["10.0"], "scale_pop": ["8.0"],
+	},
+	"scale": {
+		"tiny": ["0.01", "0.01"], "light": ["0.025", "0.025"], "medium": ["0.05", "0.05"], "heavy": ["0.12", "0.12"],
+		"side_hit": ["0.08", "0.01"], "vertical_hit": ["0.01", "0.08"], "scale_pop": ["0.15", "0.15"],
+	},
+}
 
-	var stem = instance_name if not instance_name.is_empty() else "%s_%s_%s" % [brick_name, chain_name, str(abs(str(properties).hash()))]
+func get_preset_values(preset_name: String) -> Array:
+	var shake_type := str(properties.get("shake_type", "translate")).to_lower().replace(" ", "_")
+	var preset_key := preset_name.to_lower().replace(" ", "_")
+	if not PRESETS_BY_TYPE.has(shake_type):
+		shake_type = "translate"
+	return PRESETS_BY_TYPE[shake_type].get(preset_key, [])
+
+func generate_code(node: Node, chain_name: String) -> Dictionary:
+	var shake_type := str(properties.get("shake_type", "translate")).to_lower().replace(" ", "_")
+	var target_name := str(properties.get("target_node_name", "self")).strip_edges()
+	var x_expr := _expr(properties.get("x", "8.0"))
+	var y_expr := _expr(properties.get("y", "8.0"))
+	var rotation_expr := _expr(properties.get("rotation_degrees", "8.0"))
+	if shake_type not in ["translate", "rotate", "scale"]:
+		shake_type = "translate"
+	if target_name.is_empty():
+		target_name = "self"
+
+	var stem := instance_name if not instance_name.is_empty() else "%s_%s_%s" % [brick_name, chain_name, str(abs(str(properties).hash()))]
 	stem = stem.to_lower().replace(" ", "_")
-	var regex = RegEx.new()
+	var regex := RegEx.new()
 	regex.compile("[^a-z0-9_]")
 	stem = regex.sub(stem, "", true)
-	if stem.is_empty():
-		stem = chain_name
-
-	var suffix = "%s_%s" % [stem, chain_name]
-	var tween_var = "_object_shake_2d_tween_%s" % suffix
-	var baseline_var = "_object_shake_2d_baselines_%s" % suffix
-	var target_var = "_object_shake_2d_target_%s" % suffix
+	var suffix := "%s_%s" % [stem, chain_name]
+	var tween_var := "_object_shake_2d_tween_%s" % suffix
+	var baseline_var := "_object_shake_2d_baselines_%s" % suffix
+	var target_var := "_object_shake_2d_target_%s" % suffix
 
 	var methods: Array[String] = []
 	methods.append(('''
 func _resolve_object_shake_2d_target_{suffix}(target_name: String) -> Node2D:
 	if target_name.is_empty() or target_name == "self":
 		return self as Node2D
-	var found = get_tree().current_scene.find_child(target_name, true, false)
-	if found is Node2D:
-		return found as Node2D
-	return null
-''').format({"suffix": suffix}).strip_edges())
+	var found: Node = null
+	if get_tree().current_scene:
+		found = get_tree().current_scene.find_child(target_name, true, false)
+	if found == null:
+		found = get_tree().root.find_child(target_name, true, false)
+	return found as Node2D
+''').format({"suffix":suffix}).strip_edges())
 
 	methods.append(('''
-func _run_object_shake_2d_{suffix}(target: Node2D, intensity: float, duration: float, rotation_degrees: float) -> void:
+func _run_object_shake_2d_{suffix}(target: Node2D, shake_mode: String, amount: Vector2, rotation_amount_degrees: float) -> void:
 	if not is_instance_valid(target):
 		return
-
-	var target_key = str(target.get_instance_id())
-	var baseline: Dictionary
+	var target_key = str(target.get_instance_id()) + ":" + shake_mode
+	var baseline
+	match shake_mode:
+		"rotate": baseline = target.rotation
+		"scale": baseline = target.scale
+		_: baseline = target.position
 	if {baseline_var}.has(target_key):
 		baseline = {baseline_var}[target_key]
 	else:
-		baseline = Dictionary()
-		baseline["position"] = target.position
-		baseline["rotation"] = target.rotation
 		{baseline_var}[target_key] = baseline
 
-	# A repeated activation must never capture a currently shaken transform.
-	# Restore the original baseline before killing and restarting the shake.
 	if is_instance_valid({tween_var}):
 		{tween_var}.kill()
-	target.position = baseline["position"]
-	target.rotation = baseline["rotation"]
-
-	var safe_duration = max(duration, 0.01)
-	var step_time = min(0.04, safe_duration)
-	var step_count = max(1, int(ceil(safe_duration / step_time)))
-	step_time = safe_duration / float(step_count)
+	match shake_mode:
+		"rotate": target.rotation = float(baseline)
+		"scale": target.scale = baseline
+		_: target.position = baseline
 
 	{tween_var} = create_tween()
-	for index in range(step_count):
-		var falloff = 1.0 - (float(index) / float(step_count))
-		var position_offset = Vector2(
-			randf_range(-intensity, intensity),
-			randf_range(-intensity, intensity)
-		) * falloff
-		var rotation_offset = deg_to_rad(randf_range(-rotation_degrees, rotation_degrees) * falloff)
-		{tween_var}.tween_property(target, "position", baseline["position"] + position_offset, step_time)
-		{tween_var}.parallel().tween_property(target, "rotation", baseline["rotation"] + rotation_offset, step_time)
-
-	{tween_var}.tween_property(target, "position", baseline["position"], step_time)
-	{tween_var}.parallel().tween_property(target, "rotation", baseline["rotation"], step_time)
+	var steps := 8
+	var step_time := 0.035
+	for i in range(steps):
+		var falloff := 1.0 - float(i) / float(steps)
+		match shake_mode:
+			"rotate":
+				var rot_offset := deg_to_rad(randf_range(-rotation_amount_degrees, rotation_amount_degrees) * falloff)
+				{tween_var}.tween_property(target, "rotation", float(baseline) + rot_offset, step_time)
+			"scale":
+				var scale_offset := Vector2(randf_range(-amount.x, amount.x), randf_range(-amount.y, amount.y)) * falloff
+				{tween_var}.tween_property(target, "scale", baseline + scale_offset, step_time)
+			_:
+				var pos_offset := Vector2(randf_range(-amount.x, amount.x), randf_range(-amount.y, amount.y)) * falloff
+				{tween_var}.tween_property(target, "position", baseline + pos_offset, step_time)
+	match shake_mode:
+		"rotate": {tween_var}.tween_property(target, "rotation", float(baseline), step_time)
+		"scale": {tween_var}.tween_property(target, "scale", baseline as Vector2, step_time)
+		_: {tween_var}.tween_property(target, "position", baseline as Vector2, step_time)
 	{tween_var}.tween_callback(func():
 		if is_instance_valid(target):
-			target.position = baseline["position"]
-			target.rotation = baseline["rotation"]
+			match shake_mode:
+				"rotate": target.rotation = float(baseline)
+				"scale": target.scale = baseline
+				_: target.position = baseline
 		{baseline_var}.erase(target_key)
 	)
-''').format({
-		"suffix": suffix,
-		"tween_var": tween_var,
-		"baseline_var": baseline_var,
-	}).strip_edges())
+''').format({"suffix":suffix,"tween_var":tween_var,"baseline_var":baseline_var}).strip_edges())
 
-	var code_lines: Array[String] = []
-	code_lines.append("# Object Shake 2D Actuator")
-	code_lines.append("var %s = _resolve_object_shake_2d_target_%s(\"%s\")" % [target_var, suffix, _gd(target_name)])
-	code_lines.append("if is_instance_valid(%s):" % target_var)
-	code_lines.append("\t_run_object_shake_2d_%s(%s, float(%s), float(%s), float(%s))" % [suffix, target_var, intensity_expr, duration_expr, rotation_expr])
-	code_lines.append("else:")
-	code_lines.append("\tpush_warning(\"Object Shake 2D Actuator: could not find a Node2D named '%s'\")" % _gd(target_name))
-
+	var lines: Array[String] = []
+	lines.append("var %s = _resolve_object_shake_2d_target_%s(\"%s\")" % [target_var, suffix, target_name.c_escape()])
+	lines.append("if is_instance_valid(%s):" % target_var)
+	lines.append("\t_run_object_shake_2d_%s(%s, \"%s\", Vector2(float(%s), float(%s)), float(%s))" % [suffix,target_var,shake_type,x_expr,y_expr,rotation_expr])
+	lines.append("else:")
+	lines.append("\tpush_warning(\"Object Shake 2D: target Node2D not found\")")
 	return {
-		"actuator_code": "\n".join(code_lines),
-		"member_vars": [
-			"var %s: Tween = null" % tween_var,
-			"var %s: Dictionary = {}" % baseline_var,
-		],
-		"methods": methods,
+		"actuator_code":"\n".join(lines),
+		"member_vars":["var %s: Tween = null" % tween_var, "var %s: Dictionary = {}" % baseline_var],
+		"methods":methods,
 	}
-
-
-func _to_expr(value) -> String:
-	var text = str(value).strip_edges()
-	return "0.0" if text.is_empty() else text
-
-
-func _gd(text: String) -> String:
-	return text.replace("\\", "\\\\").replace("\"", "\\\"")

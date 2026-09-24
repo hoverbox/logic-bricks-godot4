@@ -112,6 +112,10 @@ func generate_code(_node: Node, _chain_name: String) -> Dictionary:
 		code_lines.append("var %s: Node = self" % target_var)
 	else:
 		code_lines.append("var %s: Node = find_child(\"%s\", true, false)" % [target_var, _gd_string(target_node)])
+		code_lines.append("if %s == null and get_tree().current_scene:" % target_var)
+		code_lines.append("\t%s = get_tree().current_scene.find_child(\"%s\", true, false)" % [target_var, _gd_string(target_node)])
+		code_lines.append("if %s == null:" % target_var)
+		code_lines.append("\t%s = get_tree().root.find_child(\"%s\", true, false)" % [target_var, _gd_string(target_node)])
 
 	code_lines.append("if %s == null:" % target_var)
 	code_lines.append("\tpush_warning(\"Group Actuator: target node not found\")")

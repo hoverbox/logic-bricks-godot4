@@ -16,10 +16,8 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 func generate_code(node:Node,chain_name:String)->Dictionary:
-	var mode=str(properties.get("target_mode","node_name")).to_lower().replace(" ","_"); var name=_gd(str(properties.get("target_name",""))); var speed=_to_expr(properties.get("speed","180.0")); var off=_to_expr(properties.get("angle_offset","0.0")); var l=[]
+	var mode=str(properties.get("target_mode","node_name")).to_lower().replace(" ","_"); var name=_gd_string(str(properties.get("target_name",""))); var speed=_expr(properties.get("speed","180.0")); var off=_expr(properties.get("angle_offset","0.0")); var l=[]
 	if mode=="group": l=["var _rt2: Node2D = null","var _rt2d := INF","for _n in get_tree().get_nodes_in_group(\"%s\"):"%name,"\tif _n is Node2D and _n != self:","\t\tvar _d = global_position.distance_squared_to(_n.global_position)","\t\tif _d < _rt2d: _rt2d = _d; _rt2 = _n"]
 	else: l=["var _rt2 = get_tree().current_scene.find_child(\"%s\", true, false) if get_tree().current_scene else null"%name]
 	l += ["if _rt2 is Node2D:","\tvar _angle = global_position.angle_to_point(_rt2.global_position) + deg_to_rad(%s)"%off,"\tvar _step = deg_to_rad(%s) * _delta"%speed,"\tglobal_rotation = _angle if (%s) <= 0.0 else rotate_toward(global_rotation, _angle, _step)"%speed]
 	return {"actuator_code":"\n".join(l)}
-func _to_expr(v)->String: var s=str(v).strip_edges(); return "0.0" if s.is_empty() else s
-func _gd(s:String)->String: return s.replace("\\","\\\\").replace("\"","\\\"")

@@ -53,14 +53,6 @@ func get_property_definitions() -> Array:
 		{"name": "platform_groups", "type": TYPE_STRING, "default": "", "placeholder": "Enter platform groups", "group_picker": true, "group_picker_multi": true}
 	]
 
-func _to_expr(value) -> String:
-	var text := str(value).strip_edges()
-	if text.is_empty():
-		return "0.0"
-	if text.is_valid_float() or text.is_valid_int():
-		return "%.3f" % float(text)
-	return text
-
 func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Applies reusable character physics to a CharacterBody2D. Pair with Position and Character Jump for player movement.",
@@ -69,13 +61,13 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var gravity_expr := _to_expr(properties.get("gravity_strength", "980.0"))
-	var max_fall_expr := _to_expr(properties.get("max_fall_speed", "1000.0"))
-	var floor_snap_expr := _to_expr(properties.get("floor_snap_length", "1.0"))
-	var slope_limit_expr := _to_expr(properties.get("slope_limit", "45.0"))
-	var acceleration_expr := _to_expr(properties.get("acceleration", "1.0"))
-	var friction_expr := _to_expr(properties.get("friction", "1.0"))
-	var bounce_expr := _to_expr(properties.get("bounce", "0.0"))
+	var gravity_expr := _numeric_expr(properties.get("gravity_strength", "980.0"))
+	var max_fall_expr := _numeric_expr(properties.get("max_fall_speed", "1000.0"))
+	var floor_snap_expr := _numeric_expr(properties.get("floor_snap_length", "1.0"))
+	var slope_limit_expr := _numeric_expr(properties.get("slope_limit", "45.0"))
+	var acceleration_expr := _numeric_expr(properties.get("acceleration", "1.0"))
+	var friction_expr := _numeric_expr(properties.get("friction", "1.0"))
+	var bounce_expr := _numeric_expr(properties.get("bounce", "0.0"))
 	var use_acceleration: bool = bool(properties.get("use_acceleration", false))
 
 	var member_vars := []

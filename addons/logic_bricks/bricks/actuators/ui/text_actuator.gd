@@ -115,13 +115,3 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("else:")
 	code_lines.append("\tpush_warning(\"Text Actuator: could not find text node named '\" + str(_target_name_%s) + \"'\")" % label)
 	return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
-
-func _append_set_text_code(code_lines: Array, text_node_var: String, value_expr: String) -> void:
-	code_lines.append("\tif %s is Label or %s is Label3D:" % [text_node_var, text_node_var])
-	code_lines.append("\t\t%s.text = %s" % [text_node_var, value_expr])
-	code_lines.append("\telif %s is RichTextLabel:" % text_node_var)
-	code_lines.append("\t\t%s.text = %s" % [text_node_var, value_expr])
-	code_lines.append("\telse:")
-	code_lines.append("\t\tpush_warning(\"Text Actuator: found node is not a text node\")")
-
-

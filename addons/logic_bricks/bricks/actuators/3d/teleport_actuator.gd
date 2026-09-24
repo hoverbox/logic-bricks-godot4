@@ -159,15 +159,3 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"actuator_code": "\n".join(code_lines),
 		"member_vars": member_vars
 	}
-
-
-func _sanitize_identifier(value: String) -> String:
-	var sanitized := value.strip_edges().replace(" ", "_")
-	var regex := RegEx.new()
-	regex.compile("[^a-zA-Z0-9_]")
-	sanitized = regex.sub(sanitized, "", true)
-	if sanitized.is_empty():
-		return ""
-	if sanitized.substr(0, 1).is_valid_int():
-		sanitized = "var_" + sanitized
-	return sanitized

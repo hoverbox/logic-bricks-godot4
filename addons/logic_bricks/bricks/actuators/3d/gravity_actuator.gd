@@ -2,10 +2,9 @@
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Gravity Actuator - Applies custom gravity to physics-based objects.
-## Use this with RigidBody3D objects. CharacterBody3D gravity belongs in the Character Actuator.
-##
-## This actuator writes to RigidBody3D.constant_force instead of using apply_central_force().
-## That makes gravity keep working after a one-shot trigger such as a Delay sensor.
+## RigidBody3D stores the result in constant_force so a one-shot trigger persists.
+## SoftBody3D has no constant_force/gravity_scale, so custom gravity is applied as
+## a central force while this brick is active.
 
 
 func _init() -> void:
@@ -15,7 +14,7 @@ func _init() -> void:
 
 
 func get_compatibility_error(node: Node) -> String:
-	return "" if node is RigidBody3D else "Requires RigidBody3D"
+	return "" if node is RigidBody3D or node is SoftBody3D else "Requires RigidBody3D or SoftBody3D"
 
 
 func _initialize_properties() -> void:
@@ -24,8 +23,8 @@ func _initialize_properties() -> void:
 		"direction_x": "0.0",
 		"direction_y": "-1.0",
 		"direction_z": "0.0",
-		"use_mass": true,             # true = realistic acceleration; false = raw force
-		"override_world_gravity": true # true = disables built-in RigidBody3D gravity for this body
+		"use_mass": true,              # true = realistic acceleration; false = raw force
+		"override_world_gravity": true # SoftBody3D cancels project-default gravity only
 	}
 
 
@@ -64,20 +63,21 @@ func get_property_definitions() -> Array:
 	]
 
 
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Applies custom gravity to RigidBody3D or SoftBody3D. Soft bodies receive a central force while the brick is active.",
+		"gravity_strength": "Gravity acceleration/force strength. Accepts a number, variable, or expression.",
+		"direction_x": "Gravity direction X component.",
+		"direction_y": "Gravity direction Y component.",
+		"direction_z": "Gravity direction Z component.",
+		"use_mass": "When enabled, multiply by body mass so the value behaves like acceleration. SoftBody3D uses total_mass.",
+		"override_world_gravity": "RigidBody3D disables gravity_scale. SoftBody3D cancels the project default gravity; Area3D gravity overrides cannot be read back reliably.",
+	}
+
+
 ## Convert a value to a code expression.
 ## If it's a number (or string of a number), returns the numeric literal.
 ## Otherwise returns it as-is (a variable name or expression).
-func _to_expr(val) -> String:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return "%.3f" % val
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return "0.0"
-	if s.is_valid_float() or s.is_valid_int():
-		return "%.3f" % float(s)
-	return s
-
-
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var gravity_strength = properties.get("gravity_strength", "9.8")
 	var direction_x = properties.get("direction_x", "0.0")
@@ -86,32 +86,53 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var use_mass = properties.get("use_mass", true)
 	var override_world_gravity = properties.get("override_world_gravity", true)
 
-	var gravity_expr = _to_expr(gravity_strength)
-	var dx_expr = _to_expr(direction_x)
-	var dy_expr = _to_expr(direction_y)
-	var dz_expr = _to_expr(direction_z)
+	var gravity_expr = _numeric_expr(gravity_strength)
+	var dx_expr = _numeric_expr(direction_x)
+	var dy_expr = _numeric_expr(direction_y)
+	var dz_expr = _numeric_expr(direction_z)
 
 	var code_lines: Array[String] = []
 
-	if not (node is RigidBody3D):
-		code_lines.append("# WARNING: Gravity actuator only works with RigidBody3D physics objects.")
-		code_lines.append("# CharacterBody3D gravity is controlled by the Character Actuator.")
-		code_lines.append("push_warning(\"Gravity actuator requires RigidBody3D, but node '%s' is %s\")" % [node.name, node.get_class()])
+	if not (node is RigidBody3D or node is SoftBody3D):
+		code_lines.append("# WARNING: Gravity actuator requires RigidBody3D or SoftBody3D.")
+		code_lines.append("push_warning(\"Gravity actuator requires RigidBody3D or SoftBody3D, but node '%s' is %s\")" % [node.name, node.get_class()])
 		return {"actuator_code": "\n".join(code_lines)}
 
-	code_lines.append("# Apply persistent custom gravity to this RigidBody3D")
-	if override_world_gravity:
-		code_lines.append("# Disable the body's built-in world gravity so the custom direction is not mixed with it")
-		code_lines.append("gravity_scale = 0.0")
-	code_lines.append("var _logic_brick_gravity_dir = Vector3(%s, %s, %s)" % [dx_expr, dy_expr, dz_expr])
-	code_lines.append("if _logic_brick_gravity_dir.length() > 0.0:")
-	code_lines.append("\t_logic_brick_gravity_dir = _logic_brick_gravity_dir.normalized()")
-	if use_mass:
-		code_lines.append("\tconstant_force = _logic_brick_gravity_dir * (%s) * mass" % gravity_expr)
+	if node is RigidBody3D:
+		code_lines.append("# Apply persistent custom gravity to this RigidBody3D")
+		if override_world_gravity:
+			code_lines.append("gravity_scale = 0.0")
+		code_lines.append("var _logic_brick_gravity_dir = Vector3(%s, %s, %s)" % [dx_expr, dy_expr, dz_expr])
+		code_lines.append("if _logic_brick_gravity_dir.length() > 0.0:")
+		code_lines.append("\t_logic_brick_gravity_dir = _logic_brick_gravity_dir.normalized()")
+		if use_mass:
+			code_lines.append("\tconstant_force = _logic_brick_gravity_dir * (%s) * mass" % gravity_expr)
+		else:
+			code_lines.append("\tconstant_force = _logic_brick_gravity_dir * (%s)" % gravity_expr)
+		code_lines.append("else:")
+		code_lines.append("\tconstant_force = Vector3.ZERO")
 	else:
-		code_lines.append("\tconstant_force = _logic_brick_gravity_dir * (%s)" % gravity_expr)
-	code_lines.append("else:")
-	code_lines.append("\tconstant_force = Vector3.ZERO")
+		code_lines.append("# Apply custom gravity force to this SoftBody3D")
+		if override_world_gravity:
+			code_lines.append("var _logic_brick_default_gravity = float(ProjectSettings.get_setting(\"physics/3d/default_gravity\", 9.8))")
+			code_lines.append("var _logic_brick_default_gravity_dir = ProjectSettings.get_setting(\"physics/3d/default_gravity_vector\", Vector3.DOWN)")
+			code_lines.append("if _logic_brick_default_gravity_dir.length() > 0.0:")
+			code_lines.append("\t_logic_brick_default_gravity_dir = _logic_brick_default_gravity_dir.normalized()")
+		code_lines.append("var _logic_brick_gravity_dir = Vector3(%s, %s, %s)" % [dx_expr, dy_expr, dz_expr])
+		code_lines.append("if _logic_brick_gravity_dir.length() > 0.0:")
+		code_lines.append("\t_logic_brick_gravity_dir = _logic_brick_gravity_dir.normalized()")
+		if use_mass:
+			code_lines.append("\tvar _logic_brick_soft_gravity_force = _logic_brick_gravity_dir * (%s) * total_mass" % gravity_expr)
+		else:
+			code_lines.append("\tvar _logic_brick_soft_gravity_force = _logic_brick_gravity_dir * (%s)" % gravity_expr)
+		if override_world_gravity:
+			code_lines.append("\t_logic_brick_soft_gravity_force -= _logic_brick_default_gravity_dir * _logic_brick_default_gravity * total_mass")
+		code_lines.append("\tapply_central_force(_logic_brick_soft_gravity_force)")
+		code_lines.append("else:")
+		if override_world_gravity:
+			code_lines.append("\tapply_central_force(-_logic_brick_default_gravity_dir * _logic_brick_default_gravity * total_mass)")
+		else:
+			code_lines.append("\tpass")
 
 	return {
 		"actuator_code": "\n".join(code_lines)

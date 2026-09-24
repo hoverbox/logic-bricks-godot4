@@ -14,6 +14,8 @@ func _init() -> void:
 	resizable = false
 	draggable = true
 	selectable = true
+	# Keep bricks above all frame layers, including nested frames.
+	z_index = 100
 
 	# Create main container
 	var vbox = VBoxContainer.new()

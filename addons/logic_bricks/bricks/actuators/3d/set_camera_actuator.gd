@@ -25,14 +25,18 @@ func get_property_definitions() -> Array:
 			"name": "camera_node_name", "required": true, "required_label": "a Camera3D node name",
 			"type": TYPE_STRING,
 			"default": "Camera3D",
-			"placeholder": "Camera3D node name"
+			"placeholder": "Camera3D node name",
+			"node_reference": true,
+			"accepted_node_types": ["Camera3D"],
+			"node_picker_scope": "scene"
 		},
 	]
 
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Makes the assigned Camera3D the active camera.\nUse a one-shot sensor (e.g. Delay or a state transition) to avoid\ncalling make_current() every frame unnecessarily.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there.",
+		"_description": "Makes a Camera3D anywhere in the edited scene active.\nUse the dropdown to choose the camera. A one-shot sensor is usually best so make_current() is not called every frame.",
+		"camera_node_name": "Camera3D to activate. The dropdown searches the full edited scene, not only children of this node.",
 	}
 
 

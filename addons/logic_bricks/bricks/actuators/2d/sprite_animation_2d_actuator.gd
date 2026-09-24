@@ -32,7 +32,7 @@ func get_property_definitions() -> Array:
 		{"name": "mode", "type": TYPE_STRING, "hint": PROPERTY_HINT_ENUM, "hint_string": "Play,Stop,Pause", "default": "play"},
 		{"name": "animation_name", "type": TYPE_STRING, "hint": PROPERTY_HINT_NONE, "default": ""},
 		{"name": "speed_scale", "type": TYPE_STRING, "default": "1.0"},
-		{"name": "target_node", "type": TYPE_STRING, "hint": PROPERTY_HINT_NONE, "default": ""},
+		{"name": "target_node", "type": TYPE_STRING, "hint": PROPERTY_HINT_NONE, "default": "", "node_reference": true, "node_picker_scope": "scene", "accepted_node_types": ["AnimatedSprite2D"]},
 	]
 
 func get_tooltip_definitions() -> Dictionary:

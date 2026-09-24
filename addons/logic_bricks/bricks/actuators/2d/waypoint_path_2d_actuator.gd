@@ -111,16 +111,6 @@ static func sync_path2d_node(owner_node: Node2D, brick_instance) -> void:
 		path_node.curve.add_point(Vector2.ZERO)
 		path_node.curve.add_point(Vector2(200.0, 0.0))
 
-func _to_expr(value) -> String:
-	if typeof(value) == TYPE_FLOAT or typeof(value) == TYPE_INT:
-		return "%.3f" % float(value)
-	var text := str(value).strip_edges()
-	if text.is_empty():
-		return "0.0"
-	if text.is_valid_float() or text.is_valid_int():
-		return "%.3f" % float(text)
-	return text
-
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var path_source := str(properties.get("path_source", "node_positions")).to_lower().replace(" ", "_")
 	# Backward compatibility with the first 2D implementation.
@@ -132,8 +122,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if loop_mode not in ["loop", "ping_pong", "once"]:
 		loop_mode = "loop"
 
-	var speed_expr := _to_expr(properties.get("speed", "150.0"))
-	var arrival_expr := _to_expr(properties.get("arrival_distance", "4.0"))
+	var speed_expr := _numeric_expr(properties.get("speed", "150.0"))
+	var arrival_expr := _numeric_expr(properties.get("arrival_distance", "4.0"))
 	var face_direction := bool(properties.get("face_direction", false))
 	var waypoints: Array = properties.get("waypoints", [])
 	if typeof(waypoints) != TYPE_ARRAY:
@@ -213,8 +203,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			"var _wp2_target = _wp2_path_%s.to_global(_wp2_curve_%s.sample_baked(%s, true))" % [id,id,offset_var],
 			"var _wp2_delta_position = _wp2_target - global_position",
 			"if self is CharacterBody2D:",
-			"\t_logic_brick_character_2d_motion_active = true",
-			"\t_logic_brick_character_2d_target_velocity = _wp2_delta_position / _delta if _delta > 0.0 else Vector2.ZERO",
+			"\tvar _wp2_velocity = _wp2_delta_position / _delta if _delta > 0.0 else Vector2.ZERO",
+			"\t(self as CharacterBody2D).velocity = _wp2_velocity",
+			"\tif \"_logic_brick_character_2d_motion_active\" in self:",
+			"\t\tself.set(\"_logic_brick_character_2d_motion_active\", true)",
+			"\t\tself.set(\"_logic_brick_character_2d_target_velocity\", _wp2_velocity)",
+			"\telse:",
+			"\t\t(self as CharacterBody2D).move_and_slide()",
 			"else:",
 			"\tglobal_position = _wp2_target",
 		]
@@ -256,8 +251,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			"if _wp2_distance > _wp2_arrival:",
 			"\tvar _wp2_velocity = _wp2_delta_position.normalized() * _wp2_speed",
 			"\tif self is CharacterBody2D:",
-			"\t\t_logic_brick_character_2d_motion_active = true",
-			"\t\t_logic_brick_character_2d_target_velocity = _wp2_velocity",
+			"\t\t(self as CharacterBody2D).velocity = _wp2_velocity",
+			"\t\tif \"_logic_brick_character_2d_motion_active\" in self:",
+			"\t\t\tself.set(\"_logic_brick_character_2d_motion_active\", true)",
+			"\t\t\tself.set(\"_logic_brick_character_2d_target_velocity\", _wp2_velocity)",
+			"\t\telse:",
+			"\t\t\t(self as CharacterBody2D).move_and_slide()",
 			"\telse:",
 			"\t\tglobal_position = global_position.move_toward(_wp2_target, _wp2_speed * _delta)",
 		]
@@ -267,6 +266,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				"\t\trotation = _wp2_delta_position.angle()",
 			]
 		lines.append("else:")
+		lines.append("\tif self is CharacterBody2D:")
+		lines.append("\t\t(self as CharacterBody2D).velocity = Vector2.ZERO")
+		lines.append("\t\tif \"_logic_brick_character_2d_motion_active\" in self:")
+		lines.append("\t\t\tself.set(\"_logic_brick_character_2d_motion_active\", true)")
+		lines.append("\t\t\tself.set(\"_logic_brick_character_2d_target_velocity\", Vector2.ZERO)")
 		match loop_mode:
 			"loop":
 				lines.append("\t%s = posmod(%s + 1, %s.size())" % [idx_var,idx_var,points_var])

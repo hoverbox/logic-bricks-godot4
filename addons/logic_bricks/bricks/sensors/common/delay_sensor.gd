@@ -48,39 +48,15 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
-## Convert a value to a code expression (mirrors motion_actuator._to_expr).
-## Numbers become float literals; anything else is passed through as a variable/expression.
-func _to_expr(val) -> String:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return "%.4f" % val
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return "0.0"
-	if s.is_valid_float() or s.is_valid_int():
-		return "%.4f" % float(s)
-	return s
-
-
 ## Returns true only when the value is a literal zero (not a variable name).
-func _is_literal_zero(val) -> bool:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return val == 0.0
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return true
-	if s.is_valid_float() or s.is_valid_int():
-		return float(s) == 0.0
-	# It's a variable name — can't know at code-gen time, treat as non-zero
-	return false
-
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var delay_val    = properties.get("delay", "0.0")
 	var duration_val = properties.get("duration", "0.0")
 	var repeat       = properties.get("repeat", false)
 
-	var delay_expr    = _to_expr(delay_val)
-	var duration_expr = _to_expr(duration_val)
+	var delay_expr    = _numeric_expr(delay_val, "0.0", 4)
+	var duration_expr = _numeric_expr(duration_val, "0.0", 4)
 
 	# duration_is_zero is only true when we KNOW it's zero at code-gen time.
 	# If it's a variable name we must emit the runtime branch (duration > 0 path).

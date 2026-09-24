@@ -39,7 +39,7 @@ func get_property_definitions() -> Array:
 	return [
 		{"name": "target_node_name", "type": TYPE_STRING, "default": ""},
 		{"name": "event", "type": TYPE_STRING, "hint": PROPERTY_HINT_ENUM, "hint_string": "Just Pressed,Pressed,Just Released,Hovering,Focused,Toggled On,Toggled Off", "default": "just_pressed"},
-		{"name": "store_pressed", "type": TYPE_STRING, "default": ""},
+		{"name": "store_pressed", "type": TYPE_STRING, "default": "", "variable_picker": true},
 	]
 
 func get_configuration_warnings(node: Node = null) -> Array[String]:

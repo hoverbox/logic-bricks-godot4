@@ -83,7 +83,7 @@ func _build_target(lines: Array[String], members: Array[String], chain_name: Str
 	var label := _unique_label(chain_name)
 	var target_var := "_scale2d_target_%s" % label
 	members.append("var %s = null" % target_var)
-	lines.append("var _scale2d_name_%s = \"%s\"" % [label, _escape_string(target_name)])
+	lines.append("var _scale2d_name_%s = \"%s\"" % [label, _gd_string(target_name)])
 	lines.append("if %s == null or %s.name != _scale2d_name_%s:" % [target_var, target_var, label])
 	lines.append("\t%s = find_child(_scale2d_name_%s, true, false)" % [target_var, label])
 	lines.append("\tif %s == null and get_tree().current_scene:" % target_var)
@@ -109,6 +109,3 @@ func _ease_constant() -> String:
 
 func _unique_label(chain_name: String) -> String:
 	return str(abs((chain_name + str(properties)).hash()))
-
-func _escape_string(value: String) -> String:
-	return value.replace("\\", "\\\\").replace("\"", "\\\"")

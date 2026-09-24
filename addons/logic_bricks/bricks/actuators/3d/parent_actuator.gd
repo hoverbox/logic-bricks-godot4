@@ -14,7 +14,9 @@ func _init() -> void:
 func _initialize_properties() -> void:
 	properties = {
 		"mode": "set_parent",       # set_parent, remove_parent
+		"parent_target_mode": "node_name", # node_name, group
 		"parent_node": "",          # Node name to search for as new parent
+		"parent_group": "",         # Group to use as new parent
 		"keep_transform": true      # Keep global transform when reparenting
 	}
 
@@ -29,10 +31,28 @@ func get_property_definitions() -> Array:
 			"default": "set_parent"
 		},
 		{
-			"name": "parent_node", "required": true, "required_label": "a parent node", "required_if": {"mode": "set_parent"},
+			"name": "parent_target_mode",
+			"type": TYPE_STRING,
+			"hint": PROPERTY_HINT_ENUM,
+			"hint_string": "Node Name,Group",
+			"default": "node_name",
+			"visible_if": {"mode": "set_parent"}
+		},
+		{
+			"name": "parent_node", "required": true, "required_label": "a parent node", "required_if": {"mode": "set_parent", "parent_target_mode": "node_name"},
 			"type": TYPE_STRING,
 			"default": "",
-			"visible_if": {"mode": "set_parent"}
+			"visible_if": {"mode": "set_parent", "parent_target_mode": "node_name"},
+			"node_reference": true,
+			"accepted_node_types": ["Node"],
+			"node_picker_scope": "scene"
+		},
+		{
+			"name": "parent_group", "required": true, "required_label": "a parent group", "required_if": {"mode": "set_parent", "parent_target_mode": "group"},
+			"type": TYPE_STRING,
+			"default": "",
+			"visible_if": {"mode": "set_parent", "parent_target_mode": "group"},
+			"group_picker": true
 		},
 		{
 			"name": "keep_transform",
@@ -44,7 +64,9 @@ func get_property_definitions() -> Array:
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = properties.get("mode", "set_parent")
-	var parent_node = properties.get("parent_node", "")
+	var parent_target_mode = str(properties.get("parent_target_mode", "node_name")).to_lower().replace(" ", "_")
+	var parent_node = str(properties.get("parent_node", "")).strip_edges()
+	var parent_group = str(properties.get("parent_group", "")).strip_edges()
 	var keep_transform = properties.get("keep_transform", true)
 
 	# Normalize mode
@@ -55,11 +77,17 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	match mode:
 		"set_parent":
-			if parent_node.is_empty():
-				code_lines.append("push_warning(\"Parent Actuator: No parent node specified\")")
+			var target_value = parent_group if parent_target_mode == "group" else parent_node
+			if target_value.is_empty():
+				code_lines.append("push_warning(\"Parent Actuator: No parent target specified\")")
 			else:
-				code_lines.append("# Search for node by name: %s" % parent_node)
-				code_lines.append("var _new_parent = get_tree().root.find_child(\"%s\", true, false)" % parent_node)
+				if parent_target_mode == "group":
+					code_lines.append("# Use the first node in the selected parent group")
+					code_lines.append("var _parent_candidates = get_tree().get_nodes_in_group(\"%s\")" % parent_group.c_escape())
+					code_lines.append("var _new_parent = _parent_candidates[0] if not _parent_candidates.is_empty() else null")
+				else:
+					code_lines.append("# Search the full scene tree for parent node: %s" % parent_node)
+					code_lines.append("var _new_parent = get_tree().root.find_child(\"%s\", true, false)" % parent_node.c_escape())
 				code_lines.append("if _new_parent:")
 				code_lines.append("\tvar _old_parent = get_parent()")
 				code_lines.append("\tif _old_parent:")
@@ -84,7 +112,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					code_lines.append("\t\t_old_parent.remove_child(self)")
 					code_lines.append("\t\t_new_parent.add_child(self)")
 				code_lines.append("else:")
-				code_lines.append("\tpush_warning(\"Parent Actuator: Node named '%s' not found\")" % parent_node)
+				code_lines.append("\tpush_warning(\"Parent Actuator: Parent target not found\")")
 
 		"remove_parent":
 			code_lines.append("# Remove parent (reparent to scene root)")

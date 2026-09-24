@@ -187,27 +187,8 @@ func get_tooltip_definitions() -> Dictionary:
 ## Convert a value to a code expression.
 ## If it's a number (or string of a number), returns the numeric literal.
 ## Otherwise returns it as-is (a variable name or expression).
-func _to_expr(val) -> String:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return "%.3f" % val
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return "0.0"
-	if s.is_valid_float() or s.is_valid_int():
-		return "%.3f" % float(s)
-	return s
-
-
 ## True only when the user entered a literal numeric value greater than zero.
 ## Variable/expression values are treated as potentially non-zero so generated code preserves them.
-func _literal_gt_zero(val) -> bool:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return float(val) > 0.0
-	var s = str(val).strip_edges()
-	if s.is_valid_float() or s.is_valid_int():
-		return float(s) > 0.0
-	return true
-
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var navigation_agent_node_name = str(properties.get("navigation_agent_node_name", "NavigationAgent3D")).strip_edges()
@@ -324,9 +305,9 @@ func _generate_direct_movement(behavior: String, target_mode: String, target_nam
 
 	var indent = "\t" if target_mode == "node_name" else "\t\t"
 
-	var arrival_expr = _to_expr(arrival_dist)
-	var vel_expr = _to_expr(vel)
-	var accel_expr = _to_expr(accel)
+	var arrival_expr = _numeric_expr(arrival_dist)
+	var vel_expr = _numeric_expr(vel)
+	var accel_expr = _numeric_expr(accel)
 
 	# Check arrival / self-terminate
 	if terminate:
@@ -425,9 +406,9 @@ func _generate_pathfinding_movement(chain_name: String, target_mode: String, tar
 
 	var indent = "\t\t" if target_mode == "node_name" else "\t\t\t"
 
-	var arrival_expr = _to_expr(arrival_dist)
-	var vel_expr = _to_expr(vel)
-	var accel_expr = _to_expr(accel)
+	var arrival_expr = _numeric_expr(arrival_dist)
+	var vel_expr = _numeric_expr(vel)
+	var accel_expr = _numeric_expr(accel)
 
 	# Arrival check
 	if terminate:
@@ -495,13 +476,13 @@ func _generate_pathfinding_movement(chain_name: String, target_mode: String, tar
 
 
 func _append_advanced_body(lines: Array[String], indent: String, behavior: String, target_expr: String, arrival_dist, slowing_dist, desired_dist, tolerance, orbit_dist, orbit_direction: String, vel, accel, turn, face: bool, axis: String, lock_y: bool, terminate: bool) -> void:
-	var arrival_expr = _to_expr(arrival_dist)
-	var slowing_expr = _to_expr(slowing_dist)
-	var desired_expr = _to_expr(desired_dist)
-	var tolerance_expr = _to_expr(tolerance)
-	var orbit_expr = _to_expr(orbit_dist)
-	var vel_expr = _to_expr(vel)
-	var accel_expr = _to_expr(accel)
+	var arrival_expr = _numeric_expr(arrival_dist)
+	var slowing_expr = _numeric_expr(slowing_dist)
+	var desired_expr = _numeric_expr(desired_dist)
+	var tolerance_expr = _numeric_expr(tolerance)
+	var orbit_expr = _numeric_expr(orbit_dist)
+	var vel_expr = _numeric_expr(vel)
+	var accel_expr = _numeric_expr(accel)
 	lines.append("%svar _to_target = %s - global_position" % [indent, target_expr])
 	if lock_y:
 		lines.append("%s_to_target.y = 0.0" % indent)
@@ -592,10 +573,10 @@ func _generate_vector_advanced_movement(behavior: String, variable_name: String,
 
 func _generate_wander_movement(chain_name: String, amount, frequency, vel, accel, turn, face: bool, axis: String, lock_y: bool) -> String:
 	var lines: Array[String] = []
-	var amount_expr = _to_expr(amount)
-	var frequency_expr = _to_expr(frequency)
-	var vel_expr = _to_expr(vel)
-	var accel_expr = _to_expr(accel)
+	var amount_expr = _numeric_expr(amount)
+	var frequency_expr = _numeric_expr(frequency)
+	var vel_expr = _numeric_expr(vel)
+	var accel_expr = _numeric_expr(accel)
 	var dir_var = "_steer_wander_dir_%s" % chain_name
 	var timer_var = "_steer_wander_timer_%s" % chain_name
 	lines.append("%s -= _delta" % timer_var)
@@ -656,7 +637,7 @@ func _generate_look_at_code(target_pos: String, axis: String, turn_speed) -> Str
 
 	if _literal_gt_zero(turn_speed):
 		# Gradual rotation
-		var turn_expr = _to_expr(turn_speed)
+		var turn_expr = _numeric_expr(turn_speed)
 		lines.append("\tvar _target_angle = atan2(_look_dir.x, _look_dir.z)")
 		lines.append("\tvar _current_angle = rotation.y")
 		lines.append("\trotation.y = lerp_angle(_current_angle, _target_angle, deg_to_rad(%s) * _delta)" % turn_expr)
@@ -683,9 +664,9 @@ func _generate_vector_direct_movement(behavior: String, variable_name: String, a
 	var lines := _generate_vector_resolve_lines(variable_name, "_target_position")
 	lines.append("if _target_position is Vector3:")
 	var indent := "\t"
-	var arrival_expr = _to_expr(arrival_dist)
-	var vel_expr = _to_expr(vel)
-	var accel_expr = _to_expr(accel)
+	var arrival_expr = _numeric_expr(arrival_dist)
+	var vel_expr = _numeric_expr(vel)
+	var accel_expr = _numeric_expr(accel)
 	lines.append("%svar _nearest_dist = global_position.distance_to(_target_position)" % indent)
 	if terminate:
 		lines.append("%sif _nearest_dist <= (%s):" % [indent, arrival_expr])
@@ -739,9 +720,9 @@ func _generate_vector_pathfinding_movement(chain_name: String, variable_name: St
 	lines.append_array(_generate_vector_resolve_lines(variable_name, "_target_position"))
 	lines.append("if %s and _target_position is Vector3:" % nav_var)
 	var indent := "\t"
-	var arrival_expr = _to_expr(arrival_dist)
-	var vel_expr = _to_expr(vel)
-	var accel_expr = _to_expr(accel)
+	var arrival_expr = _numeric_expr(arrival_dist)
+	var vel_expr = _numeric_expr(vel)
+	var accel_expr = _numeric_expr(accel)
 	if terminate:
 		lines.append("%sif global_position.distance_to(_target_position) <= (%s):" % [indent, arrival_expr])
 		lines.append("%s\treturn" % indent)
@@ -778,15 +759,3 @@ func _generate_vector_pathfinding_movement(chain_name: String, variable_name: St
 	lines.append("else:")
 	lines.append("\tpush_warning(\"Steering: NavigationAgent3D or Vector3 variable '%s' is unavailable\")" % variable_name)
 	return "\n".join(lines)
-
-
-func _sanitize_identifier(value: String) -> String:
-	var sanitized := value.strip_edges().replace(" ", "_")
-	var regex := RegEx.new()
-	regex.compile("[^a-zA-Z0-9_]")
-	sanitized = regex.sub(sanitized, "", true)
-	if sanitized.is_empty():
-		return ""
-	if sanitized.substr(0, 1).is_valid_int():
-		sanitized = "var_" + sanitized
-	return sanitized

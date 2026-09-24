@@ -101,11 +101,15 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"enable_monitoring", "disable_monitoring":
 			expected_type = "Area3D"
 		_:
-			expected_type = "CollisionObject3D"
+			expected_type = "CollisionObject3D or SoftBody3D"
 
 	# Resolve the target node at runtime via find_child()
 	var quoted_name = "\"%s\"" % target_node_name
 	code_lines.append("var %s = find_child(%s, true, false)" % [temp_var, quoted_name])
+	code_lines.append("if %s == null and get_tree().current_scene:" % temp_var)
+	code_lines.append("\t%s = get_tree().current_scene.find_child(%s, true, false)" % [temp_var, quoted_name])
+	code_lines.append("if %s == null:" % temp_var)
+	code_lines.append("\t%s = get_tree().root.find_child(%s, true, false)" % [temp_var, quoted_name])
 	code_lines.append("if %s == null:" % temp_var)
 	code_lines.append("\tpush_warning(\"CollisionActuator: could not find node named '%s' under '\" + name + \"' (expected %s)\")" % [target_node_name, expected_type])
 	code_lines.append("else:")
@@ -124,18 +128,18 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append('\t\tpush_warning("CollisionActuator: enable_shape target is not a CollisionShape: " + str(%s))' % temp_var)
 
 		"set_layer_bit":
-			code_lines.append("\tif %s is CollisionObject3D or %s is CollisionObject2D:" % [temp_var, temp_var])
+			code_lines.append("\tif %s is CollisionObject3D or %s is CollisionObject2D or %s is SoftBody3D:" % [temp_var, temp_var, temp_var])
 			code_lines.append("\t\t%s.set_collision_layer_value(%d, %s)" % [temp_var, layer_value, str(bit_enabled).to_lower()])
 			code_lines.append("\telse:")
-			code_lines.append('\t\tpush_warning("CollisionActuator: set_layer_bit target is not a CollisionObject: " + str(%s))' % temp_var)
+			code_lines.append('\t\tpush_warning("CollisionActuator: set_layer_bit target does not support collision layer/mask: " + str(%s))' % temp_var)
 
 		"set_mask_bit":
 			# Reminder: for an Area3D to detect a CharacterBody3D without the player
 			# having its own Area3D, the Area3D's MASK must include the player's LAYER.
-			code_lines.append("\tif %s is CollisionObject3D or %s is CollisionObject2D:" % [temp_var, temp_var])
+			code_lines.append("\tif %s is CollisionObject3D or %s is CollisionObject2D or %s is SoftBody3D:" % [temp_var, temp_var, temp_var])
 			code_lines.append("\t\t%s.set_collision_mask_value(%d, %s)" % [temp_var, layer_value, str(bit_enabled).to_lower()])
 			code_lines.append("\telse:")
-			code_lines.append('\t\tpush_warning("CollisionActuator: set_mask_bit target is not a CollisionObject: " + str(%s))' % temp_var)
+			code_lines.append('\t\tpush_warning("CollisionActuator: set_mask_bit target does not support collision layer/mask: " + str(%s))' % temp_var)
 
 		"enable_monitoring":
 			code_lines.append("\tif %s is Area3D or %s is Area2D:" % [temp_var, temp_var])

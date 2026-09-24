@@ -51,6 +51,9 @@ func get_property_definitions() -> Array:
 		{
 			"name": "target_node",
 			"type": TYPE_STRING,
+			"node_reference": true,
+			"node_picker_scope": "scene",
+			"accepted_node_types": ["Sprite3D", "AnimatedSprite3D"],
 			"hint": PROPERTY_HINT_NONE,
 			"default": ""
 		},

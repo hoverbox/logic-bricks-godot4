@@ -47,6 +47,7 @@ func take_graph_snapshot(target_node: Node = panel.current_node) -> Dictionary:
 		"states": _copy_snapshot_value(target_node.get_meta("logic_bricks_states", [])),
 		"debug_watch_state": _copy_snapshot_value(target_node.get_meta("logic_bricks_debug_watch_state", {})),
 		"global_usage": _copy_snapshot_value(target_node.get_meta("logic_bricks_global_usage", {})),
+		"schema_version": int(target_node.get_meta("logic_bricks_schema_version", 0)),
 		"global_vars": _copy_snapshot_value(scene_root.get_meta("logic_bricks_global_vars", [])) if scene_root else [],
 	}
 
@@ -66,6 +67,11 @@ func restore_graph_snapshot(target_node: Node, snapshot: Dictionary) -> void:
 	_set_or_remove_meta(target_node, "logic_bricks_states", snapshot.get("states", []), [])
 	_set_or_remove_meta(target_node, "logic_bricks_debug_watch_state", snapshot.get("debug_watch_state", {}), {})
 	_set_or_remove_meta(target_node, "logic_bricks_global_usage", snapshot.get("global_usage", {}), {})
+	var schema_version := int(snapshot.get("schema_version", 0))
+	if schema_version > 0:
+		target_node.set_meta("logic_bricks_schema_version", schema_version)
+	elif target_node.has_meta("logic_bricks_schema_version"):
+		target_node.remove_meta("logic_bricks_schema_version")
 	if panel.editor_interface:
 		var scene_root = panel.editor_interface.get_edited_scene_root()
 		if scene_root:
@@ -107,7 +113,8 @@ func save_graph_to_metadata(action_name: String = "Edit Logic Bricks", record_ch
 	var graph_data = {
 		"nodes": [],
 		"connections": [],
-		"next_id": panel.next_node_id
+		"next_id": panel.next_node_id,
+		"connection_style": str(panel.graph_edit.get("connection_style")) if panel.graph_edit.get("connection_style") != null else "bezier"
 	}
 	for child in panel.graph_edit.get_children():
 		if child is GraphNode and child.has_meta("brick_data"):
@@ -123,13 +130,15 @@ func save_graph_to_metadata(action_name: String = "Edit Logic Bricks", record_ch
 				"properties": brick_data["brick_instance"].get_properties()
 			})
 		elif child is GraphNode and child.has_meta("is_reroute"):
-			graph_data["nodes"].append({"id": child.name, "position": child.position_offset, "is_reroute": true})
+			graph_data["nodes"].append({"id": child.name, "position": child.position_offset, "is_reroute": true, "color": child.get_meta("reroute_color", Color.WHITE)})
 	for conn in panel.graph_edit.get_connection_list():
 		graph_data["connections"].append({
 			"from_node": conn["from_node"], "from_port": conn["from_port"],
 			"to_node": conn["to_node"], "to_port": conn["to_port"]
 		})
 	target_node.set_meta("logic_bricks_graph", graph_data)
+	if panel.manager:
+		panel.manager.stamp_current_schema(target_node)
 	panel._mark_scene_modified()
 	if panel.has_method("_mark_unapplied_changes"):
 		panel._mark_unapplied_changes()
@@ -407,6 +416,18 @@ func on_delete_nodes_request(nodes: Array) -> void:
 	for node_name in nodes:
 		var node = panel.graph_edit.get_node(NodePath(node_name))
 		if node:
+			if node is GraphNode and node.has_meta("is_reroute"):
+				var incoming: Dictionary = {}
+				var outgoing: Dictionary = {}
+				for conn in panel.graph_edit.get_connection_list():
+					if conn["to_node"] == node.name:
+						incoming = conn
+					elif conn["from_node"] == node.name:
+						outgoing = conn
+				if not incoming.is_empty() and not outgoing.is_empty():
+					panel.graph_edit.disconnect_node(incoming["from_node"], incoming["from_port"], incoming["to_node"], incoming["to_port"])
+					panel.graph_edit.disconnect_node(outgoing["from_node"], outgoing["from_port"], outgoing["to_node"], outgoing["to_port"])
+					panel.graph_edit.connect_node(incoming["from_node"], incoming["from_port"], outgoing["to_node"], outgoing["to_port"])
 			if node is GraphNode and node.has_meta("brick_data") and panel.has_method("_remove_apply_warning"):
 				panel._remove_apply_warning(node)
 			if node is GraphFrame:

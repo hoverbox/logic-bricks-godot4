@@ -2,8 +2,8 @@
 
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
-## Linear Velocity Actuator - Apply constant velocity to RigidBody3D
-## Similar to UPBGE's Linear Velocity actuator
+## Linear Velocity Actuator - Set/add velocity on rigid/character bodies.
+## SoftBody3D supports Add mode by converting the requested delta-v into a central impulse.
 
 
 func _init() -> void:
@@ -13,7 +13,10 @@ func _init() -> void:
 
 
 func get_compatibility_error(node: Node) -> String:
-	return "" if node is RigidBody3D or node is CharacterBody3D else "Requires RigidBody3D or CharacterBody3D"
+	if node is SoftBody3D:
+		var mode := str(properties.get("mode", "set")).to_lower()
+		return "" if mode == "add" else "SoftBody3D supports Add mode only"
+	return "" if node is RigidBody3D or node is CharacterBody3D else "Requires RigidBody3D, CharacterBody3D, or SoftBody3D"
 
 
 func _initialize_properties() -> void:
@@ -64,38 +67,18 @@ func get_property_definitions() -> Array:
 	]
 
 
-## Convert a value to a code expression.
-## If it's a number (or string of a number), returns the float literal.
-## Otherwise returns it as-is (a variable name or expression).
-func _to_expr(val) -> String:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return "%.3f" % val
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return "0.0"
-	if s.is_valid_float() or s.is_valid_int():
-		return "%.3f" % float(s)
-	return s
-
-
 ## Check if a value is a literal zero (skips code generation for that axis).
-func _is_zero(val) -> bool:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return val == 0.0
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return true
-	if s.is_valid_float() or s.is_valid_int():
-		return float(s) == 0.0
-	# It's a variable name — not zero
-	return false
-
-
 
 func get_configuration_warnings(node: Node = null) -> Array[String]:
 	var warnings := super.get_configuration_warnings(node)
 	if _validation_all_numeric_zero(["velocity_x", "velocity_y", "velocity_z"]):
 		warnings.append("Put a Value or Variable in X,Y, or Z")
+	if node is SoftBody3D:
+		var mode := str(properties.get("mode", "set")).to_lower()
+		if mode != "add":
+			warnings.append("SoftBody3D supports Add mode only; it is implemented as a central impulse (mass x velocity change).")
+		if not _is_literal_zero(properties.get("max_speed", "0.0")):
+			warnings.append("Max Speed cannot be enforced on SoftBody3D because it does not expose a backend-independent linear velocity property.")
 	return warnings
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
@@ -110,13 +93,26 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if typeof(mode) == TYPE_STRING:
 		mode = mode.to_lower()
 
-	var vx = _to_expr(velocity_x)
-	var vy = _to_expr(velocity_y)
-	var vz = _to_expr(velocity_z)
-	var ms = _to_expr(max_speed)
-	var use_max_speed = not _is_zero(max_speed)
+	var vx = _numeric_expr(velocity_x)
+	var vy = _numeric_expr(velocity_y)
+	var vz = _numeric_expr(velocity_z)
+	var ms = _numeric_expr(max_speed)
+	var use_max_speed = not _is_literal_zero(max_speed)
 
 	var code_lines: Array[String] = []
+
+	# SoftBody3D has no backend-independent writable linear_velocity.
+	# Add mode maps cleanly to delta-v: impulse = total_mass * velocity_change.
+	if node is SoftBody3D:
+		if mode != "add":
+			code_lines.append("push_warning(\"Linear Velocity on SoftBody3D supports Add mode only\")")
+			return {"actuator_code": "\n".join(code_lines)}
+		if local:
+			code_lines.append("var _velocity = global_transform.basis.orthonormalized() * Vector3(%s, %s, %s)" % [vx, vy, vz])
+		else:
+			code_lines.append("var _velocity = Vector3(%s, %s, %s)" % [vx, vy, vz])
+		code_lines.append("apply_central_impulse(_velocity * total_mass)")
+		return {"actuator_code": "\n".join(code_lines)}
 
 	# Check if this is a RigidBody3D or CharacterBody3D
 	code_lines.append("# Linear Velocity Actuator")

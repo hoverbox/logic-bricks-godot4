@@ -69,8 +69,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var node_name_source = str(properties.get("node_name_source", "literal")).to_lower().replace(" ", "_")
 	var export_node_name = properties.get("export_node_name", false)
 	var property = properties.get("property", "modulate:a")
-	var target_value = _to_expr(properties.get("target_value", "0.0"))
-	var duration = _to_expr(properties.get("duration", "0.5"))
+	var target_value = _expr(properties.get("target_value", "0.0"))
+	var duration = _expr(properties.get("duration", "0.5"))
 	var trans_type = properties.get("trans_type", "linear")
 	var ease_type = properties.get("ease_type", "in_out")
 	var loop = properties.get("loop", false)
@@ -81,8 +81,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if typeof(ease_type) == TYPE_STRING:
 		ease_type = ease_type.to_lower().replace(" ", "_")
 
-	var trans_const = _trans_constant(trans_type)
-	var ease_const = _ease_constant(ease_type)
+	var trans_const = _tween_trans_constant(trans_type)
+	var ease_const = _tween_ease_constant(ease_type)
 	var member_vars: Array[String] = []
 	var code_lines: Array[String] = []
 	var label = _unique_label(chain_name)
@@ -127,30 +127,4 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	return result
 
 
-func _trans_constant(trans: String) -> String:
-	match trans:
-		"sine": return "Tween.TRANS_SINE"
-		"quint": return "Tween.TRANS_QUINT"
-		"quart": return "Tween.TRANS_QUART"
-		"quad": return "Tween.TRANS_QUAD"
-		"expo": return "Tween.TRANS_EXPO"
-		"elastic": return "Tween.TRANS_ELASTIC"
-		"bounce": return "Tween.TRANS_BOUNCE"
-		"back": return "Tween.TRANS_BACK"
-		"spring": return "Tween.TRANS_SPRING"
-		"circular": return "Tween.TRANS_CIRC"
-		"cubic": return "Tween.TRANS_CUBIC"
-		_: return "Tween.TRANS_LINEAR"
 
-func _ease_constant(ease: String) -> String:
-	match ease:
-		"in": return "Tween.EASE_IN"
-		"out": return "Tween.EASE_OUT"
-		"out_in": return "Tween.EASE_OUT_IN"
-		_: return "Tween.EASE_IN_OUT"
-
-func _to_expr(val) -> String:
-	var s = str(val).strip_edges()
-	if s.is_empty(): return "0.0"
-	if s.is_valid_float() or s.is_valid_int(): return s
-	return s

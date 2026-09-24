@@ -173,4 +173,3 @@ func _sanitize_identifier(value:String)->String:
 	var s=value.strip_edges().replace(" ","_"); var r=RegEx.new(); r.compile("[^a-zA-Z0-9_]"); return r.sub(s,"",true)
 func _unique_label(chain_name:String)->String:
 	var s="%s_%s"%[chain_name,str(abs(str(properties).hash()))]; var r=RegEx.new(); r.compile("[^a-zA-Z0-9_]"); return r.sub(s,"",true)
-func _gd_string(value:String)->String: return value.replace("\\","\\\\").replace("\"","\\\"")

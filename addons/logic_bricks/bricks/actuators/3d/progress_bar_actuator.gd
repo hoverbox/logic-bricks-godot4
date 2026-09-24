@@ -59,13 +59,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var node_name_source = str(properties.get("node_name_source", "literal")).to_lower().replace(" ", "_")
 	var export_node_name = properties.get("export_node_name", false)
 	var set_value = properties.get("set_value", true)
-	var value = _to_expr(properties.get("value", "100.0"))
+	var value = _expr(properties.get("value", "100.0"))
 	var set_min = properties.get("set_min", false)
-	var min_value = _to_expr(properties.get("min_value", "0.0"))
+	var min_value = _expr(properties.get("min_value", "0.0"))
 	var set_max = properties.get("set_max", false)
-	var max_value = _to_expr(properties.get("max_value", "100.0"))
+	var max_value = _expr(properties.get("max_value", "100.0"))
 	var transition = properties.get("transition", false)
-	var speed = _to_expr(properties.get("transition_speed", "5.0"))
+	var speed = _expr(properties.get("transition_speed", "5.0"))
 
 	var label = _unique_label(chain_name)
 	var bar_var = "_%s" % label
@@ -106,8 +106,3 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
 
 
-func _to_expr(val) -> String:
-	var s = str(val).strip_edges()
-	if s.is_empty(): return "0.0"
-	if s.is_valid_float() or s.is_valid_int(): return s
-	return s

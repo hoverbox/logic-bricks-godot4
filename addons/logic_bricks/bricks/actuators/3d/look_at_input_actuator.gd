@@ -94,8 +94,8 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Rotates a child Node3D to face the combined Input Map direction instead of the movement/slide direction. The target is resolved only beneath this Logic Bricks node.",
-		"target_node_name": "The name of a child Node3D to rotate, such as PlayerMesh or CharacterModel. Only children beneath this Logic Bricks node are searched.",
+		"_description": "Rotates a Node3D to face the combined Input Map direction instead of the movement/slide direction. Named targets are searched across the current scene.",
+		"target_node_name": "The Node3D to rotate, such as PlayerMesh or CharacterModel. Named targets are searched across the current scene.",
 		"forward_action": "Input Map action for forward/up input.",
 		"backward_action": "Input Map action for backward/down input.",
 		"left_action": "Input Map action for left input.",
@@ -103,7 +103,7 @@ func get_tooltip_definitions() -> Dictionary:
 		"forward_axis": "Which direction the mesh considers forward. -Z is Godot's default forward direction.",
 		"smoothing": "How smoothly to rotate. 0 = instant, higher = smoother.",
 		"camera_relative": "When enabled, the input direction is rotated by the camera yaw, matching camera-relative movement.",
-		"camera_name": "Optional child camera node name. If blank, uses the active viewport camera. If named, only children beneath this Logic Bricks node are searched.",
+		"camera_name": "Optional Camera3D node name. If blank, uses the active viewport camera. Named cameras are searched across the current scene.",
 	}
 
 
@@ -170,6 +170,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\t%s = null" % target_var)
 	code_lines.append("elif %s == null or %s.name != _target_name_%s:" % [target_var, target_var, label])
 	code_lines.append("\tvar _found_target_%s = find_child(_target_name_%s, true, false)" % [label, label])
+	code_lines.append("\tif _found_target_%s == null and get_tree().current_scene:" % label)
+	code_lines.append("\t\t_found_target_%s = get_tree().current_scene.find_child(_target_name_%s, true, false)" % [label, label])
+	code_lines.append("\tif _found_target_%s == null:" % label)
+	code_lines.append("\t\t_found_target_%s = get_tree().root.find_child(_target_name_%s, true, false)" % [label, label])
 	code_lines.append("\tif _found_target_%s is Node3D:" % label)
 	code_lines.append("\t\t%s = _found_target_%s" % [target_var, label])
 	code_lines.append("\telif _found_target_%s:" % label)
@@ -185,6 +189,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if camera_relative:
 		if not camera_name.is_empty():
 			code_lines.append("\tvar _look_input_cam = find_child(\"%s\", true, false)" % camera_name.c_escape())
+			code_lines.append("\tif _look_input_cam == null and get_tree().current_scene:")
+			code_lines.append("\t\t_look_input_cam = get_tree().current_scene.find_child(\"%s\", true, false)" % camera_name.c_escape())
+			code_lines.append("\tif _look_input_cam == null:")
+			code_lines.append("\t\t_look_input_cam = get_tree().root.find_child(\"%s\", true, false)" % camera_name.c_escape())
 		else:
 			code_lines.append("\tvar _look_input_cam = get_viewport().get_camera_3d()")
 		code_lines.append("\tif _look_input_cam:")

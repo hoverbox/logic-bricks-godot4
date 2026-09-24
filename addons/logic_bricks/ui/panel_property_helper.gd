@@ -1367,19 +1367,37 @@ func _update_conditional_visibility(graph_node: GraphNode, brick_instance) -> vo
 					if prop_name == "scene_path":
 						child.visible = (mode == "set_scene")
 
-		"parent_actuator":  # Parent Actuator
-			var mode = properties.get("mode", "set_parent")
-
-			# Normalize mode
-			if typeof(mode) == TYPE_STRING:
-				mode = mode.to_lower().replace(" ", "_")
-
-			# Show parent_node only in set_parent mode
+		"object_shake_2d_actuator":
+			var shake_type = str(properties.get("shake_type", "translate")).to_lower().replace(" ", "_")
 			for child in graph_node.get_children():
 				if child.has_meta("property_name"):
 					var prop_name = child.get_meta("property_name")
-					if prop_name == "parent_node":
-						child.visible = (mode == "set_parent")
+					if prop_name in ["x", "y"]:
+						child.visible = shake_type in ["translate", "scale"]
+					elif prop_name == "rotation_degrees":
+						child.visible = shake_type == "rotate"
+
+		"parent_actuator", "parent_2d_actuator":  # Parent Actuator
+			var mode = properties.get("mode", "set_parent")
+			var target_mode = properties.get("parent_target_mode", "node_name")
+
+			# Normalize modes
+			if typeof(mode) == TYPE_STRING:
+				mode = mode.to_lower().replace(" ", "_")
+			if typeof(target_mode) == TYPE_STRING:
+				target_mode = target_mode.to_lower().replace(" ", "_")
+
+			# Only show the target field selected by Parent Target Mode.
+			for child in graph_node.get_children():
+				if child.has_meta("property_name"):
+					var prop_name = child.get_meta("property_name")
+					match prop_name:
+						"parent_target_mode":
+							child.visible = (mode == "set_parent")
+						"parent_node":
+							child.visible = (mode == "set_parent" and target_mode == "node_name")
+						"parent_group":
+							child.visible = (mode == "set_parent" and target_mode == "group")
 
 		"property_actuator":  # Property Actuator
 			var node_type = properties.get("node_type", "node_3d")
@@ -1911,7 +1929,7 @@ func _create_node_reference_picker(graph_node: GraphNode, brick_instance, prop_d
 
 	var menu_button := MenuButton.new()
 	menu_button.text = "▾"
-	menu_button.tooltip_text = "Choose a compatible child node"
+	menu_button.tooltip_text = "Choose a compatible scene node"
 	menu_button.custom_minimum_size = Vector2(28, 0)
 	hbox.add_child(menu_button)
 
@@ -1919,7 +1937,7 @@ func _create_node_reference_picker(graph_node: GraphNode, brick_instance, prop_d
 	var rebuild_popup = func():
 		popup.clear()
 		var picker_root: Node = panel.current_node
-		if str(prop_def.get("node_picker_scope", "children")) == "scene" and panel.editor_interface != null:
+		if str(prop_def.get("node_picker_scope", "scene")) == "scene" and panel.editor_interface != null:
 			picker_root = panel.editor_interface.get_edited_scene_root()
 		var matches := _compatible_child_nodes(picker_root, accepted_types)
 		if picker_root != panel.current_node and _node_matches_types(picker_root, accepted_types):
@@ -1938,9 +1956,10 @@ func _create_node_reference_picker(graph_node: GraphNode, brick_instance, prop_d
 		for child in matches:
 			var relative_path := str(picker_root.get_path_to(child))
 			popup.add_item(relative_path, item_id)
-			# Existing bricks store node names, so preserve that format. The relative
-			# path is displayed to make similarly named/nested children easy to identify.
-			popup.set_item_metadata(popup.get_item_index(item_id), str(child.name))
+			var stored_value := str(child.name)
+			if str(prop_def.get("node_reference_store", "name")) == "path" and panel.current_node != null:
+				stored_value = str(panel.current_node.get_path_to(child))
+			popup.set_item_metadata(popup.get_item_index(item_id), stored_value)
 			item_id += 1
 
 		if matches.is_empty() and not _node_matches_types(panel.current_node, accepted_types):
@@ -2078,6 +2097,9 @@ func _on_property_changed(value, graph_node: GraphNode, property_name: String) -
 		if property_name == "variable_name":
 			_refresh_variable_brick_operation_control(graph_node, brick_instance)
 
+		if property_name == "target_node" and brick_instance.get_script().resource_path.ends_with("property_actuator.gd"):
+			_refresh_target_node_property_dropdown(graph_node, brick_instance)
+
 		if brick_data.get("brick_type", "") == "controller" and property_name in ["state_id", "all_states"]:
 			_update_controller_title(graph_node, brick_instance)
 
@@ -2149,7 +2171,7 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
 	var value
 
 	# Special handling for dynamic lists (they store actual values in metadata)
-	if hint_string in ["__ANIMATION_LIST__", "__ANIMATION_PLAYER_LIST__", "__STATE_LIST__", "__ANIM_TREE_CONDITION_LIST__"] and option_button:
+	if hint_string in ["__ANIMATION_LIST__", "__ANIMATION_PLAYER_LIST__", "__STATE_LIST__", "__ANIM_TREE_CONDITION_LIST__", "__TARGET_NODE_PROPERTY_LIST__"] and option_button:
 		# Get the value directly from the item metadata
 		value = option_button.get_item_metadata(index)
 	else:
@@ -2183,7 +2205,7 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
 
 	# When a preset is selected, populate the related value fields.
 	# Presets only write to the editable fields below them; the fields can still be numbers or variable names.
-	if ((property_name == "preset") or (brick_class == "ObjectShakeActuator" and property_name == "shake_type")) and brick_instance.has_method("get_preset_values"):
+	if ((property_name == "preset") or (brick_class in ["ObjectShakeActuator", "ObjectShake2DActuator"] and property_name == "shake_type")) and brick_instance.has_method("get_preset_values"):
 		var selected_preset = str(value) if property_name == "preset" else str(brick_instance.get_property("preset"))
 		var preset_vals = brick_instance.get_preset_values(selected_preset)
 		var field_names = []
@@ -2193,6 +2215,12 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
 			field_names = ["duration", "time_scale"]
 		elif brick_class == "ObjectShakeActuator" and preset_vals.size() == 3:
 			field_names = ["x", "y", "z"]
+		elif brick_class == "ObjectShake2DActuator":
+			var shake_type_2d = str(brick_instance.get_property("shake_type", "translate")).to_lower().replace(" ", "_")
+			if shake_type_2d == "rotate" and preset_vals.size() == 1:
+				field_names = ["rotation_degrees"]
+			elif preset_vals.size() == 2:
+				field_names = ["x", "y"]
 
 		if field_names.size() == preset_vals.size():
 			for i in field_names.size():
@@ -2216,6 +2244,9 @@ func _on_enum_property_changed(index: int, graph_node: GraphNode, property_name:
 
 
 func _populate_dynamic_enum(option_button: OptionButton, brick_instance, property_name: String, hint_string: String, property_value) -> bool:
+	if hint_string == "__TARGET_NODE_PROPERTY_LIST__":
+		_populate_target_node_property_enum(option_button, brick_instance, property_value)
+		return true
 	if hint_string == "__STATE_LIST__":
 		var states: Array = panel.get_state_options() if panel and panel.has_method("get_state_options") else []
 		if states.is_empty():
@@ -2234,6 +2265,161 @@ func _populate_dynamic_enum(option_button: OptionButton, brick_instance, propert
 			brick_instance.set_property(property_name, option_button.get_item_metadata(selected_index))
 		return true
 	return false
+
+
+func _resolve_property_actuator_target(brick_instance):
+	if panel == null or panel.current_node == null:
+		return null
+	var target_name = str(brick_instance.get_property("target_node", "self")).strip_edges()
+	if target_name.is_empty() or target_name.to_lower() == "self":
+		return panel.current_node
+	var tree = panel.current_node.get_tree()
+	if tree != null and tree.root != null:
+		var found = tree.root.find_child(target_name, true, false)
+		if found != null:
+			return found
+	return panel.current_node.find_child(target_name, true, false)
+
+
+func _populate_target_node_property_enum(option_button: OptionButton, brick_instance, property_value) -> void:
+	var target = _resolve_property_actuator_target(brick_instance)
+	if target == null:
+		option_button.add_item("(Target node not found)")
+		option_button.disabled = true
+		return
+
+	_style_target_node_property_sections(option_button)
+	option_button.disabled = false
+	option_button.add_item("(Select property)")
+	option_button.set_item_metadata(0, "")
+	var selected_index = 0
+	var editable_count = 0
+
+	# Godot's raw property list is commonly base-class first, while the Inspector
+	# displays inheritance sections most-derived first. Build category blocks in
+	# their native order, then reverse only the blocks. Property order inside each
+	# block stays untouched.
+	var sections = []
+	var orphan_properties = []
+	var current_section_name = ""
+	var current_section_properties = []
+
+	for info in target.get_property_list():
+		var usage = int(info.get("usage", 0))
+		var prop_name = str(info.get("name", ""))
+
+		if (usage & PROPERTY_USAGE_CATEGORY) != 0:
+			if not current_section_name.is_empty() and not current_section_properties.is_empty():
+				sections.append({"name": current_section_name, "properties": current_section_properties})
+			current_section_name = prop_name
+			current_section_properties = []
+			continue
+
+		if int(info.get("type", TYPE_NIL)) == TYPE_NIL:
+			continue
+		if prop_name.is_empty() or prop_name == "script":
+			continue
+		if (usage & PROPERTY_USAGE_EDITOR) == 0:
+			continue
+
+		if current_section_name.is_empty():
+			orphan_properties.append(info)
+		else:
+			current_section_properties.append(info)
+
+	if not current_section_name.is_empty() and not current_section_properties.is_empty():
+		sections.append({"name": current_section_name, "properties": current_section_properties})
+
+	sections.reverse()
+
+	# Godot exposes the attached script as its own Inspector category (usually
+	# the script filename, e.g. "soft_body_3d.gd"). It appears above the native
+	# class sections in the Inspector, but it is rarely useful in this brick, so
+	# keep the native node properties first and move that whole category last.
+	var script_section = null
+	var attached_script = target.get_script()
+	if attached_script != null:
+		var script_file = str(attached_script.resource_path.get_file())
+		if not script_file.is_empty():
+			for i in range(sections.size() - 1, -1, -1):
+				if str(sections[i].get("name", "")) == script_file:
+					script_section = sections[i]
+					sections.remove_at(i)
+					break
+
+	# Script-exported properties that arrive outside a category belong at the
+	# bottom for the same reason.
+	if not orphan_properties.is_empty():
+		sections.push_back({"name": "Script", "properties": orphan_properties})
+	if script_section != null:
+		sections.push_back(script_section)
+
+	for section in sections:
+		option_button.add_separator(str(section["name"]))
+		for info in section["properties"]:
+			var prop_name = str(info.get("name", ""))
+			var index = option_button.item_count
+			option_button.add_item(prop_name.replace("_", " ").capitalize())
+			option_button.set_item_metadata(index, prop_name)
+			editable_count += 1
+			if prop_name == str(property_value):
+				selected_index = index
+
+	if editable_count == 0:
+		option_button.clear()
+		option_button.add_item("(No editable Inspector properties)")
+		option_button.disabled = true
+		selected_index = 0
+	option_button.selected = selected_index
+	option_button.tooltip_text = "Inspector properties for %s (%s)" % [str(target.name), target.get_class()]
+
+
+func _style_target_node_property_sections(option_button: OptionButton) -> void:
+	var popup = option_button.get_popup()
+	if popup == null:
+		return
+
+	var header_color = Color(0.6, 0.3, 0.1, 0.9)
+	var header_text_color = Color.WHITE
+	if panel != null:
+		var configured_header = panel.get("_brick_actuator_color")
+		var configured_text = panel.get("_brick_header_text_color")
+		if configured_header is Color:
+			header_color = configured_header
+		if configured_text is Color:
+			header_text_color = configured_text
+
+	# PopupMenu draws labeled separators with a left and right StyleBox. Expand
+	# both underneath the label so the category reads as one colored header bar.
+	var left = StyleBoxFlat.new()
+	left.bg_color = header_color
+	left.content_margin_top = 4.0
+	left.content_margin_bottom = 4.0
+	left.set_expand_margin(SIDE_RIGHT, 96.0)
+
+	var right = StyleBoxFlat.new()
+	right.bg_color = header_color
+	right.content_margin_top = 4.0
+	right.content_margin_bottom = 4.0
+	right.set_expand_margin(SIDE_LEFT, 96.0)
+
+	popup.add_theme_stylebox_override("labeled_separator_left", left)
+	popup.add_theme_stylebox_override("labeled_separator_right", right)
+	popup.add_theme_color_override("font_separator_color", header_text_color)
+	popup.add_theme_color_override("font_separator_outline_color", Color.TRANSPARENT)
+	popup.add_theme_constant_override("separator_outline_size", 0)
+
+
+func _refresh_target_node_property_dropdown(graph_node: GraphNode, brick_instance) -> void:
+	var control = graph_node.find_child("PropertyControl_property_name", true, false)
+	if control == null or not control is OptionButton:
+		return
+	var option_button = control as OptionButton
+	var current_value = brick_instance.get_property("property_name", "")
+	option_button.clear()
+	_populate_target_node_property_enum(option_button, brick_instance, current_value)
+	if option_button.selected == 0 and not str(current_value).is_empty():
+		brick_instance.set_property("property_name", "")
 
 
 func _refresh_state_dropdown(graph_node: GraphNode, brick_instance) -> void:

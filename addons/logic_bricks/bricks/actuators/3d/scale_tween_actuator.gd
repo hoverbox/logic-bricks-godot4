@@ -18,7 +18,8 @@ func get_brick_info() -> Dictionary:
 		"category": "Motion",
 		"description": "Changes only a 3D object's scale, instantly or with a tween.",
 		"menu_order": 50,
-		"domain": "3d"
+		"domain": "3d",
+		"hidden_menu": true
 	}
 
 func _initialize_properties() -> void:
@@ -112,7 +113,7 @@ func _build_target(lines: Array[String], members: Array[String], chain_name: Str
 	var label := _unique_label(chain_name)
 	var target_var := "_scale_target_%s" % label
 	members.append("var %s = null" % target_var)
-	lines.append("var _scale_target_name_%s = \"%s\"" % [label, _escape_string(target_name)])
+	lines.append("var _scale_target_name_%s = \"%s\"" % [label, _gd_string(target_name)])
 	lines.append("if %s == null or %s.name != _scale_target_name_%s:" % [target_var, target_var, label])
 	lines.append("\t%s = find_child(_scale_target_name_%s, true, false)" % [target_var, label])
 	lines.append("\tif %s == null and get_tree().current_scene:" % target_var)
@@ -164,6 +165,3 @@ func _unique_label(chain_name: String) -> String:
 	var regex := RegEx.new()
 	regex.compile("[^a-zA-Z0-9_]")
 	return regex.sub(raw, "", true)
-
-func _escape_string(value: String) -> String:
-	return value.replace("\\", "\\\\").replace("\"", "\\\"")

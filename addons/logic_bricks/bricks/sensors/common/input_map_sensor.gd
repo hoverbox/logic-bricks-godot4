@@ -65,7 +65,8 @@ func get_property_definitions() -> Array:
 		{
 			"name": "store_in",
 			"type": TYPE_STRING,
-			"default": ""
+			"default": "",
+			"variable_picker": true
 		},
 		{
 			"name": "deadzone",

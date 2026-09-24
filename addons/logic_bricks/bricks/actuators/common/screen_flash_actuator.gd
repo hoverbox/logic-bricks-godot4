@@ -65,8 +65,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	var color_str = "Color(%.4f, %.4f, %.4f, %.4f)" % [color.r, color.g, color.b, color.a]
 	var clear_str = "Color(%.4f, %.4f, %.4f, 0.0)"  % [color.r, color.g, color.b]
-	var duration  = _to_expr(properties.get("duration", "0.3"))
-	var fade_in   = _to_expr(properties.get("fade_in",  "0.05"))
+	var duration  = _expr(properties.get("duration", "0.3"))
+	var fade_in   = _expr(properties.get("fade_in",  "0.05"))
 
 	# -- Build a unique sanitized variable stem
 	var _label = instance_name if not instance_name.is_empty() else brick_name
@@ -206,8 +206,3 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	}
 
 
-func _to_expr(val) -> String:
-	var s = str(val).strip_edges()
-	if s.is_empty(): return "0.0"
-	if s.is_valid_float() or s.is_valid_int(): return s
-	return s

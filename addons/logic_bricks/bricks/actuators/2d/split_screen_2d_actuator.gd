@@ -49,8 +49,8 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 func generate_code(_node: Node, chain_name: String) -> Dictionary:
-	var camera_1_name := _gd(str(properties.get("camera_1_node_name", "Camera2D")))
-	var camera_2_name := _gd(str(properties.get("camera_2_node_name", "Camera2D2")))
+	var camera_1_name := _gd_string(str(properties.get("camera_1_node_name", "Camera2D")))
+	var camera_2_name := _gd_string(str(properties.get("camera_2_node_name", "Camera2D2")))
 	var vertical := str(properties.get("layout", "vertical")).to_lower().begins_with("vertical")
 	var stable_id := _id(chain_name)
 
@@ -174,5 +174,3 @@ func _id(value: String) -> String:
 	return (instance_name if not instance_name.is_empty() else value).to_lower().replace(" ", "_").validate_node_name().replace(".", "_")
 
 
-func _gd(value: String) -> String:
-	return value.replace("\\", "\\\\").replace("\"", "\\\"")

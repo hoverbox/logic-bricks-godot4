@@ -13,7 +13,7 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"action": "exit",           # exit, reload_scene, pause, screenshot
+		"action": "exit",           # exit, reload_scene, pause, unpause, toggle_pause, screenshot
 		"screenshot_path": "user://screenshot.png"  # Path for screenshots
 	}
 
@@ -24,7 +24,7 @@ func get_property_definitions() -> Array:
 			"name": "action",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "Exit,Reload Scene,Pause,Screenshot",
+			"hint_string": "Exit,Reload Scene,Pause,Unpause,Toggle Pause,Screenshot",
 			"default": "exit"
 		},
 		{
@@ -57,6 +57,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("get_tree().reload_current_scene()")
 
 		"pause":
+			code_lines.append("# Pause game")
+			code_lines.append("get_tree().paused = true")
+
+		"unpause":
+			code_lines.append("# Unpause game")
+			code_lines.append("get_tree().paused = false")
+
+		"toggle_pause":
 			code_lines.append("# Toggle pause")
 			code_lines.append("get_tree().paused = !get_tree().paused")
 

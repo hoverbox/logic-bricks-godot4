@@ -145,7 +145,7 @@ func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Beginner-friendly AnimationTree control. Use Go To State for normal character animations. Blending comes from the transition Xfade Time inside the AnimationTree.",
 		"mode": "Go To State: easiest choice. Travels to a state like Idle, Run, Jump, or Attack. Blending uses the AnimationTree transition Xfade Time.\nSet Blend Parameter: for BlendSpace values like blend_position.\nAdvanced - Set Condition: only for users who understand AnimationTree transition conditions.",
-		"animation_tree_name": "Usually AnimationTree. Searches all children recursively, so paths are not required. Leave blank to use the first AnimationTree found under this node.",
+		"animation_tree_name": "Usually AnimationTree. Named trees are searched across the current scene. Leave blank to use the first AnimationTree found under this node.",
 		"state_name": "The AnimationTree state to play, for example Idle, Run, Jump, or Attack. This must match the state name inside the AnimationTree exactly.",
 		"state_machine_path": "Advanced override only. Leave blank for Auto. Examples: parameters/playback or parameters/Locomotion/playback.",
 		"parameter_name": "For Set Parameter mode. Use a short name like blend_position, or a full path like parameters/Locomotion/blend_position.",
@@ -231,6 +231,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("var %s = _lb_find_first_animation_tree(self)" % anim_tree_var)
 	else:
 		code_lines.append("var %s = find_child(\"%s\", true, false) as AnimationTree" % [anim_tree_var, _gd_string(anim_tree_name)])
+		code_lines.append("if %s == null and get_tree().current_scene:" % anim_tree_var)
+		code_lines.append("\t%s = get_tree().current_scene.find_child(\"%s\", true, false) as AnimationTree" % [anim_tree_var, _gd_string(anim_tree_name)])
+		code_lines.append("if %s == null:" % anim_tree_var)
+		code_lines.append("\t%s = get_tree().root.find_child(\"%s\", true, false) as AnimationTree" % [anim_tree_var, _gd_string(anim_tree_name)])
 	code_lines.append("if %s:" % anim_tree_var)
 
 	match mode:

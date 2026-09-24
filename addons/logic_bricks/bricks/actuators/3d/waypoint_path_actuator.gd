@@ -195,17 +195,6 @@ static func sync_path3d_node(owner_node: Node3D, brick_instance) -> void:
 ## Convert a value to a code expression.
 ## If it is a number (or string of a number), returns a float literal.
 ## Otherwise returns it as-is, allowing variable names or expressions.
-func _to_expr(val) -> String:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return "%.3f" % val
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return "0.0"
-	if s.is_valid_float() or s.is_valid_int():
-		return "%.3f" % float(s)
-	return s
-
-
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var path_source = str(properties.get("path_source", "node_positions")).to_lower()
 
@@ -223,8 +212,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var path_mode = properties.get("path_mode", "sequential")
 	var avoid_immediate_repeat = bool(properties.get("avoid_immediate_repeat", true))
 	var random_neighbor_count = int(properties.get("random_neighbor_count", 0))
-	var speed_expr = _to_expr(properties.get("speed", "5.0"))
-	var arrival_dist_expr = _to_expr(properties.get("arrival_distance", "0.5"))
+	var speed_expr = _numeric_expr(properties.get("speed", "5.0"))
+	var arrival_dist_expr = _numeric_expr(properties.get("arrival_distance", "0.5"))
 	var face_dir = properties.get("face_direction", false)
 	var follow_curve_tilt = properties.get("follow_curve_tilt", false)
 
@@ -347,7 +336,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		lines.append("if _wp_self is CharacterBody3D:")
 		lines.append("\tif _delta > 0.0:")
 		lines.append("\t\t(_wp_self as CharacterBody3D).velocity = _wp_delta_pos / _delta")
-		lines.append("\t(_wp_self as CharacterBody3D).move_and_slide()")
+		lines.append("\tif \"_logic_brick_character_motion_active\" in self:")
+		lines.append("\t\tself.set(\"_logic_brick_character_motion_active\", true)")
+		lines.append("\telse:")
+		lines.append("\t\t(_wp_self as CharacterBody3D).move_and_slide()")
 		lines.append("else:")
 		lines.append("\tglobal_position = _wp_target")
 
@@ -391,7 +383,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		lines.append("\tif _wp_self is CharacterBody3D:")
 		lines.append("\t\t(_wp_self as CharacterBody3D).velocity.x = _wp_move_dir.x * _wp_speed")
 		lines.append("\t\t(_wp_self as CharacterBody3D).velocity.z = _wp_move_dir.z * _wp_speed")
-		lines.append("\t\t(_wp_self as CharacterBody3D).move_and_slide()")
+		lines.append("\t\tif \"_logic_brick_character_motion_active\" in self:")
+		lines.append("\t\t\tself.set(\"_logic_brick_character_motion_active\", true)")
+		lines.append("\t\telse:")
+		lines.append("\t\t\t(_wp_self as CharacterBody3D).move_and_slide()")
 		lines.append("\telse:")
 		lines.append("\t\tglobal_position += _wp_move_dir * _wp_speed * _delta")
 

@@ -55,6 +55,8 @@ const ACTUATOR_SIGNATURES: Array = [
 	["# Ground detection",                 "CharacterActuator"],
 	["_on_ground",                         "CharacterActuator"],
 	["# Apply custom gravity",             "GravityActuator"],
+	["# Soft Body Point Force",            "SoftBodyPointForceActuator"],
+	["# Soft Body Point Impulse",          "SoftBodyPointImpulseActuator"],
 	["# WARNING: Force actuator",          "ForceActuator"],
 	["apply_central_force(",                "ForceActuator"],
 	["apply_force(",                        "ForceActuator"],
@@ -1002,6 +1004,10 @@ func _extract_actuator_properties(cls: String, act_block: String) -> Dictionary:
 			return _parse_object_flash_actuator_props(act_block)
 		"ForceActuator":
 			return _parse_force_actuator_props(act_block)
+		"SoftBodyPointForceActuator":
+			return _parse_soft_body_point_action_props(act_block, "apply_force")
+		"SoftBodyPointImpulseActuator":
+			return _parse_soft_body_point_action_props(act_block, "apply_impulse")
 		"TorqueActuator":
 			return _parse_torque_actuator_props(act_block)
 		"LocationActuator":
@@ -1259,6 +1265,17 @@ func _parse_object_flash_actuator_props(act_block: String) -> Dictionary:
 func _parse_force_actuator_props(act_block: String) -> Dictionary:
 	var props := _parse_vector3_action_props(act_block)
 	props["space"] = "local" if "global_transform.basis" in act_block else "global"
+	return props
+
+
+func _parse_soft_body_point_action_props(act_block: String, method_name: String) -> Dictionary:
+	var props := _parse_vector3_action_props(act_block)
+	props["space"] = "local" if "global_transform.basis" in act_block else "global"
+	var point_rx := RegEx.new()
+	point_rx.compile(method_name + r'\(int\(([^)]+)\),')
+	var point_match := point_rx.search(act_block)
+	if point_match:
+		props["point_index"] = point_match.get_string(1).strip_edges()
 	return props
 
 

@@ -49,12 +49,14 @@ func get_property_definitions() -> Array:
 		{
 			"name": "variable_name", "required": true, "required_label": "a variable name",
 			"type": TYPE_STRING,
-			"default": ""
+			"default": "",
+			"variable_picker": true
 		},
 		{
 			"name": "store_as", "required": true, "required_label": "a destination variable name",
 			"type": TYPE_STRING,
-			"default": ""
+			"default": "",
+			"variable_picker": true
 		},
 		{
 			"name": "fallback_value",
@@ -143,21 +145,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("\tpush_warning(\"Get Variable: source node was not found; using fallback value\")")
 
 	return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
-
-
-func _node_has_logic_variable(node: Node, variable_name: String) -> bool:
-	if node == null or variable_name.is_empty():
-		return false
-	if not node.has_meta("logic_bricks_variables"):
-		return false
-	var variables_data = node.get_meta("logic_bricks_variables")
-	if not (variables_data is Array):
-		return false
-	for var_data in variables_data:
-		if var_data is Dictionary and str(var_data.get("name", "")).strip_edges() == variable_name:
-			return true
-	return false
-
 
 func _sanitize_identifier(value: String) -> String:
 	var sanitized := value.replace(" ", "_")

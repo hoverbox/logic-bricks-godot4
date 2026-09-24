@@ -74,12 +74,18 @@ func get_property_definitions() -> Array:
 		{
 			"name": "x_target",
 			"type": TYPE_STRING,
-			"default": "self"
+			"default": "self",
+			"node_reference": true,
+			"node_picker_scope": "scene",
+			"accepted_node_types": ["Node3D"]
 		},
 		{
 			"name": "y_target",
 			"type": TYPE_STRING,
-			"default": "self"
+			"default": "self",
+			"node_reference": true,
+			"node_picker_scope": "scene",
+			"accepted_node_types": ["Node3D"]
 		},
 		{
 			"name": "x_sensitivity",
@@ -163,7 +169,10 @@ func get_property_definitions() -> Array:
 		{
 			"name": "mouse_target",
 			"type": TYPE_STRING,
-			"default": "self"
+			"default": "self",
+			"node_reference": true,
+			"node_picker_scope": "scene",
+			"accepted_node_types": ["Node3D"]
 		},
 		{
 			"name": "mouse_velocity",
@@ -278,6 +287,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				var x_node_ref = "self" if x_target == "self" else ("get_node_or_null(\"%s\")" % x_target)
 				if x_target != "self":
 					code_lines.append("var _x_target = %s" % x_node_ref)
+					code_lines.append("if _x_target == null and get_tree().current_scene:")
+					code_lines.append("\t_x_target = get_tree().current_scene.find_child(\"%s\", true, false)" % str(x_target).replace("\"", "\\\""))
+					code_lines.append("if _x_target == null:")
+					code_lines.append("\t_x_target = get_tree().root.find_child(\"%s\", true, false)" % str(x_target).replace("\"", "\\\""))
 					code_lines.append("if _x_target:")
 					x_indent = "\t"
 
@@ -318,6 +331,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				var y_node_ref = "self" if y_target == "self" else ("get_node_or_null(\"%s\")" % y_target)
 				if y_target != "self":
 					code_lines.append("var _y_target = %s" % y_node_ref)
+					code_lines.append("if _y_target == null and get_tree().current_scene:")
+					code_lines.append("\t_y_target = get_tree().current_scene.find_child(\"%s\", true, false)" % str(y_target).replace("\"", "\\\""))
+					code_lines.append("if _y_target == null:")
+					code_lines.append("\t_y_target = get_tree().root.find_child(\"%s\", true, false)" % str(y_target).replace("\"", "\\\""))
 					code_lines.append("if _y_target:")
 					y_indent = "\t"
 
@@ -394,7 +411,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("\t" + line)
 			for line in _generate_move_to_point_code(click_pos_var, mouse_velocity, mouse_acceleration, mouse_arrival_distance, mouse_lock_y, "_mouse_node").split("\n"):
 				code_lines.append("\t" + line)
-			code_lines.append("\tif _mouse_node and _mouse_node.global_position.distance_to(%s) <= (%s):" % [click_pos_var, _to_expr(mouse_arrival_distance)])
+			code_lines.append("\tif _mouse_node and _mouse_node.global_position.distance_to(%s) <= (%s):" % [click_pos_var, _numeric_expr(mouse_arrival_distance)])
 			code_lines.append("\t\t%s = false" % click_has_var)
 
 	var result = {
@@ -412,27 +429,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 ## Convert a value to a code expression.
 ## If it's a number (or string of a number), returns the numeric literal.
 ## Otherwise returns it as-is (a variable name or expression).
-func _to_expr(val) -> String:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return "%.3f" % val
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return "0.0"
-	if s.is_valid_float() or s.is_valid_int():
-		return "%.3f" % float(s)
-	return s
-
-
 ## True only when the user entered a literal numeric value greater than zero.
 ## Variable/expression values are treated as potentially non-zero so generated code preserves them.
-func _literal_gt_zero(val) -> bool:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return float(val) > 0.0
-	var s = str(val).strip_edges()
-	if s.is_valid_float() or s.is_valid_int():
-		return float(s) > 0.0
-	return true
-
 
 func _mouse_button_code(button: String) -> String:
 	match button:
@@ -498,13 +496,17 @@ func _generate_mouse_target_ref(target_name: String) -> String:
 	else:
 		var escaped = str(target_name).replace("\"", "\\\"")
 		lines.append("var _mouse_node = get_node_or_null(\"%s\")" % escaped)
+		lines.append("if _mouse_node == null and get_tree().current_scene:")
+		lines.append("\t_mouse_node = get_tree().current_scene.find_child(\"%s\", true, false)" % escaped)
+		lines.append("if _mouse_node == null:")
+		lines.append("\t_mouse_node = get_tree().root.find_child(\"%s\", true, false)" % escaped)
 	lines.append("if _mouse_node and _mouse_node is Node3D:")
 	return "\n".join(lines)
 
 
 func _generate_look_at_code(target_pos: String, axis: String, turn_speed, lock_y: bool, node_ref: String) -> String:
 	var lines: Array[String] = []
-	var turn_expr = _to_expr(turn_speed)
+	var turn_expr = _numeric_expr(turn_speed)
 	lines.append("\tvar _look_dir = %s - %s.global_position" % [target_pos, node_ref])
 	if lock_y:
 		# Flat player-style aiming is most reliable when we solve yaw directly.
@@ -548,9 +550,9 @@ func _generate_look_at_code(target_pos: String, axis: String, turn_speed, lock_y
 
 func _generate_move_to_point_code(target_pos: String, velocity, acceleration, arrival_distance, lock_y: bool, node_ref: String) -> String:
 	var lines: Array[String] = []
-	var arrival_expr = _to_expr(arrival_distance)
-	var velocity_expr = _to_expr(velocity)
-	var accel_expr = _to_expr(acceleration)
+	var arrival_expr = _numeric_expr(arrival_distance)
+	var velocity_expr = _numeric_expr(velocity)
+	var accel_expr = _numeric_expr(acceleration)
 	lines.append("\tvar _to_mouse_target = %s - %s.global_position" % [target_pos, node_ref])
 	if lock_y:
 		lines.append("\t_to_mouse_target.y = 0.0")
@@ -576,4 +578,11 @@ func _generate_move_to_point_code(target_pos: String, velocity, acceleration, ar
 	lines.append("\t\t\t_cb3d.velocity.z = _new_vel.z")
 	lines.append("\t\telse:")
 	lines.append("\t\t\t%s.global_position += _new_vel * _delta" % node_ref)
+	lines.append("\telse:")
+	lines.append("\t\tvar _arrived_cb3d = (%s as Node) as CharacterBody3D" % node_ref)
+	lines.append("\t\tif _arrived_cb3d:")
+	lines.append("\t\t\t_arrived_cb3d.velocity.x = 0.0")
+	if not lock_y:
+		lines.append("\t\t\t_arrived_cb3d.velocity.y = 0.0")
+	lines.append("\t\t\t_arrived_cb3d.velocity.z = 0.0")
 	return "\n".join(lines)

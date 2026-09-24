@@ -105,8 +105,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		lines.append("\telse:")
 		lines.append("\t\tpush_warning(\"Smooth Follow Camera 2D: rotation source '\" + str(_rot_source_name_%s) + \"' was not found\")" % chain_name)
 	lines.append("if %s and self is Node2D:" % camera_var)
+	lines.append("\tvar _follow_transform_%s: Transform2D = call(\"get_global_transform_interpolated\") if has_method(\"get_global_transform_interpolated\") else global_transform" % chain_name)
+	lines.append("\tvar _follow_pos_%s: Vector2 = _follow_transform_%s.origin" % [chain_name, chain_name])
 	lines.append("\tif not %s:" % ready_var)
-	lines.append("\t\t%s = %s.global_position - global_position" % [offset_var, camera_var])
+	lines.append("\t\t%s = %s.global_position - _follow_pos_%s" % [offset_var, camera_var, chain_name])
 	if positioning == "left":
 		lines.append("\t\t%s.x = -%.6f" % [offset_var, position_offset_amount])
 	elif positioning == "center":
@@ -114,7 +116,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	elif positioning == "right":
 		lines.append("\t\t%s.x = %.6f" % [offset_var, position_offset_amount])
 	lines.append("\t\t%s = true" % ready_var)
-	lines.append("\tvar _target_pos_%s = global_position + %s" % [chain_name, offset_var])
+	lines.append("\tvar _target_pos_%s = _follow_pos_%s + %s" % [chain_name, chain_name, offset_var])
 	lines.append("\tvar _desired_pos_%s = %s.global_position" % [chain_name, camera_var])
 	if follow_pos_x:
 		lines.append("\tif abs(_target_pos_%s.x - %s.global_position.x) > %.6f:" % [chain_name, camera_var, dead_zone_x])

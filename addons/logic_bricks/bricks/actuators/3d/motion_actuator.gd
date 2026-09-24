@@ -146,29 +146,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 ## Convert a value to a code expression.
 ## If it's a number (or string of a number), returns the float literal.
 ## Otherwise returns it as-is (a variable name/expression).
-func _to_expr(val) -> String:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return "%.3f" % val
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return "0.0"
-	if s.is_valid_float() or s.is_valid_int():
-		return "%.3f" % float(s)
-	return s
-
-
 ## Check if a value is a literal zero
-func _is_zero(val) -> bool:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return val == 0.0
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return true
-	if s.is_valid_float() or s.is_valid_int():
-		return float(s) == 0.0
-	# It's a variable name/expression — not known to be zero
-	return false
-
 
 func _append_target_setup(code_lines: Array[String], member_vars: Array[String], chain_name: String) -> String:
 	var target_node_name = str(properties.get("target_node_name", "")).strip_edges()
@@ -242,9 +220,9 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 	var clamp_suffix = _unique_label(chain_name)
 	var body_lines: Array[String] = []
 	var call_mas = properties.get("call_move_and_slide", false)
-	var vx = _to_expr(x)
-	var vy = _to_expr(y)
-	var vz = _to_expr(z)
+	var vx = _numeric_expr(x)
+	var vy = _numeric_expr(y)
+	var vz = _numeric_expr(z)
 	var vec = "Vector3(%s, %s, %s)" % [vx, vy, vz]
 
 	# Camera-relative: find the named camera node at runtime and use its yaw.
@@ -308,19 +286,19 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 				_append_character_horizontal_speed_clamp(body_lines, "%s.velocity" % target_var, "\t\t", clamp_suffix)
 				body_lines.append("\t# velocity.y intentionally preserved (gravity/jump from Character Actuator)")
 			else:
-				if not _is_zero(x):
+				if not _is_literal_zero(x):
 					body_lines.append("\tif _logic_brick_character_use_acceleration:")
 					body_lines.append("\t\t_logic_brick_character_target_velocity.x = %s" % vx)
 					body_lines.append("\telse:")
 					body_lines.append("\t\t%s.velocity.x = %s" % [target_var, vx])
-				if not _is_zero(y):
+				if not _is_literal_zero(y):
 					body_lines.append("\t%s.velocity.y = %s" % [target_var, vy])
-				if not _is_zero(z):
+				if not _is_literal_zero(z):
 					body_lines.append("\tif _logic_brick_character_use_acceleration:")
 					body_lines.append("\t\t_logic_brick_character_target_velocity.z = %s" % vz)
 					body_lines.append("\telse:")
 					body_lines.append("\t\t%s.velocity.z = %s" % [target_var, vz])
-				if not _is_zero(x) or not _is_zero(z):
+				if not _is_literal_zero(x) or not _is_literal_zero(z):
 					body_lines.append("\tif _logic_brick_character_use_acceleration:")
 					_append_character_horizontal_speed_clamp(body_lines, "_logic_brick_character_target_velocity", "\t\t", clamp_suffix)
 					body_lines.append("\telse:")
@@ -371,19 +349,19 @@ func _generate_rotation_code(node: Node, chain_name: String) -> Dictionary:
 	var member_vars: Array[String] = []
 	var target_var = _append_target_setup(code_lines, member_vars, chain_name)
 	var body_lines: Array[String] = []
-	var vx = _to_expr(x)
-	var vy = _to_expr(y)
-	var vz = _to_expr(z)
+	var vx = _numeric_expr(x)
+	var vy = _numeric_expr(y)
+	var vz = _numeric_expr(z)
 
 	if space == "local":
-		if not _is_zero(x):
+		if not _is_literal_zero(x):
 			body_lines.append("%s.rotate_x(deg_to_rad(%s))" % [target_var, vx])
-		if not _is_zero(y):
+		if not _is_literal_zero(y):
 			body_lines.append("%s.rotate_y(deg_to_rad(%s))" % [target_var, vy])
-		if not _is_zero(z):
+		if not _is_literal_zero(z):
 			body_lines.append("%s.rotate_z(deg_to_rad(%s))" % [target_var, vz])
 	else:
-		if not _is_zero(x) or not _is_zero(y) or not _is_zero(z):
+		if not _is_literal_zero(x) or not _is_literal_zero(y) or not _is_literal_zero(z):
 			body_lines.append("%s.global_rotation += Vector3(deg_to_rad(%s), deg_to_rad(%s), deg_to_rad(%s))" % [target_var, vx, vy, vz])
 
 	if body_lines.is_empty():

@@ -49,7 +49,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target = properties.get("target_modulate", "self_modulate")
 	var color = properties.get("color", Color(1, 1, 1, 1))
 	var transition = properties.get("transition", false)
-	var speed = _to_expr(properties.get("transition_speed", "5.0"))
+	var speed = _expr(properties.get("transition_speed", "5.0"), "5.0")
 	if typeof(target) == TYPE_STRING:
 		target = target.to_lower().replace(" ", "_")
 	if typeof(color) != TYPE_COLOR:
@@ -100,8 +100,3 @@ func _append_resolve_code(code_lines: Array[String], node_var: String, label: St
 	code_lines.append("\t\t%s = null" % node_var)
 
 
-func _to_expr(val) -> String:
-	var s = str(val).strip_edges()
-	if s.is_empty(): return "5.0"
-	if s.is_valid_float() or s.is_valid_int(): return s
-	return s

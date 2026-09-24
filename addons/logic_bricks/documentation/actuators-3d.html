@@ -2176,8 +2176,16 @@
 </div>
 </div>
 <p>
-        Orbits a Camera3D around the character via a pivot Node3D.\nAssign both the pivot and the camera in the Inspector.\nThe camera can live anywhere in the scene — including inside a SubViewport for split screen.
+        Orbits a Camera3D around the character via a pivot Node3D. The pivot and camera can live anywhere in the edited scene.
        </p>
+<div class="callout tip">
+<strong>Recommended setup</strong>
+<pre><code>CharacterBody3D
+├── CameraPivot (Node3D)
+└── Camera3D</code></pre>
+<p>Place <code>CameraPivot</code> around head/shoulder height. Place <code>Camera3D</code> behind and above the pivot, then choose both nodes in the brick's scene dropdowns. The brick records that starting camera offset and uses it as the orbit distance.</p>
+<p>Run this action continuously, for example <code>Always → AND → 3rd Person Camera</code>. Mouse/gamepad orbit and pitch clamping are handled by the brick. Camera wall collision is not; add a different camera solution if SpringArm-style collision avoidance is required.</p>
+</div>
 <div class="meta-grid">
 <div>
 <strong>

@@ -58,7 +58,7 @@ func get_tooltip_definitions() -> Dictionary:
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode := str(properties.get("mode", "save")).to_lower()
 	var scope := str(properties.get("scope", "this_node")).to_lower().replace(" ", "_")
-	var target := _gd(str(properties.get("target", "")))
+	var target := _gd_string(str(properties.get("target", "")))
 	var slot := str(properties.get("slot", "slot1"))
 	var slot_regex := RegEx.new()
 	slot_regex.compile("[^A-Za-z0-9_-]")
@@ -151,5 +151,3 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	return {"actuator_code": "\n".join(lines)}
 
 
-func _gd(value: String) -> String:
-	return value.replace("\\", "\\\\").replace("\"", "\\\"")

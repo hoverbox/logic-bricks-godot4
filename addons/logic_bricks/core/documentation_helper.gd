@@ -77,6 +77,7 @@ const BRICK_DOCS: Dictionary = {
 	"ObjectShake2DActuator": {"2d": "actuators-2d.html#object-shake-2d"},
 	"ObjectShakeActuator": {"3d": "actuators-3d.html#object-shake-3d"},
 	"ParentActuator": {"3d": "actuators-3d.html#parent-3d"},
+	"Parent2DActuator": {"2d": "actuators-2d.html#parent-2d"},
 	"Physics2DSensor": {"2d": "sensors-2d.html#physics-2d-2d"},
 	"PhysicsActuator": {"3d": "actuators-3d.html#physics-3d"},
 	"PhysicsSensor": {"3d": "sensors-3d.html#physics-3d"},

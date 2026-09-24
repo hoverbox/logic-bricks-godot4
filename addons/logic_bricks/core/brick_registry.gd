@@ -318,6 +318,10 @@ static func get_bricks_by_type(brick_type: String, domain: String = "") -> Array
 		# Screen Flash, 2D Audio, Modulate, and Tween.
 		if brick_type == "actuator" and domain == "ui" and not _ui_actuator_whitelist.has(brick_class):
 			continue
+		# Dedicated UI graphs now own UI-facing actuators; keep the 3D add menu focused
+		# on 3D/gameplay bricks instead of showing a redundant UI category.
+		if brick_type == "actuator" and domain in ["2d", "3d"] and str(info.get("category", "")) == "UI":
+			continue
 		if _is_domain_compatible(str(info.get("domain", "common")), domain):
 			filtered.append(info)
 	return filtered

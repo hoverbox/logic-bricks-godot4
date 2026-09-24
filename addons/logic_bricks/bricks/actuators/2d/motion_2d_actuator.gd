@@ -54,16 +54,6 @@ func get_property_definitions() -> Array:
 		{"name": "space", "type": TYPE_STRING, "hint": PROPERTY_HINT_ENUM, "hint_string": "Local,Global", "default": "local"},
 	]
 
-func _to_expr(val) -> String:
-	if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-		return "%.3f" % val
-	var s = str(val).strip_edges()
-	if s.is_empty():
-		return "0.0"
-	if s.is_valid_float() or s.is_valid_int():
-		return "%.3f" % float(s)
-	return s
-
 func _safe_label(text: String) -> String:
 	var result = text.to_lower().replace(" ", "_")
 	result = result.replace("-", "_").replace(".", "_")
@@ -80,8 +70,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var motion_type = str(properties.get("motion_type", "location")).to_lower()
 	var movement_method = str(properties.get("movement_method", "character_velocity")).to_lower().replace(" ", "_")
 	var space = str(properties.get("space", "local")).to_lower()
-	var x_expr = _to_expr(properties.get("x", "0.0"))
-	var y_expr = _to_expr(properties.get("y", "0.0"))
+	var x_expr = _numeric_expr(properties.get("x", "0.0"))
+	var y_expr = _numeric_expr(properties.get("y", "0.0"))
 	var label = _safe_label(instance_name if not instance_name.is_empty() else chain_name)
 	var target_name = str(properties.get("target_node_name", "")).strip_edges()
 	var use_self = target_name.is_empty()

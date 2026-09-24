@@ -168,15 +168,3 @@ func _append_clear_velocity_code(code_lines: Array[String], indent: String = "")
 	code_lines.append(indent + "\tset(\"velocity\", Vector2.ZERO)")
 	code_lines.append(indent + "if get(\"linear_velocity\") is Vector2:")
 	code_lines.append(indent + "\tset(\"linear_velocity\", Vector2.ZERO)")
-
-
-func _sanitize_identifier(value: String) -> String:
-	var sanitized := value.strip_edges().replace(" ", "_")
-	var regex := RegEx.new()
-	regex.compile("[^a-zA-Z0-9_]")
-	sanitized = regex.sub(sanitized, "", true)
-	if sanitized.is_empty():
-		return ""
-	if sanitized.substr(0, 1).is_valid_int():
-		sanitized = "var_" + sanitized
-	return sanitized

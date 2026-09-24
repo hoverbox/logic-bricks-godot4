@@ -51,13 +51,19 @@ func get_property_definitions() -> Array:
 			"name": "camera_node_name", "required": true, "required_label": "a Camera3D node name",
 			"type": TYPE_STRING,
 			"default": "Camera3D",
-			"placeholder": "Camera3D node name"
+			"placeholder": "Camera3D node name",
+			"node_reference": true,
+			"accepted_node_types": ["Camera3D"],
+			"node_picker_scope": "scene"
 		},
 		{
 			"name": "pivot_node_name", "required": true, "required_label": "a camera pivot node name",
 			"type": TYPE_STRING,
 			"default": "CameraPivot",
-			"placeholder": "Camera pivot Node3D node name"
+			"placeholder": "Camera pivot Node3D node name",
+			"node_reference": true,
+			"accepted_node_types": ["Node3D"],
+			"node_picker_scope": "scene"
 		},
 		# ── Setup ──
 		{"name": "setup_group", "type": TYPE_NIL, "hint": 999, "hint_string": "Setup"},
@@ -120,7 +126,9 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description":       "Orbits a Camera3D around the character via a pivot Node3D.\nAssign both the pivot and the camera in the Inspector.\nThe camera can live anywhere in the scene — including inside a SubViewport for split screen.",
+		"_description":       "Third-person camera setup:\n1. Add a Node3D named CameraPivot near the character's head/shoulders.\n2. Add a Camera3D and place it behind/above the pivot.\n3. Choose both nodes with the dropdowns below. They may live anywhere in the scene.\n4. Run this action continuously (for example Always → AND → 3rd Person Camera).\nThe brick handles mouse/gamepad orbit and pitch clamp; it does not provide SpringArm3D collision avoidance.",
+		"camera_node_name":    "Camera3D used by the third-person rig. Choose it from anywhere in the edited scene.",
+		"pivot_node_name":     "Node3D used as the orbit pivot. Place it near head/shoulder height and choose it from anywhere in the edited scene.",
 		"input_mode":         "Which input drives the camera.\nMouse: mouse motion only.\nJoystick: right stick only.\nBoth: mouse and joystick together.",
 		"rotate_character":   "On: horizontal look rotates the whole character (third-person shooter).\nOff: horizontal look rotates the pivot only, character facing is independent.",
 		"align_mode":         "How the character aligns to camera direction when moving.\nInstant: snaps immediately.\nSmooth: lerps over time.",

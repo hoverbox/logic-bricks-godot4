@@ -11,6 +11,9 @@ func on_add_frame_pressed(panel) -> void:
 	frame.name = "Frame_%d" % frame_id
 	frame.resizable = true
 	frame.draggable = true
+	# Logic Bricks owns frame sizing. Godot GraphFrame autoshrink would
+	# collapse parent frames around attached nested frames.
+	frame.autoshrink_enabled = false
 	frame.tint_color_enabled = true
 	frame.tint_color = Color(0.3, 0.5, 0.7, 0.5)
 
@@ -32,6 +35,9 @@ func on_add_frame_pressed(panel) -> void:
 	frame.dragged.connect(panel._on_frame_dragged.bind(frame))
 	frame.resize_request.connect(panel._on_frame_resize_request.bind(frame))
 	panel.graph_edit.add_child(frame)
+	if not (frame.name in panel.frame_order):
+		panel.frame_order.append(frame.name)
+	_refresh_frame_z_order(panel)
 	update_frames_list(panel)
 	save_frames_to_metadata(panel)
 
@@ -57,9 +63,61 @@ func fit_frame_to_nodes(panel, frame: GraphFrame, nodes: Array[Node]) -> void:
 			max_pos.x = max(max_pos.x, node.position_offset.x + node.size.x)
 			max_pos.y = max(max_pos.y, node.position_offset.y + node.size.y)
 
-	var padding = Vector2(20, 40)
+	# Keep the frame comfortably clear of the closest bricks.
+	# Previous padding was 20px horizontal / 40px vertical; add 50px per side.
+	var padding = Vector2(70, 90)
 	frame.position_offset = min_pos - padding
 	frame.size = (max_pos - min_pos) + padding * 2
+
+func _detach_all_frame_attachments(panel) -> void:
+	# Programmatic frame fitting changes position_offset. Detach first so Godot
+	# does not carry attached bricks/frames along while we are only resizing UI.
+	for child in panel.graph_edit.get_children():
+		if child is GraphNode or child is GraphFrame:
+			panel.graph_edit.detach_graph_element_from_frame(child.name)
+
+func _refresh_frame_z_order(panel) -> void:
+	# Use GraphEdit's native frame ownership for movement. GraphFrame keeps
+	# itself behind connections/nodes and automatically moves attached elements.
+	var frames: Array = []
+	for child in panel.graph_edit.get_children():
+		if child is GraphFrame and not child.is_queued_for_deletion():
+			child.z_index = 0
+			child.autoshrink_enabled = false
+			frames.append(child)
+
+	_detach_all_frame_attachments(panel)
+
+	# Attach each nested frame to the smallest frame that fully contains it.
+	for frame in frames:
+		var frame_rect := Rect2(frame.position_offset, frame.size)
+		var closest_parent: GraphFrame = null
+		var closest_area := INF
+
+		for possible_parent in frames:
+			if possible_parent == frame:
+				continue
+
+			var parent_rect := Rect2(possible_parent.position_offset, possible_parent.size)
+			var parent_area := parent_rect.size.x * parent_rect.size.y
+			var frame_area := frame_rect.size.x * frame_rect.size.y
+			if parent_area > frame_area and parent_rect.encloses(frame_rect) and parent_area < closest_area:
+				closest_parent = possible_parent
+				closest_area = parent_area
+
+		if closest_parent != null:
+			panel.graph_edit.attach_graph_element_to_frame(frame.name, closest_parent.name)
+
+	# A brick may be listed in both an outer and nested frame. Attach it only to
+	# the smallest/innermost mapped frame; parent movement then propagates through
+	# the native frame hierarchy exactly once.
+	for child in panel.graph_edit.get_children():
+		if not (child is GraphNode) or child.is_queued_for_deletion():
+			continue
+		var owner = _get_smallest_mapped_frame_for_node(panel, child)
+		if owner != null:
+			panel.graph_edit.attach_graph_element_to_frame(child.name, owner.name)
+
 
 func auto_resize_frame(panel, frame: GraphFrame) -> void:
 	if not panel.frame_node_mapping.has(frame.name):
@@ -71,7 +129,11 @@ func auto_resize_frame(panel, frame: GraphFrame) -> void:
 		if node and node is GraphNode:
 			nodes_to_fit.append(node)
 
+	# Fitting moves the frame itself. Detach first so this UI-only resize does
+	# not move the content, then rebuild native ownership from saved membership.
+	_detach_all_frame_attachments(panel)
 	fit_frame_to_nodes(panel, frame, nodes_to_fit)
+	_refresh_frame_z_order(panel)
 	save_frames_to_metadata(panel)
 
 func on_graph_node_dragged(panel, node: GraphNode, from: Vector2, to: Vector2) -> void:
@@ -83,19 +145,31 @@ func on_graph_node_dragged(panel, node: GraphNode, from: Vector2, to: Vector2) -
 			if frame and frame is GraphFrame:
 				auto_resize_frame(panel, frame)
 
-func on_frame_dragged(panel, from: Vector2, to: Vector2, frame: GraphFrame) -> void:
-	var delta = to - from
-
-	if panel.frame_node_mapping.has(frame.name):
-		for node_name in panel.frame_node_mapping[frame.name]:
-			var node = panel.graph_edit.get_node_or_null(NodePath(node_name))
-			if node and node is GraphNode:
-				node.position_offset += delta
-
+func on_frame_dragged(panel, _from: Vector2, _to: Vector2, _frame: GraphFrame) -> void:
+	# GraphEdit moves attached bricks and nested frames natively. Rebuild only
+	# after the drag so a frame moved into/out of another frame gets the correct
+	# parent without applying a second movement delta.
+	_refresh_frame_z_order(panel)
 	save_frames_to_metadata(panel)
+
+func _get_smallest_mapped_frame_for_node(panel, node: GraphNode):
+	var owner = null
+	var owner_area = INF
+	for child in panel.graph_edit.get_children():
+		if not (child is GraphFrame) or child.is_queued_for_deletion():
+			continue
+		var members = panel.frame_node_mapping.get(child.name, [])
+		if not (node.name in members):
+			continue
+		var area = child.size.x * child.size.y
+		if area < owner_area:
+			owner = child
+			owner_area = area
+	return owner
 
 func on_frame_resize_request(panel, new_size: Vector2, frame: GraphFrame) -> void:
 	frame.size = new_size
+	_refresh_frame_z_order(panel)
 	save_frames_to_metadata(panel)
 
 func check_node_frame_membership(panel, moved_node: GraphNode) -> void:
@@ -131,17 +205,16 @@ func save_frames_to_metadata(panel, record_change: bool = true, action_name: Str
 	var target_node = panel.current_node
 	var before_snapshot = panel._take_graph_snapshot()
 	var frames_data = []
-	for child in panel.graph_edit.get_children():
-		if child is GraphFrame and not child.is_queued_for_deletion():
-			frames_data.append({
-				"name": child.name,
-				"title": panel.frame_titles.get(child.name, "Frame"),
-				"comment": panel.frame_comments.get(child.name, ""),
-				"position": child.position_offset,
-				"size": child.size,
-				"color": child.tint_color,
-				"nodes": panel.frame_node_mapping.get(child.name, [])
-			})
+	for child in _get_ordered_frames(panel):
+		frames_data.append({
+			"name": child.name,
+			"title": panel.frame_titles.get(child.name, "Frame"),
+			"comment": panel.frame_comments.get(child.name, ""),
+			"position": child.position_offset,
+			"size": child.size,
+			"color": child.tint_color,
+			"nodes": panel.frame_node_mapping.get(child.name, [])
+		})
 
 	target_node.set_meta("logic_bricks_frames", frames_data)
 	panel._mark_scene_modified()
@@ -163,6 +236,7 @@ func load_frames_from_metadata(panel) -> void:
 	panel.frame_node_mapping.clear()
 	panel.frame_titles.clear()
 	panel.frame_comments.clear()
+	panel.frame_order.clear()
 
 	if panel.current_node and panel.current_node.has_meta("logic_bricks_frames"):
 		var frames_data = panel.current_node.get_meta("logic_bricks_frames")
@@ -175,6 +249,7 @@ func load_frames_from_metadata(panel) -> void:
 			frame.tint_color_enabled = true
 			frame.resizable = true
 			frame.draggable = true
+			frame.autoshrink_enabled = false
 
 			panel.frame_titles[frame.name] = frame_data.get("title", "Frame")
 			panel.frame_comments[frame.name] = frame_data.get("comment", "")
@@ -184,8 +259,86 @@ func load_frames_from_metadata(panel) -> void:
 			frame.dragged.connect(panel._on_frame_dragged.bind(frame))
 			frame.resize_request.connect(panel._on_frame_resize_request.bind(frame))
 			panel.graph_edit.add_child(frame)
+			panel.frame_order.append(frame.name)
 
+	_refresh_frame_z_order(panel)
 	update_frames_list(panel)
+	_connect_member_resize_watchers(panel)
+
+	# GraphNodes can finish calculating their final size a frame or two after
+	# they are recreated. Refit once after layout settles so saved frames do
+	# not reopen with stale bounds.
+	_schedule_loaded_frame_refit(panel)
+
+
+func _connect_member_resize_watchers(panel) -> void:
+	# Brick controls can finish resolving their minimum size after frame metadata
+	# has already loaded (especially after an addon update changes a brick UI).
+	# Watch the actual GraphNode size instead of guessing how many frames layout
+	# will take, so mapped frames always follow their saved member bricks.
+	for child in panel.graph_edit.get_children():
+		if not (child is GraphNode):
+			continue
+		var callback = _on_member_node_resized.bind(panel, child)
+		if not child.resized.is_connected(callback):
+			child.resized.connect(callback)
+
+func _on_member_node_resized(panel, node: GraphNode) -> void:
+	if not is_instance_valid(panel) or not panel.graph_edit or not is_instance_valid(node):
+		return
+
+	var changed := false
+	for frame_name in panel.frame_node_mapping.keys():
+		var members: Array = panel.frame_node_mapping.get(frame_name, [])
+		if not (node.name in members):
+			continue
+		var frame = panel.graph_edit.get_node_or_null(NodePath(frame_name))
+		if not (frame is GraphFrame) or frame.is_queued_for_deletion():
+			continue
+
+		var nodes_to_fit: Array[Node] = []
+		for node_name in members:
+			var member = panel.graph_edit.get_node_or_null(NodePath(node_name))
+			if member and member is GraphNode:
+				nodes_to_fit.append(member)
+		if not nodes_to_fit.is_empty():
+			fit_frame_to_nodes(panel, frame, nodes_to_fit)
+			changed = true
+
+	if changed:
+		_refresh_frame_z_order(panel)
+
+func _schedule_loaded_frame_refit(panel) -> void:
+	if not panel or not panel.get_tree():
+		return
+	panel.get_tree().process_frame.connect(func():
+		if not is_instance_valid(panel) or not panel.graph_edit:
+			return
+		panel.get_tree().process_frame.connect(func():
+			_refit_loaded_frames(panel)
+		, CONNECT_ONE_SHOT)
+	, CONNECT_ONE_SHOT)
+
+func _refit_loaded_frames(panel) -> void:
+	if not is_instance_valid(panel) or not panel.graph_edit:
+		return
+
+	for child in panel.graph_edit.get_children():
+		if not (child is GraphFrame) or child.is_queued_for_deletion():
+			continue
+		if not panel.frame_node_mapping.has(child.name):
+			continue
+
+		var nodes_to_fit: Array[Node] = []
+		for node_name in panel.frame_node_mapping[child.name]:
+			var node = panel.graph_edit.get_node_or_null(NodePath(node_name))
+			if node and node is GraphNode:
+				nodes_to_fit.append(node)
+
+		if not nodes_to_fit.is_empty():
+			fit_frame_to_nodes(panel, child, nodes_to_fit)
+
+	_refresh_frame_z_order(panel)
 
 func on_frame_list_item_selected(panel, index: int) -> void:
 	var frame_name = panel.frames_list.get_item_metadata(index)
@@ -265,11 +418,13 @@ func on_frame_resize_pressed(panel) -> void:
 func on_frame_width_changed(panel, new_width: float) -> void:
 	if panel.selected_frame:
 		panel.selected_frame.size.x = new_width
+		_refresh_frame_z_order(panel)
 		save_frames_to_metadata(panel)
 
 func on_frame_height_changed(panel, new_height: float) -> void:
 	if panel.selected_frame:
 		panel.selected_frame.size.y = new_height
+		_refresh_frame_z_order(panel)
 		save_frames_to_metadata(panel)
 
 func on_frame_delete_pressed(panel) -> void:
@@ -278,13 +433,27 @@ func on_frame_delete_pressed(panel) -> void:
 
 	var frame_to_delete = panel.selected_frame
 	var frame_name = frame_to_delete.name
+	var former_members: Array = panel.frame_node_mapping.get(frame_name, []).duplicate()
+	var surviving_parent = _get_smallest_containing_frame(panel, frame_to_delete, frame_name)
+
+	# Deleting a nested frame should promote its bricks to the surviving parent
+	# immediately. Otherwise GraphEdit detaches them from the deleted frame and
+	# they remain unowned until another frame operation happens.
+	if surviving_parent != null:
+		var parent_members: Array = panel.frame_node_mapping.get(surviving_parent.name, []).duplicate()
+		for node_name in former_members:
+			if not (node_name in parent_members):
+				parent_members.append(node_name)
+		panel.frame_node_mapping[surviving_parent.name] = parent_members
 
 	panel.selected_frame = null
 	panel.frame_node_mapping.erase(frame_name)
 	panel.frame_titles.erase(frame_name)
 	panel.frame_comments.erase(frame_name)
+	panel.frame_order.erase(frame_name)
 
 	if is_instance_valid(frame_to_delete):
+		panel.graph_edit.detach_graph_element_from_frame(frame_name)
 		var parent = frame_to_delete.get_parent()
 		if parent:
 			parent.remove_child(frame_to_delete)
@@ -294,20 +463,106 @@ func on_frame_delete_pressed(panel) -> void:
 
 	panel.frames_list.deselect_all()
 
+	_refresh_frame_z_order(panel)
 	update_frames_list(panel)
 	save_frames_to_metadata(panel)
+
+func _get_smallest_containing_frame(panel, frame: GraphFrame, excluded_frame_name: StringName):
+	var frame_rect := Rect2(frame.position_offset, frame.size)
+	var closest_parent = null
+	var closest_area := INF
+
+	for child in panel.graph_edit.get_children():
+		if not (child is GraphFrame) or child.is_queued_for_deletion():
+			continue
+		if child.name == excluded_frame_name:
+			continue
+
+		var parent_rect := Rect2(child.position_offset, child.size)
+		var parent_area := parent_rect.size.x * parent_rect.size.y
+		if parent_rect.encloses(frame_rect) and parent_area < closest_area:
+			closest_parent = child
+			closest_area = parent_area
+
+	return closest_parent
+
+func _get_ordered_frames(panel) -> Array:
+	var ordered: Array = []
+	var seen: Dictionary = {}
+
+	for frame_name in panel.frame_order:
+		var frame = panel.graph_edit.get_node_or_null(NodePath(frame_name))
+		if frame is GraphFrame and not frame.is_queued_for_deletion():
+			ordered.append(frame)
+			seen[frame.name] = true
+
+	# Older projects may not have an explicit order yet. Append any surviving
+	# frames once, then persist this order the next time metadata is saved.
+	for child in panel.graph_edit.get_children():
+		if child is GraphFrame and not child.is_queued_for_deletion() and not seen.has(child.name):
+			ordered.append(child)
+			seen[child.name] = true
+
+	panel.frame_order.clear()
+	for frame in ordered:
+		panel.frame_order.append(frame.name)
+	return ordered
+
 
 func update_frames_list(panel) -> void:
 	panel.frames_list.clear()
 
-	for child in panel.graph_edit.get_children():
-		if child is GraphFrame and not child.is_queued_for_deletion():
-			var display_name = panel.frame_titles.get(child.name, child.name)
-			panel.frames_list.add_item(display_name)
-			var item_index: int = panel.frames_list.get_item_count() - 1
-			panel.frames_list.set_item_metadata(item_index, child.name)
-			var comment: String = str(panel.frame_comments.get(child.name, "")).strip_edges()
-			panel.frames_list.set_item_tooltip(item_index, comment if not comment.is_empty() else display_name)
+	for child in _get_ordered_frames(panel):
+		var display_name = panel.frame_titles.get(child.name, child.name)
+		panel.frames_list.add_item(display_name)
+		var item_index: int = panel.frames_list.get_item_count() - 1
+		panel.frames_list.set_item_metadata(item_index, child.name)
+		var comment: String = str(panel.frame_comments.get(child.name, "")).strip_edges()
+		panel.frames_list.set_item_tooltip(item_index, comment if not comment.is_empty() else display_name)
+
+
+func reorder_frame(panel, from_index: int, target_index: int) -> void:
+	_get_ordered_frames(panel)
+	if from_index < 0 or from_index >= panel.frame_order.size():
+		return
+
+	var selected_name: StringName = StringName("")
+	if panel.selected_frame and is_instance_valid(panel.selected_frame):
+		selected_name = panel.selected_frame.name
+
+	var moved = panel.frame_order.pop_at(from_index)
+	if target_index > from_index:
+		target_index -= 1
+	target_index = clampi(target_index, 0, panel.frame_order.size())
+	panel.frame_order.insert(target_index, moved)
+	update_frames_list(panel)
+	_select_frame_name_in_list(panel, selected_name)
+	save_frames_to_metadata(panel, true, "Reorder Logic Brick Frames")
+
+
+func sort_frames_alphabetically(panel) -> void:
+	_get_ordered_frames(panel)
+	var selected_name: StringName = StringName("")
+	if panel.selected_frame and is_instance_valid(panel.selected_frame):
+		selected_name = panel.selected_frame.name
+
+	panel.frame_order.sort_custom(func(a, b):
+		var title_a: String = str(panel.frame_titles.get(a, a)).to_lower()
+		var title_b: String = str(panel.frame_titles.get(b, b)).to_lower()
+		return title_a < title_b
+	)
+	update_frames_list(panel)
+	_select_frame_name_in_list(panel, selected_name)
+	save_frames_to_metadata(panel, true, "Sort Logic Brick Frames")
+
+
+func _select_frame_name_in_list(panel, frame_name: StringName) -> void:
+	if frame_name == StringName(""):
+		return
+	for i in range(panel.frames_list.get_item_count()):
+		if panel.frames_list.get_item_metadata(i) == frame_name:
+			panel.frames_list.select(i)
+			break
 
 func select_frame_in_side_panel(panel, frame: GraphFrame) -> void:
 	if not frame:
