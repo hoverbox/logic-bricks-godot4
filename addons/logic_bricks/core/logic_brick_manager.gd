@@ -1289,7 +1289,7 @@ func _chain_needs_physics_process(chain: Dictionary) -> bool:
 	var actuators = chain.get("actuators", [])
 	for actuator_data in actuators:
 		var brick_type = actuator_data.get("type", "")
-		if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "SoftBodyPointForceActuator", "SoftBodyPointImpulseActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator", "WaypointPath2DActuator", "Force2DActuator", "Impulse2DActuator", "LinearVelocity2DActuator", "Character2DActuator", "Gravity2DActuator", "Jump2DActuator", "SaveLoad2DActuator"]:
+		if brick_type in ["ForceActuator", "TorqueActuator", "ImpulseActuator", "LinearVelocityActuator", "SoftBodyPointForceActuator", "SoftBodyPointImpulseActuator", "CharacterActuator", "GravityActuator", "JumpActuator", "WaypointPathActuator", "WaypointPath2DActuator", "Force2DActuator", "Impulse2DActuator", "LinearVelocity2DActuator", "Character2DActuator", "Gravity2DActuator", "Jump2DActuator", "SaveLoad2DActuator", "SmoothFollowCameraActuator"]:
 			return true
 		if brick_type == "MotionActuator" or brick_type == "Motion2DActuator":
 			var props = actuator_data.get("properties", {})

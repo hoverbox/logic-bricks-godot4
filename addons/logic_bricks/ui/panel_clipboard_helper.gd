@@ -483,6 +483,10 @@ func save_template_to_file(path: String) -> void:
 	if panel.current_node.has_meta("logic_bricks_variables"):
 		local_vars = panel.current_node.get_meta("logic_bricks_variables").duplicate(true)
 
+	var local_states: Array = []
+	if panel.current_node.has_meta("logic_bricks_states"):
+		local_states = panel.current_node.get_meta("logic_bricks_states").duplicate(true)
+
 	var envelope := {
 		"format": "logic_bricks_template",
 		"version": 1,
@@ -490,7 +494,8 @@ func save_template_to_file(path: String) -> void:
 		"payload": var_to_str({
 			"graph": template_data,
 			"frames": saved_frames,
-			"variables": local_vars
+			"variables": local_vars,
+			"states": local_states
 		})
 	}
 
@@ -528,12 +533,66 @@ func load_template_from_file(path: String) -> void:
 		push_error("Logic Bricks: Template payload is damaged or unreadable.")
 		return
 
-	var graph: Dictionary = payload.get("graph", {})
+	var graph: Dictionary = payload.get("graph", {}).duplicate(true)
 	if graph.is_empty() or graph.get("nodes", []).is_empty():
 		push_warning("Logic Bricks: This template contains no bricks.")
 		return
 
 	var before_snapshot = take_graph_snapshot()
+
+	# States must exist before bricks are created. Otherwise state dropdowns
+	# fall back to the target node's first state and overwrite imported state IDs.
+	var imported_states: Array = payload.get("states", [])
+	if not imported_states.is_empty():
+		var existing_states: Array = panel.current_node.get_meta("logic_bricks_states", []).duplicate(true)
+		var current_graph: Dictionary = panel.current_node.get_meta("logic_bricks_graph", {})
+		if current_graph.get("nodes", []).is_empty() and existing_states.size() == 1:
+			var only_state: Dictionary = existing_states[0]
+			if str(only_state.get("id", "")) == "state_1" and str(only_state.get("name", "")) == "State 1":
+				existing_states.clear()
+
+		var ids_in_use: Dictionary = {}
+		var id_by_name: Dictionary = {}
+		for state_data in existing_states:
+			var existing_id := str(state_data.get("id", ""))
+			var existing_name := str(state_data.get("name", ""))
+			if not existing_id.is_empty():
+				ids_in_use[existing_id] = true
+			if not existing_name.is_empty():
+				id_by_name[existing_name] = existing_id
+
+		var state_id_map: Dictionary = {}
+		for state_data in imported_states:
+			var imported: Dictionary = state_data.duplicate(true)
+			var old_id := str(imported.get("id", "")).strip_edges()
+			var state_name := str(imported.get("name", "")).strip_edges()
+			if old_id.is_empty():
+				continue
+			if id_by_name.has(state_name):
+				state_id_map[old_id] = id_by_name[state_name]
+				continue
+			var new_id := old_id
+			if ids_in_use.has(new_id):
+				var suffix := 1
+				while ids_in_use.has("%s_%d" % [old_id, suffix]):
+					suffix += 1
+				new_id = "%s_%d" % [old_id, suffix]
+			imported["id"] = new_id
+			existing_states.append(imported)
+			ids_in_use[new_id] = true
+			if not state_name.is_empty():
+				id_by_name[state_name] = new_id
+			state_id_map[old_id] = new_id
+
+		for node_data in graph.get("nodes", []):
+			var properties: Dictionary = node_data.get("properties", {})
+			var old_state_id := str(properties.get("state_id", ""))
+			if state_id_map.has(old_state_id):
+				properties["state_id"] = state_id_map[old_state_id]
+
+		panel.current_node.set_meta("logic_bricks_states", existing_states)
+		panel._load_states_from_metadata(true)
+
 	await paste_selection(graph)
 
 	# Merge variables by name without replacing existing definitions.

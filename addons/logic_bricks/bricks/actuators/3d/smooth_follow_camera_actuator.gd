@@ -268,9 +268,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		lines.append("\t\t\tpush_warning(\"Smooth Follow Camera: rotation source '\" + str(_rot_source_name_%s) + \"' was not found\")" % chain_name)
 		lines.append("\t")
 
-	# Sample the followed target through Godot physics interpolation when available.
-	# This keeps a render-frame camera smooth while CharacterBody movement stays in physics ticks.
-	lines.append("\tvar _follow_transform_%s: Transform3D = %s.call(\"get_global_transform_interpolated\") if %s.has_method(\"get_global_transform_interpolated\") else %s.global_transform" % [chain_name, generated_target, generated_target, generated_target])
+	# Smooth Follow Camera runs in _physics_process so camera and physics-driven targets
+	# advance on the same clock. Sampling the physics transform here avoids render/physics
+	# phase mismatch that can make the followed character appear to vibrate.
+	lines.append("\tvar _follow_transform_%s: Transform3D = %s.global_transform" % [chain_name, generated_target])
 	lines.append("\tvar _follow_pos_%s: Vector3 = _follow_transform_%s.origin" % [chain_name, chain_name])
 
 	# Lazy first-frame offset capture

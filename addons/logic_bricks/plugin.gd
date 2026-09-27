@@ -318,37 +318,30 @@ func _save_waypoints_to_graph() -> void:
 	get_editor_interface().mark_scene_as_unsaved()
 
 
-## Register the GlobalVars autoload singleton
+## Register the GlobalVars autoload singleton.
+## Keep the saved value as a res:// path instead of a uid:// value. The two
+## autoload scripts intentionally ship without .gd.uid sidecars so each project
+## generates UIDs in its own cache instead of inheriting stale addon UIDs.
 func ensure_global_vars_autoload(script_path: String) -> void:
-	if not ProjectSettings.has_setting("autoload/GlobalVars"):
-		add_autoload_singleton("GlobalVars", script_path)
-		print("Logic Bricks: Registered GlobalVars autoload")
-	else:
-		# The setting exists — check it points to the correct path.
-		# A stale UID from a previous install causes:
-		#   ERROR: Unrecognized UID / Resource file not found / Failed to create autoload
-		# Fix it by removing and re-adding with the current path.
-		var existing = ProjectSettings.get_setting("autoload/GlobalVars", "")
-		# Autoload values are stored as "*res://..." (enabled) or "res://..." (disabled).
-		var existing_path = existing.trim_prefix("*")
-		if existing_path != script_path:
-			remove_autoload_singleton("GlobalVars")
-			add_autoload_singleton("GlobalVars", script_path)
-			print("Logic Bricks: Updated GlobalVars autoload path (was: %s)" % existing_path)
-
+	_set_autoload_path("GlobalVars", script_path)
 
 
 ## Register the standalone runtime debugger autoload.
 ## It observes watched metadata and script properties without changing generated scripts.
 func ensure_debugger_autoload(script_path: String) -> void:
-	const AUTOLOAD_NAME := "LogicBricksDebugger"
-	if not ProjectSettings.has_setting("autoload/" + AUTOLOAD_NAME):
-		add_autoload_singleton(AUTOLOAD_NAME, script_path)
-		print("Logic Bricks: Registered runtime debugger autoload")
+	_set_autoload_path("LogicBricksDebugger", script_path)
+
+
+func _set_autoload_path(autoload_name: String, script_path: String) -> void:
+	var setting_name := "autoload/" + autoload_name
+	var desired := "*" + script_path
+	var existing := str(ProjectSettings.get_setting(setting_name, ""))
+	if existing == desired:
 		return
-	var existing = str(ProjectSettings.get_setting("autoload/" + AUTOLOAD_NAME, ""))
-	var existing_path = existing.trim_prefix("*")
-	if existing_path != script_path:
-		remove_autoload_singleton(AUTOLOAD_NAME)
-		add_autoload_singleton(AUTOLOAD_NAME, script_path)
-		print("Logic Bricks: Updated runtime debugger autoload path")
+
+	ProjectSettings.set_setting(setting_name, desired)
+	ProjectSettings.save()
+	if existing.is_empty():
+		print("Logic Bricks: Registered %s autoload" % autoload_name)
+	else:
+		print("Logic Bricks: Updated %s autoload path (was: %s)" % [autoload_name, existing.trim_prefix("*")])

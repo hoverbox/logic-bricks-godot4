@@ -165,22 +165,31 @@ func show_script_required_overlay() -> void:
 		return
 	var parent_with_logic = get_parent_with_script_or_logic()
 	if panel._script_parent_warning:
-		panel._script_parent_warning.text = "This is a child of a node with a script/logic."
+		if parent_with_logic:
+			panel._script_parent_warning.text = "⚠ CHILD NODE SELECTED: %s\nScene root '%s' already owns Logic Bricks. Select the root to edit its logic." % [panel.current_node.name, parent_with_logic.name]
 		panel._script_parent_warning.visible = parent_with_logic != null
+	if panel.add_script_button:
+		panel.add_script_button.visible = parent_with_logic == null
+	if panel._script_required_desc:
+		panel._script_required_desc.visible = parent_with_logic == null
 	if panel._script_select_parent_button:
+		panel._script_select_parent_button.text = "Select Scene Root"
 		panel._script_select_parent_button.visible = parent_with_logic != null
 	panel._script_required_overlay.visible = true
 	panel._script_required_overlay.move_to_front()
 
 
 func get_parent_with_script_or_logic() -> Node:
-	if not panel.current_node:
+	if not panel.current_node or not panel.editor_interface:
 		return null
-	var parent = panel.current_node.get_parent()
-	while parent:
-		if parent.get_script() != null or parent.has_meta("logic_bricks_graph") or parent.has_meta("logic_bricks"):
-			return parent
-		parent = parent.get_parent()
+	var scene_root = panel.editor_interface.get_edited_scene_root()
+	if not scene_root or panel.current_node == scene_root or not scene_root.is_ancestor_of(panel.current_node):
+		return null
+	# Only the edited scene root can block child Logic Bricks, and only when it
+	# actually has both a script and Logic Bricks data. This avoids stale metadata
+	# or unrelated scripts on intermediate parents producing a false warning.
+	if scene_root.get_script() != null and (scene_root.has_meta("logic_bricks_graph") or scene_root.has_meta("logic_bricks")):
+		return scene_root
 	return null
 
 
@@ -196,6 +205,10 @@ func on_select_parent_pressed() -> void:
 func hide_script_required_overlay() -> void:
 	if panel._script_required_overlay:
 		panel._script_required_overlay.visible = false
+	if panel.add_script_button:
+		panel.add_script_button.visible = true
+	if panel._script_required_desc:
+		panel._script_required_desc.visible = true
 
 
 func show_instance_panel() -> void:

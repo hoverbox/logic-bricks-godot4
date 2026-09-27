@@ -361,6 +361,13 @@ func _on_add_script_pressed() -> void:
 		_update_ui()
 		return
 
+	# A scene root that already owns Logic Bricks is the single logic owner for
+	# that scene. Do not let a child accidentally create a second logic script.
+	if _get_parent_with_script_or_logic():
+		push_warning("Logic Bricks: Cannot add a script to this child while the scene root already owns Logic Bricks.")
+		_update_ui()
+		return
+
 	var scene_root = editor_interface.get_edited_scene_root() if editor_interface else null
 	var scene_dir = scene_root.scene_file_path.get_base_dir() if scene_root and not scene_root.scene_file_path.is_empty() else "res://"
 	var base_name = current_node.name.to_snake_case().validate_filename()
@@ -1440,6 +1447,14 @@ func _create_script_required_overlay() -> void:
 	vbox.add_theme_constant_override("separation", 14)
 	panel.add_child(vbox)
 
+	_script_parent_warning = Label.new()
+	_script_parent_warning.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_script_parent_warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_script_parent_warning.add_theme_font_size_override("font_size", 18)
+	_script_parent_warning.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
+	_script_parent_warning.visible = false
+	vbox.add_child(_script_parent_warning)
+
 	var title = Label.new()
 	title.text = "⚠  Script Required"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -1460,13 +1475,6 @@ func _create_script_required_overlay() -> void:
 	add_script_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	add_script_button.pressed.connect(_on_add_script_pressed)
 	vbox.add_child(add_script_button)
-
-	_script_parent_warning = Label.new()
-	_script_parent_warning.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_script_parent_warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_script_parent_warning.add_theme_color_override("font_color", Color(1.0, 0.65, 0.2))
-	_script_parent_warning.visible = false
-	vbox.add_child(_script_parent_warning)
 
 	_script_select_parent_button = Button.new()
 	_script_select_parent_button.text = "Select Parent"
@@ -1529,6 +1537,7 @@ func _clear_graph_display() -> void:
 	frame_node_mapping.clear()
 	frame_titles.clear()
 	frame_comments.clear()
+	frame_order.clear()
 	selected_frame = null
 	if frame_settings_container:
 		frame_settings_container.visible = false
@@ -1756,11 +1765,10 @@ func _on_clear_bricks_pressed() -> void:
 	if not current_node:
 		return
 
-	# Confirm before wiping — this is destructive and not undo-able via the
-	# standard undo stack (metadata removal is not tracked by UndoRedo).
+	# Confirm before wiping; the custom graph snapshot below provides undo.
 	var confirm = ConfirmationDialog.new()
 	confirm.title = "Clear Bricks"
-	confirm.dialog_text = "Remove all bricks from \"%s\"?\n\nYou can undo this action." % current_node.name
+	confirm.dialog_text = "Remove all Logic Bricks data from \"%s\"?\n\nThis clears bricks, frames, variables, and states. You can undo this action." % current_node.name
 	confirm.ok_button_text = "Clear"
 	add_child(confirm)
 	confirm.popup_centered()
@@ -1771,18 +1779,14 @@ func _on_clear_bricks_pressed() -> void:
 	if not current_node or not is_instance_valid(current_node):
 		return
 
-	# Clear the visual canvas
+	# Clear the visual canvas, including frames and their in-memory state.
 	var before_snapshot = _take_graph_snapshot()
-	graph_edit.clear_connections()
-	for child in graph_edit.get_children():
-		if child is GraphNode:
-			child.queue_free()
-	await get_tree().process_frame
+	_clear_graph_display()
 
-	# Remove all logic-brick metadata keys from the node
-	for key in ["logic_bricks", "logic_bricks_graph", "logic_bricks_states",
-				"logic_bricks_variables", "logic_bricks_global_usage",
-				"logic_bricks_debug_watch_state"]:
+	# Remove all node-specific Logic Bricks metadata.
+	for key in ["logic_bricks", "logic_bricks_graph", "logic_bricks_frames",
+				"logic_bricks_states", "logic_bricks_variables",
+				"logic_bricks_global_usage", "logic_bricks_debug_watch_state"]:
 		if current_node.has_meta(key):
 			current_node.remove_meta(key)
 
@@ -1795,7 +1799,7 @@ func _on_clear_bricks_pressed() -> void:
 	_load_states_from_metadata(true)
 	_load_variables_from_metadata()
 
-	push_warning("Logic Bricks: All bricks cleared from '%s'. Script markers remain — remove them manually if needed." % current_node.name)
+	push_warning("Logic Bricks: All node logic cleared from '%s'. Script markers remain — remove them manually if needed." % current_node.name)
 
 
 func _open_search_popup(screen_pos: Vector2, initial_text: String = "") -> void:
