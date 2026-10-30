@@ -57,9 +57,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	var sensor_code: String
 	if trigger_on == "inactive":
-		sensor_code = "var sensor_active = not _actuator_active_flags.get(\"%s\", false)" % actuator_name
+		sensor_code = "var sensor_active = not _actuator_active_flags.get(\"%s\", false)" % _gd_string(str(actuator_name))
 	else:
-		sensor_code = "var sensor_active = _actuator_active_flags.get(\"%s\", false)" % actuator_name
+		sensor_code = "var sensor_active = _actuator_active_flags.get(\"%s\", false)" % _gd_string(str(actuator_name))
 
 	return {
 		"sensor_code": sensor_code,

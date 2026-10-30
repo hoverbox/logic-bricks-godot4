@@ -3,7 +3,7 @@
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Collision Sensor - Detects collisions via an Area3D node
-## The Area3D is located by name at runtime by searching the whole scene tree
+## The Area3D must be this node or a direct child of the node using Logic Bricks
 ## Supports body_entered, body_exited, and continuous overlap detection
 
 
@@ -74,15 +74,26 @@ func get_property_definitions() -> Array:
 func get_configuration_warnings(node: Node = null) -> Array[String]:
 	var warnings = super.get_configuration_warnings(node)
 	var area_node_name = str(properties.get("area_node_name", "")).strip_edges()
-	if area_node_name.is_empty() and not node is Area3D:
-		warnings.append("Select or enter an Area3D node name, or attach these Logic Bricks directly to an Area3D node.")
+	if node is Area3D:
+		return warnings
+	if area_node_name.is_empty():
+		warnings.append("Choose a child Area3D for this Collision trigger.")
+		return warnings
+	var matching_child: Area3D = null
+	if node != null:
+		for child in node.get_children():
+			if child is Area3D and str(child.name) == area_node_name:
+				matching_child = child as Area3D
+				break
+	if matching_child == null:
+		warnings.append("The selected Area3D must be a direct child of the node using Logic Bricks.")
 	return warnings
 
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Detects collisions via an Area3D node.\n\nLeave Area Node Name blank when these Logic Bricks are attached directly to the Area3D. Otherwise, enter the node name (not the full path).",
-		"area_node_name": "Leave blank to use this node when it is an Area3D. Otherwise, enter the name of the Area3D to use for collision detection (e.g. \"HitArea\"). Searches the whole scene tree.",
+		"_description": "Detects collisions using this Area3D or an Area3D that is a direct child of the node using Logic Bricks.",
+		"area_node_name": "Choose a child Area3D of the node using Logic Bricks. If Logic Bricks are directly on an Area3D, Self is used automatically.",
 		"detection_mode": "Entered: fires once when something enters.\nExited: fires once when something leaves.\nOverlapping: active every frame while overlapping.",
 		"detect_bodies":  "Detect physics bodies (CharacterBody3D, RigidBody3D, etc.).",
 		"detect_areas":   "Detect other Area3D nodes.",
@@ -92,8 +103,33 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var filter_type = properties.get("filter_type", "any")
+
+	# Normalize
+	if typeof(filter_type) == TYPE_STRING:
+		filter_type = filter_type.to_lower()
+
+	# Show filter_value only when filtering by group or name
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			if prop_name == "filter_value":
+				shown[child] = (filter_type in ["group", "name"])
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var area_node_name = properties.get("area_node_name", "")
+	var area_node_name = str(properties.get("area_node_name", "")).strip_edges()
+	# When Logic Bricks live directly on an Area3D, always bind this sensor to
+	# this instance. A typed root name is ambiguous across duplicated scenes.
+	if node is Area3D:
+		area_node_name = ""
 	var detection_mode = properties.get("detection_mode", "entered")
 	var detect_bodies  = properties.get("detect_bodies", true)
 	var detect_areas   = properties.get("detect_areas", false)
@@ -125,11 +161,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# This matters for instanced scenes: a global name search can grab another
 	# Area3D with the same name elsewhere in the level, causing this sensor to
 	# fire from the wrong coin/trigger.
-	var quoted_name = "\"%s\"" % area_node_name
-	ready_lines.append("# Collision Sensor (%s): locate Area3D by name, preferring this instance" % chain_name)
+	var quoted_name = "\"%s\"" % _gd_string(str(area_node_name))
+	ready_lines.append("# Collision Sensor (%s): locate this Area3D or a direct child Area3D" % chain_name)
 	ready_lines.append("%s = _lb_find_collision_area_for_sensor(self, %s)" % [area_var, quoted_name])
 	ready_lines.append("if not %s:" % area_var)
-	ready_lines.append("\tpush_warning(\"Collision Sensor [%s]: could not find Area3D named '%s' anywhere in the scene\")" % [area_var, area_node_name])
+	ready_lines.append("\tpush_warning(\"Collision Sensor [%s]: could not find child Area3D named '%s' on this node\")" % [area_var, _gd_string(str(area_node_name))])
 
 	# Name of the per-chain setup helper — called from both _ready() and
 	# _on_logic_brick_state_enter() so signal connections survive state resets.
@@ -257,9 +293,9 @@ func _generate_signal_code(detection_mode: String, area_var: String,
 	if filter_type != "any" and not filter_value.is_empty():
 		sensor_lines.append("\tif %s:" % collided_var)
 		if filter_type == "group":
-			sensor_lines.append("\t\tif %s.is_in_group(\"%s\"):" % [collided_var, filter_value])
+			sensor_lines.append("\t\tif %s.is_in_group(\"%s\"):" % [collided_var, _gd_string(str(filter_value))])
 		elif filter_type == "name":
-			sensor_lines.append("\t\tif %s.name == \"%s\":" % [collided_var, filter_value])
+			sensor_lines.append("\t\tif %s.name == \"%s\":" % [collided_var, _gd_string(str(filter_value))])
 		sensor_lines.append("\t\t\t%s = false" % flag_var)
 		sensor_lines.append("\t\t\treturn %s" % ("false" if invert else "true"))
 		sensor_lines.append("\t%s = false  # Didn't match filter" % flag_var)
@@ -281,14 +317,14 @@ func _append_contact_enter_lines(lines: Array[String], obj_name: String, active_
 	lines.append("\tvar _contact_target: Node = %s" % obj_name)
 	lines.append("\tvar _contact_owner: Node = %s.get_owner() if is_instance_valid(%s) else null" % [obj_name, obj_name])
 	if filter_type == "group" and not filter_value.is_empty():
-		lines.append("\tif not %s.is_in_group(\"%s\"):" % [obj_name, filter_value])
-		lines.append("\t\tif _contact_owner and _contact_owner.is_in_group(\"%s\"):" % filter_value)
+		lines.append("\tif not %s.is_in_group(\"%s\"):" % [obj_name, _gd_string(str(filter_value))])
+		lines.append("\t\tif _contact_owner and _contact_owner.is_in_group(\"%s\"):" % _gd_string(str(filter_value)))
 		lines.append("\t\t\t_contact_target = _contact_owner")
 		lines.append("\t\telse:")
 		lines.append("\t\t\treturn")
 	elif filter_type == "name" and not filter_value.is_empty():
-		lines.append("\tif %s.name != \"%s\":" % [obj_name, filter_value])
-		lines.append("\t\tif _contact_owner and _contact_owner.name == \"%s\":" % filter_value)
+		lines.append("\tif %s.name != \"%s\":" % [obj_name, _gd_string(str(filter_value))])
+		lines.append("\t\tif _contact_owner and _contact_owner.name == \"%s\":" % _gd_string(str(filter_value)))
 		lines.append("\t\t\t_contact_target = _contact_owner")
 		lines.append("\t\telse:")
 		lines.append("\t\t\treturn")
@@ -342,17 +378,26 @@ func _add_filter_code(lines: Array[String], filter_type: String, filter_value: S
 		lines.append("\treturn _detected.size() > 0" if not invert else "\treturn _detected.size() == 0")
 	elif filter_type == "group" and not filter_value.is_empty():
 		if invert:
-			lines.append("\treturn not _detected.any(func(obj): return obj.is_in_group(\"%s\"))" % filter_value)
+			lines.append("\treturn not _detected.any(func(obj): return obj.is_in_group(\"%s\"))" % _gd_string(str(filter_value)))
 		else:
-			lines.append("\treturn _detected.any(func(obj): return obj.is_in_group(\"%s\"))" % filter_value)
+			lines.append("\treturn _detected.any(func(obj): return obj.is_in_group(\"%s\"))" % _gd_string(str(filter_value)))
 	elif filter_type == "name" and not filter_value.is_empty():
 		if invert:
-			lines.append("\treturn not _detected.any(func(obj): return obj.name == \"%s\")" % filter_value)
+			lines.append("\treturn not _detected.any(func(obj): return obj.name == \"%s\")" % _gd_string(str(filter_value)))
 		else:
-			lines.append("\treturn _detected.any(func(obj): return obj.name == \"%s\")" % filter_value)
+			lines.append("\treturn _detected.any(func(obj): return obj.name == \"%s\")" % _gd_string(str(filter_value)))
 	else:
 		lines.append("\treturn %s" % ("false" if not invert else "true"))
 
 
 func _append_find_node_helpers(member_vars: Array[String]) -> void:
-	_append_collision_area_helpers(member_vars, "Area3D")
+	member_vars.append("")
+	member_vars.append("func _lb_find_collision_area_for_sensor(owner_node: Node, target_name: String) -> Area3D:")
+	member_vars.append("\tif owner_node is Area3D:")
+	member_vars.append("\t\treturn owner_node as Area3D")
+	member_vars.append("\tif target_name.is_empty():")
+	member_vars.append("\t\treturn null")
+	member_vars.append("\tfor child in owner_node.get_children():")
+	member_vars.append("\t\tif child is Area3D and child.name == target_name:")
+	member_vars.append("\t\t\treturn child as Area3D")
+	member_vars.append("\treturn null")

@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<meta content="7 triggers available for UI workflows." name="description"/>
+<meta content="9 triggers available for UI workflows." name="description"/>
 <title>
    UI Triggers | Logic Bricks Documentation
   </title>
@@ -47,7 +47,7 @@
       UI Triggers
      </h1>
 <p class="lead">
-      7 triggers available for UI workflows.
+      9 triggers available for UI workflows.
      </p>
 <div aria-label="Page information" class="page-reading-meta">
 <span>
@@ -112,1394 +112,2093 @@
 <div class="page-tools">
 <input class="search" id="docSearch" placeholder="Filter triggers on this page…" type="search"/>
 </div>
-<section class="brick sensor" data-compatibility="ui" data-search="Always Always active while enabled. General" id="always-ui">
+<section class="brick sensor" data-compatibility="ui" data-search="Always Runs continuously while this logic chain is active. Useful for UI updates that need to happen every frame. Triggers" id="always-ui">
 <div class="brick-heading">
 <span class="badge">
-       trigger • ui
-      </span>
+         trigger • ui
+        </span>
 <h2>
-       Always
-      </h2>
+         Always
+        </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
+          UI
+         </span>
 </div>
 </div>
 <p>
-      Always active while enabled.
-     </p>
+        Runs continuously while this logic chain is active. Useful for UI updates that need to happen every frame.
+       </p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Triggers
-       </span>
+          Right-click → Triggers
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          enabled
-         </code>
+            enabled
+           </code>
 </td>
 <td>
-         Enabled
-         <br/>
+           Enabled
+           <br/>
 <small>
-          Default:
-          <code>
-           true
-          </code>
-</small>
+            Default:
+            <code>
+             true
+            </code>
+           </small>
 </td>
 </tr>
 </tbody>
 </table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Start a logic chain when always active while enabled.
-         </li>
+            Run bricks that must work every frame, such as Character Physics, cameras, steering and UI updates.
+           </li>
 <li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
+            Combine with another trigger through an AND gate so an action runs every frame only while that condition holds.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
+            Always
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Text
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Turn Enabled off to pause a chain without deleting it.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Using Always for one-time events such as playing a sound or changing scenes. They would repeat every frame.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-ui.html#delay-ui">
+           Delay
+          </a>
+<a href="sensors-ui.html#random-ui">
+           Random Chance
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Always brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uialwayssensor-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
           Always
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an action
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="sensors-2d.html#always-common">
-         Always
-        </a>
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-<a href="sensors-2d.html#delay-common">
-         Delay
-        </a>
-<a href="sensors-ui.html#delay-ui">
-         Delay
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Always screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/always.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Always screenshot
-       </strong>
+         </strong>
 <span>
-</span>
+          
+         </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick sensor" data-compatibility="ui" data-search="Button Detects when a Button is pressed, toggled, hovered, or focused. General" id="button-ui">
+<section class="brick sensor" data-compatibility="ui" data-search="Button Detects UI button state from a Button node. Leave Target Node Name blank to use self only when this Logic Bricks graph is on the Button itself. Triggers" id="button-ui">
 <div class="brick-heading">
 <span class="badge">
-       trigger • ui
-      </span>
+         trigger • ui
+        </span>
 <h2>
-       Button
-      </h2>
+         Button
+        </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
+          UI
+         </span>
 </div>
 </div>
 <p>
-      Detects when a Button is pressed, toggled, hovered, or focused.
-     </p>
+        Detects UI button state from a Button node. Leave Target Node Name blank to use self only when this Logic Bricks graph is on the Button itself.
+       </p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Triggers
-       </span>
+          Right-click → Triggers
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          target_node_name
-         </code>
+            target_node_name
+           </code>
 </td>
 <td>
-         Target Node Name
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          event
-         </code>
-</td>
-<td>
-         Event
-         <br/>
+           Target Node Name
+           <br/>
 <small>
-          Choices: Just Pressed,Pressed,Just Released,Hovering,Focused,Toggled On,Toggled Off
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           just_pressed
-          </code>
-</small>
+            Button node name to check. Leave blank to check the selected node itself.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          store_pressed
-         </code>
+            event
+           </code>
 </td>
 <td>
-         Store Pressed
-        </td>
+           Event
+           <br/>
+<small>
+            Choices: Just Pressed, Pressed, Just Released, Hovering, Focused, Toggled On, Toggled Off
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Just Pressed
+            </code>
+           </small>
+           <br/>
+<small>
+            Just Pressed/Released are one-frame events. Pressed checks current button state. Hovering and Focused check UI state. Toggled modes require a toggle button.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            store_pressed
+           </code>
+</td>
+<td>
+           Store Pressed
+           <br/>
+<small>
+            Optional variable name to store the button's current pressed/toggle state.
+           </small>
+</td>
 </tr>
 </tbody>
 </table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Start a logic chain when detects when a Button is pressed, toggled, hovered, or focused.
-         </li>
+            Run menu actions when a Button is pressed: start game, open settings, quit.
+           </li>
 <li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
+            Show a tooltip or sound while a button is hovered or focused.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
+            Button
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Scene
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Just Pressed for actions that should happen once per click.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Leaving Target Node Name blank when the bricks are not on the Button itself.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#button-ui">
+           Button
+          </a>
+<a href="sensors-ui.html#input-map-ui">
+           Input
+          </a>
+<a href="sensors-ui.html#mouse-ui">
+           Mouse
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Button brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uibuttonsensor-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
           Button
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an action
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="sensors-2d.html#input-map-common">Input</a>
-<a href="sensors-ui.html#input-map-ui">Input</a>
-<a href="sensors-3d.html#movement-3d">Movement Detected</a>
-<a href="sensors-2d.html#movement-2d-2d">Movement Detected</a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Button screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/button.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Button screenshot
-       </strong>
+         </strong>
 <span>
-</span>
+          
+         </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick sensor" data-compatibility="ui" data-search="Delay Triggers after a delay or at an interval. General" id="delay-ui">
+<section class="brick sensor" data-compatibility="3d 2d ui" data-search="Compare Variable Compares a variable's value. Works with local, exported, and global variables. Automatically checks GlobalVars if not found locally. Triggers" id="compare-variable-ui">
 <div class="brick-heading">
 <span class="badge">
-       trigger • ui
-      </span>
+         trigger • ui
+        </span>
 <h2>
-       Delay
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Triggers after a delay or at an interval.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Triggers
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          delay
-         </code>
-</td>
-<td>
-         Delay
-         <br/>
-<small>
-          Default:
-          <code>
-           0.0
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          duration
-         </code>
-</td>
-<td>
-         Duration
-         <br/>
-<small>
-          Default:
-          <code>
-           0.0
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          repeat
-         </code>
-</td>
-<td>
-         Repeat
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Start a logic chain when triggers after a delay or at an interval.
-         </li>
-<li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Delay
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an action
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="sensors-ui.html#always-ui">
-         Always
-        </a>
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-<a href="sensors-2d.html#delay-common">
-         Delay
-        </a>
-<a href="actuators-3d.html#gravity-3d">
-         Gravity
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Delay screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/delay.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Delay screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick sensor" data-compatibility="ui" data-search="Input Detects Godot Input Map actions for UI logic. General" id="input-map-ui">
-<div class="brick-heading">
-<span class="badge">
-       trigger • ui
-      </span>
-<h2>Input</h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Detects Godot Input Map actions for UI logic.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Triggers
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          input_mode
-         </code>
-</td>
-<td>
-         Input Mode
-         <br/>
-<small>
-          Choices: Pressed,Just Pressed,Just Released,Any Pressed,Any Just Pressed,Any Just Released,Axis
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           pressed
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          action_name
-         </code>
-</td>
-<td>
-         Action Name
-         <br/>
-<small>
-          Default:
-          <code>
-           (blank)
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          negative_action
-         </code>
-</td>
-<td>
-         Negative Action
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          positive_action
-         </code>
-</td>
-<td>
-         Positive Action
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          invert
-         </code>
-</td>
-<td>
-         Invert
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          store_in
-         </code>
-</td>
-<td>
-         Store In
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          deadzone
-         </code>
-</td>
-<td>
-         Deadzone
-         <br/>
-<small>
-          Default:
-          <code>
-           0.1
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Start a logic chain when detects Godot Input Map actions for UI logic.
-         </li>
-<li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Capture or compare a value as part of variable-driven gameplay logic.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">Input</span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an action
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Use Invert when the opposite condition is easier to express than rebuilding the chain with different logic.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="sensors-2d.html#input-map-common">Input</a>
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-<a href="sensors-ui.html#signal-ui">Signal Receive</a>
-<a href="sensors-2d.html#always-common">
-         Always
-        </a>
-</div>
-</section>
-</details>
-</section>
-<section class="brick sensor" data-compatibility="ui" data-search="Random Chance Randomly activates based on chance. General" id="random-ui">
-<div class="brick-heading">
-<span class="badge">
-       trigger • ui
-      </span>
-<h2>
-       Random Chance
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Randomly activates based on chance.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Triggers
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          trigger_mode
-         </code>
-</td>
-<td>
-         Trigger Mode
-         <br/>
-<small>
-          Choices: Chance,Value,Range
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           chance
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          chance_percent
-         </code>
-</td>
-<td>
-         Chance Percent
-         <br/>
-<small>
-          Choices: 0.0,100.0,0.1
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           10.0
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          target_value
-         </code>
-</td>
-<td>
-         Target Value
-         <br/>
-<small>
-          Default:
-          <code>
-           0
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          target_min
-         </code>
-</td>
-<td>
-         Target Min
-         <br/>
-<small>
-          Default:
-          <code>
-           0
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          target_max
-         </code>
-</td>
-<td>
-         Target Max
-         <br/>
-<small>
-          Default:
-          <code>
-           100
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          use_seed
-         </code>
-</td>
-<td>
-         Use Seed
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          seed_value
-         </code>
-</td>
-<td>
-         Seed Value
-         <br/>
-<small>
-          Default:
-          <code>
-           0
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          store_value
-         </code>
-</td>
-<td>
-         Store Value
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          value_variable
-         </code>
-</td>
-<td>
-         Value Variable
-        </td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Start a logic chain when randomly activates based on chance.
-         </li>
-<li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Capture or compare a value as part of variable-driven gameplay logic.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Random
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an action
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="sensors-2d.html#random-common">
-         Random
-        </a>
-<a href="sensors-ui.html#always-ui">
-         Always
-        </a>
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-<a href="sensors-ui.html#delay-ui">
-         Delay
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Random screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/random.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Random screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick sensor" data-compatibility="ui" data-search="Signal Receive Receives a Logic Bricks message. General" id="signal-ui">
-<div class="brick-heading">
-<span class="badge">
-       trigger • ui
-      </span>
-<h2>Signal Receive</h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Receives a Logic Bricks message.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Triggers
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          subject
-         </code>
-</td>
-<td>
-         Subject
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          match_mode
-         </code>
-</td>
-<td>
-         Match Mode
-         <br/>
-<small>
-          Choices: Exact,Contains,Starts With
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           exact
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          response_delay
-         </code>
-</td>
-<td>
-         Response Delay
-         <br/>
-<small>
-          Default:
-          <code>
-           0.0
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Start a logic chain when receives a Logic Bricks message.
-         </li>
-<li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">Signal Receive</span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an action
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="sensors-ui.html#input-map-ui">Input</a>
-<a href="sensors-2d.html#always-common">
-         Always
-        </a>
-<a href="sensors-ui.html#always-ui">
-         Always
-        </a>
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-</div>
-</section>
-</details>
-</section>
-<section class="brick sensor" data-compatibility="ui" data-search="Variable Compares a variable value. General" id="variable-ui">
-<div class="brick-heading">
-<span class="badge">
-       trigger • ui
-      </span>
-<h2>
-       Variable
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Compares a variable value.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Triggers
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          variable_name
-         </code>
-</td>
-<td>
-         Variable Name
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          evaluation_type
-         </code>
-</td>
-<td>
-         Evaluation Type
-         <br/>
-<small>
-          Choices: Equal,Not Equal,Interval,Changed,Greater Than,Less Than,Greater or Equal,Less or Equal
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           equal
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          value
-         </code>
-</td>
-<td>
-         Value
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          min_value
-         </code>
-</td>
-<td>
-         Min Value
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          max_value
-         </code>
-</td>
-<td>
-         Max Value
-        </td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Start a logic chain when compares a variable value.
-         </li>
-<li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Capture or compare a value as part of variable-driven gameplay logic.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Variable
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an action
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="sensors-2d.html#compare-variable-common">
          Compare Variable
-        </a>
-<a href="sensors-ui.html#always-ui">
-         Always
-        </a>
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-<a href="sensors-ui.html#delay-ui">
-         Delay
-        </a>
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Compares a variable's value. Works with local, exported, and global variables. Automatically checks GlobalVars if not found locally.
+       </p>
+<div class="callout tip">
+<strong>Array comparisons</strong>
+When <code>variable_name</code> matches an Array variable, the Evaluation Type menu changes automatically. Use <b>Contains</b> or <b>Does Not Contain</b> to test for an item, the empty checks to test whether the Array has any items, or the size checks to compare the number of items. The selected Array Item Type determines how the entered value is interpreted.
+</div>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Triggers
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            variable_name
+           </code>
+</td>
+<td>
+           Variable Name
+           <br/>
+<small>
+            Name of the variable to check.<br/>Type a name or choose an existing local/global variable from the dropdown.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            evaluation_type
+           </code>
+</td>
+<td>
+           Evaluation Type
+           <br/>
+<small>
+            Choices: Equal, Not Equal, Interval, Changed, Greater Than, Less Than, Greater or Equal, Less or Equal
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Equal
+            </code>
+           </small>
+           <br/>
+<small>
+            How to compare the variable.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            value
+           </code>
+</td>
+<td>
+           Value
+           <br/>
+<small>
+            Value to compare against.<br/>Accepts numbers, booleans, strings, or variable names.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            min_value
+           </code>
+</td>
+<td>
+           Min Value
+           <br/>
+<small>
+            Minimum value (for Interval mode).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            max_value
+           </code>
+</td>
+<td>
+           Max Value
+           <br/>
+<small>
+            Maximum value (for Interval mode).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            item_type
+           </code>
+</td>
+<td>
+           Item Type
+           <br/>
+<small>
+            Choices: bool, int, float, String, Vector2, Vector3
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             String
+            </code>
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Win, lose or game-over checks, such as health ≤ 0 or score ≥ 100.
+           </li>
+<li>
+            Inventory checks with Contains or Does Not Contain on an Array variable.
+           </li>
+<li>
+            React only when a value changes, with the Changed evaluation.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Compare Variable
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Scene
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Interval for ranges, such as health between 1 and 25 for a low-health warning.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Comparing a String variable to a number, or the reverse. Check the variable's type in the Variables panel.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#modify-variable-ui">
+           Modify Variable
+          </a>
+<a href="sensors-ui.html#variable-ui">
+           Variable
+          </a>
+<a href="sensors-ui.html#signal-ui">
+           Signal Receive
+          </a>
 </div>
 </section>
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Variable screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/variable.png"/>
+<img alt="Compare Variable brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/variablesensor-ui.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-        Variable screenshot
-       </strong>
+          Compare Variable
+         </strong>
 <span>
-</span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="ui" data-search="Delay Waits for Delay seconds, then stays active for Duration seconds. Repeat cycles the whole sequence. Triggers" id="delay-ui">
+<div class="brick-heading">
+<span class="badge">
+         trigger • ui
+        </span>
+<h2>
+         Delay
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Waits for Delay seconds, then stays active for Duration seconds. Repeat cycles the whole sequence.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Triggers
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            delay
+           </code>
+</td>
+<td>
+           Delay
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Seconds to wait before becoming active.<br/>Accepts a number (1.5) or a variable name (my_delay).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            duration
+           </code>
+</td>
+<td>
+           Duration
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Seconds to stay active once triggered.<br/>0 = active for one frame only.<br/>Accepts a number (1.5) or a variable name (my_duration).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            repeat
+           </code>
+</td>
+<td>
+           Repeat
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            When enabled, restarts the delay after the duration ends.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Wait a few seconds before an action, such as a timed door or a bomb fuse.
+           </li>
+<li>
+            Repeat an action on an interval with Repeat on, such as spawning an enemy every 5 seconds.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Delay
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Text
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Duration is how long the trigger stays active after the delay; 0 means one frame, which suits one-shot actions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Leaving Repeat on for a one-time event, so it fires again after every cycle.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-ui.html#always-ui">
+           Always
+          </a>
+<a href="sensors-ui.html#random-ui">
+           Random Chance
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Delay brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uidelaysensor-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Delay
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="ui" data-search="Input Detects input actions from Project &gt; Input Map. Supports button presses, any-action checks, and analog joystick axis input. Triggers" id="input-map-ui">
+<div class="brick-heading">
+<span class="badge">
+         trigger • ui
+        </span>
+<h2>
+         Input
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Detects input actions from Project &gt; Input Map. Supports button presses, any-action checks, and analog joystick axis input.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Triggers
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            input_mode
+           </code>
+</td>
+<td>
+           Input Mode
+           <br/>
+<small>
+            Choices: Pressed, Just Pressed, Just Released, Any Pressed, Any Just Pressed, Any Just Released, Axis
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Pressed
+            </code>
+           </small>
+           <br/>
+<small>
+            Pressed: active while held<br/>Just Pressed: one frame on press<br/>Just Released: one frame on release<br/>Any Pressed: active when any action in the Input Map is held<br/>Any Just Pressed: one frame when any Input Map action is pressed<br/>Any Just Released: one frame when any Input Map action is released<br/>Axis: joystick/WASD axis value (-1 to 1)
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            action_name
+           </code>
+</td>
+<td>
+           Action Name
+           <br/>
+<small>
+            Type an Input Map action name or choose one from the dropdown. Project-created actions are listed first, followed by Godot's built-in actions. Ignored by Any modes.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            negative_action
+           </code>
+</td>
+<td>
+           Negative Action
+           <br/>
+<small>
+            Input Map action for the -1 direction.<br/>Example: 'move_left', 'move_forward', 'look_down'<br/>Must match an action in Project &gt; Input Map.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            positive_action
+           </code>
+</td>
+<td>
+           Positive Action
+           <br/>
+<small>
+            Input Map action for the +1 direction.<br/>Example: 'move_right', 'move_back', 'look_up'<br/>Must match an action in Project &gt; Input Map.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            invert
+           </code>
+</td>
+<td>
+           Invert
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Invert the trigger result.<br/>Button modes: active when action is NOT pressed.<br/>Any modes: active when no Input Map action matches.<br/>Axis mode: active when the axis is NOT moved past the deadzone.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            store_in
+           </code>
+</td>
+<td>
+           Store In
+           <br/>
+<small>
+            Variable name to store the axis value (-1.0 to 1.0).<br/>Create this variable in the Variables tab.<br/>Then use it in a Motion action field (e.g. 'up * speed').
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            deadzone
+           </code>
+</td>
+<td>
+           Deadzone
+           <br/>
+<small>
+            Default:
+            <code>
+             0.1
+            </code>
+           </small>
+           <br/>
+<small>
+            Ignore stick values smaller than this.<br/>Prevents drift from loose joysticks.<br/>0.1 is a good default.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Movement and actions from Project → Input Map, such as move_left, jump or interact.
+           </li>
+<li>
+            Read an analog stick with Axis mode and store the value for movement.
+           </li>
+<li>
+            Pause menus and confirm buttons with Just Pressed.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Input
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Popup
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Just Pressed for one-time actions (jump, shoot) and Pressed for actions that last while the key is held (move).
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Using Pressed for a jump or shot. It runs every frame the key is down.
+         </div>
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Invert when the opposite condition is easier to express than rebuilding the chain with different logic.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-ui.html#mouse-ui">
+           Mouse
+          </a>
+<a href="sensors-ui.html#button-ui">
+           Button
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Input brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uiinputmapsensor-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Input
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="3d 2d ui" data-search="Mouse Detects mouse buttons, wheel movement, mouse motion, and mouse hover ray hits. Triggers" id="mouse-ui">
+<div class="brick-heading">
+<span class="badge">
+         trigger • ui
+        </span>
+<h2>
+         Mouse
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Detects mouse buttons, wheel movement, mouse motion, and mouse hover ray hits.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Triggers
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            detection_type
+           </code>
+</td>
+<td>
+           Detection Type
+           <br/>
+<small>
+            Choices: Button, Wheel, Movement, Hover Object, Hover Any
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Button
+            </code>
+           </small>
+           <br/>
+<small>
+            What mouse event to detect: Button, Wheel, Movement, Hover Object, or Hover Any.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mouse_button
+           </code>
+</td>
+<td>
+           Mouse Button
+           <br/>
+<small>
+            Choices: Left, Right, Middle
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Left
+            </code>
+           </small>
+           <br/>
+<small>
+            Which mouse button to detect: Left, Right, or Middle.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            button_state
+           </code>
+</td>
+<td>
+           Button State
+           <br/>
+<small>
+            Choices: Pressed, Released, Held
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Pressed
+            </code>
+           </small>
+           <br/>
+<small>
+            When to activate: Pressed, Released, or Held.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            wheel_direction
+           </code>
+</td>
+<td>
+           Wheel Direction
+           <br/>
+<small>
+            Choices: Up, Down
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Up
+            </code>
+           </small>
+           <br/>
+<small>
+            Which wheel direction to detect.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            movement_threshold
+           </code>
+</td>
+<td>
+           Movement Threshold
+           <br/>
+<small>
+            Default:
+            <code>
+             0.1
+            </code>
+           </small>
+           <br/>
+<small>
+            Minimum mouse movement before the trigger activates.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+           </small>
+           <br/>
+<small>
+            For Hover Object: self, or the name/path of a child node to detect under the mouse. The target or one of its child collision objects must be hit by the ray.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            check_interval
+           </code>
+</td>
+<td>
+           Check Interval
+           <br/>
+<small>
+            Range: 0.0 to 5.0
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Hover modes: seconds between checks. 0 = check every frame.<br/>Each hover check casts a ray, so checking less often saves work when many objects use hover; between checks the trigger keeps its last result. 0.05 to 0.1 still feels instant.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Shoot or interact when a mouse button is pressed.
+           </li>
+<li>
+            Zoom with the mouse wheel, or react when the cursor hovers over an object.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Mouse
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Object Pool
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Hover Object needs the object to have a collision shape so the mouse ray can hit it.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Using Held for a single shot. Use Pressed for one event per click.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-ui.html#input-map-ui">
+           Input
+          </a>
+<a href="sensors-ui.html#button-ui">
+           Button
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Mouse brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/mousesensor-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Mouse
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="ui" data-search="Random Chance Activates randomly each time it is evaluated. Pair with a Delay Trigger to control how often it rolls. Useful for random behaviors, AI variation, and loot rolls. Triggers" id="random-ui">
+<div class="brick-heading">
+<span class="badge">
+         trigger • ui
+        </span>
+<h2>
+         Random Chance
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Activates randomly each time it is evaluated. Pair with a Delay Trigger to control how often it rolls. Useful for random behaviors, AI variation, and loot rolls.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Triggers
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            trigger_mode
+           </code>
+</td>
+<td>
+           Trigger Mode
+           <br/>
+<small>
+            Choices: Chance, Value, Range
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Chance
+            </code>
+           </small>
+           <br/>
+<small>
+            Chance: rolls TRUE with a given probability each evaluation.<br/>Value: rolls an integer and fires TRUE when it matches the target.<br/>Range: rolls a whole number from Min to Max and fires every time.<br/>Turn on Store Value to use the number (for example, a dice roll or a loot table).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            chance_percent
+           </code>
+</td>
+<td>
+           Chance Percent
+           <br/>
+<small>
+            Range: 0.0 to 100.0
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             10.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Probability of firing TRUE (0–100%).<br/>10 = 10% chance per evaluation.<br/>100 = always fires.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            target_value
+           </code>
+</td>
+<td>
+           Target Value
+           <br/>
+<small>
+            Default:
+            <code>
+             0
+            </code>
+           </small>
+           <br/>
+<small>
+            The integer the roll must equal to fire TRUE (Value mode).<br/>The roll range is [0, target_value * 2] so the target sits in the middle.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            target_min
+           </code>
+</td>
+<td>
+           Target Min
+           <br/>
+<small>
+            Default:
+            <code>
+             0
+            </code>
+           </small>
+           <br/>
+<small>
+            Smallest number the roll can be (Range mode). Included.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            target_max
+           </code>
+</td>
+<td>
+           Target Max
+           <br/>
+<small>
+            Default:
+            <code>
+             100
+            </code>
+           </small>
+           <br/>
+<small>
+            Largest number the roll can be (Range mode). Included.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            use_seed
+           </code>
+</td>
+<td>
+           Use Seed
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Use a fixed seed for reproducible random sequences.<br/>Same seed always produces the same sequence of results.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            seed_value
+           </code>
+</td>
+<td>
+           Seed Value
+           <br/>
+<small>
+            Default:
+            <code>
+             0
+            </code>
+           </small>
+           <br/>
+<small>
+            The seed value to use when Use Seed is enabled.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            store_value
+           </code>
+</td>
+<td>
+           Store Value
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Store the generated random number in a variable each evaluation.<br/>Chance mode stores 1.0 when fired, 0.0 otherwise.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            value_variable
+           </code>
+</td>
+<td>
+           Value Variable
+           <br/>
+<small>
+            Variable name to store the generated value in.<br/>Create it in the Variables tab first.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Add variation, such as an idle animation that sometimes plays or an occasional critical hit.
+           </li>
+<li>
+            Dice rolls: Range mode with Min 1, Max 6 and Store Value gives a number from 1 to 6 each time it fires.
+           </li>
+<li>
+            Loot tables: roll once with Range 1 to 100 and Store Value into a variable such as roll, then use Compare Variable triggers on roll (1 to 60 common, 61 to 90 rare, 91 to 100 epic). Separate Random bricks each roll on their own, so one shared roll is what keeps the drops from overlapping.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Delay
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Random Chance
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Text
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Connect a Delay trigger to the same gate to control how often it rolls.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Rolling every frame. At 60 FPS even a 2% chance fires about once a second.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-ui.html#delay-ui">
+           Delay
+          </a>
+<a href="sensors-ui.html#always-ui">
+           Always
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Random Chance brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uirandomsensor-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Random Chance
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="ui" data-search="Signal Receive Detects signals sent by a Signal Send Action. Listens for a specific Signal name. Triggers" id="signal-ui">
+<div class="brick-heading">
+<span class="badge">
+         trigger • ui
+        </span>
+<h2>
+         Signal Receive
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Detects signals sent by a Signal Send Action. Listens for a specific Signal name.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Triggers
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            signal_name
+           </code>
+</td>
+<td>
+           Signal Name
+           <br/>
+<small>
+            Signal name to listen for.<br/>Must match what the Signal Send Action sends.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            match_mode
+           </code>
+</td>
+<td>
+           Match Mode
+           <br/>
+<small>
+            Choices: Exact, Contains, Starts With
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Exact
+            </code>
+           </small>
+           <br/>
+<small>
+            Exact: Signal name must match exactly<br/>Contains: Signal name contains the text<br/>Starts With: Signal name starts with the text
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            response_delay
+           </code>
+</td>
+<td>
+           Response Delay
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Seconds to wait after receiving the message before activating.<br/>0 = activate immediately on the same frame the message arrives.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            React to events sent from other objects, such as a switch opening a door elsewhere in the level.
+           </li>
+<li>
+            Update the UI when gameplay sends a signal such as player_hit.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Signal Receive
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Text
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Starts With to react to a family of signals, such as door_ for every door signal.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          A name that differs from the Signal Send action. Names must match exactly in Exact mode.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#signal-ui">
+           Signal Send
+          </a>
+<a href="sensors-ui.html#compare-variable-ui">
+           Compare Variable
+          </a>
+<a href="sensors-ui.html#variable-ui">
+           Variable
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Signal Receive brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uimessagesensor-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Signal Receive
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="ui" data-search="Variable Compares a variable's value. Works with local, exported, and global variables. Automatically checks GlobalVars if not found locally. Triggers" id="variable-ui">
+<div class="brick-heading">
+<span class="badge">
+         trigger • ui
+        </span>
+<h2>
+         Variable
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Compares a variable's value. Works with local, exported, and global variables. Automatically checks GlobalVars if not found locally.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Triggers
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            variable_name
+           </code>
+</td>
+<td>
+           Variable Name
+           <br/>
+<small>
+            Name of the variable to check.<br/>Type a name or choose an existing local/global variable from the dropdown.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            evaluation_type
+           </code>
+</td>
+<td>
+           Evaluation Type
+           <br/>
+<small>
+            Choices: Equal, Not Equal, Interval, Changed, Greater Than, Less Than, Greater or Equal, Less or Equal
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Equal
+            </code>
+           </small>
+           <br/>
+<small>
+            How to compare the variable.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            value
+           </code>
+</td>
+<td>
+           Value
+           <br/>
+<small>
+            Value to compare against.<br/>Accepts numbers, booleans, strings, or variable names.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            min_value
+           </code>
+</td>
+<td>
+           Min Value
+           <br/>
+<small>
+            Minimum value (for Interval mode).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            max_value
+           </code>
+</td>
+<td>
+           Max Value
+           <br/>
+<small>
+            Maximum value (for Interval mode).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            item_type
+           </code>
+</td>
+<td>
+           Item Type
+           <br/>
+<small>
+            Choices: bool, int, float, String, Vector2, Vector3
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             String
+            </code>
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Win, lose or game-over checks, such as health ≤ 0 or score ≥ 100.
+           </li>
+<li>
+            Inventory checks with Contains or Does Not Contain on an Array variable.
+           </li>
+<li>
+            React only when a value changes, with the Changed evaluation.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Variable
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Text
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Interval for ranges, such as health between 1 and 25 for a low-health warning.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Comparing a String variable to a number, or the reverse. Check the variable's type in the Variables panel.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#modify-variable-ui">
+           Modify Variable
+          </a>
+<a href="sensors-ui.html#compare-variable-ui">
+           Compare Variable
+          </a>
+<a href="sensors-ui.html#signal-ui">
+           Signal Receive
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Variable brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uivariablesensor-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Variable
+         </strong>
+<span>
+          
+         </span>
 </figcaption>
 </figure>
 </section>
 <div class="page-nav">
-<a class="page-nav-card previous" href="variables-states.html">
+<a class="page-nav-card previous" href="actuators-2d.html">
 <span class="page-nav-label">
        ← Previous
       </span>
 <strong>
-       Variables, States &amp; Frames
+       2D Actions
       </strong>
 </a>
-<a class="page-nav-card next" href="controllers.html">
+<a class="page-nav-card next" href="controllers-ui.html">
 <span class="page-nav-label">
        Next →
       </span>
 <strong>
-       Gates
+       UI Gates
       </strong>
 </a>
 </div>

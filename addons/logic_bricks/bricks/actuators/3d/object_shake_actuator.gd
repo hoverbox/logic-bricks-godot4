@@ -277,9 +277,9 @@ func _run_object_shake_{helper_suffix}(target: Node3D, shake_mode: String, amoun
 	code_lines.append("# Object Shake Actuator")
 	code_lines.append("var %s = _resolve_object_shake_target_%s(\"%s\")" % [target_var, helper_suffix, object_node_name.c_escape()])
 	code_lines.append("if is_instance_valid(%s):" % target_var)
-	code_lines.append("\t_run_object_shake_%s(%s, \"%s\", Vector3(float(%s), float(%s), float(%s)))" % [helper_suffix, target_var, shake_type, x_expr, y_expr, z_expr])
+	code_lines.append("\t_run_object_shake_%s(%s, \"%s\", Vector3(float(%s), float(%s), float(%s)))" % [helper_suffix, target_var, _gd_string(str(shake_type)), x_expr, y_expr, z_expr])
 	code_lines.append("else:")
-	code_lines.append("\tpush_warning(\"Object Shake Actuator: could not find a Node3D named '%s' under this node\")" % object_node_name)
+	code_lines.append("\tpush_warning(\"Object Shake Actuator: could not find a Node3D named '%s' under this node\")" % _gd_string(str(object_node_name)))
 
 	return {
 		"actuator_code": "\n".join(code_lines),

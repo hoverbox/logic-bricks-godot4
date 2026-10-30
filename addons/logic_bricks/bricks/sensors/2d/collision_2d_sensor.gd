@@ -125,11 +125,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# This matters for instanced scenes: a global name search can grab another
 	# Area2D with the same name elsewhere in the level, causing this sensor to
 	# fire from the wrong coin/trigger.
-	var quoted_name = "\"%s\"" % area_node_name
+	var quoted_name = "\"%s\"" % _gd_string(str(area_node_name))
 	ready_lines.append("# Collision Sensor (%s): locate Area2D by name, preferring this instance" % chain_name)
 	ready_lines.append("%s = _lb_find_collision_area_for_sensor(self, %s)" % [area_var, quoted_name])
 	ready_lines.append("if not %s:" % area_var)
-	ready_lines.append("\tpush_warning(\"Collision Sensor [%s]: could not find Area2D named '%s' anywhere in the scene\")" % [area_var, area_node_name])
+	ready_lines.append("\tpush_warning(\"Collision Sensor [%s]: could not find Area2D named '%s' anywhere in the scene\")" % [area_var, _gd_string(str(area_node_name))])
 
 	# Name of the per-chain setup helper — called from both _ready() and
 	# _on_logic_brick_state_enter() so signal connections survive state resets.
@@ -257,9 +257,9 @@ func _generate_signal_code(detection_mode: String, area_var: String,
 	if filter_type != "any" and not filter_value.is_empty():
 		sensor_lines.append("\tif %s:" % collided_var)
 		if filter_type == "group":
-			sensor_lines.append("\t\tif %s.is_in_group(\"%s\"):" % [collided_var, filter_value])
+			sensor_lines.append("\t\tif %s.is_in_group(\"%s\"):" % [collided_var, _gd_string(str(filter_value))])
 		elif filter_type == "name":
-			sensor_lines.append("\t\tif %s.name == \"%s\":" % [collided_var, filter_value])
+			sensor_lines.append("\t\tif %s.name == \"%s\":" % [collided_var, _gd_string(str(filter_value))])
 		sensor_lines.append("\t\t\t%s = false" % flag_var)
 		sensor_lines.append("\t\t\treturn %s" % ("false" if invert else "true"))
 		sensor_lines.append("\t%s = false  # Didn't match filter" % flag_var)
@@ -281,14 +281,14 @@ func _append_contact_enter_lines(lines: Array[String], obj_name: String, active_
 	lines.append("\tvar _contact_target: Node = %s" % obj_name)
 	lines.append("\tvar _contact_owner: Node = %s.get_owner() if is_instance_valid(%s) else null" % [obj_name, obj_name])
 	if filter_type == "group" and not filter_value.is_empty():
-		lines.append("\tif not %s.is_in_group(\"%s\"):" % [obj_name, filter_value])
-		lines.append("\t\tif _contact_owner and _contact_owner.is_in_group(\"%s\"):" % filter_value)
+		lines.append("\tif not %s.is_in_group(\"%s\"):" % [obj_name, _gd_string(str(filter_value))])
+		lines.append("\t\tif _contact_owner and _contact_owner.is_in_group(\"%s\"):" % _gd_string(str(filter_value)))
 		lines.append("\t\t\t_contact_target = _contact_owner")
 		lines.append("\t\telse:")
 		lines.append("\t\t\treturn")
 	elif filter_type == "name" and not filter_value.is_empty():
-		lines.append("\tif %s.name != \"%s\":" % [obj_name, filter_value])
-		lines.append("\t\tif _contact_owner and _contact_owner.name == \"%s\":" % filter_value)
+		lines.append("\tif %s.name != \"%s\":" % [obj_name, _gd_string(str(filter_value))])
+		lines.append("\t\tif _contact_owner and _contact_owner.name == \"%s\":" % _gd_string(str(filter_value)))
 		lines.append("\t\t\t_contact_target = _contact_owner")
 		lines.append("\t\telse:")
 		lines.append("\t\t\treturn")
@@ -342,14 +342,14 @@ func _add_filter_code(lines: Array[String], filter_type: String, filter_value: S
 		lines.append("\treturn _detected.size() > 0" if not invert else "\treturn _detected.size() == 0")
 	elif filter_type == "group" and not filter_value.is_empty():
 		if invert:
-			lines.append("\treturn not _detected.any(func(obj): return obj.is_in_group(\"%s\"))" % filter_value)
+			lines.append("\treturn not _detected.any(func(obj): return obj.is_in_group(\"%s\"))" % _gd_string(str(filter_value)))
 		else:
-			lines.append("\treturn _detected.any(func(obj): return obj.is_in_group(\"%s\"))" % filter_value)
+			lines.append("\treturn _detected.any(func(obj): return obj.is_in_group(\"%s\"))" % _gd_string(str(filter_value)))
 	elif filter_type == "name" and not filter_value.is_empty():
 		if invert:
-			lines.append("\treturn not _detected.any(func(obj): return obj.name == \"%s\")" % filter_value)
+			lines.append("\treturn not _detected.any(func(obj): return obj.name == \"%s\")" % _gd_string(str(filter_value)))
 		else:
-			lines.append("\treturn _detected.any(func(obj): return obj.name == \"%s\")" % filter_value)
+			lines.append("\treturn _detected.any(func(obj): return obj.name == \"%s\")" % _gd_string(str(filter_value)))
 	else:
 		lines.append("\treturn %s" % ("false" if not invert else "true"))
 

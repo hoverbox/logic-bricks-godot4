@@ -69,7 +69,8 @@ func get_property_definitions() -> Array:
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target_node_name: String = properties.get("target_node_name", "")
 	var action_raw = properties.get("action", 0)
-	var layer_value = properties.get("layer_value", 1)
+	# Layer number as code: a literal int, or int(variable/math) read when the action runs.
+	var layer_value := _int_num("layer_value", 1)
 	var bit_enabled: bool = properties.get("bit_enabled", true)
 
 	# Resolve action key whether stored as int index or legacy string.
@@ -81,10 +82,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		action = str(action_raw).to_lower().replace(" ", "_")
 		if action not in ACTION_KEYS:
 			action = "disable_shape"
-
-	# Coerce layer_value to int in case it was serialised as a string.
-	if typeof(layer_value) == TYPE_STRING:
-		layer_value = int(layer_value) if str(layer_value).is_valid_int() else 1
 
 	# Use chain-scoped variable name to guarantee uniqueness even when multiple
 	# collision actuators exist on the same node.
@@ -104,14 +101,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			expected_type = "CollisionObject3D or SoftBody3D"
 
 	# Resolve the target node at runtime via find_child()
-	var quoted_name = "\"%s\"" % target_node_name
+	var quoted_name = "\"%s\"" % _gd_string(str(target_node_name))
 	code_lines.append("var %s = find_child(%s, true, false)" % [temp_var, quoted_name])
 	code_lines.append("if %s == null and get_tree().current_scene:" % temp_var)
 	code_lines.append("\t%s = get_tree().current_scene.find_child(%s, true, false)" % [temp_var, quoted_name])
 	code_lines.append("if %s == null:" % temp_var)
 	code_lines.append("\t%s = get_tree().root.find_child(%s, true, false)" % [temp_var, quoted_name])
 	code_lines.append("if %s == null:" % temp_var)
-	code_lines.append("\tpush_warning(\"CollisionActuator: could not find node named '%s' under '\" + name + \"' (expected %s)\")" % [target_node_name, expected_type])
+	code_lines.append("\tpush_warning(\"CollisionActuator: could not find node named '%s' under '\" + name + \"' (expected %s)\")" % [_gd_string(str(target_node_name)), _gd_string(str(expected_type))])
 	code_lines.append("else:")
 
 	match action:
@@ -129,7 +126,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 		"set_layer_bit":
 			code_lines.append("\tif %s is CollisionObject3D or %s is CollisionObject2D or %s is SoftBody3D:" % [temp_var, temp_var, temp_var])
-			code_lines.append("\t\t%s.set_collision_layer_value(%d, %s)" % [temp_var, layer_value, str(bit_enabled).to_lower()])
+			code_lines.append("\t\t%s.set_collision_layer_value(%s, %s)" % [temp_var, layer_value, str(bit_enabled).to_lower()])
 			code_lines.append("\telse:")
 			code_lines.append('\t\tpush_warning("CollisionActuator: set_layer_bit target does not support collision layer/mask: " + str(%s))' % temp_var)
 
@@ -137,7 +134,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			# Reminder: for an Area3D to detect a CharacterBody3D without the player
 			# having its own Area3D, the Area3D's MASK must include the player's LAYER.
 			code_lines.append("\tif %s is CollisionObject3D or %s is CollisionObject2D or %s is SoftBody3D:" % [temp_var, temp_var, temp_var])
-			code_lines.append("\t\t%s.set_collision_mask_value(%d, %s)" % [temp_var, layer_value, str(bit_enabled).to_lower()])
+			code_lines.append("\t\t%s.set_collision_mask_value(%s, %s)" % [temp_var, layer_value, str(bit_enabled).to_lower()])
 			code_lines.append("\telse:")
 			code_lines.append('\t\tpush_warning("CollisionActuator: set_mask_bit target does not support collision layer/mask: " + str(%s))' % temp_var)
 
@@ -156,9 +153,17 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append('\t\tpush_warning("CollisionActuator: disable_monitoring target is not an Area: " + str(%s))' % temp_var)
 
 		_:
-			code_lines.append('\tpush_warning("CollisionActuator: unknown action: %s")' % action)
+			code_lines.append('\tpush_warning("CollisionActuator: unknown action: %s")' % _gd_string(str(action)))
 
 	return {
 		"actuator_code": "\n".join(code_lines),
 		"member_vars": member_vars
+	}
+
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Modifies collision properties at runtime.\nCan enable/disable shapes, change layers/masks, or toggle Area3D monitoring.",
+		"action": "What to change:\n• Disable/Enable Shape: toggle a CollisionShape3D\n• Set Layer/Mask Bit: change collision filtering\n• Enable/Disable Monitoring: toggle Area3D detection",
+		"layer_value": "Collision layer/mask bit number (1-32). Only used with Set Layer/Mask Bit.",
+		"bit_enabled": "Whether to enable or disable the layer/mask bit.",
 	}

@@ -70,17 +70,18 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Instantly sets position to a target node or coordinates.\nUseful for respawning, portals, checkpoints.\n\n⚠ Target Node mode adds an @export in the Inspector — assign the destination node there.",
+		"_description": "Instantly sets position to a target node or coordinates.\nUseful for respawning, portals, checkpoints.\nTarget Node mode finds the destination by name anywhere in the current scene.",
 		"mode": "Target Node: teleport to another node's position\nCoordinates: teleport to specific X/Y/Z values",
+		"x": "X coordinate (for Coordinates mode).",
+		"y": "Y coordinate (for Coordinates mode).",
+		"z": "Z coordinate (for Coordinates mode).",
+		"copy_rotation": "If true, also copy the target node's rotation.",
 	}
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target_node_name = str(properties.get("target_node_name", "Target")).strip_edges()
 	var mode = properties.get("mode", "target_node")
-	var x = float(properties.get("x", 0.0))
-	var y = float(properties.get("y", 0.0))
-	var z = float(properties.get("z", 0.0))
 	var vector_variable = _sanitize_identifier(str(properties.get("vector_variable", "")))
 	var copy_rotation = properties.get("copy_rotation", false)
 
@@ -128,7 +129,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 		"coordinates":
 			code_lines.append("# Teleport to coordinates")
-			code_lines.append("global_position = Vector3(%.3f, %.3f, %.3f)" % [x, y, z])
+			code_lines.append("global_position = Vector3(%s, %s, %s)" % [_num("x"), _num("y"), _num("z")])
 			# Reset velocity
 			code_lines.append("if 'velocity' in self:")
 			code_lines.append("\tset('velocity', Vector3.ZERO)")
@@ -139,18 +140,18 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
 			code_lines.append("# Teleport to a Vector3 variable")
 			code_lines.append("var _teleport_value = null")
-			code_lines.append("if \"%s\" in self:" % vector_variable)
-			code_lines.append("\t_teleport_value = get(\"%s\")" % vector_variable)
+			code_lines.append("if \"%s\" in self:" % _gd_string(str(vector_variable)))
+			code_lines.append("\t_teleport_value = get(\"%s\")" % _gd_string(str(vector_variable)))
 			code_lines.append("else:")
 			code_lines.append("\tvar _teleport_globals = get_node_or_null(\"/root/GlobalVars\")")
-			code_lines.append("\tif _teleport_globals and \"%s\" in _teleport_globals:" % vector_variable)
-			code_lines.append("\t\t_teleport_value = _teleport_globals.get(\"%s\")" % vector_variable)
+			code_lines.append("\tif _teleport_globals and \"%s\" in _teleport_globals:" % _gd_string(str(vector_variable)))
+			code_lines.append("\t\t_teleport_value = _teleport_globals.get(\"%s\")" % _gd_string(str(vector_variable)))
 			code_lines.append("if _teleport_value is Vector3:")
 			code_lines.append("\tglobal_position = _teleport_value")
 			code_lines.append("\tif 'velocity' in self:")
 			code_lines.append("\t\tset('velocity', Vector3.ZERO)")
 			code_lines.append("else:")
-			code_lines.append("\tpush_warning(\"Teleport Actuator: variable '%s' was not found or is not a Vector3\")" % vector_variable)
+			code_lines.append("\tpush_warning(\"Teleport Actuator: variable '%s' was not found or is not a Vector3\")" % _gd_string(str(vector_variable)))
 
 		_:
 			code_lines.append("pass  # Unknown teleport mode")

@@ -93,27 +93,59 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Activates randomly each time it is evaluated.\\nPair with a Delay Trigger to control how often it rolls.\\nUseful for random behaviors, AI variation, and loot rolls.",
-		"trigger_mode":   "Chance: rolls TRUE with a given probability each evaluation.\\nValue: rolls an integer and fires TRUE when it matches the target.\\nRange: rolls an integer and fires TRUE when it falls within [min, max].",
-		"chance_percent": "Probability of firing TRUE (0–100%).\\n10 = 10% chance per evaluation.\\n100 = always fires.",
-		"target_value":   "The integer the roll must equal to fire TRUE (Value mode).\\nThe roll range is [0, target_value * 2] so the target sits in the middle.",
-		"target_min":     "Inclusive lower bound of the roll range (Range mode).",
-		"target_max":     "Inclusive upper bound of the roll range (Range mode).",
-		"use_seed":       "Use a fixed seed for reproducible random sequences.\\nSame seed always produces the same sequence of results.",
+		"_description": "Activates randomly each time it is evaluated.\nPair with a Delay Trigger to control how often it rolls.\nUseful for random behaviors, AI variation, and loot rolls.",
+		"trigger_mode":   "Chance: rolls TRUE with a given probability each evaluation.\nValue: rolls an integer and fires TRUE when it matches the target.\nRange: rolls a whole number from Min to Max and fires every time.\nTurn on Store Value to use the number (for example, a dice roll or a loot table).",
+		"chance_percent": "Probability of firing TRUE (0–100%).\n10 = 10% chance per evaluation.\n100 = always fires.",
+		"target_value":   "The integer the roll must equal to fire TRUE (Value mode).\nThe roll range is [0, target_value * 2] so the target sits in the middle.",
+		"target_min":     "Smallest number the roll can be (Range mode). Included.",
+		"target_max":     "Largest number the roll can be (Range mode). Included.",
+		"use_seed":       "Use a fixed seed for reproducible random sequences.\nSame seed always produces the same sequence of results.",
 		"seed_value":     "The seed value to use when Use Seed is enabled.",
-		"store_value":    "Store the generated random number in a variable each evaluation.\\nChance mode stores 1.0 when fired, 0.0 otherwise.",
-		"value_variable": "Variable name to store the generated value in.\\nCreate it in the Variables tab first.",
+		"store_value":    "Store the generated random number in a variable each evaluation.\nChance mode stores 1.0 when fired, 0.0 otherwise.",
+		"value_variable": "Variable name to store the generated value in.\nCreate it in the Variables tab first.",
 	}
+
+
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var trigger_mode = properties.get("trigger_mode", "value")
+	var use_seed = properties.get("use_seed", false)
+	var store_val = properties.get("store_value", false)
+
+	# Normalize trigger_mode
+	if typeof(trigger_mode) == TYPE_STRING:
+		trigger_mode = trigger_mode.to_lower()
+
+	# Show/hide fields based on settings
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"target_value":
+					shown[child] = (trigger_mode == "value")
+				"target_min", "target_max":
+					shown[child] = (trigger_mode == "range")
+				"chance_percent":
+					shown[child] = (trigger_mode == "chance")
+				"seed_value":
+					shown[child] = use_seed
+				"value_variable":
+					shown[child] = store_val
+	return shown
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var trigger_mode   = properties.get("trigger_mode",   "chance")
-	var chance_percent = float(properties.get("chance_percent", 10.0))
-	var target_value   = int(properties.get("target_value",   0))
-	var target_min     = int(properties.get("target_min",     0))
-	var target_max     = int(properties.get("target_max",     100))
+	# Number fields may hold a variable or math; those are read when the brick runs.
+	var chance_percent = _literal_number("chance_percent", 10.0)
+	var target_value   = _literal_number("target_value",   0)
+	var target_min     = _literal_number("target_min",     0)
+	var target_max     = _literal_number("target_max",     100)
 	var use_seed       = properties.get("use_seed",       false)
-	var seed_value     = int(properties.get("seed_value",     0))
 	var store_value    = properties.get("store_value",    false)
 	var value_variable = str(properties.get("value_variable", "")).strip_edges()
 
@@ -141,7 +173,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("# Random Sensor: initialise RNG on first use")
 	code_lines.append("if not %s:" % rng_init_var)
 	if use_seed:
-		code_lines.append("\t%s.seed = %d" % [rng_var, seed_value])
+		code_lines.append("\t%s.seed = %s" % [rng_var, _int_num("seed_value", 0)])
 	else:
 		code_lines.append("\t%s.randomize()" % rng_var)
 	code_lines.append("\t%s = true" % rng_init_var)
@@ -149,8 +181,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	match trigger_mode:
 		"chance":
-			code_lines.append("# Chance mode: %.2f%% probability per evaluation" % chance_percent)
-			code_lines.append("var sensor_active = %s.randf() * 100.0 < %.4f" % [rng_var, chance_percent])
+			if chance_percent == null:
+				code_lines.append("# Chance mode: fire with the given percent probability per evaluation")
+				code_lines.append("var sensor_active = %s.randf() * 100.0 < %s" % [rng_var, _num("chance_percent")])
+			else:
+				code_lines.append("# Chance mode: %.2f%% probability per evaluation" % chance_percent)
+				code_lines.append("var sensor_active = %s.randf() * 100.0 < %.4f" % [rng_var, chance_percent])
 			if not store_var.is_empty():
 				code_lines.append("%s = 1.0 if sensor_active else 0.0" % store_var)
 
@@ -158,23 +194,46 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			# Roll range: span at least 100 wide, always containing the target.
 			# Handles zero and negative targets by anchoring the range around the target
 			# rather than assuming target >= 0.
-			var half_span = max(abs(target_value), 50)
-			var roll_lo   = target_value - half_span
-			var roll_hi   = target_value + half_span
-			code_lines.append("# Value mode: roll integer in [%d, %d], fire when == %d" % [roll_lo, roll_hi, target_value])
-			code_lines.append("var _rand_roll = %s.randi_range(%d, %d)" % [rng_var, roll_lo, roll_hi])
-			if not store_var.is_empty():
-				code_lines.append("%s = _rand_roll" % store_var)
-			code_lines.append("var sensor_active = _rand_roll == %d" % target_value)
+			if target_value == null:
+				# Variable/math target: work out the roll range when the brick runs.
+				code_lines.append("# Value mode: roll an integer around the target, fire when it matches")
+				code_lines.append("var _rand_target = %s" % _int_num("target_value"))
+				code_lines.append("var _rand_half_span = maxi(absi(_rand_target), 50)")
+				code_lines.append("var _rand_roll = %s.randi_range(_rand_target - _rand_half_span, _rand_target + _rand_half_span)" % rng_var)
+				if not store_var.is_empty():
+					code_lines.append("%s = _rand_roll" % store_var)
+				code_lines.append("var sensor_active = _rand_roll == _rand_target")
+			else:
+				var target_int := int(target_value)
+				var half_span = max(abs(target_int), 50)
+				var roll_lo   = target_int - half_span
+				var roll_hi   = target_int + half_span
+				code_lines.append("# Value mode: roll integer in [%d, %d], fire when == %d" % [roll_lo, roll_hi, target_int])
+				code_lines.append("var _rand_roll = %s.randi_range(%d, %d)" % [rng_var, roll_lo, roll_hi])
+				if not store_var.is_empty():
+					code_lines.append("%s = _rand_roll" % store_var)
+				code_lines.append("var sensor_active = _rand_roll == %d" % target_int)
 
 		"range":
-			var lo = min(target_min, target_max)
-			var hi = max(target_min, target_max)
-			code_lines.append("# Range mode: fire when roll is inside [%d, %d]" % [lo, hi])
-			code_lines.append("var _rand_roll = %s.randi_range(%d, %d)" % [rng_var, lo, hi])
+			# Range mode is a dice roll: pick a whole number from Min to Max and
+			# fire. Store Value keeps the number so other bricks can use it.
+			var lo: String
+			var hi: String
+			if target_min == null or target_max == null:
+				# Variable/math bounds: order them when the brick runs.
+				code_lines.append("# Range mode: roll a whole number from min to max")
+				code_lines.append("var _rand_lo = mini(%s, %s)" % [_int_num("target_min"), _int_num("target_max", 100)])
+				code_lines.append("var _rand_hi = maxi(%s, %s)" % [_int_num("target_min"), _int_num("target_max", 100)])
+				lo = "_rand_lo"
+				hi = "_rand_hi"
+			else:
+				lo = str(mini(int(target_min), int(target_max)))
+				hi = str(maxi(int(target_min), int(target_max)))
+				code_lines.append("# Range mode: roll a whole number from %s to %s" % [lo, hi])
+			code_lines.append("var _rand_roll = %s.randi_range(%s, %s)" % [rng_var, lo, hi])
 			if not store_var.is_empty():
 				code_lines.append("%s = _rand_roll" % store_var)
-			code_lines.append("var sensor_active = (_rand_roll >= %d and _rand_roll <= %d)" % [lo, hi])
+			code_lines.append("var sensor_active = true")
 
 		_:
 			code_lines.append("var sensor_active = false  # Unknown trigger mode")

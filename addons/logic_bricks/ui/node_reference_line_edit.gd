@@ -13,6 +13,7 @@ var editor_interface: EditorInterface = null
 var accepted_node_types: Array = []
 var property_name: String = ""
 var logic_bricks_owner: Node = null
+var store_relative_path: bool = false
 
 
 func configure(
@@ -43,7 +44,8 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 	# LineEdit has native text-drop behavior that can insert dropped text at the
 	# caret after this callback. Apply our node reference deferred so it always
 	# REPLACES the existing/default value instead of being appended to it.
-	call_deferred("_replace_with_dropped_reference", str(node.name))
+	var reference := str(logic_bricks_owner.get_path_to(node)) if store_relative_path and logic_bricks_owner != null else str(node.name)
+	call_deferred("_replace_with_dropped_reference", reference)
 
 
 func _replace_with_dropped_reference(value: String) -> void:

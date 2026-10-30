@@ -109,7 +109,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 				var group_checks: Array[String] = []
 				for g in groups:
-					group_checks.append("_ray_collider.is_in_group(\"%s\")" % g)
+					group_checks.append("_ray_collider.is_in_group(\"%s\")" % _gd_string(str(g)))
 				var condition = " or ".join(group_checks)
 
 				code_lines.append("\t\tsensor_active = %s" % condition)

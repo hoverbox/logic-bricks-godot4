@@ -98,6 +98,38 @@ func get_configuration_warnings(node: Node = null) -> Array[String]:
 	return warnings
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var physics_action = properties.get("physics_action", "suspend")
+
+	# Normalize
+	if typeof(physics_action) == TYPE_STRING:
+		physics_action = physics_action.to_lower().replace(" ", "_")
+
+	# Show/hide fields based on physics action
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"mass":
+					shown[child] = (physics_action == "set_mass")
+				"gravity_scale":
+					shown[child] = (physics_action == "set_gravity_scale")
+				"linear_damp":
+					shown[child] = (physics_action == "set_linear_damping")
+				"angular_damp":
+					shown[child] = (physics_action == "set_angular_damping")
+				_:
+					# soft_body_drag is used by "Set Soft Body Drag", and so on.
+					if prop_name.begins_with("soft_body_"):
+						shown[child] = (physics_action == "set_" + prop_name)
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var physics_action := _normalized_action()
 	var code_lines: Array[String] = []
@@ -125,32 +157,32 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("push_warning(\"SoftBody3D does not expose backend-independent Resume Physics support\")")
 
 		"set_mass":
-			var mass_value = properties.get("mass", 1.0)
+			var mass_value = _num("mass", 1.0)
 			if node is RigidBody3D:
-				code_lines.append("mass = %.3f" % mass_value)
+				code_lines.append("mass = %s" % mass_value)
 			elif node is SoftBody3D:
-				code_lines.append("total_mass = %.3f" % mass_value)
+				code_lines.append("total_mass = %s" % mass_value)
 			else:
 				code_lines.append("pass  # CharacterBody3D does not have mass")
 
 		"set_gravity_scale":
 			if node is RigidBody3D:
-				code_lines.append("gravity_scale = %.3f" % properties.get("gravity_scale", 1.0))
+				code_lines.append("gravity_scale = %s" % _num("gravity_scale", 1.0))
 			else:
 				code_lines.append("push_warning(\"Gravity Scale is only available on RigidBody3D; use the Gravity action for SoftBody3D\")")
 
 		"set_linear_damping":
-			var damping_value = properties.get("linear_damp", 0.0)
+			var damping_value = _num("linear_damp", 0.0)
 			if node is RigidBody3D:
-				code_lines.append("linear_damp = %.3f" % damping_value)
+				code_lines.append("linear_damp = %s" % damping_value)
 			elif node is SoftBody3D:
-				code_lines.append("damping_coefficient = %.3f" % damping_value)
+				code_lines.append("damping_coefficient = %s" % damping_value)
 			else:
 				code_lines.append("pass  # CharacterBody3D does not have linear damping")
 
 		"set_angular_damping":
 			if node is RigidBody3D:
-				code_lines.append("angular_damp = %.3f" % properties.get("angular_damp", 0.0))
+				code_lines.append("angular_damp = %s" % _num("angular_damp", 0.0))
 			else:
 				code_lines.append("push_warning(\"Angular Damping is only available on RigidBody3D\")")
 
@@ -169,36 +201,36 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 		"set_soft_body_drag":
 			if node is SoftBody3D:
-				code_lines.append("drag_coefficient = %.3f" % properties.get("soft_body_drag", 0.0))
+				code_lines.append("drag_coefficient = %s" % _num("soft_body_drag", 0.0))
 			else:
 				code_lines.append("pass  # SoftBody3D only")
 
 		"set_soft_body_stiffness":
 			if node is SoftBody3D:
-				code_lines.append("linear_stiffness = %.3f" % properties.get("soft_body_stiffness", 0.5))
+				code_lines.append("linear_stiffness = %s" % _num("soft_body_stiffness", 0.5))
 			else:
 				code_lines.append("pass  # SoftBody3D only")
 
 		"set_soft_body_pressure":
 			if node is SoftBody3D:
-				code_lines.append("pressure_coefficient = %.3f" % properties.get("soft_body_pressure", 0.0))
+				code_lines.append("pressure_coefficient = %s" % _num("soft_body_pressure", 0.0))
 			else:
 				code_lines.append("pass  # SoftBody3D only")
 
 		"set_soft_body_shrinking":
 			if node is SoftBody3D:
-				code_lines.append("shrinking_factor = %.3f" % properties.get("soft_body_shrinking", 0.0))
+				code_lines.append("shrinking_factor = %s" % _num("soft_body_shrinking", 0.0))
 			else:
 				code_lines.append("pass  # SoftBody3D only")
 
 		"set_soft_body_simulation_precision":
 			if node is SoftBody3D:
-				code_lines.append("simulation_precision = %d" % int(properties.get("soft_body_simulation_precision", 5)))
+				code_lines.append("simulation_precision = %s" % _int_num("soft_body_simulation_precision", 5))
 			else:
 				code_lines.append("pass  # SoftBody3D only")
 
 		_:
-			code_lines.append("# Unknown physics action: %s" % physics_action)
+			code_lines.append("# Unknown physics action: %s" % _gd_string(str(physics_action)))
 			code_lines.append("pass")
 
 	return {"actuator_code": "\n".join(code_lines)}

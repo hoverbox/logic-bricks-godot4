@@ -3,7 +3,7 @@
 extends "res://addons/logic_bricks/core/logic_brick.gd"
 
 ## Signal Receive Trigger - Detect signals sent by Signal Send Action
-## Listens for signals with a specific subject
+## Listens for signals with a specific name
 ## Automatically adds the node to the broadcast listener group
 
 
@@ -15,7 +15,7 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"subject": "",           # Signal name to listen for
+		"signal_name": "",       # Signal name to listen for (blank = any)
 		"match_mode": "exact",   # exact, contains, starts_with
 		"response_delay": 0.0    # Seconds to wait after receiving before activating (0 = immediate)
 	}
@@ -24,7 +24,7 @@ func _initialize_properties() -> void:
 func get_property_definitions() -> Array:
 	return [
 		{
-			"name": "subject",
+			"name": "signal_name",
 			"type": TYPE_STRING,
 			"default": ""
 		},
@@ -43,41 +43,47 @@ func get_property_definitions() -> Array:
 	]
 
 
+func renamed_properties() -> Dictionary:
+	return {"subject": "signal_name"}
+
+
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Detects signals sent by a Signal Send Action.\nListens for a specific subject.",
-		"subject": "Signal name to listen for.\nMust match what the Signal Send Action sends.",
-		"match_mode": "Exact: subject must match exactly\nContains: subject contains the text\nStarts With: subject starts with the text",
+		"_description": "Detects signals sent by a Signal Send Action.\nListens for a specific Signal name.",
+		"signal_name": "Signal name to listen for.\nMust match what the Signal Send Action sends.",
+		"match_mode": "Exact: Signal name must match exactly\nContains: Signal name contains the text\nStarts With: Signal name starts with the text",
 		"response_delay": "Seconds to wait after receiving the message before activating.\n0 = activate immediately on the same frame the message arrives.",
 	}
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var subject = properties.get("subject", "")
+	var signal_name = properties.get("signal_name", "")
 	var match_mode = properties.get("match_mode", "exact")
-	var response_delay = float(properties.get("response_delay", 0.0))
+	# A variable/math delay always uses the timer path; a delay <= 0 then fires on the next check.
+	var delay_number = _literal_number("response_delay", 0.0)
+	var use_delay: bool = delay_number == null or delay_number > 0.0
 
 	# Normalize match_mode
 	if typeof(match_mode) == TYPE_STRING:
 		match_mode = match_mode.to_lower().replace(" ", "_")
 
-	var listens_to_any_subject: bool = str(subject).strip_edges().is_empty()
+	var listens_to_any_signal: bool = str(signal_name).strip_edges().is_empty()
 
 	var code_lines: Array[String] = []
 	var member_vars: Array[String] = []
 
 	# Core message tracking vars
 	var msg_received_var = "_msg_received_%s" % chain_name
-	var msg_subject_var  = "_msg_subject_%s" % chain_name
+	var msg_signal_name_var  = "_msg_signal_name_%s" % chain_name
 	var msg_body_var     = "_msg_body_%s" % chain_name
 	var msg_sender_var   = "_msg_sender_%s" % chain_name
 
 	member_vars.append("var %s: bool = false" % msg_received_var)
-	member_vars.append("var %s: String = \"\"" % msg_subject_var)
+	member_vars.append("var %s: String = \"\"" % msg_signal_name_var)
 	member_vars.append("var %s: String = \"\"" % msg_body_var)
 	member_vars.append("var %s: Node = null" % msg_sender_var)
 
-	if response_delay > 0.0:
+	if use_delay:
 		# Delay path: handler sets a pending flag, sensor counts down then fires once
 		var msg_pending_var = "_msg_pending_%s" % chain_name
 		var msg_timer_var   = "_msg_timer_%s" % chain_name
@@ -87,7 +93,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("var sensor_active = false")
 		code_lines.append("if %s:" % msg_pending_var)
 		code_lines.append("\t%s += _delta" % msg_timer_var)
-		code_lines.append("\tif %s >= %.4f:" % [msg_timer_var, response_delay])
+		code_lines.append("\tif %s >= %s:" % [msg_timer_var, _num("response_delay", 0.0, 4)])
 		code_lines.append("\t\tsensor_active = true")
 		code_lines.append("\t\t%s = false" % msg_pending_var)
 		code_lines.append("\t\t%s = 0.0" % msg_timer_var)
@@ -101,26 +107,26 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var handler_code: Array[String] = []
 	handler_code.append("")
 	handler_code.append("# Message handler method (called by Signal Send Action)")
-	handler_code.append("func %s(subject: String, body: String, sender: Node) -> void:" % handler_name)
+	handler_code.append("func %s(signal_name: String, body: String, sender: Node) -> void:" % handler_name)
 
 	match match_mode:
 		"exact":
-			if listens_to_any_subject:
+			if listens_to_any_signal:
 				handler_code.append("\tif true:")
 			else:
-				handler_code.append("\tif subject == \"%s\":" % subject)
+				handler_code.append("\tif signal_name == \"%s\":" % _gd_string(str(signal_name)))
 		"contains":
-			if listens_to_any_subject:
+			if listens_to_any_signal:
 				handler_code.append("\tif true:")
 			else:
-				handler_code.append("\tif \"%s\" in subject:" % subject)
+				handler_code.append("\tif \"%s\" in signal_name:" % _gd_string(str(signal_name)))
 		"starts_with":
-			if listens_to_any_subject:
+			if listens_to_any_signal:
 				handler_code.append("\tif true:")
 			else:
-				handler_code.append("\tif subject.begins_with(\"%s\"):" % subject)
+				handler_code.append("\tif signal_name.begins_with(\"%s\"):" % _gd_string(str(signal_name)))
 
-	if response_delay > 0.0:
+	if use_delay:
 		var msg_pending_var = "_msg_pending_%s" % chain_name
 		var msg_timer_var   = "_msg_timer_%s" % chain_name
 		handler_code.append("\t\t%s = true" % msg_pending_var)
@@ -128,7 +134,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	else:
 		handler_code.append("\t\t%s = true" % msg_received_var)
 
-	handler_code.append("\t\t%s = subject" % msg_subject_var)
+	handler_code.append("\t\t%s = signal_name" % msg_signal_name_var)
 	handler_code.append("\t\t%s = body" % msg_body_var)
 	handler_code.append("\t\t%s = sender" % msg_sender_var)
 
@@ -143,7 +149,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		# Contributes one call line to the shared _on_message_received dispatcher
 		# assembled by the manager. Using a dedicated key avoids the duplicate-
 		# function error that occurs when two chains each try to emit the full method.
-		"message_handler_calls": ["%s(subject, body, sender)" % handler_name]
+		"message_handler_calls": ["%s(signal_name, body, sender)" % handler_name]
 	}
 
 	if member_vars.size() > 0:

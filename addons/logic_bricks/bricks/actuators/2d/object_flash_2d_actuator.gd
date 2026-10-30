@@ -156,9 +156,9 @@ func _run_object_flash_2d_{helper_suffix}(target: CanvasItem, effect_mode: Strin
 	code_lines.append("# Object Flash 2D Actuator")
 	code_lines.append("var %s = _resolve_flash_2d_target_%s(\"%s\")" % [target_var, helper_suffix, object_node_name.c_escape()])
 	code_lines.append("if is_instance_valid(%s):" % target_var)
-	code_lines.append("\t_run_object_flash_2d_%s(%s, \"%s\", %s, float(%s))" % [helper_suffix, target_var, effect, color_str, speed_expr])
+	code_lines.append("\t_run_object_flash_2d_%s(%s, \"%s\", %s, float(%s))" % [helper_suffix, target_var, _gd_string(str(effect)), color_str, speed_expr])
 	code_lines.append("else:")
-	code_lines.append("\tpush_warning(\"Object Flash 2D Actuator: could not find a CanvasItem for node name '%s'\")" % object_node_name)
+	code_lines.append("\tpush_warning(\"Object Flash 2D Actuator: could not find a CanvasItem for node name '%s'\")" % _gd_string(str(object_node_name)))
 
 	return {
 		"actuator_code": "\n".join(code_lines),

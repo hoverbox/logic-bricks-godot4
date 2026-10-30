@@ -62,6 +62,35 @@ func get_property_definitions() -> Array:
 	]
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var mode = properties.get("mode", "set_parent")
+	var target_mode = properties.get("parent_target_mode", "node_name")
+
+	# Normalize modes
+	if typeof(mode) == TYPE_STRING:
+		mode = mode.to_lower().replace(" ", "_")
+	if typeof(target_mode) == TYPE_STRING:
+		target_mode = target_mode.to_lower().replace(" ", "_")
+
+	# Only show the target field selected by Parent Target Mode.
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"parent_target_mode":
+					shown[child] = (mode == "set_parent")
+				"parent_node":
+					shown[child] = (mode == "set_parent" and target_mode == "node_name")
+				"parent_group":
+					shown[child] = (mode == "set_parent" and target_mode == "group")
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = properties.get("mode", "set_parent")
 	var parent_target_mode = str(properties.get("parent_target_mode", "node_name")).to_lower().replace(" ", "_")
@@ -86,7 +115,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					code_lines.append("var _parent_candidates = get_tree().get_nodes_in_group(\"%s\")" % parent_group.c_escape())
 					code_lines.append("var _new_parent = _parent_candidates[0] if not _parent_candidates.is_empty() else null")
 				else:
-					code_lines.append("# Search the full scene tree for parent node: %s" % parent_node)
+					code_lines.append("# Search the full scene tree for parent node: %s" % _gd_string(str(parent_node)))
 					code_lines.append("var _new_parent = get_tree().root.find_child(\"%s\", true, false)" % parent_node.c_escape())
 				code_lines.append("if _new_parent:")
 				code_lines.append("\tvar _old_parent = get_parent()")
@@ -143,8 +172,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("\tpush_warning(\"Parent Actuator: Node has no parent to remove\")")
 
 		_:
-			code_lines.append("push_warning(\"Parent Actuator: Unknown mode '%s'\")" % mode)
+			code_lines.append("push_warning(\"Parent Actuator: Unknown mode '%s'\")" % _gd_string(str(mode)))
 
 	return {
 		"actuator_code": "\n".join(code_lines)
+	}
+
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Changes the node\'s parent in the scene tree.\nUseful for attaching objects to characters or vehicles.",
 	}

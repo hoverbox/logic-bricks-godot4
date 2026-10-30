@@ -23,7 +23,8 @@ func _initialize_properties() -> void:
 	properties = {
 		"mode": "save",
 		"scope": "this_node",
-		"target": "",
+		"target_node_name": "",
+		"target_group": "",
 		"slot": "slot1",
 		"save_position": true,
 		"save_rotation": true,
@@ -36,7 +37,8 @@ func get_property_definitions() -> Array:
 	return [
 		{"name": "mode", "type": TYPE_STRING, "hint": PROPERTY_HINT_ENUM, "hint_string": "Save,Load", "default": "save"},
 		{"name": "scope", "type": TYPE_STRING, "hint": PROPERTY_HINT_ENUM, "hint_string": "This Node,Target Node,Group", "default": "this_node"},
-		{"name": "target", "type": TYPE_STRING, "default": "", "group_picker": true, "group_picker_if": {"scope": "group"}},
+		{"name": "target_node_name", "type": TYPE_STRING, "default": "", "placeholder": "Node name", "visible_if": {"scope": "target_node"}},
+		{"name": "target_group", "type": TYPE_STRING, "default": "", "placeholder": "save", "group_picker": true, "visible_if": {"scope": "group"}},
 		{"name": "slot", "type": TYPE_STRING, "default": "slot1"},
 		{"name": "save_position", "type": TYPE_BOOL, "default": true},
 		{"name": "save_rotation", "type": TYPE_BOOL, "default": true},
@@ -58,7 +60,11 @@ func get_tooltip_definitions() -> Dictionary:
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode := str(properties.get("mode", "save")).to_lower()
 	var scope := str(properties.get("scope", "this_node")).to_lower().replace(" ", "_")
-	var target := _gd_string(str(properties.get("target", "")))
+	var target := _gd_string(str(properties.get("target_group" if scope == "group" else "target_node_name", "")).strip_edges())
+	if target.is_empty():
+		target = _gd_string(str(properties.get("target", "")).strip_edges())  # data from before the split
+	if scope == "group" and target.is_empty():
+		target = "save"
 	var slot := str(properties.get("slot", "slot1"))
 	var slot_regex := RegEx.new()
 	slot_regex.compile("[^A-Za-z0-9_-]")
@@ -110,13 +116,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			lines.append("\t\t\t\t_sl2_v[_pn] = _pv")
 			lines.append("\t_sl2_d[\"variables\"] = _sl2_v")
 		lines.append("\t_sl2_data[str(_sl2_n.get_path())] = _sl2_d")
-		lines.append("var _sl2_file = FileAccess.open(\"%s\", FileAccess.WRITE)" % save_path)
+		lines.append("var _sl2_file = FileAccess.open(\"%s\", FileAccess.WRITE)" % _gd_string(str(save_path)))
 		lines.append("if _sl2_file:")
 		lines.append("\t_sl2_file.store_string(JSON.stringify(_sl2_data))")
 		lines.append("\t_sl2_file.close()")
 	else:
-		lines.append("if FileAccess.file_exists(\"%s\"):" % save_path)
-		lines.append("\tvar _sl2_json = JSON.parse_string(FileAccess.get_file_as_string(\"%s\"))" % save_path)
+		lines.append("if FileAccess.file_exists(\"%s\"):" % _gd_string(str(save_path)))
+		lines.append("\tvar _sl2_json = JSON.parse_string(FileAccess.get_file_as_string(\"%s\"))" % _gd_string(str(save_path)))
 		lines.append("\tif _sl2_json is Dictionary:")
 		lines.append("\t\tfor _sl2_path in _sl2_json:")
 		lines.append("\t\t\tvar _sl2_n = get_node_or_null(NodePath(_sl2_path))")

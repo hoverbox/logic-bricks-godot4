@@ -194,9 +194,9 @@ func _run_object_flash_{helper_suffix}(target: GeometryInstance3D, effect_mode: 
 	code_lines.append("# Object Flash Actuator")
 	code_lines.append("var %s = _resolve_flash_target_%s(\"%s\")" % [target_var, helper_suffix, object_node_name.c_escape()])
 	code_lines.append("if is_instance_valid(%s):" % target_var)
-	code_lines.append("\t_run_object_flash_%s(%s, \"%s\", %s, float(%s))" % [helper_suffix, target_var, effect, color_str, speed_expr])
+	code_lines.append("\t_run_object_flash_%s(%s, \"%s\", %s, float(%s))" % [helper_suffix, target_var, _gd_string(str(effect)), color_str, speed_expr])
 	code_lines.append("else:")
-	code_lines.append("\tpush_warning(\"Object Flash Actuator: could not find a GeometryInstance3D for node name '%s'\")" % object_node_name)
+	code_lines.append("\tpush_warning(\"Object Flash Actuator: could not find a GeometryInstance3D for node name '%s'\")" % _gd_string(str(object_node_name)))
 
 	return {
 		"actuator_code": "\n".join(code_lines),

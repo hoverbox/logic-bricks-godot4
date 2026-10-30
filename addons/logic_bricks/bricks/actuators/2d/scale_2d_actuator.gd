@@ -53,22 +53,45 @@ func get_tooltip_definitions() -> Dictionary:
 		"ease": "Tween easing direction."
 	}
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var use_tween = bool(properties.get("use_tween", false))
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			if prop_name in ["duration", "transition", "ease"]:
+				shown[child] = use_tween
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var lines: Array[String] = []
 	var members: Array[String] = []
 	var target := _build_target(lines, members, chain_name)
 	var scale_value := "Vector2(%s, %s)" % [_value_expression(properties.get("x", "1.0"), "1.0"), _value_expression(properties.get("y", "1.0"), "1.0")]
 	var use_tween := bool(properties.get("use_tween", false))
-	var duration := maxf(float(properties.get("duration", 1.0)), 0.0)
-	if use_tween and duration > 0.0:
+	# A variable/math duration is checked when the action runs: 0 or less sets the scale at once.
+	var duration_number = _literal_number("duration", 1.0)
+	var duration := "_scale2d_duration" if duration_number == null else "%.6f" % maxf(duration_number, 0.0)
+	if use_tween and (duration_number == null or duration_number > 0.0):
 		var label := _unique_label(chain_name)
 		var tween_var := "_scale2d_tween_%s" % label
 		members.append("var %s: Tween = null" % tween_var)
-		lines.append("\tif not %s.scale.is_equal_approx(%s):" % [target, scale_value])
+		if duration_number == null:
+			lines.append("\tvar _scale2d_duration = maxf(%s, 0.0)" % _num("duration", 1.0))
+			lines.append("\tif _scale2d_duration <= 0.0:")
+			lines.append("\t\t%s.scale = %s" % [target, scale_value])
+			lines.append("\telif not %s.scale.is_equal_approx(%s):" % [target, scale_value])
+		else:
+			lines.append("\tif not %s.scale.is_equal_approx(%s):" % [target, scale_value])
 		lines.append("\t\tif %s == null or not %s.is_running():" % [tween_var, tween_var])
 		lines.append("\t\t\t%s = create_tween()" % tween_var)
 		lines.append("\t\t\t%s.set_trans(%s).set_ease(%s)" % [tween_var, _transition_constant(), _ease_constant()])
-		lines.append("\t\t\t%s.tween_property(%s, \"scale\", %s, %.6f)" % [tween_var, target, scale_value, duration])
+		lines.append("\t\t\t%s.tween_property(%s, \"scale\", %s, %s)" % [tween_var, target, scale_value, duration])
 	else:
 		lines.append("\t%s.scale = %s" % [target, scale_value])
 	return {"actuator_code": "\n".join(lines), "member_vars": members}

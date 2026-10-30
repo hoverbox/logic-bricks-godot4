@@ -128,17 +128,48 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var mode = properties.get("mode", "play")
+	if typeof(mode) == TYPE_STRING:
+		mode = mode.to_lower().replace(" ", "_")
+	var is_play     = (mode == "play")
+	var is_fade     = (mode in ["fade_in", "fade_out"])
+	var needs_file  = (mode in ["play", "fade_in"])
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"sound_file":
+					shown[child] = needs_file
+				"player_type", "play_mode", "loop", "pitch_random", "audio_bus":
+					shown[child] = is_play
+				"fade_duration":
+					shown[child] = is_fade
+				"volume", "pitch":
+					shown[child] = (mode != "stop")
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode          = str(properties.get("mode", "play"))
 	var sound_file    = str(properties.get("sound_file", ""))
 	var player_type   = str(properties.get("player_type", "stream_player"))
-	var volume        = float(properties.get("volume", 0.0))
-	var pitch         = float(properties.get("pitch", 1.0))
-	var pitch_random  = float(properties.get("pitch_random", 0.0))
+	# Number fields as generated code (a number, or a variable/math).
+	var volume        := _num("volume", 0.0, 2)
+	var pitch         := _num("pitch", 1.0, 2)
+	var pitch_random  := _num("pitch_random", 0.0, 2)
 	var loop          = bool(properties.get("loop", false))
 	var play_mode     = str(properties.get("play_mode", "restart"))
 	var audio_bus     = str(properties.get("audio_bus", ""))
-	var fade_duration = float(properties.get("fade_duration", 1.0))
+	var fade_duration := _num("fade_duration", 1.0, 2)
+	# Random pitch is added unless the field is a plain number <= 0.
+	var pitch_random_literal = _literal_number("pitch_random", 0.0)
+	var use_pitch_random: bool = pitch_random_literal == null or float(pitch_random_literal) > 0.0
 
 	mode = mode.to_lower().replace(" ", "_")
 	play_mode = play_mode.to_lower().replace(" ", "_")
@@ -173,12 +204,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	var stream_setup_lines := func(target_var: String, indent: String = "") -> Array[String]:
 		var lines: Array[String] = []
-		lines.append("%svar _audio_stream = load(\"%s\")" % [indent, sound_file])
+		lines.append("%svar _audio_stream = load(\"%s\")" % [indent, _gd_string(str(sound_file))])
 		lines.append("%sif _audio_stream:" % indent)
 		lines.append("%s\t_audio_stream = _audio_stream.duplicate(true)" % indent)
 		lines.append("%s\t%s.stream = _audio_stream" % [indent, target_var])
 		lines.append("%selse:" % indent)
-		lines.append("%s\tpush_warning(\"Audio 2D: Failed to load sound file: %s\")" % [indent, sound_file])
+		lines.append("%s\tpush_warning(\"Audio 2D: Failed to load sound file: %s\")" % [indent, _gd_string(str(sound_file))])
 		return lines
 
 	match mode:
@@ -193,17 +224,17 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("\tadd_child(%s)" % player_var)
 				code_lines.append_array(stream_setup_lines.call(player_var, "\t"))
 				if not audio_bus.is_empty():
-					code_lines.append("\t%s.bus = \"%s\"" % [player_var, audio_bus])
+					code_lines.append("\t%s.bus = \"%s\"" % [player_var, _gd_string(str(audio_bus))])
 				code_lines.append("\tif %s and not %s.finished.is_connected(%s):" % [loop_enabled_var, player_var, loop_handler_name])
 				code_lines.append("\t\t%s.finished.connect(%s)" % [player_var, loop_handler_name])
 				code_lines.append("\telif not %s and %s.finished.is_connected(%s):" % [loop_enabled_var, player_var, loop_handler_name])
 				code_lines.append("\t\t%s.finished.disconnect(%s)" % [player_var, loop_handler_name])
 
-				code_lines.append("%s.volume_db = %.2f" % [player_var, volume])
-				if pitch_random > 0.0:
-					code_lines.append("%s.pitch_scale = %.2f + randf_range(-%.2f, %.2f)" % [player_var, pitch, pitch_random, pitch_random])
+				code_lines.append("%s.volume_db = %s" % [player_var, volume])
+				if use_pitch_random:
+					code_lines.append("%s.pitch_scale = %s + randf_range(-%s, %s)" % [player_var, pitch, pitch_random, pitch_random])
 				else:
-					code_lines.append("%s.pitch_scale = %.2f" % [player_var, pitch])
+					code_lines.append("%s.pitch_scale = %s" % [player_var, pitch])
 
 				code_lines.append("if %s and not %s.finished.is_connected(%s):" % [loop_enabled_var, player_var, loop_handler_name])
 				code_lines.append("\t%s.finished.connect(%s)" % [player_var, loop_handler_name])
@@ -222,7 +253,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 						code_lines.append("_ov2d.volume_db = %s.volume_db" % player_var)
 						code_lines.append("_ov2d.pitch_scale = %s.pitch_scale" % player_var)
 						if not audio_bus.is_empty():
-							code_lines.append("_ov2d.bus = \"%s\"" % audio_bus)
+							code_lines.append("_ov2d.bus = \"%s\"" % _gd_string(str(audio_bus)))
 						code_lines.append("_ov2d.finished.connect(_ov2d.queue_free)")
 						code_lines.append("_ov2d.play()")
 
@@ -244,7 +275,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("\t%s.stream_paused = not %s.stream_paused" % [player_var, player_var])
 
 		"fade_in":
-			member_vars.append("var %s: float = %.2f" % [target_vol_var, volume])
+			# Member initializers must stay plain numbers (see _num()).
+			var target_vol_init: String = volume if not _is_number_expression("volume") else "0.0"
+			member_vars.append("var %s: float = %s" % [target_vol_var, target_vol_init])
 			member_vars.append("var %s: bool = false" % fade_var)
 
 			if sound_file.is_empty():
@@ -257,14 +290,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("\tadd_child(%s)" % player_var)
 				code_lines.append_array(stream_setup_lines.call(player_var, "\t"))
 				if not audio_bus.is_empty():
-					code_lines.append("\t%s.bus = \"%s\"" % [player_var, audio_bus])
+					code_lines.append("\t%s.bus = \"%s\"" % [player_var, _gd_string(str(audio_bus))])
 				code_lines.append("\tif %s and not %s.finished.is_connected(%s):" % [loop_enabled_var, player_var, loop_handler_name])
 				code_lines.append("\t\t%s.finished.connect(%s)" % [player_var, loop_handler_name])
 
-				if pitch_random > 0.0:
-					code_lines.append("%s.pitch_scale = %.2f + randf_range(-%.2f, %.2f)" % [player_var, pitch, pitch_random, pitch_random])
+				if use_pitch_random:
+					code_lines.append("%s.pitch_scale = %s + randf_range(-%s, %s)" % [player_var, pitch, pitch_random, pitch_random])
 				else:
-					code_lines.append("%s.pitch_scale = %.2f" % [player_var, pitch])
+					code_lines.append("%s.pitch_scale = %s" % [player_var, pitch])
 
 				code_lines.append("if not %s.playing:" % player_var)
 				code_lines.append("\t%s.volume_db = -80.0" % player_var)
@@ -273,7 +306,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("if not %s:" % fade_var)
 				code_lines.append("\t%s = true" % fade_var)
 				code_lines.append("\tvar _tween = create_tween()")
-				code_lines.append("\t_tween.tween_property(%s, \"volume_db\", %.2f, %.2f)" % [player_var, volume, fade_duration])
+				code_lines.append("\t_tween.tween_property(%s, \"volume_db\", %s, %s)" % [player_var, volume, fade_duration])
 				code_lines.append("\t_tween.finished.connect(func(): %s = false)" % fade_var)
 
 		"fade_out":
@@ -285,7 +318,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("if %s and %s.playing and not %s:" % [player_var, player_var, fade_var])
 			code_lines.append("\t%s = true" % fade_var)
 			code_lines.append("\tvar _tween = create_tween()")
-			code_lines.append("\t_tween.tween_property(%s, \"volume_db\", -80.0, %.2f)" % [player_var, fade_duration])
+			code_lines.append("\t_tween.tween_property(%s, \"volume_db\", -80.0, %s)" % [player_var, fade_duration])
 			code_lines.append("\t_tween.finished.connect(func():")
 			code_lines.append("\t\t%s.stop()" % player_var)
 			code_lines.append("\t\t%s = false)" % fade_var)

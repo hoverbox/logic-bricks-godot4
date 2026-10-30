@@ -112,3114 +112,3571 @@
 <div class="page-tools">
 <input class="search" id="docSearch" placeholder="Filter triggers on this page…" type="search"/>
 </div>
-<section class="brick sensor" data-compatibility="3d" data-search="Action Active Fires TRUE when the named action on this node matches the chosen state.\nThe action must have an instance name set. General" id="actuator-3d">
+<section class="brick sensor" data-compatibility="3d" data-search="Action Active Fires TRUE when the named action on this node matches the chosen state. The action must have an instance name set. Triggers" id="actuator-3d">
 <div class="brick-heading">
 <span class="badge">
-       trigger • 3d
-      </span>
-<h2>Action Active</h2>
+         trigger • 3d
+        </span>
+<h2>
+         Action Active
+        </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
+          3D
+         </span>
 </div>
 </div>
 <p>
-      Fires TRUE when the named action on this node matches the chosen state.\nThe action must have an instance name set.
-     </p>
+        Fires TRUE when the named action on this node matches the chosen state. The action must have an instance name set.
+       </p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Triggers
-       </span>
+          Right-click → Triggers
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          actuator_name
-         </code>
+            actuator_name
+           </code>
 </td>
 <td>
-         Action Name
-        </td>
+           Actuator Name
+           <br/>
+<small>
+            The instance name of the action to watch.<br/>Must match the Name field on the action's graph node.
+           </small>
+</td>
 </tr>
 <tr>
 <td>
 <code>
-          trigger_on
-         </code>
+            trigger_on
+           </code>
 </td>
 <td>
-         Trigger On
-         <br/>
+           Trigger On
+           <br/>
 <small>
-          Choices: Active,Inactive
-         </small>
-<br/>
+            Choices: Active, Inactive
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           active
-          </code>
-</small>
+            Default:
+            <code>
+             Active
+            </code>
+           </small>
+           <br/>
+<small>
+            Active: fires TRUE while the action is running.<br/>Inactive: fires TRUE while the action is NOT running.
+           </small>
 </td>
 </tr>
 </tbody>
 </table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Start a logic chain when fires TRUE when the named action on this node matches the chosen state.\nThe action must have an instance name set.
-         </li>
+            Start a follow-up action while another action on the same node is running, such as a sound while a door opens.
+           </li>
 <li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
+            React when an action stops, by setting Trigger On to Inactive.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">Action Triggered</span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
 <span class="chain-node">
-          Gate
-         </span>
+            Action Active
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Choose an action
-         </span>
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            3D Audio
+           </span>
 </div>
 </section>
 </div>
 <div class="guidance-notes">
 <div class="mini-callout tip">
 <strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
+           Tip
+          </strong>
+          Give the watched action an instance name first; this trigger finds it by that name.
+         </div>
 <div class="mini-callout caution">
 <strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
+           Common mistake
+          </strong>
+          Leaving the watched action's name blank. The trigger has nothing to watch and never fires.
+         </div>
 </div>
 <section class="related-bricks">
 <h4>
-        Related bricks
-       </h4>
+          Related bricks
+         </h4>
 <div class="related-link-list">
+<a href="controllers-3d.html#controller-controller-gd">
+           Gate
+          </a>
+<a href="sensors-3d.html#compare-variable-common">
+           Compare Variable
+          </a>
+<a href="sensors-3d.html#signal-common">
+           Signal Receive
+          </a>
 <a href="sensors-3d.html#animation-tree-3d">
-         Animation Tree
-        </a>
-<a href="sensors-3d.html#raycast-3d">
-         Raycast
-        </a>
-<a href="controllers-2d.html#controller-controller-gd">
-         Gate
-        </a>
-<a href="actuators-3d.html#collision-3d">
-         Collision
-        </a>
+           Animation Tree
+          </a>
 </div>
 </section>
 </details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Action Active brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/actuatorsensor-3d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Action Active
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
 </section>
-<section class="brick sensor" data-compatibility="3d" data-search="Animation Tree The AnimationTree is found by typed node name Modes: Current State: True when the state machine is in a specific state Condition: True when a boolean condition matches Parameter Compare: True when a parameter meets a comparison condition General" id="animation-tree-3d">
+<section class="brick sensor" data-compatibility="3d" data-search="Animation Tree Detects animation tree state changes and conditions. Triggers" id="animation-tree-3d">
 <div class="brick-heading">
 <span class="badge">
-       trigger • 3d
-      </span>
+         trigger • 3d
+        </span>
 <h2>
-       Animation Tree
-      </h2>
+         Animation Tree
+        </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
+          3D
+         </span>
 </div>
 </div>
 <p>
-      The AnimationTree is found by typed node name Modes: Current State: True when the state machine is in a specific state Condition: True when a boolean condition matches Parameter Compare: True when a parameter meets a comparison condition
-     </p>
+        Detects animation tree state changes and conditions.
+       </p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Triggers
-       </span>
+          Right-click → Triggers
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          animation_tree_node_name
-         </code>
+            animation_tree_node_name
+           </code>
 </td>
 <td>
-         Animation Tree Node Name
-         <br/>
+           Animation Tree Node Name
+           <br/>
 <small>
-          Default:
-          <code>
-           AnimationTree
-          </code>
-</small>
-<br/>
-<small>
-          AnimationTree node name
-         </small>
+            Default:
+            <code>
+             AnimationTree
+            </code>
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          mode
-         </code>
+            mode
+           </code>
 </td>
 <td>
-         Mode
-         <br/>
+           Mode
+           <br/>
 <small>
-          Choices: Current State,Condition,Parameter Compare
-         </small>
-<br/>
+            Choices: Current State, Condition, Parameter Compare
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           current_state
-          </code>
-</small>
+            Default:
+            <code>
+             Current State
+            </code>
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          state_name
-         </code>
+            state_name
+           </code>
 </td>
 <td>
-         State Name
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          state_machine_path
-         </code>
-</td>
-<td>
-         State Machine Path
-         <br/>
+           State Name
+           <br/>
 <small>
-          Default:
-          <code>
-           parameters/playback
-          </code>
-</small>
+            Name of the animation state to check for (e.g. 'idle', 'run').
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          condition_name
-         </code>
+            state_machine_path
+           </code>
 </td>
 <td>
-         Condition Name
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          condition_expected
-         </code>
-</td>
-<td>
-         Condition Expected
-         <br/>
+           State Machine Path
+           <br/>
 <small>
-          Default:
-          <code>
-           true
-          </code>
-</small>
+            Default:
+            <code>
+             parameters/playback
+            </code>
+           </small>
+           <br/>
+<small>
+            Path to the AnimationNodeStateMachinePlayback parameter in the AnimationTree.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          parameter_path
-         </code>
+            condition_name
+           </code>
 </td>
 <td>
-         Parameter Path
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          compare_op
-         </code>
-</td>
-<td>
-         Compare Op
-         <br/>
+           Condition Name
+           <br/>
 <small>
-          Choices: Equal,Not Equal,Greater,Less,Greater Equal,Less Equal
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           equal
-          </code>
-</small>
+            Name of the boolean condition parameter in the AnimationTree.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          compare_value
-         </code>
+            condition_expected
+           </code>
 </td>
 <td>
-         Compare Value
-         <br/>
+           Condition Expected
+           <br/>
 <small>
-          Default:
-          <code>
-           0.0
-          </code>
-</small>
+            Default:
+            <code>
+             true
+            </code>
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            parameter_path
+           </code>
+</td>
+<td>
+           Parameter Path
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            compare_op
+           </code>
+</td>
+<td>
+           Compare Op
+           <br/>
+<small>
+            Choices: Equal, Not Equal, Greater, Less, Greater Equal, Less Equal
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Equal
+            </code>
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            compare_value
+           </code>
+</td>
+<td>
+           Compare Value
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Value to compare against the parameter.
+           </small>
 </td>
 </tr>
 </tbody>
 </table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Start a logic chain when the AnimationTree is found by typed node name Modes: Current State: True when the state machine is in a specific state Condition: True when a boolean condition matches Parameter Compare: True when a parameter meets a comparison condition.
-         </li>
+            Play a footstep sound or effect while a state such as Run is active.
+           </li>
 <li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
+            Check a boolean condition or compare a blend parameter before running other logic.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
+            Animation Tree
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            2D Audio
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use the same AnimationTree node name and state machine path that the Animation State action uses.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Typing a state name that differs in capitalization from the state in the AnimationTree.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#animation-state-3d">
+           Animation State
+          </a>
+<a href="sensors-3d.html#compare-variable-common">
+           Compare Variable
+          </a>
+<a href="sensors-3d.html#signal-common">
+           Signal Receive
+          </a>
+<a href="sensors-3d.html#actuator-3d">
+           Action Active
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Animation Tree brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/animationtreesensor-3d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
           Animation Tree
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an action
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="sensors-3d.html#actuator-3d">Action Triggered</a>
-<a href="actuators-3d.html#progress-bar-3d">
-         Progress Bar
-        </a>
-<a href="actuators-2d.html#modulate-2d">
-         Color / Transparency
-        </a>
-<a href="sensors-3d.html#movement-3d">Movement Detected</a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Animation Tree screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/animation-tree.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Animation Tree screenshot
-       </strong>
+         </strong>
 <span>
-</span>
+          
+         </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick sensor" data-compatibility="3d" data-search="Collision Detects collisions via an Area3D node located by name.\n\nType the node name (not the full path) into 'Area Node Name'. General" id="collision-3d">
+<section class="brick sensor" data-compatibility="3d" data-search="Collision Detects collisions using this Area3D or an Area3D that is a direct child of the node using Logic Bricks. Triggers" id="collision-3d">
 <div class="brick-heading">
 <span class="badge">
-       trigger • 3d
-      </span>
+         trigger • 3d
+        </span>
 <h2>
-       Collision
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
-</div>
-</div>
-<p>
-      Detects collisions via an Area3D node located by name.\n\nType the node name (not the full path) into 'Area Node Name'.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Triggers
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          area_node_name
-         </code>
-</td>
-<td>
-         Area Node Name
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          detection_mode
-         </code>
-</td>
-<td>
-         Detection Mode
-         <br/>
-<small>
-          Choices: Entered,Exited,Overlapping
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           entered
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          detect_bodies
-         </code>
-</td>
-<td>
-         Detect Bodies
-         <br/>
-<small>
-          Default:
-          <code>
-           true
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          detect_areas
-         </code>
-</td>
-<td>
-         Detect Areas
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          filter_type
-         </code>
-</td>
-<td>
-         Filter Type
-         <br/>
-<small>
-          Choices: Any,Group,Name
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           any
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          filter_value
-         </code>
-</td>
-<td>
-         Filter Value
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          invert
-         </code>
-</td>
-<td>
-         Invert
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Start a logic chain when detects collisions via an Area3D node located by name.\n\nType the node name (not the full path) into 'Area Node Name'.
-         </li>
-<li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Collision
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an action
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Use Invert when the opposite condition is easier to express than rebuilding the chain with different logic.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        Leaving filters too broad can make unrelated nodes activate the trigger. Test the narrowest useful filter first.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="sensors-2d.html#collision-2d-2d">
-         Collision 2D
-        </a>
-<a href="actuators-3d.html#collision-3d">
          Collision
-        </a>
-<a href="actuators-2d.html#object-flash-2d">
-         Object Flash
-        </a>
-<a href="actuators-3d.html#object-shake-3d">
-         Object Shake
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Collision screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/collision.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Collision screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick sensor" data-compatibility="3d" data-search="Movement Detected Detects if the node is moving in specific directions.\nCheck which directions to monitor.\nActive when any checked direction moves past the threshold. General" id="movement-3d">
-<div class="brick-heading">
-<span class="badge">
-       trigger • 3d
-      </span>
-<h2>Movement Detected</h2>
+        </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
+          3D
+         </span>
 </div>
 </div>
 <p>
-      Detects if the node is moving in specific directions.\nCheck which directions to monitor.\nActive when any checked direction moves past the threshold.
-     </p>
+        Detects collisions using this Area3D or an Area3D that is a direct child of the node using Logic Bricks.
+       </p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Triggers
-       </span>
+          Right-click → Triggers
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          all_axis
-         </code>
+            area_node_name
+           </code>
 </td>
 <td>
-         All Axis
-         <br/>
+           Area Node Name
+           <br/>
 <small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
+            Choose a child Area3D of the node using Logic Bricks. If Logic Bricks are directly on an Area3D, Self is used automatically.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          pos_x
-         </code>
+            detection_mode
+           </code>
 </td>
 <td>
-         Pos X
-         <br/>
+           Detection Mode
+           <br/>
 <small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
+            Choices: Entered, Exited, Overlapping
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Entered
+            </code>
+           </small>
+           <br/>
+<small>
+            Entered: fires once when something enters.<br/>Exited: fires once when something leaves.<br/>Overlapping: active every frame while overlapping.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          neg_x
-         </code>
+            detect_bodies
+           </code>
 </td>
 <td>
-         Neg X
-         <br/>
+           Detect Bodies
+           <br/>
 <small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
+            Default:
+            <code>
+             true
+            </code>
+           </small>
+           <br/>
+<small>
+            Detect physics bodies (CharacterBody3D, RigidBody3D, etc.).
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          pos_y
-         </code>
+            detect_areas
+           </code>
 </td>
 <td>
-         Pos Y
-         <br/>
+           Detect Areas
+           <br/>
 <small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Detect other Area3D nodes.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          neg_y
-         </code>
+            filter_type
+           </code>
 </td>
 <td>
-         Neg Y
-         <br/>
+           Filter Type
+           <br/>
 <small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
+            Choices: Any, Group, Name
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Any
+            </code>
+           </small>
+           <br/>
+<small>
+            Any: detect everything.<br/>Group: only detect nodes in a specific group.<br/>Name: only detect a node with a specific name.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          pos_z
-         </code>
+            filter_value
+           </code>
 </td>
 <td>
-         Pos Z
-         <br/>
+           Filter Value
+           <br/>
 <small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
+            Group name or node name to filter by.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          neg_z
-         </code>
+            invert
+           </code>
 </td>
 <td>
-         Neg Z
-         <br/>
+           Invert
+           <br/>
 <small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          threshold
-         </code>
-</td>
-<td>
-         Threshold
-         <br/>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           0.1
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          use_local_axes
-         </code>
-</td>
-<td>
-         Use Local Axes
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          ignore_platform_motion
-         </code>
-</td>
-<td>
-         Ignore Platform Motion
-         <br/>
-<small>
-          Default:
-          <code>
-           true
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          invert
-         </code>
-</td>
-<td>
-         Invert
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
+            Invert the result.
+           </small>
 </td>
 </tr>
 </tbody>
 </table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Start a logic chain when detects if the node is moving in specific directions.\nCheck which directions to monitor.\nActive when any checked direction moves past the threshold.
-         </li>
+            Pick up coins, keys or power-ups when the player enters an Area3D.
+           </li>
 <li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
+            Open a door or start a cutscene when something enters a trigger zone; filter by group or name.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">Movement Detected</span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
 <span class="chain-node">
-          Gate
-         </span>
+            Collision
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Choose an action
-         </span>
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Edit Object
+           </span>
 </div>
 </section>
 </div>
 <div class="guidance-notes">
 <div class="mini-callout tip">
 <strong>
-         Tip
-        </strong>
-        Use Invert when the opposite condition is easier to express than rebuilding the chain with different logic.
-       </div>
+           Tip
+          </strong>
+          Set Filter Type to Group and use a group such as player, so other objects don't trigger it.
+         </div>
 <div class="mini-callout caution">
 <strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="sensors-2d.html#movement-2d-2d">Movement Detected</a>
-<a href="sensors-3d.html#animation-tree-3d">
-         Animation Tree
-        </a>
-<a href="sensors-3d.html#raycast-3d">
-         Raycast
-        </a>
-<a href="sensors-3d.html#actuator-3d">Action Triggered</a>
-</div>
-</section>
-</details>
-</section>
-<section class="brick sensor" data-compatibility="3d" data-search="Surface Check Checks CharacterBody3D collision state: on floor, on wall, or on ceiling.\nUse this for jump checks, wall checks, ceiling bumps, and platformer logic. General" id="physics-3d">
-<div class="brick-heading">
-<span class="badge">
-       trigger • 3d
-      </span>
-<h2>Surface Check</h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
-</div>
-</div>
-<p>
-      Checks CharacterBody3D collision state: on floor, on wall, or on ceiling.\nUse this for jump checks, wall checks, ceiling bumps, and platformer logic.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Triggers
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          contact_type
-         </code>
-</td>
-<td>
-         Contact Type
-         <br/>
-<small>
-          Choices: On Floor,On Wall,On Ceiling
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           On Floor
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          invert
-         </code>
-</td>
-<td>
-         Invert
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          require_contact_loss_first
-         </code>
-</td>
-<td>
-         Require Contact Loss First
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Start a logic chain when checks CharacterBody3D collision state: on floor, on wall, or on ceiling.\nUse this for jump checks, wall checks, ceiling bumps, and platformer logic.
-         </li>
-<li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">Surface Check</span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an action
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
+           Common mistake
+          </strong>
+          Putting the brick on a node with no Area3D on it or as a direct child. Collision only works through an Area3D.
+         </div>
 <div class="mini-callout tip">
 <strong>
-         Tip
-        </strong>
-        Use Invert when the opposite condition is easier to express than rebuilding the chain with different logic.
-       </div>
+           Tip
+          </strong>
+          Use Invert when the opposite condition is easier to express than rebuilding the chain with different logic.
+         </div>
 <div class="mini-callout caution">
 <strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
+           Common mistake
+          </strong>
+          Leaving filters too broad can make unrelated nodes activate the trigger. Test the narrowest useful filter first.
+         </div>
 </div>
 <section class="related-bricks">
 <h4>
-        Related bricks
-       </h4>
+          Related bricks
+         </h4>
 <div class="related-link-list">
-<a href="sensors-2d.html#physics-2d-2d">Surface Check</a>
-<a href="actuators-3d.html#character-physics-3d">
-         Surface Check
-        </a>
-<a href="sensors-3d.html#actuator-3d">Action Triggered</a>
-<a href="sensors-3d.html#raycast-3d">
-         Raycast
-        </a>
-</div>
-</section>
-</details>
-</section>
-<section class="brick sensor" data-compatibility="3d" data-search="Proximity Detects objects within a distance and optional angle.\nUses groups to filter which objects are detected. General" id="proximity-3d">
-<div class="brick-heading">
-<span class="badge">
-       trigger • 3d
-      </span>
-<h2>
-       Proximity
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
-</div>
-</div>
-<p>
-      Detects objects within a distance and optional angle.\nUses groups to filter which objects are detected.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Triggers
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          target_group
-         </code>
-</td>
-<td>
-         Target Group
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          distance
-         </code>
-</td>
-<td>
-         Distance
-         <br/>
-<small>
-          Default:
-          <code>
-           10.0
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          angle
-         </code>
-</td>
-<td>
-         Angle
-         <br/>
-<small>
-          Default:
-          <code>
-           360.0
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          axis
-         </code>
-</td>
-<td>
-         Axis
-         <br/>
-<small>
-          Choices: All,+X,-X,+Y,-Y,+Z,-Z
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           all
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          detection_mode
-         </code>
-</td>
-<td>
-         Detection Mode
-         <br/>
-<small>
-          Choices: Any,All,None
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           any
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          inverse
-         </code>
-</td>
-<td>
-         Inverse
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          store_object
-         </code>
-</td>
-<td>
-         Store Object
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          object_variable
-         </code>
-</td>
-<td>
-         Object Variable
-        </td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Start a logic chain when detects objects within a distance and optional angle.\nUses groups to filter which objects are detected.
-         </li>
-<li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Proximity
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an action
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="sensors-2d.html#proximity-2d-2d">
-         Proximity 2D
-        </a>
-<a href="sensors-3d.html#raycast-3d">
-         Raycast
-        </a>
-<a href="sensors-2d.html#raycast-2d-2d">
-         Raycast 2D
-        </a>
-<a href="sensors-3d.html#movement-3d">Movement Detected</a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Proximity screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/proximity.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Proximity screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick sensor" data-compatibility="3d" data-search="Raycast Hit Detects along a RayCast3D. This can be used for objects, groups, walls, ground, or ledges.\nThe RayCast3D's direction, length, and collision mask are set on the RayCast3D node itself. General" id="raycast-3d">
-<div class="brick-heading">
-<span class="badge">
-       trigger • 3d
-      </span>
-<h2>
-       Raycast Hit
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
-</div>
-</div>
-<p>
-      Detects along a RayCast3D. This can be used for objects, groups, walls, ground, or ledges.\nThe RayCast3D's direction, length, and collision mask are set on the RayCast3D node itself.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Triggers
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          raycast_node_name
-         </code>
-</td>
-<td>
-         Raycast Hit Node Name
-         <br/>
-<small>
-          Default:
-          <code>
-           RayCast3D
-          </code>
-</small>
-<br/>
-<small>
-          RayCast3D node name
-         </small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          detect_mode
-         </code>
-</td>
-<td>
-         Detect Mode
-         <br/>
-<small>
-          Choices: Any,Group,Nothing
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           any
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          group_filter
-         </code>
-</td>
-<td>
-         Group Filter
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          invert
-         </code>
-</td>
-<td>
-         Invert
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Start a logic chain when detects along a RayCast3D. This can be used for objects, groups, walls, ground, or ledges.\nThe RayCast3D's direction, length, and collision mask are set on the RayCast3D node itself.
-         </li>
-<li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Raycast
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an action
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Use Invert when the opposite condition is easier to express than rebuilding the chain with different logic.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="sensors-2d.html#raycast-2d-2d">
-         Raycast 2D
-        </a>
 <a href="sensors-3d.html#proximity-3d">
-         Proximity
-        </a>
-<a href="sensors-3d.html#actuator-3d">Action Triggered</a>
-<a href="actuators-3d.html#collision-3d">
-         Collision
-        </a>
+           Proximity
+          </a>
+<a href="sensors-3d.html#raycast-3d">
+           Raycast Hit
+          </a>
+<a href="sensors-3d.html#physics-3d">
+           Surface Check
+          </a>
+<a href="sensors-3d.html#movement-3d">
+           Movement Detected
+          </a>
 </div>
 </section>
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Raycast screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/raycast.png"/>
+<img alt="Collision brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/collisionsensor-3d.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-        Raycast screenshot
-       </strong>
+          Collision
+         </strong>
 <span>
-</span>
+          
+         </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick sensor" data-compatibility="3d 2d" data-search="Always Always logic brick. General" id="always-common">
+<section class="brick sensor" data-compatibility="3d" data-search="Movement Detected Detects if the node is moving in specific directions. Check which directions to monitor. Active when any checked direction moves past the threshold. Triggers" id="movement-3d">
 <div class="brick-heading">
 <span class="badge">
-       trigger • 3d
-      </span>
+         trigger • 3d
+        </span>
 <h2>
-       Always
-      </h2>
+         Movement Detected
+        </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
-<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
-        2D
-       </span>
+          3D
+         </span>
 </div>
 </div>
 <p>
-      Always logic brick.
-     </p>
+        Detects if the node is moving in specific directions. Check which directions to monitor. Active when any checked direction moves past the threshold.
+       </p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Triggers
-       </span>
+          Right-click → Triggers
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          enabled
-         </code>
+            all_axis
+           </code>
 </td>
 <td>
-         Enabled
-         <br/>
+           All Axis
+           <br/>
 <small>
-          Default:
-          <code>
-           true
-          </code>
-</small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Any axis (detects movement in any direction).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            pos_x
+           </code>
+</td>
+<td>
+           Pos X
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            +X direction (right).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            neg_x
+           </code>
+</td>
+<td>
+           Neg X
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            -X direction (left).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            pos_y
+           </code>
+</td>
+<td>
+           Pos Y
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            +Y direction (up).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            neg_y
+           </code>
+</td>
+<td>
+           Neg Y
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            -Y direction (down / falling).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            pos_z
+           </code>
+</td>
+<td>
+           Pos Z
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            +Z direction (back).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            neg_z
+           </code>
+</td>
+<td>
+           Neg Z
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            -Z direction (forward).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            threshold
+           </code>
+</td>
+<td>
+           Threshold
+           <br/>
+<small>
+            Range: 0 to 10000
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             0.1
+            </code>
+           </small>
+           <br/>
+<small>
+            Minimum speed to count as moving (positive magnitude; direction supplies the sign).<br/>For CharacterBody3D this checks body velocity, which is stable between physics ticks.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            use_local_axes
+           </code>
+</td>
+<td>
+           Use Local Axes
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Use the node's local axes instead of world axes.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            ignore_platform_motion
+           </code>
+</td>
+<td>
+           Ignore Platform Motion
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            invert
+           </code>
+</td>
+<td>
+           Invert
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Invert the result.<br/>Active when NOT moving in the checked directions.
+           </small>
 </td>
 </tr>
 </tbody>
 </table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Start a logic chain when always logic brick.
-         </li>
+            Play a walk animation while the character moves and idle when it stops (Invert).
+           </li>
 <li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
+            Detect falling by checking only the downward direction.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Always
-         </span>
+            Movement Detected
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Gate
-         </span>
+            Gate
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Choose an action
-         </span>
+            Animation
+           </span>
 </div>
 </section>
 </div>
 <div class="guidance-notes">
 <div class="mini-callout tip">
 <strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
+           Tip
+          </strong>
+          Turn on Ignore Platform Motion so standing on a moving platform doesn't count as walking.
+         </div>
 <div class="mini-callout caution">
 <strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
+           Common mistake
+          </strong>
+          Setting Threshold to 0, so tiny physics jitter counts as movement.
+         </div>
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Invert when the opposite condition is easier to express than rebuilding the chain with different logic.
+         </div>
 </div>
 <section class="related-bricks">
 <h4>
-        Related bricks
-       </h4>
+          Related bricks
+         </h4>
 <div class="related-link-list">
-<a href="actuators-2d.html#state-2d">
-         State
-        </a>
-<a href="sensors-ui.html#always-ui">
-         Always
-        </a>
-<a href="actuators-2d.html#character-jump-2d-2d">
-         Character Jump 2D
-        </a>
-<a href="actuators-3d.html#character-physics-3d">
-         Surface Check
-        </a>
+<a href="sensors-3d.html#collision-3d">
+           Collision
+          </a>
+<a href="sensors-3d.html#proximity-3d">
+           Proximity
+          </a>
+<a href="sensors-3d.html#raycast-3d">
+           Raycast Hit
+          </a>
+<a href="sensors-3d.html#physics-3d">
+           Surface Check
+          </a>
 </div>
 </section>
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Always screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/always.png"/>
+<img alt="Movement Detected brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/movementsensor-3d.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-        Always screenshot
-       </strong>
+          Movement Detected
+         </strong>
 <span>
-</span>
+          
+         </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick sensor" data-compatibility="3d 2d" data-search="Compare Variable Compares a variable's value.\nWorks with local, exported, and global variables.\nAutomatically checks GlobalVars if not found locally. General" id="compare-variable-common">
+<section class="brick sensor" data-compatibility="3d" data-search="Surface Check Checks CharacterBody3D collision state: on floor, on wall, on ceiling, or just landed. Use Landed for landing sounds, camera shake, particles, and other impact effects. Triggers" id="physics-3d">
 <div class="brick-heading">
 <span class="badge">
-       trigger • 3d
-      </span>
+         trigger • 3d
+        </span>
 <h2>
-       Compare Variable
-      </h2>
+         Surface Check
+        </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
-<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
-        2D
-       </span>
+          3D
+         </span>
 </div>
 </div>
 <p>
-      Compares a
-      <span aria-label="variable: A named value that can be read, compared, or changed by Logic Bricks." class="glossary-term" data-tooltip="A named value that can be read, compared, or changed by Logic Bricks." tabindex="0">
-       variable
-      </span>
-      's value.\nWorks with
-      <span aria-label="local: Coordinates or values measured relative to a node's parent." class="glossary-term" data-tooltip="Coordinates or values measured relative to a node's parent." tabindex="0">
-       local
-      </span>
-      , exported, and global variables.\nAutomatically checks GlobalVars if not found locally.
-     </p>
+        Checks CharacterBody3D collision state: on floor, on wall, on ceiling, or just landed. Use Landed for landing sounds, camera shake, particles, and other impact effects.
+       </p>
+<p><strong>Landed:</strong> triggers once when the character touches down after being airborne. Set Minimum Landing Speed to 0 for any landing, or a positive speed for harder landings.</p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Triggers
-       </span>
+          Right-click → Triggers
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          variable_name
-         </code>
+            contact_type
+           </code>
 </td>
 <td>
-         Variable Name
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          evaluation_type
-         </code>
-</td>
-<td>
-         Evaluation Type
-         <br/>
+           Contact Type
+           <br/>
 <small>
-          Standard variable choices: Equal, Not Equal, Interval, Changed, Greater Than, Less Than, Greater or Equal, Less or Equal.
-          <br/>
-          Array choices (selected automatically for Array variables): Contains, Does Not Contain, Is Empty, Is Not Empty, Size Equals, Size Greater Than, Size Less Than, Changed.
-         </small>
-<br/>
+            Choices: On Floor, On Wall, On Ceiling, Landed
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           equal
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          value
-         </code>
-</td>
-<td>
-         Value
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          min_value
-         </code>
-</td>
-<td>
-         Min Value
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          max_value
-         </code>
-</td>
-<td>
-         Max Value
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          item_type
-         </code>
-</td>
-<td>
-         Array Item Type
-         <br/>
+            Default:
+            <code>
+             On Floor
+            </code>
+           </small>
+           <br/>
 <small>
-          Shown for Contains and Does Not Contain. Choices: bool, int, float, String, Vector2, Vector3.
-         </small>
+            Which contact state to check.<br/>On Floor: true when the character is standing on a floor.<br/>On Wall: true when the character is touching a wall.<br/>On Ceiling: true when the character is touching a ceiling.<br/>Landed: triggers once after the character was airborne and touches down.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            invert
+           </code>
+</td>
+<td>
+           Invert
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Invert the result.<br/>Example: NOT On Floor is useful for airborne or falling logic.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            require_contact_loss_first
+           </code>
+</td>
+<td>
+           Require Contact Loss First
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Legacy contact-return setting. Wait for contact to be lost before triggering once when it returns. For new landing effects, select Landed instead.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            minimum_landing_speed
+           </code>
+</td>
+<td>
+           Minimum Landing Speed
+           <br/>
+<small>
+            Range: 0 to 10000
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Minimum downward speed immediately before landing.<br/>0 accepts any landing. Select Landed to trigger once at the chosen minimum speed.<br/>Requires the Character action to capture speed before collision handling.
+           </small>
 </td>
 </tr>
 </tbody>
 </table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Allow jumping only when On Floor is true.
+           </li>
+<li>
+            Wall slides and wall jumps with On Wall.
+           </li>
+<li>
+            Landing sounds, dust or camera shake with Landed.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Surface Check
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Character Jump
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Landed with Minimum Landing Speed to react only to hard landings.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Using it on a node that isn't a CharacterBody. It reads the character's floor, wall and ceiling state.
+         </div>
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Invert when the opposite condition is easier to express than rebuilding the chain with different logic.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#character-jump-3d">
+           Character Jump
+          </a>
+<a href="actuators-3d.html#character-physics-3d">
+           Character Physics
+          </a>
+<a href="sensors-3d.html#collision-3d">
+           Collision
+          </a>
+<a href="sensors-3d.html#proximity-3d">
+           Proximity
+          </a>
+<a href="sensors-3d.html#raycast-3d">
+           Raycast Hit
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Surface Check brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/physicssensor-3d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Surface Check
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="3d" data-search="Proximity Detects objects within a distance and optional angle. Uses groups to filter which objects are detected. Triggers" id="proximity-3d">
+<div class="brick-heading">
+<span class="badge">
+         trigger • 3d
+        </span>
+<h2>
+         Proximity
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
+</div>
+</div>
+<p>
+        Detects objects within a distance and optional angle. Uses groups to filter which objects are detected.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Triggers
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_group
+           </code>
+</td>
+<td>
+           Target Group
+           <br/>
+<small>
+            Group name to detect.<br/>Leave empty to detect all Node3D objects.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            distance
+           </code>
+</td>
+<td>
+           Distance
+           <br/>
+<small>
+            Default:
+            <code>
+             10.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Detection radius in meters.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            angle
+           </code>
+</td>
+<td>
+           Angle
+           <br/>
+<small>
+            Default:
+            <code>
+             360.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Detection cone angle in degrees (360 = all directions).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            axis
+           </code>
+</td>
+<td>
+           Axis
+           <br/>
+<small>
+            Choices: All, +X, -X, +Y, -Y, +Z, -Z
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             All
+            </code>
+           </small>
+           <br/>
+<small>
+            Which axis the detection cone faces.<br/>All = detect in all directions (ignores angle).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            detection_mode
+           </code>
+</td>
+<td>
+           Detection Mode
+           <br/>
+<small>
+            Choices: Any, All, None
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Any
+            </code>
+           </small>
+           <br/>
+<small>
+            Any: active if at least one object detected<br/>All: active if all objects in group detected<br/>None: active if no objects detected
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            inverse
+           </code>
+</td>
+<td>
+           Inverse
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Invert the result.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            store_object
+           </code>
+</td>
+<td>
+           Store Object
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Store the nearest detected object in a variable.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            object_variable
+           </code>
+</td>
+<td>
+           Object Variable
+           <br/>
+<small>
+            Variable name to store the detected object.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            check_interval
+           </code>
+</td>
+<td>
+           Check Interval
+           <br/>
+<small>
+            Range: 0.0 to 5.0
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Seconds between checks. 0 = check every frame.<br/>Checking less often saves work when many objects use Proximity; between checks the trigger keeps its last result. 0.2 (five times a second) is usually plenty for enemies noticing the player.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Make enemies notice the player within a distance and view angle.
+           </li>
+<li>
+            Show an interact prompt when the player is near an object.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Proximity
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Steering
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Store Object saves the detected node in a variable, so later bricks can target it.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Forgetting to put the target in the Target Group. Proximity only finds nodes in that group.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-3d.html#steering-3d">
+           Steering
+          </a>
+<a href="actuators-3d.html#rotate-towards-3d">
+           Rotate Towards
+          </a>
+<a href="sensors-3d.html#collision-3d">
+           Collision
+          </a>
+<a href="sensors-3d.html#raycast-3d">
+           Raycast Hit
+          </a>
+<a href="sensors-3d.html#physics-3d">
+           Surface Check
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Proximity brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/proximitysensor-3d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Proximity
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="3d" data-search="Raycast Hit Detects along a RayCast3D. This can be used for objects, groups, walls, ground, or ledges. The RayCast3D's direction, length, and collision mask are set on the RayCast3D node itself. Triggers" id="raycast-3d">
+<div class="brick-heading">
+<span class="badge">
+         trigger • 3d
+        </span>
+<h2>
+         Raycast Hit
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
+</div>
+</div>
+<p>
+        Detects along a RayCast3D. This can be used for objects, groups, walls, ground, or ledges. The RayCast3D's direction, length, and collision mask are set on the RayCast3D node itself.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Triggers
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            raycast_node_name
+           </code>
+</td>
+<td>
+           Raycast Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             RayCast3D
+            </code>
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            detect_mode
+           </code>
+</td>
+<td>
+           Detect Mode
+           <br/>
+<small>
+            Choices: Any, Group, Nothing
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Any
+            </code>
+           </small>
+           <br/>
+<small>
+            Any: active when the ray hits anything on its collision mask. Use this for walls, ground, obstacles, etc.<br/>Group: active when the ray hits an object in the specified group(s).<br/>Nothing: active when the ray hits nothing. Use this for ledge / cliff detection.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            group_filter
+           </code>
+</td>
+<td>
+           Group Filter
+           <br/>
+<small>
+            Comma-separated list of group names to filter by.<br/>Example: 'enemy, obstacle'<br/>Only used in Group mode.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            invert
+           </code>
+</td>
+<td>
+           Invert
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Optional final invert. Usually leave this off now that Nothing mode exists.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Detect a wall or ledge in front of an enemy so it turns around.
+           </li>
+<li>
+            Interact with whatever the player is looking at, or check line of sight before shooting.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Raycast Hit
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Rotate Towards
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Set the ray's direction, length and collision mask on the RayCast node itself.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Leaving the RayCast node disabled, or pointing it in a direction the object never faces.
+         </div>
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Invert when the opposite condition is easier to express than rebuilding the chain with different logic.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-3d.html#collision-3d">
+           Collision
+          </a>
+<a href="sensors-3d.html#proximity-3d">
+           Proximity
+          </a>
+<a href="sensors-3d.html#physics-3d">
+           Surface Check
+          </a>
+<a href="sensors-3d.html#movement-3d">
+           Movement Detected
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Raycast Hit brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/raycastsensor-3d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Raycast Hit
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="3d 2d" data-search="Always Always active trigger. Fires every frame. Useful for continuous actions like gravity or idle animations. Triggers" id="always-common">
+<div class="brick-heading">
+<span class="badge">
+         trigger • 3d
+        </span>
+<h2>
+         Always
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Always active trigger. Fires every frame. Useful for continuous actions like gravity or idle animations.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Triggers
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            enabled
+           </code>
+</td>
+<td>
+           Enabled
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Run bricks that must work every frame, such as Character Physics, cameras, steering and UI updates.
+           </li>
+<li>
+            Combine with another trigger through an AND gate so an action runs every frame only while that condition holds.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Always
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Character Physics
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Turn Enabled off to pause a chain without deleting it.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Using Always for one-time events such as playing a sound or changing scenes. They would repeat every frame.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-3d.html#delay-common">
+           Delay
+          </a>
+<a href="sensors-3d.html#random-common">
+           Random Chance
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Always brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/alwayssensor-3d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Always
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="3d 2d ui" data-search="Compare Variable Compares a variable's value. Works with local, exported, and global variables. Automatically checks GlobalVars if not found locally. Triggers" id="compare-variable-common">
+<div class="brick-heading">
+<span class="badge">
+         trigger • 3d
+        </span>
+<h2>
+         Compare Variable
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Compares a variable's value. Works with local, exported, and global variables. Automatically checks GlobalVars if not found locally.
+       </p>
 <div class="callout tip">
 <strong>Array comparisons</strong>
-When <code>variable_name</code> matches an Array variable, the Evaluation Type menu changes automatically. Use <strong>Contains</strong> or <strong>Does Not Contain</strong> to test for an item, the empty checks to test whether the Array has any items, or the size checks to compare the number of items. The selected Array Item Type determines how the entered value is interpreted.
+When <code>variable_name</code> matches an Array variable, the Evaluation Type menu changes automatically. Use <b>Contains</b> or <b>Does Not Contain</b> to test for an item, the empty checks to test whether the Array has any items, or the size checks to compare the number of items. The selected Array Item Type determines how the entered value is interpreted.
 </div>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Triggers
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            variable_name
+           </code>
+</td>
+<td>
+           Variable Name
+           <br/>
+<small>
+            Name of the variable to check.<br/>Type a name or choose an existing local/global variable from the dropdown.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            evaluation_type
+           </code>
+</td>
+<td>
+           Evaluation Type
+           <br/>
+<small>
+            Choices: Equal, Not Equal, Interval, Changed, Greater Than, Less Than, Greater or Equal, Less or Equal
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Equal
+            </code>
+           </small>
+           <br/>
+<small>
+            How to compare the variable.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            value
+           </code>
+</td>
+<td>
+           Value
+           <br/>
+<small>
+            Value to compare against.<br/>Accepts numbers, booleans, strings, or variable names.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            min_value
+           </code>
+</td>
+<td>
+           Min Value
+           <br/>
+<small>
+            Minimum value (for Interval mode).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            max_value
+           </code>
+</td>
+<td>
+           Max Value
+           <br/>
+<small>
+            Maximum value (for Interval mode).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            item_type
+           </code>
+</td>
+<td>
+           Item Type
+           <br/>
+<small>
+            Choices: bool, int, float, String, Vector2, Vector3
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             String
+            </code>
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Start a logic chain when compares a variable's value.\nWorks with local, exported, and global variables.\nAutomatically checks GlobalVars if not found locally.
-         </li>
+            Win, lose or game-over checks, such as health ≤ 0 or score ≥ 100.
+           </li>
 <li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
+            Inventory checks with Contains or Does Not Contain on an Array variable.
+           </li>
 <li>
-          Capture or compare a value as part of variable-driven gameplay logic.
-         </li>
+            React only when a value changes, with the Changed evaluation.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Compare Variable
-         </span>
+            Compare Variable
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Gate
-         </span>
+            Gate
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Choose an action
-         </span>
+            Scene
+           </span>
 </div>
 </section>
 </div>
 <div class="guidance-notes">
 <div class="mini-callout tip">
 <strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
+           Tip
+          </strong>
+          Use Interval for ranges, such as health between 1 and 25 for a low-health warning.
+         </div>
 <div class="mini-callout caution">
 <strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
+           Common mistake
+          </strong>
+          Comparing a String variable to a number, or the reverse. Check the variable's type in the Variables panel.
+         </div>
 </div>
 <section class="related-bricks">
 <h4>
-        Related bricks
-       </h4>
+          Related bricks
+         </h4>
 <div class="related-link-list">
-<a href="actuators-2d.html#modify-variable-2d">
-         Modify Variable
-        </a>
-<a href="sensors-ui.html#variable-ui">
-         Variable
-        </a>
-<a href="actuators-3d.html#animation-3d">
-         Animation
-        </a>
+<a href="actuators-3d.html#modify-variable-3d">
+           Modify Variable
+          </a>
+<a href="sensors-3d.html#signal-common">
+           Signal Receive
+          </a>
+<a href="sensors-3d.html#actuator-3d">
+           Action Active
+          </a>
 <a href="sensors-3d.html#animation-tree-3d">
-         Animation Tree
-        </a>
+           Animation Tree
+          </a>
 </div>
 </section>
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Compare Variable screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/compare-variable.png"/>
+<img alt="Compare Variable brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/variablesensor-3d.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-        Compare Variable screenshot
-       </strong>
+          Compare Variable
+         </strong>
 <span>
-</span>
+          
+         </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick sensor" data-compatibility="3d 2d" data-search="Delay Waits for Delay seconds, then stays active for Duration seconds.\nRepeat cycles the whole sequence. General" id="delay-common">
+<section class="brick sensor" data-compatibility="3d 2d" data-search="Delay Waits for Delay seconds, then stays active for Duration seconds. Repeat cycles the whole sequence. Triggers" id="delay-common">
 <div class="brick-heading">
 <span class="badge">
-       trigger • 3d
-      </span>
+         trigger • 3d
+        </span>
 <h2>
-       Delay
-      </h2>
+         Delay
+        </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
+          3D
+         </span>
 <span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
-        2D
-       </span>
+          2D
+         </span>
 </div>
 </div>
 <p>
-      Waits for Delay seconds, then stays active for Duration seconds.\nRepeat cycles the whole sequence.
-     </p>
+        Waits for Delay seconds, then stays active for Duration seconds. Repeat cycles the whole sequence.
+       </p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Triggers
-       </span>
+          Right-click → Triggers
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          delay
-         </code>
+            delay
+           </code>
 </td>
 <td>
-         Delay
-         <br/>
+           Delay
+           <br/>
 <small>
-          Default:
-          <code>
-           0.0
-          </code>
-</small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Seconds to wait before becoming active.<br/>Accepts a number (1.5) or a variable name (my_delay).
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          duration
-         </code>
+            duration
+           </code>
 </td>
 <td>
-         Duration
-         <br/>
+           Duration
+           <br/>
 <small>
-          Default:
-          <code>
-           0.0
-          </code>
-</small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Seconds to stay active once triggered.<br/>0 = active for one frame only.<br/>Accepts a number (1.5) or a variable name (my_duration).
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          repeat
-         </code>
+            repeat
+           </code>
 </td>
 <td>
-         Repeat
-         <br/>
+           Repeat
+           <br/>
 <small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            When enabled, restarts the delay after the duration ends.
+           </small>
 </td>
 </tr>
 </tbody>
 </table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Start a logic chain when waits for Delay seconds, then stays active for Duration seconds.\nRepeat cycles the whole sequence.
-         </li>
+            Wait a few seconds before an action, such as a timed door or a bomb fuse.
+           </li>
 <li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
+            Repeat an action on an interval with Repeat on, such as spawning an enemy every 5 seconds.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
+            Delay
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Object Pool
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Duration is how long the trigger stays active after the delay; 0 means one frame, which suits one-shot actions.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Leaving Repeat on for a one-time event, so it fires again after every cycle.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-3d.html#always-common">
+           Always
+          </a>
+<a href="sensors-3d.html#random-common">
+           Random Chance
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Delay brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/delaysensor-3d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
           Delay
+         </strong>
+<span>
+          
          </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
+</figcaption>
+</figure>
+</section>
+<section class="brick sensor" data-compatibility="3d 2d" data-search="Input Detects input actions from Project &gt; Input Map. Supports button presses, any-action checks, and analog joystick axis input. Triggers" id="input-map-common">
+<div class="brick-heading">
+<span class="badge">
+         trigger • 3d
+        </span>
+<h2>
+         Input
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
          </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+</div>
+</div>
+<p>
+        Detects input actions from Project &gt; Input Map. Supports button presses, any-action checks, and analog joystick axis input.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Triggers
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            input_mode
+           </code>
+</td>
+<td>
+           Input Mode
+           <br/>
+<small>
+            Choices: Pressed, Just Pressed, Just Released, Any Pressed, Any Just Pressed, Any Just Released, Axis
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Pressed
+            </code>
+           </small>
+           <br/>
+<small>
+            Pressed: active while held<br/>Just Pressed: one frame on press<br/>Just Released: one frame on release<br/>Any Pressed: active when any action in the Input Map is held<br/>Any Just Pressed: one frame when any Input Map action is pressed<br/>Any Just Released: one frame when any Input Map action is released<br/>Axis: joystick/WASD axis value (-1 to 1)
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            action_name
+           </code>
+</td>
+<td>
+           Action Name
+           <br/>
+<small>
+            Type an Input Map action name or choose one from the dropdown. Project-created actions are listed first, followed by Godot's built-in actions. Ignored by Any modes.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            negative_action
+           </code>
+</td>
+<td>
+           Negative Action
+           <br/>
+<small>
+            Input Map action for the -1 direction.<br/>Example: 'move_left', 'move_forward', 'look_down'<br/>Must match an action in Project &gt; Input Map.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            positive_action
+           </code>
+</td>
+<td>
+           Positive Action
+           <br/>
+<small>
+            Input Map action for the +1 direction.<br/>Example: 'move_right', 'move_back', 'look_up'<br/>Must match an action in Project &gt; Input Map.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            invert
+           </code>
+</td>
+<td>
+           Invert
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Invert the trigger result.<br/>Button modes: active when action is NOT pressed.<br/>Any modes: active when no Input Map action matches.<br/>Axis mode: active when the axis is NOT moved past the deadzone.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            store_in
+           </code>
+</td>
+<td>
+           Store In
+           <br/>
+<small>
+            Variable name to store the axis value (-1.0 to 1.0).<br/>Create this variable in the Variables tab.<br/>Then use it in a Motion action field (e.g. 'up * speed').
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            deadzone
+           </code>
+</td>
+<td>
+           Deadzone
+           <br/>
+<small>
+            Default:
+            <code>
+             0.1
+            </code>
+           </small>
+           <br/>
+<small>
+            Ignore stick values smaller than this.<br/>Prevents drift from loose joysticks.<br/>0.1 is a good default.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Movement and actions from Project → Input Map, such as move_left, jump or interact.
+           </li>
+<li>
+            Read an analog stick with Axis mode and store the value for movement.
+           </li>
+<li>
+            Pause menus and confirm buttons with Just Pressed.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Gate
-         </span>
+            Input
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Choose an action
-         </span>
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Character Jump
+           </span>
 </div>
 </section>
 </div>
 <div class="guidance-notes">
 <div class="mini-callout tip">
 <strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
+           Tip
+          </strong>
+          Use Just Pressed for one-time actions (jump, shoot) and Pressed for actions that last while the key is held (move).
+         </div>
 <div class="mini-callout caution">
 <strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
+           Common mistake
+          </strong>
+          Using Pressed for a jump or shot. It runs every frame the key is down.
+         </div>
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Invert when the opposite condition is easier to express than rebuilding the chain with different logic.
+         </div>
 </div>
 <section class="related-bricks">
 <h4>
-        Related bricks
-       </h4>
+          Related bricks
+         </h4>
 <div class="related-link-list">
-<a href="sensors-2d.html#random-common">
-         Random
-        </a>
-<a href="sensors-2d.html#always-common">
-         Always
-        </a>
-<a href="sensors-ui.html#always-ui">
-         Always
-        </a>
-<a href="sensors-2d.html#compare-variable-common">
-         Compare Variable
-        </a>
+<a href="sensors-3d.html#mouse-common">
+           Mouse
+          </a>
 </div>
 </section>
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Delay screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/delay.png"/>
+<img alt="Input brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/inputmapsensor-3d.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-        Delay screenshot
-       </strong>
+          Input
+         </strong>
 <span>
-</span>
+          
+         </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick sensor" data-compatibility="3d 2d" data-search="Input Detects input actions from Project &gt; Input Map.\nSupports button presses, any-action checks, and analog joystick axis input. General" id="input-map-common">
+<section class="brick sensor" data-compatibility="3d 2d ui" data-search="Mouse Detects mouse buttons, wheel movement, mouse motion, and mouse hover ray hits. Triggers" id="mouse-common">
 <div class="brick-heading">
 <span class="badge">
-       trigger • 3d
-      </span>
-<h2>Input</h2>
+         trigger • 3d
+        </span>
+<h2>
+         Mouse
+        </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
+          3D
+         </span>
 <span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
-        2D
-       </span>
+          2D
+         </span>
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
 </div>
 </div>
 <p>
-      Detects input actions from Project &gt; Input Map.\nSupports button presses, any-action checks, and analog joystick axis input.
-     </p>
+        Detects mouse buttons, wheel movement, mouse motion, and mouse hover ray hits.
+       </p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Triggers
-       </span>
+          Right-click → Triggers
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          input_mode
-         </code>
+            detection_type
+           </code>
 </td>
 <td>
-         Input Mode
-         <br/>
+           Detection Type
+           <br/>
 <small>
-          Choices: Pressed,Just Pressed,Just Released,Any Pressed,Any Just Pressed,Any Just Released,Axis
-         </small>
-<br/>
+            Choices: Button, Wheel, Movement, Hover Object, Hover Any
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           pressed
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          action_name
-         </code>
-</td>
-<td>
-         Action Name
-         <br/>
+            Default:
+            <code>
+             Button
+            </code>
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           (blank)
-          </code>
-</small>
+            What mouse event to detect: Button, Wheel, Movement, Hover Object, or Hover Any.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          negative_action
-         </code>
+            mouse_button
+           </code>
 </td>
 <td>
-         Negative Action
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          positive_action
-         </code>
-</td>
-<td>
-         Positive Action
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          invert
-         </code>
-</td>
-<td>
-         Invert
-         <br/>
+           Mouse Button
+           <br/>
 <small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          store_in
-         </code>
-</td>
-<td>
-         Store In
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          deadzone
-         </code>
-</td>
-<td>
-         Deadzone
-         <br/>
+            Choices: Left, Right, Middle
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           0.1
-          </code>
-</small>
+            Default:
+            <code>
+             Left
+            </code>
+           </small>
+           <br/>
+<small>
+            Which mouse button to detect: Left, Right, or Middle.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            button_state
+           </code>
+</td>
+<td>
+           Button State
+           <br/>
+<small>
+            Choices: Pressed, Released, Held
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Pressed
+            </code>
+           </small>
+           <br/>
+<small>
+            When to activate: Pressed, Released, or Held.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            wheel_direction
+           </code>
+</td>
+<td>
+           Wheel Direction
+           <br/>
+<small>
+            Choices: Up, Down
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Up
+            </code>
+           </small>
+           <br/>
+<small>
+            Which wheel direction to detect.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            movement_threshold
+           </code>
+</td>
+<td>
+           Movement Threshold
+           <br/>
+<small>
+            Default:
+            <code>
+             0.1
+            </code>
+           </small>
+           <br/>
+<small>
+            Minimum mouse movement before the trigger activates.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+           </small>
+           <br/>
+<small>
+            For Hover Object: self, or the name/path of a child node to detect under the mouse. The target or one of its child collision objects must be hit by the ray.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            check_interval
+           </code>
+</td>
+<td>
+           Check Interval
+           <br/>
+<small>
+            Range: 0.0 to 5.0
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Hover modes: seconds between checks. 0 = check every frame.<br/>Each hover check casts a ray, so checking less often saves work when many objects use hover; between checks the trigger keeps its last result. 0.05 to 0.1 still feels instant.
+           </small>
 </td>
 </tr>
 </tbody>
 </table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Start a logic chain when an Input action is detected from Project &gt; Input Map.\nSupports button presses, any-action checks, and analog joystick axis input.
-         </li>
+            Shoot or interact when a mouse button is pressed.
+           </li>
 <li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Capture or compare a value as part of variable-driven gameplay logic.
-         </li>
+            Zoom with the mouse wheel, or react when the cursor hovers over an object.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">Input</span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
 <span class="chain-node">
-          Gate
-         </span>
+            Mouse
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Choose an action
-         </span>
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Object Pool
+           </span>
 </div>
 </section>
 </div>
 <div class="guidance-notes">
 <div class="mini-callout tip">
 <strong>
-         Tip
-        </strong>
-        Use Invert when the opposite condition is easier to express than rebuilding the chain with different logic.
-       </div>
+           Tip
+          </strong>
+          Hover Object needs the object to have a collision shape so the mouse ray can hit it.
+         </div>
 <div class="mini-callout caution">
 <strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
+           Common mistake
+          </strong>
+          Using Held for a single shot. Use Pressed for one event per click.
+         </div>
 </div>
 <section class="related-bricks">
 <h4>
-        Related bricks
-       </h4>
+          Related bricks
+         </h4>
 <div class="related-link-list">
-<a href="sensors-ui.html#input-map-ui">Input</a>
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-<a href="sensors-2d.html#compare-variable-common">
-         Compare Variable
-        </a>
-<a href="sensors-2d.html#mouse-common">
-         Mouse
-        </a>
+<a href="sensors-3d.html#input-map-common">
+           Input
+          </a>
 </div>
 </section>
 </details>
-</section>
-<section class="brick sensor" data-compatibility="3d 2d" data-search="Mouse Detects mouse buttons, wheel, movement, and object hover General" id="mouse-common">
-<div class="brick-heading">
-<span class="badge">
-       trigger • 3d
-      </span>
-<h2>
-       Mouse
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
-<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
-        2D
-       </span>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Mouse brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/mousesensor-3d.png"/>
 </div>
-</div>
-<p>
-      Detects mouse buttons, wheel, movement, and object hover
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Triggers
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          detection_type
-         </code>
-</td>
-<td>
-         Detection Type
-         <br/>
-<small>
-          Choices: Button,Wheel,Movement,Hover Object,Hover Any
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           button
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          mouse_button
-         </code>
-</td>
-<td>
-         Mouse Button
-         <br/>
-<small>
-          Choices: Left,Right,Middle
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           left
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          button_state
-         </code>
-</td>
-<td>
-         Button State
-         <br/>
-<small>
-          Choices: Pressed,Released,Held
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           pressed
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          wheel_direction
-         </code>
-</td>
-<td>
-         Wheel Direction
-         <br/>
-<small>
-          Choices: Up,Down
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           up
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          movement_threshold
-         </code>
-</td>
-<td>
-         Movement Threshold
-         <br/>
-<small>
-          Default:
-          <code>
-           0.1
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          target_node_name
-         </code>
-</td>
-<td>
-         Target Node Name
-         <br/>
-<small>
-          Default:
-          <code>
-           self
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Start a logic chain when detects mouse buttons, wheel, movement, and object hover.
-         </li>
-<li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
+<figcaption>
+<strong class="screenshot-caption-title">
           Mouse
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an action
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="sensors-2d.html#input-map-common">Input</a>
-<a href="actuators-2d.html#mouse-2d">
-         Mouse
-        </a>
-<a href="sensors-3d.html#movement-3d">Movement Detected</a>
-<a href="sensors-2d.html#movement-2d-2d">Movement Detected</a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Mouse screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/mouse.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Mouse screenshot
-       </strong>
+         </strong>
 <span>
-</span>
+          
+         </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick sensor" data-compatibility="3d 2d" data-search="Random Chance Activates randomly each time it is evaluated.\\nPair with a Delay Trigger to control how often it rolls.\\nUseful for random behaviors, AI variation, and loot rolls. General" id="random-common">
+<section class="brick sensor" data-compatibility="3d 2d" data-search="Random Chance Activates randomly each time it is evaluated. Pair with a Delay Trigger to control how often it rolls. Useful for random behaviors, AI variation, and loot rolls. Triggers" id="random-common">
 <div class="brick-heading">
 <span class="badge">
-       trigger • 3d
-      </span>
+         trigger • 3d
+        </span>
 <h2>
-       Random Chance
-      </h2>
+         Random Chance
+        </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
+          3D
+         </span>
 <span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
-        2D
-       </span>
+          2D
+         </span>
 </div>
 </div>
 <p>
-      Activates randomly each time it is evaluated.\\nPair with a Delay Trigger to control how often it rolls.\\nUseful for random behaviors, AI variation, and loot rolls.
-     </p>
+        Activates randomly each time it is evaluated. Pair with a Delay Trigger to control how often it rolls. Useful for random behaviors, AI variation, and loot rolls.
+       </p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Triggers
-       </span>
+          Right-click → Triggers
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          trigger_mode
-         </code>
+            trigger_mode
+           </code>
 </td>
 <td>
-         Trigger Mode
-         <br/>
+           Trigger Mode
+           <br/>
 <small>
-          Choices: Chance,Value,Range
-         </small>
-<br/>
+            Choices: Chance, Value, Range
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           chance
-          </code>
-</small>
+            Default:
+            <code>
+             Chance
+            </code>
+           </small>
+           <br/>
+<small>
+            Chance: rolls TRUE with a given probability each evaluation.<br/>Value: rolls an integer and fires TRUE when it matches the target.<br/>Range: rolls a whole number from Min to Max and fires every time.<br/>Turn on Store Value to use the number (for example, a dice roll or a loot table).
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          chance_percent
-         </code>
+            chance_percent
+           </code>
 </td>
 <td>
-         Chance Percent
-         <br/>
+           Chance Percent
+           <br/>
 <small>
-          Choices: 0.0,100.0,0.1
-         </small>
-<br/>
+            Range: 0.0 to 100.0
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           10.0
-          </code>
-</small>
+            Default:
+            <code>
+             10.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Probability of firing TRUE (0–100%).<br/>10 = 10% chance per evaluation.<br/>100 = always fires.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          target_value
-         </code>
+            target_value
+           </code>
 </td>
 <td>
-         Target Value
-         <br/>
+           Target Value
+           <br/>
 <small>
-          Default:
-          <code>
-           0
-          </code>
-</small>
+            Default:
+            <code>
+             0
+            </code>
+           </small>
+           <br/>
+<small>
+            The integer the roll must equal to fire TRUE (Value mode).<br/>The roll range is [0, target_value * 2] so the target sits in the middle.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          target_min
-         </code>
+            target_min
+           </code>
 </td>
 <td>
-         Target Min
-         <br/>
+           Target Min
+           <br/>
 <small>
-          Default:
-          <code>
-           0
-          </code>
-</small>
+            Default:
+            <code>
+             0
+            </code>
+           </small>
+           <br/>
+<small>
+            Smallest number the roll can be (Range mode). Included.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          target_max
-         </code>
+            target_max
+           </code>
 </td>
 <td>
-         Target Max
-         <br/>
+           Target Max
+           <br/>
 <small>
-          Default:
-          <code>
-           100
-          </code>
-</small>
+            Default:
+            <code>
+             100
+            </code>
+           </small>
+           <br/>
+<small>
+            Largest number the roll can be (Range mode). Included.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          use_seed
-         </code>
+            use_seed
+           </code>
 </td>
 <td>
-         Use Seed
-         <br/>
+           Use Seed
+           <br/>
 <small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Use a fixed seed for reproducible random sequences.<br/>Same seed always produces the same sequence of results.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          seed_value
-         </code>
+            seed_value
+           </code>
 </td>
 <td>
-         Seed Value
-         <br/>
+           Seed Value
+           <br/>
 <small>
-          Default:
-          <code>
-           0
-          </code>
-</small>
+            Default:
+            <code>
+             0
+            </code>
+           </small>
+           <br/>
+<small>
+            The seed value to use when Use Seed is enabled.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          store_value
-         </code>
+            store_value
+           </code>
 </td>
 <td>
-         Store Value
-         <br/>
+           Store Value
+           <br/>
 <small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Store the generated random number in a variable each evaluation.<br/>Chance mode stores 1.0 when fired, 0.0 otherwise.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          value_variable
-         </code>
+            value_variable
+           </code>
 </td>
 <td>
-         Value Variable
-        </td>
+           Value Variable
+           <br/>
+<small>
+            Variable name to store the generated value in.<br/>Create it in the Variables tab first.
+           </small>
+</td>
 </tr>
 </tbody>
 </table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Start a logic chain when activates randomly each time it is evaluated.\\nPair with a Delay Trigger to control how often it rolls.\\nUseful for random behaviors, AI variation, and loot rolls.
-         </li>
+            Add variation, such as an idle animation that sometimes plays or an occasional critical hit.
+           </li>
 <li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
+            Dice rolls: Range mode with Min 1, Max 6 and Store Value gives a number from 1 to 6 each time it fires.
+           </li>
 <li>
-          Capture or compare a value as part of variable-driven gameplay logic.
-         </li>
+            Loot tables: roll once with Range 1 to 100 and Store Value into a variable such as roll, then use Compare Variable triggers on roll (1 to 60 common, 61 to 90 rare, 91 to 100 epic). Separate Random bricks each roll on their own, so one shared roll is what keeps the drops from overlapping.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Random
-         </span>
+            Delay
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Gate
-         </span>
+            Random Chance
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Choose an action
-         </span>
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Animation
+           </span>
 </div>
 </section>
 </div>
 <div class="guidance-notes">
 <div class="mini-callout tip">
 <strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
+           Tip
+          </strong>
+          Connect a Delay trigger to the same gate to control how often it rolls.
+         </div>
 <div class="mini-callout caution">
 <strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
+           Common mistake
+          </strong>
+          Rolling every frame. At 60 FPS even a 2% chance fires about once a second.
+         </div>
 </div>
 <section class="related-bricks">
 <h4>
-        Related bricks
-       </h4>
+          Related bricks
+         </h4>
 <div class="related-link-list">
-<a href="sensors-ui.html#random-ui">
-         Random
-        </a>
-<a href="sensors-2d.html#delay-common">
-         Delay
-        </a>
-<a href="sensors-2d.html#always-common">
-         Always
-        </a>
-<a href="actuators-3d.html#animation-3d">
-         Animation
-        </a>
+<a href="sensors-3d.html#delay-common">
+           Delay
+          </a>
+<a href="actuators-3d.html#random-3d">
+           Random
+          </a>
+<a href="sensors-3d.html#always-common">
+           Always
+          </a>
 </div>
 </section>
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Random screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/random.png"/>
+<img alt="Random Chance brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/randomsensor-3d.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-        Random screenshot
-       </strong>
+          Random Chance
+         </strong>
 <span>
-</span>
+          
+         </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick sensor" data-compatibility="3d 2d" data-search="Signal Receive Detects signals sent by a Signal Send Action.\nListens for a specific subject. General" id="signal-common">
+<section class="brick sensor" data-compatibility="3d 2d" data-search="Signal Receive Detects signals sent by a Signal Send Action. Listens for a specific Signal name. Triggers" id="signal-common">
 <div class="brick-heading">
 <span class="badge">
-       trigger • 3d
-      </span>
-<h2>Signal Receive</h2>
+         trigger • 3d
+        </span>
+<h2>
+         Signal Receive
+        </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
+          3D
+         </span>
 <span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
-        2D
-       </span>
+          2D
+         </span>
 </div>
 </div>
 <p>
-      Detects signals sent by a Signal Action.\nListens for a specific subject.
-     </p>
+        Detects signals sent by a Signal Send Action. Listens for a specific Signal name.
+       </p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Triggers
-       </span>
+          Right-click → Triggers
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          subject
-         </code>
+            signal_name
+           </code>
 </td>
 <td>
-         Subject
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          match_mode
-         </code>
-</td>
-<td>
-         Match Mode
-         <br/>
+           Signal Name
+           <br/>
 <small>
-          Choices: Exact,Contains,Starts With
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           exact
-          </code>
-</small>
+            Signal name to listen for.<br/>Must match what the Signal Send Action sends.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          response_delay
-         </code>
+            match_mode
+           </code>
 </td>
 <td>
-         Response Delay
-         <br/>
+           Match Mode
+           <br/>
 <small>
-          Default:
-          <code>
-           0.0
-          </code>
-</small>
+            Choices: Exact, Contains, Starts With
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Exact
+            </code>
+           </small>
+           <br/>
+<small>
+            Exact: Signal name must match exactly<br/>Contains: Signal name contains the text<br/>Starts With: Signal name starts with the text
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            response_delay
+           </code>
+</td>
+<td>
+           Response Delay
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Seconds to wait after receiving the message before activating.<br/>0 = activate immediately on the same frame the message arrives.
+           </small>
 </td>
 </tr>
 </tbody>
 </table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Start a logic chain when detects signals sent by a Signal Action.\nListens for a specific subject.
-         </li>
+            React to events sent from other objects, such as a switch opening a door elsewhere in the level.
+           </li>
 <li>
-          Gate an action through a Gate so multiple conditions can be combined.
-         </li>
-<li>
-          Use it as the event or condition at the beginning of a reusable chain.
-         </li>
+            Update the UI when gameplay sends a signal such as player_hit.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">Signal Receive</span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
 <span class="chain-node">
-          Gate
-         </span>
+            Signal Receive
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Choose an action
-         </span>
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Animation
+           </span>
 </div>
 </section>
 </div>
 <div class="guidance-notes">
 <div class="mini-callout tip">
 <strong>
-         Tip
-        </strong>
-        Connect the trigger to a Gate even when only one condition is needed; this keeps the chain easy to expand later.
-       </div>
+           Tip
+          </strong>
+          Use Starts With to react to a family of signals, such as door_ for every door signal.
+         </div>
 <div class="mini-callout caution">
 <strong>
-         Common mistake
-        </strong>
-        A trigger only detects a condition. It does not perform an action until it is connected through a Gate to an Action.
-       </div>
+           Common mistake
+          </strong>
+          A name that differs from the Signal Send action. Names must match exactly in Exact mode.
+         </div>
 </div>
 <section class="related-bricks">
 <h4>
-        Related bricks
-       </h4>
+          Related bricks
+         </h4>
 <div class="related-link-list">
-<a href="sensors-2d.html#input-map-common">Input</a>
-<a href="sensors-2d.html#mouse-common">
-         Mouse
-        </a>
-<a href="sensors-3d.html#movement-3d">Movement Detected</a>
-<a href="sensors-2d.html#movement-2d-2d">Movement Detected</a>
+<a href="actuators-3d.html#signal-3d">
+           Signal Send
+          </a>
+<a href="sensors-3d.html#compare-variable-common">
+           Compare Variable
+          </a>
+<a href="sensors-3d.html#actuator-3d">
+           Action Active
+          </a>
+<a href="sensors-3d.html#animation-tree-3d">
+           Animation Tree
+          </a>
 </div>
 </section>
 </details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Signal Receive brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/messagesensor-3d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Signal Receive
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
 </section>
 <div class="page-nav">
 <a class="page-nav-card previous" href="variables-states.html">
@@ -3227,15 +3684,15 @@ When <code>variable_name</code> matches an Array variable, the Evaluation Type m
        ← Previous
       </span>
 <strong>
-       Variables, States &amp; Frames
+       Variables, States &amp;amp; Frames
       </strong>
 </a>
-<a class="page-nav-card next" href="controllers.html">
+<a class="page-nav-card next" href="controllers-3d.html">
 <span class="page-nav-label">
        Next →
       </span>
 <strong>
-       Gates
+       3D Gates
       </strong>
 </a>
 </div>

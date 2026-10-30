@@ -6,6 +6,19 @@ const SUPPORTED_TYPES = ["bool", "int", "float", "String", "Vector2", "Vector3",
 const DEFAULT_LOCAL_NAME = "new_variable"
 const DEFAULT_GLOBAL_NAME = "new_global"
 
+static func normalize_name_spaces(value: String) -> String:
+	return value.replace(" ", "_").replace("\t", "_")
+
+
+static func normalize_name_edit(value: String, edit: LineEdit = null) -> String:
+	var normalized := normalize_name_spaces(value)
+	if is_instance_valid(edit) and edit.text != normalized:
+		var caret := edit.caret_column
+		edit.text = normalized
+		edit.caret_column = caret
+	return normalized
+
+
 static func create_default_local_variable() -> Dictionary:
 	return {
 		"name": DEFAULT_LOCAL_NAME,
@@ -188,6 +201,24 @@ static func to_gdscript_value_literal(value, var_type: String) -> String:
 			return coerced_value
 
 
+## Decode each escape once: a literal backslash followed by n must not become
+## a newline after decoding the backslash. Unknown escapes stay unchanged.
+static func _unescape_string_literal(text: String) -> String:
+	var escapes := {"a": String.chr(7), "b": String.chr(8), "f": String.chr(12),
+		"n": "\n", "r": "\r", "t": "\t", "v": String.chr(11),
+		"\\": "\\", '"': '"', "'": "'", "?": "?"}
+	var result := ""
+	var i := 0
+	while i < text.length():
+		if text[i] == "\\" and i + 1 < text.length() and escapes.has(text[i + 1]):
+			result += str(escapes[text[i + 1]])
+			i += 2
+		else:
+			result += text[i]
+			i += 1
+	return result
+
+
 static func parse_gdscript_value_literal(value_literal: String, var_type: String):
 	var normalized_type := normalize_type(var_type)
 	var text := str(value_literal).strip_edges()
@@ -195,10 +226,7 @@ static func parse_gdscript_value_literal(value_literal: String, var_type: String
 		"String":
 			if text.length() >= 2 and text.begins_with('"') and text.ends_with('"'):
 				text = text.substr(1, text.length() - 2)
-				text = text.replace("\\\"", '"')
-				text = text.replace("\\\\", "\\")
-				text = text.replace("\\n", "\n")
-				text = text.replace("\\t", "\t")
+				text = _unescape_string_literal(text)
 			return text
 		"bool":
 			return coerce_variable_value_for_type(text, normalized_type)
@@ -221,7 +249,7 @@ static func _array_item_to_literal(item) -> String:
 		TYPE_BOOL: return "true" if item else "false"
 		TYPE_INT, TYPE_FLOAT: return str(item)
 		TYPE_STRING: return '"%s"' % str(item).c_escape()
-		TYPE_VECTOR2, TYPE_VECTOR3, TYPE_COLOR: return str(item)
+		TYPE_VECTOR2, TYPE_VECTOR3, TYPE_COLOR: return var_to_str(item)
 		TYPE_ARRAY: return _array_to_gdscript_literal(item)
 		_: return '"%s"' % str(item).c_escape()
 
@@ -275,6 +303,8 @@ static func _parse_array_literal(text: String) -> Array:
 	return result
 
 static func _literal_to_typed_item(text: String) -> Dictionary:
+	if text.begins_with("[") and text.ends_with("]"):
+		return {"type":"Array", "value":_parse_array_literal(text)}
 	if text.to_lower() in ["true", "false"]:
 		return {"type":"bool", "value":text.to_lower()}
 	if text.is_valid_int():

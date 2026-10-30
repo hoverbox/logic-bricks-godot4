@@ -78,7 +78,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		impulse_expr = "global_transform.basis.orthonormalized() * %s" % impulse_expr
 
 	return {
-		"actuator_code": "# Soft Body Point Impulse\napply_impulse(int(%s), %s)" % [point_expr, impulse_expr]
+		"actuator_code": "# Soft Body Point Impulse\napply_impulse(int(%s), %s)" % [_gd_string(str(point_expr)), _gd_string(str(impulse_expr))]
 	}
 
 

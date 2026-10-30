@@ -97,8 +97,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	if not (node is RigidBody3D or node is SoftBody3D):
 		code_lines.append("# WARNING: Force actuator only works with RigidBody3D or SoftBody3D!")
-		code_lines.append("# Current node type: %s" % node.get_class())
-		code_lines.append("push_warning(\"Force actuator requires RigidBody3D or SoftBody3D, but node '%s' is %s\")" % [node.name, node.get_class()])
+		code_lines.append("# Current node type: %s" % _gd_string(str(node.get_class())))
+		code_lines.append("push_warning(\"Force actuator requires RigidBody3D or SoftBody3D, but node '%s' is %s\")" % [_gd_string(str(node.name)), _gd_string(str(node.get_class()))])
 		code_lines.append("# Force NOT applied")
 		return {"actuator_code": "\n".join(code_lines)}
 

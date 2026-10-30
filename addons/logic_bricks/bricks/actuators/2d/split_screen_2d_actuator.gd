@@ -88,7 +88,7 @@ func generate_code(_node: Node, chain_name: String) -> Dictionary:
 		"\tif %s != null and is_instance_valid(%s):" % [layer_var, layer_var],
 		"\t\t%s.queue_free()" % layer_var,
 		"\t%s = CanvasLayer.new()" % layer_var,
-		"\t%s.name = \"LogicBricksSplitScreen2D_%s\"" % [layer_var, stable_id],
+		"\t%s.name = \"LogicBricksSplitScreen2D_%s\"" % [layer_var, _gd_string(str(stable_id))],
 		"\t%s.layer = 100" % layer_var,
 		"\tget_tree().root.add_child(%s)" % layer_var,
 		"\t%s = Control.new()" % root_var,
@@ -123,7 +123,7 @@ func generate_code(_node: Node, chain_name: String) -> Dictionary:
 		members.append("\t_ss2_box_%d.add_child(_ss2_vp_%d)" % [index, index])
 		members.append("\t%s.append(_ss2_vp_%d)" % [viewports_var, index])
 		members.append("\tvar _ss2_source_%d: Camera2D = null" % index)
-		members.append("\tvar _ss2_found_%d = get_tree().current_scene.find_child(\"%s\", true, false) if get_tree().current_scene else null" % [index, camera_names[index]])
+		members.append("\tvar _ss2_found_%d = get_tree().current_scene.find_child(\"%s\", true, false) if get_tree().current_scene else null" % [index, _gd_string(str(camera_names[index]))])
 		members.append("\tif _ss2_found_%d is Camera2D:" % index)
 		members.append("\t\t_ss2_source_%d = _ss2_found_%d as Camera2D" % [index, index])
 		members.append("\t%s.append(_ss2_source_%d)" % [sources_var, index])
@@ -141,7 +141,7 @@ func generate_code(_node: Node, chain_name: String) -> Dictionary:
 	]
 
 	var ready_code: Array[String] = [
-		"call_deferred(\"%s\")" % setup_func,
+		"call_deferred(\"%s\")" % _gd_string(str(setup_func)),
 	]
 
 	var actuator_code: Array[String] = [

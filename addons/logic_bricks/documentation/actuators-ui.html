@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<meta content="14 actions available for UI workflows." name="description"/>
+<meta content="21 actions available for UI workflows." name="description"/>
 <title>
    UI Actions | Logic Bricks Documentation
   </title>
@@ -50,11 +50,7 @@
       UI Actions
      </h1>
 <p class="lead">
-      14 UI-specific
-      <span aria-label="action: A brick that performs an action after a trigger and optional gate succeed." class="glossary-term" data-tooltip="A brick that performs an action after a trigger and optional gate succeed." tabindex="0">
-       action
-      </span>
-      bricks detected in the addon.
+      21 actions available for UI workflows.
      </p>
 <div aria-label="Page information" class="page-reading-meta">
 <span>
@@ -199,3191 +195,5153 @@
       when a supported UI node is selected.
      </p>
 </section>
-<section class="brick actuator" data-compatibility="ui" data-search="2D Audio Plays UI or 2D audio. UI" id="2d-audio-ui">
+<section class="brick actuator" data-compatibility="ui" data-search="2D Audio Play 2D/UI audio from a file. Creates its own AudioStreamPlayer at runtime — no @export needed. Actions" id="2d-audio-ui">
 <div class="brick-heading">
 <span class="badge">
-       action • ui
-      </span>
+         action • ui
+        </span>
 <h2>
-       2D Audio
-      </h2>
+         2D Audio
+        </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
+          UI
+         </span>
 </div>
 </div>
 <p>
-      Plays UI or 2D audio.
-     </p>
+        Play 2D/UI audio from a file. Creates its own AudioStreamPlayer at runtime — no @export needed.
+       </p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Actions
-       </span>
+          Right-click → Actions
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          mode
-         </code>
+            mode
+           </code>
 </td>
 <td>
-         Mode
-         <br/>
+           Mode
+           <br/>
 <small>
-          Choices: Play,Stop,Pause,Fade In,Fade Out
-         </small>
-<br/>
+            Choices: Play, Stop, Pause, Fade In, Fade Out
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           play
-          </code>
-</small>
+            Default:
+            <code>
+             Play
+            </code>
+           </small>
+           <br/>
+<small>
+            Play, Stop, Pause, Fade In, or Fade Out.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          sound_file
-         </code>
+            sound_file
+           </code>
 </td>
 <td>
-         Sound File
-         <br/>
+           Sound File
+           <br/>
 <small>
-          Choices: *.wav,*.ogg,*.mp3
-         </small>
+            File: *.wav,*.ogg,*.mp3
+           </small>
+           <br/>
+<small>
+            Audio file to play. Supports .wav, .ogg, .mp3.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          player_type
-         </code>
+            player_type
+           </code>
 </td>
 <td>
-         Player Type
-         <br/>
+           Player Type
+           <br/>
 <small>
-          Choices: AudioStreamPlayer,AudioStreamPlayer2D
-         </small>
-<br/>
+            Choices: AudioStreamPlayer, AudioStreamPlayer2D
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           stream_player
-          </code>
-</small>
+            Default:
+            <code>
+             stream_player
+            </code>
+           </small>
+           <br/>
+<small>
+            AudioStreamPlayer: non-positional (music, UI sounds).<br/>AudioStreamPlayer2D: positional in 2D space.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          play_mode
-         </code>
+            play_mode
+           </code>
 </td>
 <td>
-         Play Mode
-         <br/>
+           Play Mode
+           <br/>
 <small>
-          Choices: Restart,Overlap,Ignore If Playing
-         </small>
-<br/>
+            Choices: Restart, Overlap, Ignore If Playing
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           restart
-          </code>
-</small>
+            Default:
+            <code>
+             Restart
+            </code>
+           </small>
+           <br/>
+<small>
+            Restart: stop and restart if already playing.<br/>Overlap: spawn a new player each time.<br/>Ignore: do nothing if already playing.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          volume
-         </code>
+            volume
+           </code>
 </td>
 <td>
-         Volume
-         <br/>
+           Volume
+           <br/>
 <small>
-          Choices: -80,24,0.1
-         </small>
-<br/>
+            Range: -80 to 24
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           0.0
-          </code>
-</small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Volume in dB. 0 = mixer-neutral, lower values reduce volume, -80 = silent.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          pitch
-         </code>
+            pitch
+           </code>
 </td>
 <td>
-         Pitch
-         <br/>
+           Pitch
+           <br/>
 <small>
-          Choices: 0.01,4.0,0.01
-         </small>
-<br/>
+            Range: 0.01 to 4.0
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           1.0
-          </code>
-</small>
+            Default:
+            <code>
+             1.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Pitch multiplier. 1.0 = normal.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          pitch_random
-         </code>
+            pitch_random
+           </code>
 </td>
 <td>
-         Pitch Random
-         <br/>
+           Pitch Random
+           <br/>
 <small>
-          Choices: 0.0,1.0,0.01
-         </small>
-<br/>
+            Range: 0.0 to 1.0
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           0.0
-          </code>
-</small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Random pitch variation ± this amount each play.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          loop
-         </code>
+            loop
+           </code>
 </td>
 <td>
-         Loop
-         <br/>
+           Loop
+           <br/>
 <small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Replay the sound again when it finishes.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          audio_bus
-         </code>
+            audio_bus
+           </code>
 </td>
 <td>
-         Audio Bus
-        </td>
+           Audio Bus
+           <br/>
+<small>
+            Audio bus name. Leave empty for Master.
+           </small>
+</td>
 </tr>
 <tr>
 <td>
 <code>
-          fade_duration
-         </code>
+            fade_duration
+           </code>
 </td>
 <td>
-         Fade Duration
-         <br/>
+           Fade Duration
+           <br/>
 <small>
-          Choices: 0.1,10.0,0.1
-         </small>
-<br/>
+            Range: 0.1 to 10.0
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           1.0
-          </code>
-</small>
+            Default:
+            <code>
+             1.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Duration of fade in/out in seconds.
+           </small>
 </td>
 </tr>
 </tbody>
 </table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Perform the ui action described above after a
-          <span aria-label="trigger: A brick that detects an event or condition and begins a logic chain." class="glossary-term" data-tooltip="A brick that detects an event or condition and begins a logic chain." tabindex="0">
-           trigger
-          </span>
-          /
-          <span aria-label="gate: A brick that evaluates or combines conditions before allowing execution to continue." class="glossary-term" data-tooltip="A brick that evaluates or combines conditions before allowing execution to continue." tabindex="0">
-           gate
-          </span>
-          chain succeeds.
-         </li>
+            Play non-positional sounds: UI clicks, pickups, jingles.
+           </li>
 <li>
-          Reuse the brick in multiple states or chains with different option values.
-         </li>
-<li>
-          Pair it with an appropriate trigger to control when the action occurs.
-         </li>
+            Add Pitch Random so repeated sounds don't feel robotic.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a trigger
-         </span>
+            Button
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Gate
-         </span>
+            Gate
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
+            2D Audio
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Overlap for rapid sounds such as gunfire, and Ignore If Playing for sounds that shouldn't stack.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Playing a sound from Always, which restarts it every frame.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#music-ui">
+           Music
+          </a>
+<a href="actuators-ui.html#screen-flash-ui">
+           Screen Flash
+          </a>
+<a href="actuators-ui.html#animation-ui">
+           Animation
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="2D Audio brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uiaudio2dactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
           2D Audio
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-<a href="actuators-ui.html#focus-ui">
-         Focus
-        </a>
-<a href="actuators-ui.html#modulate-ui">
-         Color / Transparency
-        </a>
-<a href="actuators-ui.html#popup-ui">
-         Popup
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="2D Audio screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/2d-audio.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        2D Audio screenshot
-       </strong>
+         </strong>
 <span>
-</span>
+          
+         </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="ui" data-search="Button Triggers, toggles, presses, or releases a Button node. UI" id="button-ui">
+<section class="brick actuator" data-compatibility="3d ui" data-search="Animation Play, stop, or control animations by name. Automatically finds the AnimationPlayer that owns the animation. Works with AnimationPlayers nested at any depth. Actions" id="animation-ui">
 <div class="brick-heading">
 <span class="badge">
-       action • ui
-      </span>
+         action • ui
+        </span>
 <h2>
-       Button
-      </h2>
+         Animation
+        </h2>
 <div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
 <span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
+          UI
+         </span>
 </div>
 </div>
 <p>
-      Triggers, toggles, presses, or releases a Button node.
-     </p>
+        Play, stop, or control animations by name. Automatically finds the AnimationPlayer that owns the animation. Works with AnimationPlayers nested at any depth.
+       </p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Actions
-       </span>
+          Right-click → Actions
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          target_node_name
-         </code>
+            mode
+           </code>
 </td>
 <td>
-         Target Node Name
-         <br/>
+           Mode
+           <br/>
 <small>
-          Default:
-          <code>
-           self
-          </code>
-</small>
-<br/>
+            Choices: Play, Stop, Pause, Queue
+           </small>
+           <br/>
 <small>
-          self or Button node name
-         </small>
+            Default:
+            <code>
+             Play
+            </code>
+           </small>
+           <br/>
+<small>
+            Play: start/control an animation<br/>Stop: stop playback<br/>Pause: freeze at current frame<br/>Queue: play after current finishes
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          action
-         </code>
+            animation_name
+           </code>
 </td>
 <td>
-         Action
-         <br/>
+           Animation Name
+           <br/>
 <small>
-          Choices: Emit Pressed,Press,Release,Toggle
-         </small>
-<br/>
+            Choices: animations found in the scene (click ↻ to load them)
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           emit_pressed
-          </code>
-</small>
+            Name of the animation to play.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            playback_mode
+           </code>
+</td>
+<td>
+           Playback Mode
+           <br/>
+<small>
+            Choices: Use Animation Setting, Play Once, Loop, Ping-Pong, Flipper
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Use Animation Setting
+            </code>
+           </small>
+           <br/>
+<small>
+            Shown when Mode is Play.
+           </small>
+           <br/>
+<small>
+            Use Animation Setting: preserve the Animation resource loop setting.<br/>Play Once: plays once per trigger activation.<br/>Loop: repeats while triggered.<br/>Ping-Pong: repeats forward and backward while triggered.<br/>Flipper: plays forward while triggered and reverses toward the start when released.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            trigger_end
+           </code>
+</td>
+<td>
+           Trigger End
+           <br/>
+<small>
+            Choices: Play to End, Stop
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Play to End
+            </code>
+           </small>
+           <br/>
+<small>
+            Shown when Mode is Play.
+           </small>
+           <br/>
+<small>
+            What happens when the trigger turns off.<br/>Play to End: finish the current pass before stopping.<br/>Stop: stop immediately.<br/>Flipper always reverses when released, so this setting is ignored for Flipper.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            speed
+           </code>
+</td>
+<td>
+           Speed
+           <br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Playback speed. Accepts:<br/>• A number: 1.0<br/>• A variable: move_speed<br/>• An expression: move_speed * 2
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            blend_time
+           </code>
+</td>
+<td>
+           Blend Time
+           <br/>
+<small>
+            Default:
+            <code>
+             -1.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Blend time in seconds (-1 = use default).<br/>Smooth transition from previous animation.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            priority
+           </code>
+</td>
+<td>
+           Priority
+           <br/>
+<small>
+            Range: 0 to 100
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             0
+            </code>
+           </small>
+           <br/>
+<small>
+            Shown when Mode is Play.
+           </small>
+           <br/>
+<small>
+            Animation priority. Higher numbers override lower numbers while the higher-priority animation is still playing.<br/>Example: Walk = 0, Jump = 10.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            play_backwards
+           </code>
+</td>
+<td>
+           Play Backwards
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Shown when Mode is Play.
+           </small>
+           <br/>
+<small>
+            Start playback in reverse. Flipper controls direction automatically.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            from_end
+           </code>
+</td>
+<td>
+           From End
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Shown when Mode is Play.
+           </small>
+           <br/>
+<small>
+            Start from the last frame. Flipper controls its own start/end behavior.
+           </small>
 </td>
 </tr>
 </tbody>
 </table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Perform the ui action described above after a trigger/gate chain succeeds.
-         </li>
+            Play a door, chest or attack animation from an AnimationPlayer.
+           </li>
 <li>
-          Reuse the brick in multiple states or chains with different option values.
-         </li>
-<li>
-          Target a specific node by configuring the node field before testing the chain.
-         </li>
+            Queue animations to play one after another, or play an animation backwards to close something.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a trigger
-         </span>
+            Collision
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Gate
-         </span>
+            Gate
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Button
-         </span>
+            Animation
+           </span>
 </div>
 </section>
 </div>
 <div class="guidance-notes">
 <div class="mini-callout tip">
 <strong>
-         Tip
-        </strong>
-        Confirm the target node name and node type before troubleshooting the rest of the chain.
-       </div>
+           Tip
+          </strong>
+          Click ↻ next to Animation Name to load the animations from the scene.
+         </div>
 <div class="mini-callout caution">
 <strong>
-         Common mistake
-        </strong>
-        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
-       </div>
+           Common mistake
+          </strong>
+          Restarting the animation every frame from a trigger that stays active. Use Just Pressed or a one-shot trigger.
+         </div>
 </div>
 <section class="related-bricks">
 <h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="actuators-ui.html#focus-ui">
-         Focus
-        </a>
-<a href="actuators-ui.html#popup-ui">
-         Popup
-        </a>
-<a href="actuators-ui.html#visibility-ui">
-         Visibility
-        </a>
-<a href="actuators-ui.html#window-ui">
-         Window
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Button screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/button.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Button screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick actuator" data-compatibility="ui" data-search="Focus Grabs or releases keyboard/gamepad focus on a Control node. UI" id="focus-ui">
-<div class="brick-heading">
-<span class="badge">
-       action • ui
-      </span>
-<h2>
-       Focus
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Grabs or releases keyboard/gamepad focus on a Control node.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Actions
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          target_node_name
-         </code>
-</td>
-<td>
-         Target Node Name
-         <br/>
-<small>
-          Default:
-          <code>
-           self
-          </code>
-</small>
-<br/>
-<small>
-          self or Control node name
-         </small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          action
-         </code>
-</td>
-<td>
-         Action
-         <br/>
-<small>
-          Choices: Grab Focus,Release Focus
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           grab_focus
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Perform the ui action described above after a trigger/gate chain succeeds.
-         </li>
-<li>
-          Reuse the brick in multiple states or chains with different option values.
-         </li>
-<li>
-          Target a specific node by configuring the node field before testing the chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Choose a trigger
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Focus
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Confirm the target node name and node type before troubleshooting the rest of the chain.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-<a href="actuators-ui.html#modulate-ui">
-         Color / Transparency
-        </a>
-<a href="actuators-ui.html#popup-ui">
-         Popup
-        </a>
-<a href="actuators-ui.html#progress-bar-ui">
-         Progress Bar
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Focus screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/focus.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Focus screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick actuator" data-compatibility="ui" data-search="Color / Transparency Sets or transitions color/alpha on a Control or CanvasItem node. UI" id="modulate-ui">
-<div class="brick-heading">
-<span class="badge">
-       action • ui
-      </span>
-<h2>
-       Color / Transparency
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Sets or transitions color/alpha on a Control or CanvasItem node.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Actions
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          target_node_name
-         </code>
-</td>
-<td>
-         Target Node Name
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          node_name_source
-         </code>
-</td>
-<td>
-         Node Name Source
-         <br/>
-<small>
-          Choices: Literal Node Name,String Variable
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           literal
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          export_node_name
-         </code>
-</td>
-<td>
-         Export Node Name
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          target_modulate
-         </code>
-</td>
-<td>
-         Target Modulate
-         <br/>
-<small>
-          Choices: Self Modulate,Modulate
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           self_modulate
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          color
-         </code>
-</td>
-<td>
-         Color
-         <br/>
-<small>
-          Default:
-          <code>
-           Color(1
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          transition
-         </code>
-</td>
-<td>
-         Transition
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          transition_speed
-         </code>
-</td>
-<td>
-         Transition Speed
-         <br/>
-<small>
-          Default:
-          <code>
-           5.0
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Perform the ui action described above after a trigger/gate chain succeeds.
-         </li>
-<li>
-          Reuse the brick in multiple states or chains with different option values.
-         </li>
-<li>
-          Target a specific node by configuring the node field before testing the chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Choose a trigger
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Color / Transparency
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Confirm the target node name and node type before troubleshooting the rest of the chain.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="actuators-2d.html#modulate-2d">
-         Color / Transparency
-        </a>
-<a href="actuators-ui.html#focus-ui">
-         Focus
-        </a>
-<a href="actuators-ui.html#progress-bar-ui">
-         Progress Bar
-        </a>
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Modulate screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/modulate.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Modulate screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick actuator" data-compatibility="ui" data-search="Popup Shows, hides, toggles, or centers a Popup/Window-like UI node. UI" id="popup-ui">
-<div class="brick-heading">
-<span class="badge">
-       action • ui
-      </span>
-<h2>
-       Popup
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Shows, hides, toggles, or centers a Popup/Window-like UI node.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Actions
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          target_node_name
-         </code>
-</td>
-<td>
-         Target Node Name
-         <br/>
-<small>
-          Default:
-          <code>
-           self
-          </code>
-</small>
-<br/>
-<small>
-          Popup node name
-         </small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          action
-         </code>
-</td>
-<td>
-         Action
-         <br/>
-<small>
-          Choices: Show,Hide,Toggle,Popup Centered
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           show
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Perform the ui action described above after a trigger/gate chain succeeds.
-         </li>
-<li>
-          Reuse the brick in multiple states or chains with different option values.
-         </li>
-<li>
-          Target a specific node by configuring the node field before testing the chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Choose a trigger
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Popup
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Confirm the target node name and node type before troubleshooting the rest of the chain.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="actuators-ui.html#window-ui">
-         Window
-        </a>
-<a href="actuators-ui.html#visibility-ui">
-         Visibility
-        </a>
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-<a href="actuators-ui.html#focus-ui">
-         Focus
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Popup screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/popup.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Popup screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick actuator" data-compatibility="ui" data-search="Progress Bar Sets the value, min, or max of a ProgressBar, Slider, or Range UI node. UI" id="progress-bar-ui">
-<div class="brick-heading">
-<span class="badge">
-       action • ui
-      </span>
-<h2>
-       Progress Bar
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Sets the value, min, or max of a ProgressBar, Slider, or Range UI node.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Actions
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          target_node_name
-         </code>
-</td>
-<td>
-         Target Node Name
-         <br/>
-<small>
-          Default:
-          <code>
-           ProgressBar
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          node_name_source
-         </code>
-</td>
-<td>
-         Node Name Source
-         <br/>
-<small>
-          Choices: Literal Node Name,String Variable
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           literal
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          export_node_name
-         </code>
-</td>
-<td>
-         Export Node Name
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          set_value
-         </code>
-</td>
-<td>
-         Set Value
-         <br/>
-<small>
-          Default:
-          <code>
-           true
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          value
-         </code>
-</td>
-<td>
-         Value
-         <br/>
-<small>
-          Default:
-          <code>
-           100.0
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          set_min
-         </code>
-</td>
-<td>
-         Set Min
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          min_value
-         </code>
-</td>
-<td>
-         Min Value
-         <br/>
-<small>
-          Default:
-          <code>
-           0.0
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          set_max
-         </code>
-</td>
-<td>
-         Set Max
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          max_value
-         </code>
-</td>
-<td>
-         Max Value
-         <br/>
-<small>
-          Default:
-          <code>
-           100.0
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          transition
-         </code>
-</td>
-<td>
-         Transition
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          transition_speed
-         </code>
-</td>
-<td>
-         Transition Speed
-         <br/>
-<small>
-          Default:
-          <code>
-           5.0
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Perform the ui action described above after a trigger/gate chain succeeds.
-         </li>
-<li>
-          Reuse the brick in multiple states or chains with different option values.
-         </li>
-<li>
-          Target a specific node by configuring the node field before testing the chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Choose a trigger
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Progress Bar
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Confirm the target node name and node type before troubleshooting the rest of the chain.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="actuators-3d.html#progress-bar-3d">
-         Progress Bar
-        </a>
-<a href="actuators-ui.html#slider-ui">
-         Slider
-        </a>
-<a href="actuators-ui.html#modulate-ui">
-         Color / Transparency
-        </a>
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Progress Bar screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/progress-bar.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Progress Bar screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick actuator" data-compatibility="ui" data-search="Screen Flash Flashes a full-screen ColorRect overlay. UI" id="screen-flash-ui">
-<div class="brick-heading">
-<span class="badge">
-       action • ui
-      </span>
-<h2>
-       Screen Flash
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Flashes a full-screen ColorRect overlay.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Actions
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          color
-         </code>
-</td>
-<td>
-         Color
-         <br/>
-<small>
-          Default:
-          <code>
-           Color(1
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          duration
-         </code>
-</td>
-<td>
-         Duration
-         <br/>
-<small>
-          Default:
-          <code>
-           0.3
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          fade_in
-         </code>
-</td>
-<td>
-         Fade In
-         <br/>
-<small>
-          Default:
-          <code>
-           0.05
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Perform the ui action described above after a trigger/gate chain succeeds.
-         </li>
-<li>
-          Reuse the brick in multiple states or chains with different option values.
-         </li>
-<li>
-          Pair it with an appropriate trigger to control when the action occurs.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Choose a trigger
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Screen Flash
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Test the action with the simplest possible trigger first, then add variables, timing, or additional conditions.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
+          Related bricks
+         </h4>
 <div class="related-link-list">
 <a href="actuators-ui.html#2d-audio-ui">
-         2D Audio
-        </a>
-<a href="actuators-ui.html#button-ui">
+           2D Audio
+          </a>
+<a href="actuators-ui.html#music-ui">
+           Music
+          </a>
+<a href="actuators-ui.html#screen-flash-ui">
+           Screen Flash
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Animation brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/animationactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Animation
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Button Controls a BaseButton such as Button, CheckBox, or TextureButton. Actions" id="button-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
          Button
-        </a>
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Controls a BaseButton such as Button, CheckBox, or TextureButton.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+           </small>
+           <br/>
+<small>
+            Use self or type the Button node name.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            action
+           </code>
+</td>
+<td>
+           Action
+           <br/>
+<small>
+            Choices: Emit Pressed, Press, Release, Toggle
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Emit Pressed
+            </code>
+           </small>
+           <br/>
+<small>
+            Emit Pressed fires the pressed signal. Press/Release set button_pressed. Toggle flips button_pressed.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Press or release a button from code, such as a keyboard shortcut for a menu button.
+           </li>
+<li>
+            Toggle a CheckBox setting.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Input
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Button
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Emit Pressed runs whatever is connected to the button's pressed signal.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Pressing the button every frame from a trigger that stays active.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-ui.html#button-ui">
+           Button
+          </a>
 <a href="actuators-ui.html#focus-ui">
-         Focus
-        </a>
-<a href="actuators-ui.html#modulate-ui">
-         Color / Transparency
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Screen Flash screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/screen-flash.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Screen Flash screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick actuator" data-compatibility="ui" data-search="Scroll Sets or adds to a ScrollContainer scroll position. UI" id="scroll-ui">
-<div class="brick-heading">
-<span class="badge">
-       action • ui
-      </span>
-<h2>
-       Scroll
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Sets or adds to a ScrollContainer scroll position.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Actions
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          target_node_name
-         </code>
-</td>
-<td>
-         Target Node Name
-         <br/>
-<small>
-          Default:
-          <code>
-           self
-          </code>
-</small>
-<br/>
-<small>
-          ScrollContainer node name
-         </small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          mode
-         </code>
-</td>
-<td>
-         Mode
-         <br/>
-<small>
-          Choices: Set,Add
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           set
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          axis
-         </code>
-</td>
-<td>
-         Axis
-         <br/>
-<small>
-          Choices: Vertical,Horizontal,Both
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           vertical
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          x
-         </code>
-</td>
-<td>
-         X
-         <br/>
-<small>
-          Default:
-          <code>
-           0
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          y
-         </code>
-</td>
-<td>
-         Y
-         <br/>
-<small>
-          Default:
-          <code>
-           0
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Perform the ui action described above after a trigger/gate chain succeeds.
-         </li>
-<li>
-          Reuse the brick in multiple states or chains with different option values.
-         </li>
-<li>
-          Target a specific node by configuring the node field before testing the chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Choose a trigger
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Scroll
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Confirm the target node name and node type before troubleshooting the rest of the chain.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="actuators-ui.html#slider-ui">
-         Slider
-        </a>
-<a href="actuators-ui.html#modulate-ui">
-         Color / Transparency
-        </a>
-<a href="actuators-ui.html#progress-bar-ui">
-         Progress Bar
-        </a>
-<a href="actuators-ui.html#2d-audio-ui">
-         2D Audio
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Scroll screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/scroll.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Scroll screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick actuator" data-compatibility="ui" data-search="Slider Sets or adds to a Slider or Range value. UI" id="slider-ui">
-<div class="brick-heading">
-<span class="badge">
-       action • ui
-      </span>
-<h2>
-       Slider
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Sets or adds to a Slider or Range value.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Actions
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          target_node_name
-         </code>
-</td>
-<td>
-         Target Node Name
-         <br/>
-<small>
-          Default:
-          <code>
-           self
-          </code>
-</small>
-<br/>
-<small>
-          Slider node name
-         </small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          mode
-         </code>
-</td>
-<td>
-         Mode
-         <br/>
-<small>
-          Choices: Set,Add
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           set
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          value
-         </code>
-</td>
-<td>
-         Value
-         <br/>
-<small>
-          Default:
-          <code>
-           0.0
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Perform the ui action described above after a trigger/gate chain succeeds.
-         </li>
-<li>
-          Reuse the brick in multiple states or chains with different option values.
-         </li>
-<li>
-          Target a specific node by configuring the node field before testing the chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Choose a trigger
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Slider
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Confirm the target node name and node type before troubleshooting the rest of the chain.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="actuators-ui.html#progress-bar-ui">
-         Progress Bar
-        </a>
+           Focus
+          </a>
+<a href="actuators-ui.html#tab-ui">
+           Tab
+          </a>
 <a href="actuators-ui.html#scroll-ui">
-         Scroll
-        </a>
-<a href="actuators-ui.html#modulate-ui">
-         Color / Transparency
-        </a>
-<a href="actuators-ui.html#2d-audio-ui">
-         2D Audio
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Slider screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/slider.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Slider screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick actuator" data-compatibility="ui" data-search="Tab Changes the active tab on a TabContainer. UI" id="tab-ui">
-<div class="brick-heading">
-<span class="badge">
-       action • ui
-      </span>
-<h2>
-       Tab
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Changes the active tab on a TabContainer.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Actions
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          target_node_name
-         </code>
-</td>
-<td>
-         Target Node Name
-         <br/>
-<small>
-          Default:
-          <code>
-           self
-          </code>
-</small>
-<br/>
-<small>
-          TabContainer node name
-         </small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          action
-         </code>
-</td>
-<td>
-         Action
-         <br/>
-<small>
-          Choices: Set,Next,Previous
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           set
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          tab_index
-         </code>
-</td>
-<td>
-         Tab Index
-         <br/>
-<small>
-          Default:
-          <code>
-           0
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Perform the ui action described above after a trigger/gate chain succeeds.
-         </li>
-<li>
-          Reuse the brick in multiple states or chains with different option values.
-         </li>
-<li>
-          Target a specific node by configuring the node field before testing the chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Choose a trigger
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Tab
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Confirm the target node name and node type before troubleshooting the rest of the chain.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="actuators-ui.html#2d-audio-ui">
-         2D Audio
-        </a>
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-<a href="actuators-ui.html#focus-ui">
-         Focus
-        </a>
-<a href="actuators-ui.html#modulate-ui">
-         Color / Transparency
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Tab screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/tab.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Tab screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick actuator" data-compatibility="ui" data-search="Text Updates a Label, RichTextLabel, or other text UI node. UI" id="text-ui">
-<div class="brick-heading">
-<span class="badge">
-       action • ui
-      </span>
-<h2>
-       Text
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Updates a Label, RichTextLabel, or other text UI node.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Actions
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          target_node_name
-         </code>
-</td>
-<td>
-         Target Node Name
-         <br/>
-<small>
-          Default:
-          <code>
-           Label
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          node_name_source
-         </code>
-</td>
-<td>
-         Node Name Source
-         <br/>
-<small>
-          Choices: Literal Node Name,String Variable
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           literal
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          export_node_name
-         </code>
-</td>
-<td>
-         Export Node Name
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          mode
-         </code>
-</td>
-<td>
-         Mode
-         <br/>
-<small>
-          Choices: Variable,Static
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           variable
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          variable_name
-         </code>
-</td>
-<td>
-         Variable Name
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          prefix
-         </code>
-</td>
-<td>
-         Prefix
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          suffix
-         </code>
-</td>
-<td>
-         Suffix
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          static_text
-         </code>
-</td>
-<td>
-         Static Text
-        </td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Perform the ui action described above after a trigger/gate chain succeeds.
-         </li>
-<li>
-          Reuse the brick in multiple states or chains with different option values.
-         </li>
-<li>
-          Target a specific node by configuring the node field before testing the chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Choose a trigger
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Text
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Confirm the target node name and node type before troubleshooting the rest of the chain.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="actuators-3d.html#text-3d">
-         Text
-        </a>
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-<a href="actuators-ui.html#focus-ui">
-         Focus
-        </a>
-<a href="actuators-ui.html#modulate-ui">
-         Color / Transparency
-        </a>
-</div>
-</section>
-</details>
-<figure class="screenshot compact">
-<div class="screenshot-image">
-<img alt="Text screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/text.png"/>
-</div>
-<figcaption>
-<strong class="screenshot-caption-title">
-        Text screenshot
-       </strong>
-<span>
-</span>
-</figcaption>
-</figure>
-</section>
-<section class="brick actuator" data-compatibility="ui" data-search="Tween Tweens a UI node property. UI" id="tween-ui">
-<div class="brick-heading">
-<span class="badge">
-       action • ui
-      </span>
-<h2>
-       Tween
-      </h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Tweens a UI node property.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Actions
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          target_mode
-         </code>
-</td>
-<td>
-         Target Mode
-         <br/>
-<small>
-          Choices: Self,Node
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           self
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          target_node_name
-         </code>
-</td>
-<td>
-         Target Node Name
-        </td>
-</tr>
-<tr>
-<td>
-<code>
-          node_name_source
-         </code>
-</td>
-<td>
-         Node Name Source
-         <br/>
-<small>
-          Choices: Literal Node Name,String Variable
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           literal
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          export_node_name
-         </code>
-</td>
-<td>
-         Export Node Name
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          property
-         </code>
-</td>
-<td>
-         Property
-         <br/>
-<small>
-          Default:
-          <code>
-           modulate:a
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          target_value
-         </code>
-</td>
-<td>
-         Target Value
-         <br/>
-<small>
-          Default:
-          <code>
-           0.0
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          duration
-         </code>
-</td>
-<td>
-         Duration
-         <br/>
-<small>
-          Default:
-          <code>
-           0.5
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          trans_type
-         </code>
-</td>
-<td>
-         Trans Type
-         <br/>
-<small>
-          Choices: Linear,Sine,Quint,Quart,Quad,Expo,Elastic,Bounce,Back,Spring,Circular,Cubic
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           linear
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          ease_type
-         </code>
-</td>
-<td>
-         Ease Type
-         <br/>
-<small>
-          Choices: In,Out,In Out,Out In
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           in_out
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          loop
-         </code>
-</td>
-<td>
-         Loop
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Perform the ui action described above after a trigger/gate chain succeeds.
-         </li>
-<li>
-          Reuse the brick in multiple states or chains with different option values.
-         </li>
-<li>
-          Target a specific node by configuring the node field before testing the chain.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          Choose a trigger
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-<span aria-label="Tween: A smooth change from one value to another over a specified duration." class="glossary-term" data-tooltip="A smooth change from one value to another over a specified duration." tabindex="0">
-           Tween
-          </span>
-</span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Confirm the target node name and node type before troubleshooting the rest of the chain.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        Timing options change how long the action takes; avoid retriggering the same transition every frame unless that behavior is intentional.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-<a href="actuators-ui.html#focus-ui">
-         Focus
-        </a>
-<a href="actuators-ui.html#modulate-ui">
-         Color / Transparency
-        </a>
+           Scroll
+          </a>
 <a href="actuators-ui.html#popup-ui">
-         Popup
-        </a>
+           Popup
+          </a>
 </div>
 </section>
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Tween screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/tween.png"/>
+<img alt="Button brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uibuttonactuator-ui.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-        Tween screenshot
-       </strong>
+          Button
+         </strong>
 <span>
-</span>
+          
+         </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="ui" data-search="Visibility Shows, hides, or toggles a UI node. UI" id="visibility-ui">
+<section class="brick actuator" data-compatibility="ui" data-search="Focus Grabs or releases UI focus on a Control node. Actions" id="focus-ui">
 <div class="brick-heading">
 <span class="badge">
-       action • ui
-      </span>
+         action • ui
+        </span>
 <h2>
-       Visibility
-      </h2>
+         Focus
+        </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
+          UI
+         </span>
 </div>
 </div>
 <p>
-      Shows, hides, or toggles a UI node.
-     </p>
+        Grabs or releases UI focus on a Control node.
+       </p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Actions
-       </span>
+          Right-click → Actions
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          target_node_name
-         </code>
+            target_node_name
+           </code>
 </td>
 <td>
-         Target Node Name
-         <br/>
+           Target Node Name
+           <br/>
 <small>
-          Default:
-          <code>
-           self
-          </code>
-</small>
-<br/>
+            Default:
+            <code>
+             self
+            </code>
+           </small>
+           <br/>
 <small>
-          Node name
-         </small>
+            Use self or type the Control node name.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          action
-         </code>
+            action
+           </code>
 </td>
 <td>
-         Action
-         <br/>
+           Action
+           <br/>
 <small>
-          Choices: Show,Hide,Toggle
-         </small>
-<br/>
+            Choices: Grab Focus, Release Focus
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           show
-          </code>
-</small>
+            Default:
+            <code>
+             Grab Focus
+            </code>
+           </small>
+           <br/>
+<small>
+            Grab Focus selects the control for keyboard/gamepad navigation. Release Focus clears it.
+           </small>
 </td>
 </tr>
 </tbody>
 </table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Perform the ui action described above after a trigger/gate chain succeeds.
-         </li>
+            Focus the first menu button so a gamepad can navigate.
+           </li>
 <li>
-          Reuse the brick in multiple states or chains with different option values.
-         </li>
-<li>
-          Target a specific node by configuring the node field before testing the chain.
-         </li>
+            Release focus when a menu closes.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a trigger
-         </span>
+            Signal Receive
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Gate
-         </span>
+            Gate
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Visibility
-         </span>
+            Focus
+           </span>
 </div>
 </section>
 </div>
 <div class="guidance-notes">
 <div class="mini-callout tip">
 <strong>
-         Tip
-        </strong>
-        Confirm the target node name and node type before troubleshooting the rest of the chain.
-       </div>
+           Tip
+          </strong>
+          Grab focus once when a menu opens.
+         </div>
 <div class="mini-callout caution">
 <strong>
-         Common mistake
-        </strong>
-        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
-       </div>
+           Common mistake
+          </strong>
+          Grabbing focus every frame, which blocks navigation to other controls.
+         </div>
 </div>
 <section class="related-bricks">
 <h4>
-        Related bricks
-       </h4>
+          Related bricks
+         </h4>
 <div class="related-link-list">
+<a href="actuators-ui.html#button-ui">
+           Button
+          </a>
+<a href="actuators-ui.html#tab-ui">
+           Tab
+          </a>
+<a href="actuators-ui.html#scroll-ui">
+           Scroll
+          </a>
 <a href="actuators-ui.html#popup-ui">
-         Popup
-        </a>
+           Popup
+          </a>
 <a href="actuators-ui.html#window-ui">
-         Window
-        </a>
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-<a href="actuators-2d.html#visibility-2d">
-         Visibility
-        </a>
+           Window
+          </a>
 </div>
 </section>
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Visibility screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/visibility.png"/>
+<img alt="Focus brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uifocusactuator-ui.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-        Visibility screenshot
-       </strong>
+          Focus
+         </strong>
 <span>
-</span>
+          
+         </span>
 </figcaption>
 </figure>
 </section>
-<section class="brick actuator" data-compatibility="ui" data-search="Window Shows, hides, toggles, or centers a Window node. UI" id="window-ui">
+<section class="brick actuator" data-compatibility="ui" data-search="Color / Transparency Sets or smoothly transitions the color/alpha of a UI or 2D node found by name anywhere in the current scene tree. Actions" id="modulate-ui">
 <div class="brick-heading">
 <span class="badge">
-       action • ui
-      </span>
+         action • ui
+        </span>
 <h2>
-       Window
-      </h2>
+         Color / Transparency
+        </h2>
 <div class="brick-xp-meta">
 <span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
+          UI
+         </span>
 </div>
 </div>
 <p>
-      Shows, hides, toggles, or centers a Window node.
-     </p>
+        Sets or smoothly transitions the color/alpha of a UI or 2D node found by name anywhere in the current scene tree.
+       </p>
 <div class="meta-grid">
 <div>
 <strong>
-        Menu
-       </strong>
+          Menu
+         </strong>
 <span>
-        Add Logic Brick → Actions
-       </span>
+          Right-click → Actions
+         </span>
 </div>
 </div>
 <h3>
-      Options
-     </h3>
+        Options
+       </h3>
 <table class="option-table">
 <thead>
 <tr>
 <th>
-         Property
-        </th>
+           Property
+          </th>
 <th>
-         Details
-        </th>
+           Details
+          </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>
 <code>
-          target_node_name
-         </code>
+            target_node_name
+           </code>
 </td>
 <td>
-         Target Node Name
-         <br/>
+           Target Node Name
+           <br/>
 <small>
-          Default:
-          <code>
-           self
-          </code>
-</small>
-<br/>
-<small>
-          Window node name
-         </small>
+            Literal Node Name: type the CanvasItem node name.<br/>String Variable: type the name of a String variable that stores the node name.
+           </small>
 </td>
 </tr>
 <tr>
 <td>
 <code>
-          action
-         </code>
+            node_name_source
+           </code>
 </td>
 <td>
-         Action
-         <br/>
+           Node Name Source
+           <br/>
 <small>
-          Choices: Show,Hide,Toggle,Popup Centered
-         </small>
-<br/>
+            Choices: Literal Node Name, String Variable
+           </small>
+           <br/>
 <small>
-          Default:
-          <code>
-           show
-          </code>
-</small>
+            Default:
+            <code>
+             literal
+            </code>
+           </small>
+           <br/>
+<small>
+            Literal Node Name: use Target Node Name directly.<br/>String Variable: treat Target Node Name as a variable name and read that String at runtime.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            export_node_name
+           </code>
+</td>
+<td>
+           Export Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Literal mode only. Adds an @export String to the generated script so the node name can be edited in the Inspector without exposing a node reference.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            target_modulate
+           </code>
+</td>
+<td>
+           Target Modulate
+           <br/>
+<small>
+            Choices: Self Modulate, Modulate
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Self Modulate
+            </code>
+           </small>
+           <br/>
+<small>
+            Self Modulate: affects only this node, not children.<br/>Modulate: affects this node and all children.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            color
+           </code>
+</td>
+<td>
+           Color
+           <br/>
+<small>
+            Default:
+            <code>
+             Color(1, 1, 1, 1)
+            </code>
+           </small>
+           <br/>
+<small>
+            Target color. Set alpha to 0 for fade out, 1 for fade in.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            transition
+           </code>
+</td>
+<td>
+           Transition
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Smoothly lerp to the target color each frame.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            transition_speed
+           </code>
+</td>
+<td>
+           Transition Speed
+           <br/>
+<small>
+            Default:
+            <code>
+             5.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Lerp speed. Higher = faster. Accepts a number or variable.
+           </small>
 </td>
 </tr>
 </tbody>
 </table>
 <details class="brick-guidance collapsible-guidance" open="">
 <summary>
-       Using this brick
-      </summary>
+         Using this brick
+        </summary>
 <div class="guidance-columns">
 <section class="guidance-panel uses">
 <h4>
-         Typical uses
-        </h4>
+           Typical uses
+          </h4>
 <ul>
 <li>
-          Perform the ui action described above after a trigger/gate chain succeeds.
-         </li>
+            Fade a menu or label in or out.
+           </li>
 <li>
-          Reuse the brick in multiple states or chains with different option values.
-         </li>
-<li>
-          Target a specific node by configuring the node field before testing the chain.
-         </li>
+            Tint a health bar red when health is low.
+           </li>
 </ul>
 </section>
 <section class="guidance-panel example">
 <h4>
-         Example chain
-        </h4>
+           Example chain
+          </h4>
 <div aria-label="Example logic chain" class="logic-chain">
 <span class="chain-node">
-          Choose a trigger
-         </span>
+            Compare Variable
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Gate
-         </span>
+            Gate
+           </span>
 <span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
+            →
+           </span>
 <span class="chain-node">
-          Window
-         </span>
+            Color / Transparency
+           </span>
 </div>
 </section>
 </div>
 <div class="guidance-notes">
 <div class="mini-callout tip">
 <strong>
-         Tip
-        </strong>
-        Confirm the target node name and node type before troubleshooting the rest of the chain.
-       </div>
+           Tip
+          </strong>
+          Use Self Modulate to tint only this node, not its children.
+         </div>
 <div class="mini-callout caution">
 <strong>
-         Common mistake
-        </strong>
-        A continuously active trigger may run this action every frame. Use a one-shot condition when the action should happen only once.
-       </div>
+           Common mistake
+          </strong>
+          Changing color every frame with Transition on, which restarts the transition.
+         </div>
 </div>
 <section class="related-bricks">
 <h4>
-        Related bricks
-       </h4>
+          Related bricks
+         </h4>
 <div class="related-link-list">
-<a href="actuators-ui.html#popup-ui">
-         Popup
-        </a>
+<a href="actuators-ui.html#text-ui">
+           Text
+          </a>
+<a href="actuators-ui.html#progress-bar-ui">
+           Progress Bar
+          </a>
+<a href="actuators-ui.html#slider-ui">
+           Slider
+          </a>
 <a href="actuators-ui.html#visibility-ui">
-         Visibility
-        </a>
-<a href="actuators-ui.html#button-ui">
-         Button
-        </a>
-<a href="actuators-ui.html#focus-ui">
-         Focus
-        </a>
+           Visibility
+          </a>
+<a href="actuators-ui.html#tween-ui">
+           Tween
+          </a>
 </div>
 </section>
 </details>
 <figure class="screenshot compact">
 <div class="screenshot-image">
-<img alt="Window screenshot placeholder" decoding="async" loading="lazy" src="assets/images/screenshots/window.png"/>
+<img alt="Color / Transparency brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uimodulateactuator-ui.png"/>
 </div>
 <figcaption>
 <strong class="screenshot-caption-title">
-        Window screenshot
-       </strong>
+          Color / Transparency
+         </strong>
 <span>
-</span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="3d 2d ui" data-search="Get Variable Reads a variable/property from self, another node, or GlobalVars, then stores it as a local variable that later bricks can use. Useful for UI health bars, ammo labels, score text, and timers. Actions" id="get-variable-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Get Variable
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Reads a variable/property from self, another node, or GlobalVars, then stores it as a local variable that later bricks can use. Useful for UI health bars, ammo labels, score text, and timers.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            source
+           </code>
+</td>
+<td>
+           Source
+           <br/>
+<small>
+            Choices: Self, Node Name, GlobalVars
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Node Name
+            </code>
+           </small>
+           <br/>
+<small>
+            Self: read from this node.<br/>Node Name: search the current scene for a node with this name.<br/>GlobalVars: read from the GlobalVars autoload.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            source_node_name
+           </code>
+</td>
+<td>
+           Source Node Name
+           <br/>
+<small>
+            The name of the node to read from when Source is Node Name. Example: Player.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            variable_name
+           </code>
+</td>
+<td>
+           Variable Name
+           <br/>
+<small>
+            The variable/property to read from the source. Example: health, ammo, score.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            store_as
+           </code>
+</td>
+<td>
+           Store As
+           <br/>
+<small>
+            The local variable name to store the value in. Later bricks can use this name. Example: current_health.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            fallback_value
+           </code>
+</td>
+<td>
+           Fallback Value
+           <br/>
+<small>
+            Optional value to use if the source or variable cannot be found. Leave blank to keep the previous value.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Copy the player's health into a local variable for a health bar.
+           </li>
+<li>
+            Read a value from GlobalVars or another node for later bricks.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Always
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Get Variable
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Set a Fallback Value so later bricks still work if the source isn't found.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Reading from a node name that doesn't exist; the fallback value is used instead.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#text-ui">
+           Text
+          </a>
+<a href="actuators-ui.html#progress-bar-ui">
+           Progress Bar
+          </a>
+<a href="actuators-ui.html#modify-variable-ui">
+           Modify Variable
+          </a>
+<a href="actuators-ui.html#signal-ui">
+           Signal Send
+          </a>
+<a href="actuators-ui.html#state-ui">
+           State
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Get Variable brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/getvariableactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Get Variable
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="3d 2d ui" data-search="Modify Variable Modifies a variable's value. Works with local and global variables. Automatically uses GlobalVars if not found locally. Actions" id="modify-variable-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Modify Variable
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Modifies a variable's value. Works with local and global variables. Automatically uses GlobalVars if not found locally.
+       </p>
+<div class="callout tip">
+<strong>Array modification</strong>
+When <code>variable_name</code> matches an Array variable, the Mode menu changes automatically. <b>Add Item</b> appends an item, <b>Remove Item</b> removes the matching value, <b>Remove At Index</b> removes an item by position, <b>Set Item At Index</b> replaces an item at a position, and <b>Clear</b> removes all items. <b>Copy</b> makes an independent copy of an Array rather than sharing the same Array reference.
+</div>
+<div class="callout tip">
+<strong>Prevent duplicate items</strong>
+Use a Compare Variable trigger set to <b>Does Not Contain</b> before a Modify Variable action set to <b>Add Item</b>. The action will only run when the item is not already in the Array.
+</div>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            variable_name
+           </code>
+</td>
+<td>
+           Variable Name
+           <br/>
+<small>
+            Name of the variable to modify. Type a name or choose an existing local/global variable from the dropdown.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mode
+           </code>
+</td>
+<td>
+           Mode
+           <br/>
+<small>
+            Choices: Assign, Adjust By, Copy, Toggle
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Assign
+            </code>
+           </small>
+           <br/>
+<small>
+            Number: Assign, Adjust By, Copy, Toggle<br/>String: Replace, Add Before, Add After, Copy<br/>Array: item operations, Assign, Copy
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            value
+           </code>
+</td>
+<td>
+           Value
+           <br/>
+<small>
+            Value used by the selected operation. String values are plain text — do not add quotation marks. Numeric values can use variables or math expressions (for example: MinSpeed * 2).
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            source_variable
+           </code>
+</td>
+<td>
+           Source Variable
+           <br/>
+<small>
+            Source variable name (Copy mode only). Type a name or choose an existing variable from the dropdown.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            item_type
+           </code>
+</td>
+<td>
+           Item Type
+           <br/>
+<small>
+            Choices: bool, int, float, String, Vector2, Vector3
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             String
+            </code>
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            index
+           </code>
+</td>
+<td>
+           Index
+           <br/>
+<small>
+            Default:
+            <code>
+             0
+            </code>
+           </small>
+           <br/>
+<small>
+            Position in the array (0 = first item). Accepts a number, a variable, or math (for example: count - 1).
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Add score, subtract health or toggle a flag.
+           </li>
+<li>
+            Add and remove inventory items in an Array variable.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Collision
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Modify Variable
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Adjust By with a negative value to subtract.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Adjusting a value from a trigger that stays active, so it changes every frame.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-ui.html#compare-variable-ui">
+           Compare Variable
+          </a>
+<a href="sensors-ui.html#variable-ui">
+           Variable
+          </a>
+<a href="actuators-ui.html#get-variable-ui">
+           Get Variable
+          </a>
+<a href="actuators-ui.html#signal-ui">
+           Signal Send
+          </a>
+<a href="actuators-ui.html#state-ui">
+           State
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Modify Variable brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/variableactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Modify Variable
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="3d 2d ui" data-search="Music Three modes: Tracks: define and create music players at startup. Set: set which track is current (and optionally play it). Control: play, stop, pause, resume, or crossfade from current to another track. Actions" id="music-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Music
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Three modes:
+       </p>
+<ul class="brick-description-list">
+<li><b>Tracks:</b> define and create music players at startup.</li>
+<li><b>Set:</b> set which track is current (and optionally play it).</li>
+<li><b>Control:</b> play, stop, pause, resume, or crossfade from current to another track.</li>
+</ul>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            music_mode
+           </code>
+</td>
+<td>
+           Music Mode
+           <br/>
+<small>
+            Choices: Tracks, Set, Control
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Tracks
+            </code>
+           </small>
+           <br/>
+<small>
+            Tracks: set up your music files.<br/>Set: choose the active track.<br/>Control: control playback.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            tracks
+           </code>
+</td>
+<td>
+           Tracks
+           <br/>
+<small>
+            Default:
+            <code>
+             []
+            </code>
+           </small>
+           <br/>
+<small>
+            Music files to preload. Track 0 is first, Track 1 second, etc.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            volume_db
+           </code>
+</td>
+<td>
+           Volume Db
+           <br/>
+<small>
+            Range: -80 to 24
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Default volume in dB for all tracks.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            loop
+           </code>
+</td>
+<td>
+           Loop
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+           </small>
+           <br/>
+<small>
+            Loop all tracks.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            audio_bus
+           </code>
+</td>
+<td>
+           Audio Bus
+           <br/>
+<small>
+            Audio bus for all tracks. Leave empty for Master.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            persist
+           </code>
+</td>
+<td>
+           Persist
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Keep music playing when the scene restarts or changes.<br/>Players are moved to GlobalVars so they survive scene transitions.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            set_track
+           </code>
+</td>
+<td>
+           Set Track
+           <br/>
+<small>
+            Default:
+            <code>
+             0
+            </code>
+           </small>
+           <br/>
+<small>
+            Which track index to make current.<br/>Accepts a number (0, 1, 2…) or a variable name.<br/>With a literal number, fires once and stays. With a variable, switches track whenever the variable changes.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            set_play
+           </code>
+</td>
+<td>
+           Set Play
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+           </small>
+           <br/>
+<small>
+            Also start playing the track when setting it as current.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            control_action
+           </code>
+</td>
+<td>
+           Control Action
+           <br/>
+<small>
+            Choices: Play, Stop, Pause, Resume, Crossfade
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Play
+            </code>
+           </small>
+           <br/>
+<small>
+            Play: start the current track.<br/>Stop: stop the current track.<br/>Pause: freeze the current track.<br/>Resume: continue the current track.<br/>Crossfade: fade out current track and fade in the target track.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            to_track
+           </code>
+</td>
+<td>
+           To Track
+           <br/>
+<small>
+            Default:
+            <code>
+             1
+            </code>
+           </small>
+           <br/>
+<small>
+            Track index to crossfade into.<br/>Accepts a number (1, 2…) or a variable name.<br/>With a literal number, fades once per trigger. With a variable, a new crossfade starts automatically whenever the variable changes.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            crossfade_time
+           </code>
+</td>
+<td>
+           Crossfade Time
+           <br/>
+<small>
+            Range: 0.1 to 10.0
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             1.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Crossfade duration in seconds.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Set up level music once with Tracks, then switch with Set.
+           </li>
+<li>
+            Crossfade to battle or boss music and back.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Signal Receive
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Music
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Define tracks once (for example on the level root at start), then control them from anywhere.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Running Tracks mode more than once. It creates the music players; use Set or Control afterwards.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#2d-audio-ui">
+           2D Audio
+          </a>
+<a href="actuators-ui.html#screen-flash-ui">
+           Screen Flash
+          </a>
+<a href="actuators-ui.html#animation-ui">
+           Animation
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Music brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/musicactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Music
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="3d 2d ui" data-search="Node Properties Sets an Inspector property on Self or another node. The Property list updates to match the selected Target Node. Actions" id="property-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Node Properties
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Sets an Inspector property on Self or another node. The Property list updates to match the selected Target Node.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_node
+           </code>
+</td>
+<td>
+           Target Node
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+           </small>
+           <br/>
+<small>
+            Self uses the node that owns these Logic Bricks. Type a node name or Ctrl-drag a node from the Scene dock.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            property_name
+           </code>
+</td>
+<td>
+           Property Name
+           <br/>
+<small>
+            Choices: the Target Node's Inspector properties
+           </small>
+           <br/>
+<small>
+            Properties are read directly from the selected target node's Inspector property list.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            value
+           </code>
+</td>
+<td>
+           Value
+           <br/>
+<small>
+            Value to assign. Numbers, booleans, vectors, colors, variables, and expressions can be entered directly. Plain text is automatically quoted for String properties.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Change any Inspector property, such as a light's color or a body's mass.
+           </li>
+<li>
+            Toggle settings like visible or disabled on another node.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Collision
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Node Properties
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Choose the Target Node first; the Property list updates to match it.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Picking a property, then changing the Target Node to a different type of node.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#get-variable-ui">
+           Get Variable
+          </a>
+<a href="actuators-ui.html#modify-variable-ui">
+           Modify Variable
+          </a>
+<a href="actuators-ui.html#signal-ui">
+           Signal Send
+          </a>
+<a href="actuators-ui.html#state-ui">
+           State
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Node Properties brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/propertyactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Node Properties
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Popup Controls a Popup, PopupPanel, AcceptDialog, Window, or visible Control. Actions" id="popup-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Popup
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Controls a Popup, PopupPanel, AcceptDialog, Window, or visible Control.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+           </small>
+           <br/>
+<small>
+            Use self or type the popup/control node name.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            action
+           </code>
+</td>
+<td>
+           Action
+           <br/>
+<small>
+            Choices: Show, Hide, Toggle, Popup Centered
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Show
+            </code>
+           </small>
+           <br/>
+<small>
+            Show/Hide/Toggle visibility, or Popup Centered when the target supports it.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Open dialogs, settings or confirmation popups.
+           </li>
+<li>
+            Close a popup when a button is pressed.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Button
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Popup
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Popup Centered for dialogs.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Using Toggle from a trigger that stays active, which flickers every frame.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#button-ui">
+           Button
+          </a>
+<a href="actuators-ui.html#focus-ui">
+           Focus
+          </a>
+<a href="actuators-ui.html#tab-ui">
+           Tab
+          </a>
+<a href="actuators-ui.html#scroll-ui">
+           Scroll
+          </a>
+<a href="actuators-ui.html#window-ui">
+           Window
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Popup brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uipopupactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Popup
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Progress Bar Sets the value, min, or max of a ProgressBar, HSlider, VSlider, or any Range node found by name anywhere in the current scene tree. Actions" id="progress-bar-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Progress Bar
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Sets the value, min, or max of a ProgressBar, HSlider, VSlider, or any Range node found by name anywhere in the current scene tree.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             ProgressBar
+            </code>
+           </small>
+           <br/>
+<small>
+            Literal Node Name: type the Range node name.<br/>String Variable: type the name of a String variable that stores the node name.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            node_name_source
+           </code>
+</td>
+<td>
+           Node Name Source
+           <br/>
+<small>
+            Choices: Literal Node Name, String Variable
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             literal
+            </code>
+           </small>
+           <br/>
+<small>
+            Literal Node Name: use Target Node Name directly.<br/>String Variable: treat Target Node Name as a variable name and read that String at runtime.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            export_node_name
+           </code>
+</td>
+<td>
+           Export Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Literal mode only. Adds an @export String to the generated script so the node name can be edited in the Inspector without exposing a node reference.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            set_value
+           </code>
+</td>
+<td>
+           Set Value
+           <br/>
+<small>
+            Default:
+            <code>
+             true
+            </code>
+           </small>
+           <br/>
+<small>
+            Enable to set the current value.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            value
+           </code>
+</td>
+<td>
+           Value
+           <br/>
+<small>
+            Default:
+            <code>
+             100.0
+            </code>
+           </small>
+           <br/>
+<small>
+            The value to set. Accepts a number or variable name.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            set_min
+           </code>
+</td>
+<td>
+           Set Min
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Enable to set the minimum value.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            min_value
+           </code>
+</td>
+<td>
+           Min Value
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Minimum value. Accepts a number or variable name.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            set_max
+           </code>
+</td>
+<td>
+           Set Max
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Enable to set the maximum value.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            max_value
+           </code>
+</td>
+<td>
+           Max Value
+           <br/>
+<small>
+            Default:
+            <code>
+             100.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Maximum value. Accepts a number or variable name.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            transition
+           </code>
+</td>
+<td>
+           Transition
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Smoothly lerp the value to the target each frame. Only applies to value, not min/max.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            transition_speed
+           </code>
+</td>
+<td>
+           Transition Speed
+           <br/>
+<small>
+            Default:
+            <code>
+             5.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Lerp speed. Higher = faster. Accepts a number or variable.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Show health, stamina or loading progress.
+           </li>
+<li>
+            Change the bar's maximum when the player levels up.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Always
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Progress Bar
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Turn on Transition for a smooth bar.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Typing a node name that isn't a Range node such as ProgressBar.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#text-ui">
+           Text
+          </a>
+<a href="actuators-ui.html#slider-ui">
+           Slider
+          </a>
+<a href="actuators-ui.html#visibility-ui">
+           Visibility
+          </a>
+<a href="actuators-ui.html#modulate-ui">
+           Color / Transparency
+          </a>
+<a href="actuators-ui.html#tween-ui">
+           Tween
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Progress Bar brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uiprogressbaractuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Progress Bar
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Screen Flash Flashes a color over the screen. Press &quot;Apply Code&quot; and the plugin creates the required nodes automatically. Works automatically in both standard and split-screen setups. Actions" id="screen-flash-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Screen Flash
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Flashes a color over the screen. Press "Apply Code" and the plugin creates the required nodes automatically. Works automatically in both standard and split-screen setups.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            color
+           </code>
+</td>
+<td>
+           Color
+           <br/>
+<small>
+            Default:
+            <code>
+             Color(1, 0, 0, 0.8)
+            </code>
+           </small>
+           <br/>
+<small>
+            Flash color. Use alpha to control intensity.<br/>Red = damage flash, White = hit, Black = fade to black.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            duration
+           </code>
+</td>
+<td>
+           Duration
+           <br/>
+<small>
+            Default:
+            <code>
+             0.3
+            </code>
+           </small>
+           <br/>
+<small>
+            Total duration of the flash in seconds.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            fade_in
+           </code>
+</td>
+<td>
+           Fade In
+           <br/>
+<small>
+            Default:
+            <code>
+             0.05
+            </code>
+           </small>
+           <br/>
+<small>
+            Time to reach full color. Keep short for snappy flashes.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Flash red when the player is hurt, or white for an explosion.
+           </li>
+<li>
+            Fade in a color for a quick transition.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Signal Receive
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Screen Flash
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Press Apply Code once; the plugin creates the overlay nodes automatically.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Triggering it every frame, so the screen stays tinted.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#2d-audio-ui">
+           2D Audio
+          </a>
+<a href="actuators-ui.html#music-ui">
+           Music
+          </a>
+<a href="actuators-ui.html#animation-ui">
+           Animation
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Screen Flash brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uiscreenflashactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Screen Flash
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Scroll Moves a ScrollContainer by setting or adding to its scroll position. Actions" id="scroll-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Scroll
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Moves a ScrollContainer by setting or adding to its scroll position.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+           </small>
+           <br/>
+<small>
+            Use self or type the ScrollContainer node name.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mode
+           </code>
+</td>
+<td>
+           Mode
+           <br/>
+<small>
+            Choices: Set, Add
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Set
+            </code>
+           </small>
+           <br/>
+<small>
+            Set replaces the scroll value. Add changes it relative to the current scroll.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            axis
+           </code>
+</td>
+<td>
+           Axis
+           <br/>
+<small>
+            Choices: Vertical, Horizontal, Both
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Vertical
+            </code>
+           </small>
+           <br/>
+<small>
+            Choose which scroll axis to affect.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            x
+           </code>
+</td>
+<td>
+           X
+           <br/>
+<small>
+            Default:
+            <code>
+             0
+            </code>
+           </small>
+           <br/>
+<small>
+            Horizontal scroll value or amount.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            y
+           </code>
+</td>
+<td>
+           Y
+           <br/>
+<small>
+            Default:
+            <code>
+             0
+            </code>
+           </small>
+           <br/>
+<small>
+            Vertical scroll value or amount.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Scroll a list or credits.
+           </li>
+<li>
+            Jump to the top of a long panel.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Input
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Scroll
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Add with small values from Always for auto-scrolling credits.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Pointing it at a node that isn't a ScrollContainer.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#button-ui">
+           Button
+          </a>
+<a href="actuators-ui.html#focus-ui">
+           Focus
+          </a>
+<a href="actuators-ui.html#tab-ui">
+           Tab
+          </a>
+<a href="actuators-ui.html#popup-ui">
+           Popup
+          </a>
+<a href="actuators-ui.html#window-ui">
+           Window
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Scroll brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uiscrollactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Scroll
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="3d 2d ui" data-search="Signal Send Sends a named signal to other nodes. Receiving nodes need a Signal Receive Trigger with a matching Signal name. Actions" id="signal-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Signal Send
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Sends a named signal to other nodes. Receiving nodes need a Signal Receive Trigger with a matching Signal name.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            signal_name
+           </code>
+</td>
+<td>
+           Signal Name
+           <br/>
+<small>
+            Signal name (must match the Signal Receive Trigger's Signal Name).
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Tell other objects that something happened, such as door_open or player_died.
+           </li>
+<li>
+            Connect switches, doors and enemies without direct references.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Collision
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Signal Send
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Keep a short list of signal names so senders and receivers match.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Sending a signal every frame, which floods receivers.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="sensors-ui.html#signal-ui">
+           Signal Receive
+          </a>
+<a href="actuators-ui.html#get-variable-ui">
+           Get Variable
+          </a>
+<a href="actuators-ui.html#modify-variable-ui">
+           Modify Variable
+          </a>
+<a href="actuators-ui.html#state-ui">
+           State
+          </a>
+<a href="actuators-ui.html#property-ui">
+           Node Properties
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Signal Send brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/messageactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Signal Send
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Slider Changes the value of HSlider, VSlider, ProgressBar, SpinBox, or another Range node. Actions" id="slider-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Slider
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Changes the value of HSlider, VSlider, ProgressBar, SpinBox, or another Range node.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+           </small>
+           <br/>
+<small>
+            Use self or type the Range/Slider node name.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mode
+           </code>
+</td>
+<td>
+           Mode
+           <br/>
+<small>
+            Choices: Set, Add
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Set
+            </code>
+           </small>
+           <br/>
+<small>
+            Set replaces the value. Add changes it relative to the current value.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            value
+           </code>
+</td>
+<td>
+           Value
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            Value or amount. Can be a number or variable expression.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Change a volume slider with keys or a gamepad.
+           </li>
+<li>
+            Set a slider to a saved value when a menu opens.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Input
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Slider
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Add with a positive or negative value to step the slider.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Adding every frame from a trigger that stays active, which slides all the way at once.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#text-ui">
+           Text
+          </a>
+<a href="actuators-ui.html#progress-bar-ui">
+           Progress Bar
+          </a>
+<a href="actuators-ui.html#visibility-ui">
+           Visibility
+          </a>
+<a href="actuators-ui.html#modulate-ui">
+           Color / Transparency
+          </a>
+<a href="actuators-ui.html#tween-ui">
+           Tween
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Slider brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uislideractuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Slider
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="3d 2d ui" data-search="State Changes the logic brick state (1-30). Only chains assigned to the active state will run. Actions" id="state-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         State
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Changes the logic brick state (1-30). Only chains assigned to the active state will run.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            state_id
+           </code>
+</td>
+<td>
+           State
+           <br/>
+<small>
+            Choices: the node's states (set up in the States panel)
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Switch between gameplay modes such as Patrol, Chase and Attack.
+           </li>
+<li>
+            Turn groups of chains on and off together.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Proximity
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            State
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Name your states in the States panel; the State dropdown lists them.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Forgetting to assign chains to states, so they keep running in every state.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="controllers-ui.html#controller-controller-gd">
+           Gate
+          </a>
+<a href="actuators-ui.html#get-variable-ui">
+           Get Variable
+          </a>
+<a href="actuators-ui.html#modify-variable-ui">
+           Modify Variable
+          </a>
+<a href="actuators-ui.html#signal-ui">
+           Signal Send
+          </a>
+<a href="actuators-ui.html#property-ui">
+           Node Properties
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="State brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/stateactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          State
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Tab Sets, advances, or reverses the active TabContainer tab. Actions" id="tab-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Tab
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Sets, advances, or reverses the active TabContainer tab.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+           </small>
+           <br/>
+<small>
+            Use self or type the TabContainer node name.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            action
+           </code>
+</td>
+<td>
+           Action
+           <br/>
+<small>
+            Choices: Set, Next, Previous
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Set
+            </code>
+           </small>
+           <br/>
+<small>
+            Set uses Tab Index. Next/Previous cycle through tabs.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            tab_index
+           </code>
+</td>
+<td>
+           Tab Index
+           <br/>
+<small>
+            Default:
+            <code>
+             0
+            </code>
+           </small>
+           <br/>
+<small>
+            Tab index to activate when Action is Set.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Switch settings tabs with the shoulder buttons.
+           </li>
+<li>
+            Jump to a specific tab when a menu opens.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Input
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Tab
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Next and Previous with Just Pressed inputs.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Using Next from a trigger that stays active, which cycles every frame.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#button-ui">
+           Button
+          </a>
+<a href="actuators-ui.html#focus-ui">
+           Focus
+          </a>
+<a href="actuators-ui.html#scroll-ui">
+           Scroll
+          </a>
+<a href="actuators-ui.html#popup-ui">
+           Popup
+          </a>
+<a href="actuators-ui.html#window-ui">
+           Window
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Tab brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uitabactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Tab
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Text Updates a Label, Label3D, or RichTextLabel by node name. Searches the whole current scene tree, so this brick can live on any node. Actions" id="text-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Text
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Updates a Label, Label3D, or RichTextLabel by node name. Searches the whole current scene tree, so this brick can live on any node.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+           </small>
+           <br/>
+<small>
+            Literal Node Name: use self for this node, or type another UI node name, such as ScoreLabel.<br/>String Variable: type the name of a String variable that stores the node name.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            node_name_source
+           </code>
+</td>
+<td>
+           Node Name Source
+           <br/>
+<small>
+            Choices: Literal Node Name, String Variable
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             literal
+            </code>
+           </small>
+           <br/>
+<small>
+            Literal Node Name: use Target Node Name directly.<br/>String Variable: treat Target Node Name as a variable name and read that String at runtime.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            export_node_name
+           </code>
+</td>
+<td>
+           Export Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Literal mode only. Adds an @export String to the generated script so the node name can be edited in the Inspector without exposing a node reference.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            mode
+           </code>
+</td>
+<td>
+           Mode
+           <br/>
+<small>
+            Choices: Variable, Static
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Variable
+            </code>
+           </small>
+           <br/>
+<small>
+            Variable: display a variable's value<br/>Static: display fixed text
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            variable_name
+           </code>
+</td>
+<td>
+           Variable Name
+           <br/>
+<small>
+            Name of the variable to display. Works with local and global variables.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            prefix
+           </code>
+</td>
+<td>
+           Prefix
+           <br/>
+<small>
+            Text before the value, e.g. Score: 
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            suffix
+           </code>
+</td>
+<td>
+           Suffix
+           <br/>
+<small>
+            Text after the value, e.g. pts.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            static_text
+           </code>
+</td>
+<td>
+           Static Text
+           <br/>
+<small>
+            Fixed text to display in Static mode only.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Show score, health or ammo from a variable.
+           </li>
+<li>
+            Set fixed text such as Game Over.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Always
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Text
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Prefix and Suffix, such as Score: , to label values.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Typing a variable name that doesn't exist, so the label stays empty.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#progress-bar-ui">
+           Progress Bar
+          </a>
+<a href="actuators-ui.html#slider-ui">
+           Slider
+          </a>
+<a href="actuators-ui.html#visibility-ui">
+           Visibility
+          </a>
+<a href="actuators-ui.html#modulate-ui">
+           Color / Transparency
+          </a>
+<a href="actuators-ui.html#tween-ui">
+           Tween
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Text brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uitextactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Text
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Tween Animates any property on self or on a node found by name anywhere in the current scene tree. Actions" id="tween-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Tween
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Animates any property on self or on a node found by name anywhere in the current scene tree.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_mode
+           </code>
+</td>
+<td>
+           Target Mode
+           <br/>
+<small>
+            Choices: Self, Node
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Self
+            </code>
+           </small>
+           <br/>
+<small>
+            Self: tween a property on this node.<br/>Node: find a node by name and tween a property on it.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            Node mode only. Literal Node Name: type the target node name. String Variable: type the name of a String variable that stores the node name.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            node_name_source
+           </code>
+</td>
+<td>
+           Node Name Source
+           <br/>
+<small>
+            Choices: Literal Node Name, String Variable
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             literal
+            </code>
+           </small>
+           <br/>
+<small>
+            Literal Node Name: use Target Node Name directly.<br/>String Variable: treat Target Node Name as a variable name and read that String at runtime.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            export_node_name
+           </code>
+</td>
+<td>
+           Export Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Literal mode only. Adds an @export String to the generated script so the node name can be edited in the Inspector without exposing a node reference.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            property
+           </code>
+</td>
+<td>
+           Property
+           <br/>
+<small>
+            Default:
+            <code>
+             modulate:a
+            </code>
+           </small>
+           <br/>
+<small>
+            Property path to animate. Examples: modulate:a, position:y, scale, size.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            target_value
+           </code>
+</td>
+<td>
+           Target Value
+           <br/>
+<small>
+            Default:
+            <code>
+             0.0
+            </code>
+           </small>
+           <br/>
+<small>
+            End value. Accepts a number, Vector2(...), Vector3(...), Color(...), or variable.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            duration
+           </code>
+</td>
+<td>
+           Duration
+           <br/>
+<small>
+            Default:
+            <code>
+             0.5
+            </code>
+           </small>
+           <br/>
+<small>
+            Animation duration in seconds. Accepts a number or variable.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            trans_type
+           </code>
+</td>
+<td>
+           Trans Type
+           <br/>
+<small>
+            Choices: Linear, Sine, Quint, Quart, Quad, Expo, Elastic, Bounce, Back, Spring, Circular, Cubic
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Linear
+            </code>
+           </small>
+           <br/>
+<small>
+            Easing curve shape.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            ease_type
+           </code>
+</td>
+<td>
+           Ease Type
+           <br/>
+<small>
+            Choices: In, Out, In Out, Out In
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             In Out
+            </code>
+           </small>
+           <br/>
+<small>
+            Which part of the curve to apply easing to.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            loop
+           </code>
+</td>
+<td>
+           Loop
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+           <br/>
+<small>
+            Repeat the tween indefinitely.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Smoothly move, scale, rotate or fade a node, such as a menu sliding in or a door opening.
+           </li>
+<li>
+            Animate any property by name, such as modulate:a for fading.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Button
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Tween
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Choose a Trans Type such as Back or Elastic for a more lively motion.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Starting the tween every frame from a trigger that stays active, so it keeps restarting.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#text-ui">
+           Text
+          </a>
+<a href="actuators-ui.html#progress-bar-ui">
+           Progress Bar
+          </a>
+<a href="actuators-ui.html#slider-ui">
+           Slider
+          </a>
+<a href="actuators-ui.html#visibility-ui">
+           Visibility
+          </a>
+<a href="actuators-ui.html#modulate-ui">
+           Color / Transparency
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Tween brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uitweenactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Tween
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Visibility Shows, hides, or toggles visibility of a node by name. Uses the same current-scene recursive name lookup as the Text Action. Actions" id="visibility-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Visibility
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Shows, hides, or toggles visibility of a node by name. Uses the same current-scene recursive name lookup as the Text Action.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+           </small>
+           <br/>
+<small>
+            Type the node name to show/hide/toggle. Use "self" to affect the scripted node and its children.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            action
+           </code>
+</td>
+<td>
+           Action
+           <br/>
+<small>
+            Choices: Show, Hide, Toggle
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Show
+            </code>
+           </small>
+           <br/>
+<small>
+            Show: set visible = true<br/>Hide: set visible = false<br/>Toggle: flip current visibility
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Show or hide objects, prompts or menus.
+           </li>
+<li>
+            Toggle a map or inventory screen with a key.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Input
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Visibility
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Toggle with Just Pressed for open/close keys.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Using Toggle from a trigger that stays active, which flickers every frame.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#text-ui">
+           Text
+          </a>
+<a href="actuators-ui.html#progress-bar-ui">
+           Progress Bar
+          </a>
+<a href="actuators-ui.html#slider-ui">
+           Slider
+          </a>
+<a href="actuators-ui.html#modulate-ui">
+           Color / Transparency
+          </a>
+<a href="actuators-ui.html#tween-ui">
+           Tween
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Visibility brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uivisibilityactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Visibility
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick actuator" data-compatibility="ui" data-search="Window Controls a Godot Window node, such as a settings or dialog window. Actions" id="window-ui">
+<div class="brick-heading">
+<span class="badge">
+         action • ui
+        </span>
+<h2>
+         Window
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Controls a Godot Window node, such as a settings or dialog window.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Actions
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            target_node_name
+           </code>
+</td>
+<td>
+           Target Node Name
+           <br/>
+<small>
+            Default:
+            <code>
+             self
+            </code>
+           </small>
+           <br/>
+<small>
+            Use self or type the Window node name.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            action
+           </code>
+</td>
+<td>
+           Action
+           <br/>
+<small>
+            Choices: Show, Hide, Toggle, Popup Centered
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             Show
+            </code>
+           </small>
+           <br/>
+<small>
+            Show/Hide/Toggle visibility, or Popup Centered when available.
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Open and close a settings window.
+           </li>
+<li>
+            Toggle a debug window with a key.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Input
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Window
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use Popup Centered to open the window in the middle of the screen.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Using Toggle from a trigger that stays active, which flickers every frame.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="actuators-ui.html#button-ui">
+           Button
+          </a>
+<a href="actuators-ui.html#focus-ui">
+           Focus
+          </a>
+<a href="actuators-ui.html#tab-ui">
+           Tab
+          </a>
+<a href="actuators-ui.html#scroll-ui">
+           Scroll
+          </a>
+<a href="actuators-ui.html#popup-ui">
+           Popup
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Window brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/uiwindowactuator-ui.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Window
+         </strong>
+<span>
+          
+         </span>
 </figcaption>
 </figure>
 </section>
 <div class="page-nav">
-<a class="page-nav-card previous" href="actuators-2d.html">
+<a class="page-nav-card previous" href="controllers-ui.html">
 <span class="page-nav-label">
        ← Previous
       </span>
 <strong>
-       Previous 2D Actions
+       UI Gates
       </strong>
 </a>
-<a class="page-nav-card next" href="debugging.html">
+<a class="page-nav-card next" href="advanced.html">
 <span class="page-nav-label">
        Next →
       </span>
 <strong>
-       Next  Debugging
+       Advanced
       </strong>
 </a>
 </div>

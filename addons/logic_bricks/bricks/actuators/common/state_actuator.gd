@@ -46,3 +46,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 func _gdscript_string_literal(value: String) -> String:
 	return '"%s"' % value.c_escape()
+
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Changes the logic brick state (1-30).\nOnly chains assigned to the active state will run.",
+	}

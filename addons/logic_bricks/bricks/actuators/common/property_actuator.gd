@@ -54,6 +54,95 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var node_type = properties.get("node_type", "node_3d")
+	if typeof(node_type) == TYPE_STRING:
+		node_type = node_type.to_lower().replace(" ", "_")
+		var node_type_aliases := {
+			"node": "node_3d",
+			"mesh_instance": "mesh_instance_3d",
+			"collision_shape": "collision_shape_3d",
+			"light": "light_3d",
+			"rigid_body": "rigid_body_3d",
+			"character_body": "character_body_3d",
+			"camera": "camera_3d",
+			"sprite": "sprite_3d",
+		}
+		node_type = node_type_aliases.get(node_type, node_type)
+
+	# All groups and their node type prefix
+	var group_type_map = {
+		"_group_n3d_visibility": "node_3d",
+		"_group_n3d_transform":  "node_3d",
+		"_group_mesh_basic":     "mesh_instance_3d",
+		"_group_col_basic":      "collision_shape_3d",
+		"_group_light_basic":    "light_3d",
+		"_group_light_color":    "light_3d",
+		"_group_light_shadow":   "light_3d",
+		"_group_rb_basic":       "rigid_body_3d",
+		"_group_rb_damping":     "rigid_body_3d",
+		"_group_cb_basic":       "character_body_3d",
+		"_group_cb_floor":       "character_body_3d",
+		"_group_anim_basic":     "animation_player",
+		"_group_ctrl_basic":     "control",
+		"_group_ctrl_transform": "control",
+		"_group_lbl_basic":      "label",
+		"_group_btn_basic":      "button",
+		"_group_cam_basic":      "camera_3d",
+		"_group_spr_basic":     "sprite_3d",
+		"_group_spr_display":   "sprite_3d",
+		"_group_spr_frames":    "sprite_3d",
+		"_group_custom":         "custom",
+	}
+	# All property keys and their node type
+	var prop_type_map = {
+		"n3d_visible": "node_3d", "n3d_pos_x": "node_3d", "n3d_pos_y": "node_3d",
+		"n3d_pos_z": "node_3d", "n3d_rot_x": "node_3d", "n3d_rot_y": "node_3d",
+		"n3d_rot_z": "node_3d", "n3d_scale_x": "node_3d", "n3d_scale_y": "node_3d",
+		"n3d_scale_z": "node_3d",
+		"mesh_visible": "mesh_instance_3d", "mesh_cast_shadow": "mesh_instance_3d",
+		"col_disabled": "collision_shape_3d",
+		"light_visible": "light_3d", "light_energy": "light_3d",
+		"light_color": "light_3d", "light_shadow": "light_3d",
+		"rb_freeze": "rigid_body_3d", "rb_mass": "rigid_body_3d",
+		"rb_gravity_scale": "rigid_body_3d", "rb_linear_damp": "rigid_body_3d",
+		"rb_angular_damp": "rigid_body_3d",
+		"cb_up_dir_y": "character_body_3d", "cb_max_slides": "character_body_3d",
+		"cb_floor_max_angle": "character_body_3d", "cb_stop_on_slope": "character_body_3d",
+		"cb_block_on_wall": "character_body_3d", "cb_slide_on_ceiling": "character_body_3d",
+		"anim_speed_scale": "animation_player",
+		"ctrl_visible": "control", "ctrl_modulate": "control",
+		"ctrl_size_x": "control", "ctrl_size_y": "control",
+		"ctrl_pos_x": "control", "ctrl_pos_y": "control",
+		"ctrl_rotation": "control", "ctrl_scale_x": "control", "ctrl_scale_y": "control",
+		"lbl_text": "label", "lbl_visible": "label", "lbl_modulate": "label",
+		"btn_disabled": "button", "btn_text": "button", "btn_visible": "button",
+		"cam_fov": "camera_3d", "cam_near": "camera_3d",
+		"cam_far": "camera_3d", "cam_current": "camera_3d",
+		"spr_visible": "sprite_3d", "spr_modulate": "sprite_3d",
+		"spr_flip_h": "sprite_3d", "spr_flip_v": "sprite_3d",
+		"spr_pixel_size": "sprite_3d", "spr_billboard": "sprite_3d",
+		"spr_transparent": "sprite_3d", "spr_shaded": "sprite_3d",
+		"spr_double_sided": "sprite_3d", "spr_frame": "sprite_3d",
+		"spr_hframes": "sprite_3d", "spr_vframes": "sprite_3d",
+		"custom_property": "custom", "custom_value": "custom",
+	}
+
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			if prop_name in group_type_map:
+				shown[child] = (group_type_map[prop_name] == node_type)
+			elif prop_name in prop_type_map:
+				shown[child] = (prop_type_map[prop_name] == node_type)
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target_name := str(properties.get("target_node", "self")).strip_edges()
 	var property_name := str(properties.get("property_name", "")).strip_edges()

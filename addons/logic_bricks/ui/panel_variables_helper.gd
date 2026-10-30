@@ -3,11 +3,56 @@ extends RefCounted
 const VariableUtils = preload("res://addons/logic_bricks/core/logic_brick_variable_utils.gd")
 const VariableReorderItem = preload("res://addons/logic_bricks/ui/variable_reorder_item.gd")
 
+const GLOBAL_VARS_PATH := "res://logic_bricks_global_vars.gd"
+const LEGACY_GLOBAL_VARS_PATH := "res://addons/logic_bricks/global_vars.gd"
+const GLOBAL_VARS_SETTING := "logic_bricks/global_vars"
+
 var panel = null
+var _typing_save_timer: Timer = null
+var _pending_local_save := false
+var _pending_global_save := false
 
 
 func setup(target_panel) -> void:
 	panel = target_panel
+
+
+func _queue_typing_save(is_global: bool) -> void:
+	if not (panel is Node) or not panel.is_inside_tree():
+		if is_global:
+			save_global_vars_to_metadata()
+		else:
+			save_variables_to_metadata()
+		return
+	if is_global:
+		_pending_global_save = true
+	else:
+		_pending_local_save = true
+	if not is_instance_valid(_typing_save_timer):
+		_typing_save_timer = Timer.new()
+		_typing_save_timer.one_shot = true
+		_typing_save_timer.wait_time = 0.4
+		_typing_save_timer.timeout.connect(flush_pending_typing)
+		panel.add_child(_typing_save_timer)
+	_typing_save_timer.start()
+
+
+func flush_pending_typing() -> void:
+	if is_instance_valid(_typing_save_timer):
+		_typing_save_timer.stop()
+	var save_local := _pending_local_save
+	var save_global := _pending_global_save
+	_pending_local_save = false
+	_pending_global_save = false
+	if save_local:
+		save_variables_to_metadata()
+	if save_global:
+		save_global_vars_to_metadata()
+
+
+func _connect_typing_commit(edit: LineEdit) -> void:
+	edit.focus_exited.connect(flush_pending_typing)
+	edit.text_submitted.connect(func(_text: String): flush_pending_typing())
 
 
 func add_local_variable() -> void:
@@ -72,6 +117,7 @@ func reorder_variable(from_index: int, target_index: int, is_global: bool) -> vo
 
 
 func create_variable_ui(index: int, var_data: Dictionary, is_global: bool) -> void:
+	var_data["name"] = VariableUtils.normalize_name_spaces(str(var_data.get("name", "")))
 	var item_panel = VariableReorderItem.new()
 	item_panel.setup(panel, index, is_global, str(var_data.get("name", "Global Variable" if is_global else "Variable")))
 	item_panel.tooltip_text = "Drag the header to reorder this global variable" if is_global else "Drag the header to reorder this variable"
@@ -126,9 +172,10 @@ func create_variable_ui(index: int, var_data: Dictionary, is_global: bool) -> vo
 	var name_edit = LineEdit.new()
 	if not is_global:
 		name_edit.name = "NameEdit"
-	name_edit.text = str(var_data.get("name", ""))
+	name_edit.text = VariableUtils.normalize_name_spaces(str(var_data.get("name", "")))
 	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_edit.text_changed.connect(_on_variable_name_changed.bind(index, name_display, is_global))
+	name_edit.text_changed.connect(_on_variable_name_changed.bind(index, name_display, is_global, name_edit))
+	_connect_typing_commit(name_edit)
 	row1.add_child(name_edit)
 
 	var row2 = HBoxContainer.new()
@@ -180,6 +227,7 @@ func create_variable_ui(index: int, var_data: Dictionary, is_global: bool) -> vo
 	min_edit.custom_minimum_size = Vector2(60, 0)
 	_set_limit_edit_enabled(min_edit, bool(var_data.get("use_min", false)))
 	min_edit.text_changed.connect(_on_variable_min_val_changed.bind(index, is_global))
+	_connect_typing_commit(min_edit)
 	row_min.add_child(min_edit)
 	min_check.toggled.connect(_on_variable_min_toggled.bind(index, min_edit, is_global))
 
@@ -197,6 +245,7 @@ func create_variable_ui(index: int, var_data: Dictionary, is_global: bool) -> vo
 	max_edit.custom_minimum_size = Vector2(60, 0)
 	_set_limit_edit_enabled(max_edit, bool(var_data.get("use_max", false)))
 	max_edit.text_changed.connect(_on_variable_max_val_changed.bind(index, is_global))
+	_connect_typing_commit(max_edit)
 	row_max.add_child(max_edit)
 	max_check.toggled.connect(_on_variable_max_toggled.bind(index, max_edit, is_global))
 
@@ -251,6 +300,7 @@ func _create_value_editor(parent: VBoxContainer, index: int, var_data: Dictionar
 		edit.text = value_to_line_edit_text(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_type)))
 		edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		edit.text_changed.connect(_on_variable_value_changed.bind(index, is_global))
+		_connect_typing_commit(edit)
 		row.add_child(edit)
 		return
 
@@ -275,6 +325,7 @@ func _create_value_editor(parent: VBoxContainer, index: int, var_data: Dictionar
 		axis_row.add_child(axis_edit)
 	for axis_edit in edits:
 		axis_edit.text_changed.connect(_on_vector_axis_value_changed.bind(index, var_type, edits, is_global))
+		_connect_typing_commit(axis_edit)
 
 
 func _create_array_value_editor(parent: VBoxContainer, index: int, var_data: Dictionary, is_global: bool) -> void:
@@ -314,6 +365,7 @@ func _create_array_value_editor(parent: VBoxContainer, index: int, var_data: Dic
 		edit.text = str(item.get("value", ""))
 		edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		edit.text_changed.connect(_on_array_item_value_changed.bind(index, item_index, is_global))
+		_connect_typing_commit(edit)
 		row.add_child(edit)
 		var remove_btn := Button.new()
 		remove_btn.text = "×"
@@ -374,7 +426,7 @@ func _on_array_item_value_changed(new_value: String, index: int, item_index: int
 		items[item_index] = {"type":"String", "value":""}
 	items[item_index]["value"] = new_value
 	data[index]["value"] = items
-	_save_array_change(is_global)
+	_queue_typing_save(is_global)
 
 
 func _save_array_change(is_global: bool) -> void:
@@ -402,10 +454,7 @@ func _on_vector_axis_value_changed(_new_text: String, index: int, var_type: Stri
 			component = "0"
 		values.append(component)
 	data[index]["value"] = "%s(%s)" % [var_type, ", ".join(values)]
-	if is_global:
-		save_global_vars_to_metadata()
-	else:
-		save_variables_to_metadata()
+	_queue_typing_save(is_global)
 
 
 func _set_limit_edit_enabled(line_edit: LineEdit, enabled: bool) -> void:
@@ -413,16 +462,14 @@ func _set_limit_edit_enabled(line_edit: LineEdit, enabled: bool) -> void:
 	line_edit.modulate.a = 1.0 if enabled else 0.4
 
 
-func _on_variable_name_changed(new_name: String, index: int, name_display: Label, is_global: bool) -> void:
+func _on_variable_name_changed(new_name: String, index: int, name_display: Label, is_global: bool, name_edit: LineEdit = null) -> void:
 	var data = panel.global_vars_data if is_global else panel.variables_data
 	if index < 0 or index >= data.size():
 		return
+	new_name = VariableUtils.normalize_name_edit(new_name, name_edit)
 	data[index]["name"] = new_name
 	name_display.text = "%s: %s" % [new_name, data[index].get("type", "int")]
-	if is_global:
-		save_global_vars_to_metadata()
-	else:
-		save_variables_to_metadata()
+	_queue_typing_save(is_global)
 
 
 func _on_variable_type_changed(type_index: int, index: int, name_display: Label, is_global: bool) -> void:
@@ -447,10 +494,7 @@ func _on_variable_value_changed(new_value: String, index: int, is_global: bool) 
 	if index < 0 or index >= data.size():
 		return
 	data[index]["value"] = new_value
-	if is_global:
-		save_global_vars_to_metadata()
-	else:
-		save_variables_to_metadata()
+	_queue_typing_save(is_global)
 
 
 func _on_variable_exported_changed(exported: bool, index: int) -> void:
@@ -481,10 +525,7 @@ func _on_variable_min_val_changed(new_val: String, index: int, is_global: bool) 
 	if index < 0 or index >= data.size():
 		return
 	data[index]["min_val"] = new_val
-	if is_global:
-		save_global_vars_to_metadata()
-	else:
-		save_variables_to_metadata()
+	_queue_typing_save(is_global)
 
 
 func _on_variable_max_toggled(enabled: bool, index: int, max_edit: LineEdit, is_global: bool) -> void:
@@ -504,10 +545,7 @@ func _on_variable_max_val_changed(new_val: String, index: int, is_global: bool) 
 	if index < 0 or index >= data.size():
 		return
 	data[index]["max_val"] = new_val
-	if is_global:
-		save_global_vars_to_metadata()
-	else:
-		save_variables_to_metadata()
+	_queue_typing_save(is_global)
 
 
 func _on_variable_collapse_toggled(index: int, is_global: bool, collapse_btn: Button, details: VBoxContainer) -> void:
@@ -529,19 +567,33 @@ func _on_delete_variable_pressed(index: int, is_global: bool) -> void:
 			return
 		var removed_id = str(panel.global_vars_data[index].get("id", ""))
 		panel.global_vars_data.remove_at(index)
-		if panel.current_node and not removed_id.is_empty():
-			var usage = get_global_usage_map()
-			if usage.has(removed_id):
-				usage.erase(removed_id)
-				panel.current_node.set_meta("logic_bricks_global_usage", usage)
+		# A global belongs to the project, not one selected node. Remove its usage
+		# flag from every node in the edited scene so stale metadata cannot bring
+		# the deleted proxy back on a later Apply Code.
+		if panel.editor_interface and not removed_id.is_empty():
+			var scene_root = panel.editor_interface.get_edited_scene_root()
+			_clear_global_usage_recursive(scene_root, removed_id)
 		refresh_global_variables_ui()
-		save_global_vars_to_metadata()
+		save_global_vars_to_metadata(true, "Delete Global Logic Brick Variable")
 		return
 	if index < 0 or index >= panel.variables_data.size():
 		return
 	panel.variables_data.remove_at(index)
 	refresh_local_variables_ui()
 	save_variables_to_metadata()
+
+
+func _clear_global_usage_recursive(node: Node, global_id: String) -> void:
+	if node == null or global_id.is_empty():
+		return
+	if node.has_meta("logic_bricks_global_usage"):
+		var usage = node.get_meta("logic_bricks_global_usage")
+		if usage is Dictionary and usage.has(global_id):
+			var updated = usage.duplicate(true)
+			updated.erase(global_id)
+			node.set_meta("logic_bricks_global_usage", updated)
+	for child in node.get_children():
+		_clear_global_usage_recursive(child, global_id)
 
 
 func _is_debug_watch_enabled(value: Variant) -> bool:
@@ -610,6 +662,7 @@ func set_global_used_in_current_script(index: int, enabled: bool) -> void:
 
 
 func save_variables_to_metadata(record_change: bool = true, action_name: String = "Edit Logic Brick Variable") -> void:
+	_pending_local_save = false
 	if not panel.current_node:
 		return
 	if panel._is_part_of_instance(panel.current_node) and not panel._instance_override:
@@ -617,6 +670,7 @@ func save_variables_to_metadata(record_change: bool = true, action_name: String 
 	var target_node = panel.current_node
 	var before_snapshot = panel._take_graph_snapshot()
 	target_node.set_meta("logic_bricks_variables", panel.variables_data.duplicate(true))
+	panel._refresh_variable_brick_context_ui()
 	panel._mark_scene_modified()
 	update_global_vars_script()
 	if record_change:
@@ -624,6 +678,7 @@ func save_variables_to_metadata(record_change: bool = true, action_name: String 
 
 
 func save_global_vars_to_metadata(record_change: bool = true, action_name: String = "Edit Global Logic Brick Variable") -> void:
+	_pending_global_save = false
 	if not panel.editor_interface:
 		return
 	ensure_global_var_ids()
@@ -632,7 +687,14 @@ func save_global_vars_to_metadata(record_change: bool = true, action_name: Strin
 		return
 	var target_node = panel.current_node
 	var before_snapshot = panel._take_graph_snapshot() if target_node else {}
-	scene_root.set_meta("logic_bricks_global_vars", panel.global_vars_data.duplicate(true))
+	var project_globals = panel.global_vars_data.duplicate(true)
+	# Store the canonical definitions in project.godot. This survives addon
+	# replacement and is shared by every scene. Keep scene metadata as a
+	# compatibility mirror for older versions of Logic Bricks.
+	ProjectSettings.set_setting(GLOBAL_VARS_SETTING, project_globals)
+	ProjectSettings.save()
+	scene_root.set_meta("logic_bricks_global_vars", project_globals)
+	panel._refresh_variable_brick_context_ui()
 	panel._mark_scene_modified()
 	update_global_vars_script()
 	if record_change and target_node:
@@ -640,18 +702,17 @@ func save_global_vars_to_metadata(record_change: bool = true, action_name: Strin
 
 
 func update_global_vars_script() -> void:
-	var script_path = "res://addons/logic_bricks/global_vars.gd"
+	var script_path = GLOBAL_VARS_PATH
+	# The in-memory project list is authoritative. Do not merge old declarations
+	# back in from disk: that made a deleted global impossible to delete.
 	var merged: Array[Dictionary] = []
 	var merged_names: Array[String] = []
 	for var_data in panel.global_vars_data:
-		var vname = var_data.get("name", "")
+		var vname = VariableUtils.normalize_name_spaces(str(var_data.get("name", "")))
 		if not vname.is_empty() and vname not in merged_names:
-			merged.append(var_data.duplicate())
-			merged_names.append(vname)
-	for disk_var in read_global_vars_from_script():
-		var vname = disk_var.get("name", "")
-		if not vname.is_empty() and vname not in merged_names:
-			merged.append(disk_var)
+			var definition: Dictionary = var_data.duplicate(true)
+			definition["name"] = vname
+			merged.append(definition)
 			merged_names.append(vname)
 
 	var lines: Array[String] = [
@@ -663,7 +724,7 @@ func update_global_vars_script() -> void:
 		lines.append("# (no global variables)")
 	else:
 		for var_data in merged:
-			var var_name = var_data.get("name", "")
+			var var_name = VariableUtils.normalize_name_spaces(str(var_data.get("name", "")))
 			var var_type = VariableUtils.normalize_type(str(var_data.get("type", "int")))
 			var var_value = VariableUtils.to_gdscript_value_literal(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_type)), var_type)
 			if not var_name.is_empty():
@@ -680,7 +741,10 @@ func update_global_vars_script() -> void:
 
 func read_global_vars_from_script() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	var file = FileAccess.open("res://addons/logic_bricks/global_vars.gd", FileAccess.READ)
+	var read_path := GLOBAL_VARS_PATH
+	if not FileAccess.file_exists(read_path) and FileAccess.file_exists(LEGACY_GLOBAL_VARS_PATH):
+		read_path = LEGACY_GLOBAL_VARS_PATH
+	var file = FileAccess.open(read_path, FileAccess.READ)
 	if not file:
 		return result
 	var text = file.get_as_text()
@@ -731,21 +795,45 @@ func load_variables_from_metadata() -> void:
 		var saved_vars = panel.current_node.get_meta("logic_bricks_variables")
 		if saved_vars is Array:
 			for var_data in saved_vars:
-				if not var_data.get("global", false):
-					panel.variables_data.append(var_data.duplicate())
+				if var_data is Dictionary and not var_data.get("global", false):
+					panel.variables_data.append(var_data.duplicate(true))
 	if panel.editor_interface:
 		var scene_root = panel.editor_interface.get_edited_scene_root()
-		if scene_root and scene_root.has_meta("logic_bricks_global_vars"):
-			var saved_globals = scene_root.get_meta("logic_bricks_global_vars")
-			if saved_globals is Array:
-				for var_data in saved_globals:
-					panel.global_vars_data.append(var_data.duplicate())
-		else:
-			for var_data in read_global_vars_from_script():
-				panel.global_vars_data.append(var_data)
-			if not panel.global_vars_data.is_empty() and scene_root:
-				scene_root.set_meta("logic_bricks_global_vars", panel.global_vars_data.duplicate())
+		var loaded_project_globals := false
+		if ProjectSettings.has_setting(GLOBAL_VARS_SETTING):
+			var saved_project_globals = ProjectSettings.get_setting(GLOBAL_VARS_SETTING, [])
+			if saved_project_globals is Array:
+				for var_data in saved_project_globals:
+					if var_data is Dictionary:
+						panel.global_vars_data.append(var_data.duplicate(true))
+				loaded_project_globals = true
+		if not loaded_project_globals:
+			# Migration path for projects created before globals became project-wide.
+			if scene_root and scene_root.has_meta("logic_bricks_global_vars"):
+				var saved_globals = scene_root.get_meta("logic_bricks_global_vars")
+				if saved_globals is Array:
+					for var_data in saved_globals:
+						if var_data is Dictionary:
+							_merge_legacy_global_definition(var_data)
+
+			# Very old projects stored globals in each node's logic_bricks_variables
+			# array with global=true. Recover those definitions from the whole scene.
+			# This only runs before the project-wide setting exists, so intentionally
+			# deleted globals cannot be resurrected later by stale node metadata.
+			if panel.global_vars_data.is_empty() and scene_root:
+				_recover_legacy_globals_recursive(scene_root)
+
+			# Final fallback: recover declarations from either the new project file or
+			# the old addon-local global_vars.gd if it still exists.
+			if panel.global_vars_data.is_empty():
+				for var_data in read_global_vars_from_script():
+					_merge_legacy_global_definition(var_data)
 	ensure_global_var_ids()
+	if panel.editor_interface and not ProjectSettings.has_setting(GLOBAL_VARS_SETTING):
+		# Persist migrated globals immediately so subsequent scenes use the same list.
+		ProjectSettings.set_setting(GLOBAL_VARS_SETTING, panel.global_vars_data.duplicate(true))
+		ProjectSettings.save()
+		update_global_vars_script()
 	if panel.current_node.has_meta("logic_bricks_variables"):
 		var legacy_vars = panel.current_node.get_meta("logic_bricks_variables")
 		if legacy_vars is Array:
@@ -768,6 +856,31 @@ func load_variables_from_metadata() -> void:
 				panel.current_node.set_meta("logic_bricks_global_usage", usage_map)
 	refresh_local_variables_ui()
 	refresh_global_variables_ui()
+
+
+func _merge_legacy_global_definition(var_data: Dictionary) -> void:
+	var legacy_name := str(var_data.get("name", "")).strip_edges()
+	if legacy_name.is_empty():
+		return
+	for existing in panel.global_vars_data:
+		if str(existing.get("name", "")) == legacy_name:
+			return
+	var migrated := var_data.duplicate(true)
+	migrated["global"] = true
+	panel.global_vars_data.append(migrated)
+
+
+func _recover_legacy_globals_recursive(node: Node) -> void:
+	if node == null:
+		return
+	if node.has_meta("logic_bricks_variables"):
+		var saved_vars = node.get_meta("logic_bricks_variables")
+		if saved_vars is Array:
+			for var_data in saved_vars:
+				if var_data is Dictionary and bool(var_data.get("global", false)):
+					_merge_legacy_global_definition(var_data)
+	for child in node.get_children():
+		_recover_legacy_globals_recursive(child)
 
 
 func build_export_range_str(var_type: String, use_min: bool, min_val: String, use_max: bool, max_val: String) -> String:
@@ -796,7 +909,7 @@ func get_variables_code() -> String:
 	if not panel.variables_data.is_empty() or not used_globals.is_empty():
 		lines.append("# Variables")
 	for var_data in panel.variables_data:
-		var var_name = var_data.get("name", "")
+		var var_name = VariableUtils.normalize_name_spaces(str(var_data.get("name", "")))
 		var var_type = var_data.get("type", "int")
 		var var_value = VariableUtils.to_gdscript_value_literal(var_data.get("value", VariableUtils.get_default_value_for_variable_type(var_type)), var_type)
 		var exported = var_data.get("exported", false)
@@ -815,7 +928,7 @@ func get_variables_code() -> String:
 		else:
 			lines.append(("@export " if exported else "") + "var %s: %s = %s" % [var_name, var_type, var_value])
 	for var_data in used_globals:
-		var var_name = var_data.get("name", "")
+		var var_name = VariableUtils.normalize_name_spaces(str(var_data.get("name", "")))
 		var var_type = var_data.get("type", "int")
 		var use_min = var_data.get("use_min", false)
 		var min_val = var_data.get("min_val", "0")
@@ -826,13 +939,14 @@ func get_variables_code() -> String:
 		lines.append("var %s: %s:" % [var_name, var_type])
 		lines.append("\tget:")
 		lines.append("\t\tvar _gv = get_node_or_null(\"/root/GlobalVars\")")
-		lines.append("\t\treturn _gv.%s if _gv else null" % var_name)
+		var fallback_value = VariableUtils.to_gdscript_value_literal(VariableUtils.get_default_value_for_variable_type(var_type), var_type)
+		lines.append("\t\treturn _gv.get(\"%s\") if _gv and \"%s\" in _gv else %s" % [var_name, var_name, fallback_value])
 		lines.append("\tset(val):")
 		lines.append("\t\tvar _gv = get_node_or_null(\"/root/GlobalVars\")")
 		if var_type in ["int", "float"] and (use_min or use_max):
-			lines.append("\t\tif _gv: _gv.%s = %s" % [var_name, build_clamp_expr("val", var_type, use_min, min_val, use_max, max_val)])
+			lines.append("\t\tif _gv and \"%s\" in _gv: _gv.set(\"%s\", %s)" % [var_name, var_name, build_clamp_expr("val", var_type, use_min, min_val, use_max, max_val)])
 		else:
-			lines.append("\t\tif _gv: _gv.%s = val" % var_name)
+			lines.append("\t\tif _gv and \"%s\" in _gv: _gv.set(\"%s\", val)" % [var_name, var_name])
 	if lines.is_empty():
 		return ""
 	lines.append("")

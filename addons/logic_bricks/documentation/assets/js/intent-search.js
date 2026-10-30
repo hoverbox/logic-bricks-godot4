@@ -94,7 +94,7 @@
     { id:"state_logic", terms:["state","mode","phase","status","on off","enabled disabled","only once","one time","do once","every frame","always"], suggestions:[
       [["State"],"Change or manage which logic state is active."],
       [["Always"],"Run logic continuously while the brick is enabled."],
-      [["Once"],"Allow an action or condition to happen only once when needed."] ] },
+      [["Delay"],"Fire once after a wait; set Duration to 0 so it is active for a single frame."] ] },
     { id:"animation", terms:["animation","animate","play animation","idle","walk animation","attack animation","sprite animation"], suggestions:[
       [["Animation"],"Play, stop, or control an AnimationPlayer animation."],
       [["Sprite Animation"],"Control AnimatedSprite2D animations."],
@@ -127,7 +127,7 @@
       [["Modify Variable"],"Store values that should be included in saved game state."] ] },
     { id:"physics", terms:["physics","gravity","fall","falling","ground","floor","wall","ceiling","platform","slope","push","force","impulse","knockback","velocity","rigidbody","rigid body"], suggestions:[
       [["Gravity"],"Apply or control gravity behavior."],
-      [["Force 2D","Force"],"Apply a continuing physical force."],
+      [["Force"],"Apply a continuing physical force."],
       [["Impulse 2D","Impulse"],"Apply a one-time physical impulse such as knockback."],
       [["Linear Velocity 2D","Linear Velocity"],"Set or change linear velocity directly."] ] },
     { id:"ui", terms:["ui","hud","interface","menu","label","text","health bar","health meter","progress bar","score display","score text","slider","popup","window","tab"], suggestions:[
@@ -161,7 +161,7 @@
     { id:"property", terms:["property","change property","set property","color","scale","size","position value"], suggestions:[
       [["Node Properties"],"Set supported properties on another node."],
       [["Set Transform"],"Set position, rotation, or scale values."],
-      [["Tween","Tween Animation"],"Change a property smoothly over time."] ] }
+      [["Tween"],"Change a property smoothly over time."] ] }
   ];
 
   // Curated beginner game-mechanic phrases. These are intentionally kept in
@@ -173,7 +173,7 @@
   const COMMON_MECHANICS = [
     { id:"moving_platform", phrases:["moving platform","platform moves","platform move","move platform","back and forth platform","platform back and forth","platform between points","platform between waypoints","elevator","lift platform","moving elevator"], suggestions:[
       [["Path Follow"],"Move the platform repeatedly through a sequence of points or along a Path3D curve."],
-      [["Tween","Tween Animation"],"Smoothly animate a platform property or transform when a waypoint path is not needed."],
+      [["Tween"],"Smoothly animate a platform property or transform when a waypoint path is not needed."],
       [["Always"],"Keep continuous platform movement logic active when the behavior should run all the time."] ] },
     { id:"enemy_patrol", phrases:["enemy patrol","monster patrol","npc patrol","guard patrol","patrol between points","patrol between waypoints","walk between points","walk between waypoints","follow patrol route"], suggestions:[
       [["Path Follow"],"Move an enemy or NPC through a predefined patrol route."],
@@ -181,7 +181,7 @@
       [["Rotate Towards"],"Turn the patrolling character toward its next target when needed."] ] },
     { id:"rotating_platform", phrases:["rotating platform","spinning platform","platform rotates","platform spins","spin object","rotating object"], suggestions:[
       [["Set Transform"],"Change rotation values on a platform or object."],
-      [["Tween","Tween Animation"],"Animate rotation smoothly over time."],
+      [["Tween"],"Animate rotation smoothly over time."],
       [["Always"],"Keep a continuously rotating object updating."] ] },
     { id:"falling_platform", phrases:["falling platform","platform falls","drop platform","platform drops","breakaway platform"], suggestions:[
       [["Collision"],"Detect when the player reaches or stands on the platform."],
@@ -265,6 +265,18 @@
       [["Smooth Follow Camera"],"Have the camera smoothly follow a target."],
       [["3rd Person Camera"],"Use a third-person camera setup around the player."],
       [["Set Camera"],"Choose or switch the active camera when needed."] ] },
+    { id:"third_person", phrases:["third person camera","3rd person camera","third person game","third person controller","orbit camera","camera orbits player","over the shoulder camera","over shoulder camera"], suggestions:[
+      [["3rd Person Camera"],"Orbit the camera around the player with the mouse or right stick."],
+      [["Look At Input"],"Turn on Camera Relative so the character faces the way it moves."],
+      [["Position"],"Turn on Camera Relative so movement follows the camera's direction."] ] },
+    { id:"camera_walls", phrases:["camera goes through walls","camera clips through wall","camera inside wall","camera collision","camera wall collision","avoid walls","camera avoid walls","camera stops at walls","camera zooms in","camera behind pillar","spring arm"], suggestions:[
+      [["3rd Person Camera"],"Turn on Avoid Walls; Narrow Obstacle Width lets the camera look past pillars and posts."] ] },
+    { id:"mouse_look", phrases:["mouse look","look around with mouse","look around with the mouse","turn camera with mouse","first person look","first person camera","fps camera","aim with mouse"], suggestions:[
+      [["Mouse"],"Use Mouse Look mode to turn the player or camera with the mouse."],
+      [["3rd Person Camera"],"Orbit a third-person camera around the player with the mouse or right stick."] ] },
+    { id:"camera_smooth", phrases:["camera stutter","camera stutters","camera jitter","camera jittery","jittery camera","choppy camera","camera not smooth","mouse look jitter"], suggestions:[
+      [["3rd Person Camera"],"Keep Smooth Physics Motion on; Apply Code turns on physics interpolation."],
+      [["Mouse"],"Keep Enable Physics Interpolation on for Mouse Look."] ] },
     { id:"hazard", phrases:["spikes hurt player","lava hurts player","hazard damages player","damage zone","kill zone","death zone","instant death"], suggestions:[
       [["Collision"],"Detect when the player enters or touches the hazard."],
       [["Modify Variable"],"Reduce health or lives when the hazard is triggered."],
@@ -395,9 +407,15 @@
     return 0;
   }
 
+  // Suggestions are bricks only. The search index also holds pages and help
+  // topics (Interface, Troubleshooting, ...); those stay in the regular search.
+  function isBrickItem(item) {
+    return /(Actions|Triggers|Gates)$/.test(String(item.label || ""));
+  }
+
   function pickIndexItem(index, names, domain) {
     let available = names.flatMap((name, nameOrder) => index
-      .filter((item) => item.label !== "Page" && item.title === name)
+      .filter((item) => isBrickItem(item) && item.title === name)
       .map((item) => ({ item, nameOrder })));
     if (!available.length) return null;
 
@@ -486,7 +504,7 @@
     });
 
     // Documentation text provides broad coverage for concepts not yet in the curated vocabulary.
-    index.filter((item) => item.label !== "Page" && itemMatchesDomain(item, domain)).forEach((item) => {
+    index.filter((item) => isBrickItem(item) && itemMatchesDomain(item, domain)).forEach((item) => {
       const title = normalize(item.title);
       const haystack = normalize(`${item.title} ${item.label} ${item.description || ""}`);
       let score = 0;

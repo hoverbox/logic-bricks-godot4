@@ -169,3 +169,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	return {
 		"actuator_code": "\n".join(code_lines)
 	}
+
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Sets, adds to, or averages the linear_velocity of a RigidBody3D.\nRequires a RigidBody3D node.",
+		"mode": "Set: replace current velocity.\nAdd: add to current velocity.\nAverage: blend with current velocity.",
+		"velocity_x": "Velocity on the X axis.",
+		"velocity_y": "Velocity on the Y axis.",
+		"velocity_z": "Velocity on the Z axis.",
+		"local": "If true, velocity is relative to the node\'s rotation.\nIf false, velocity is in world-space axes.",
+	}

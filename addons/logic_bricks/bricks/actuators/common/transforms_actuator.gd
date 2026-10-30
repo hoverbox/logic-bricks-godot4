@@ -82,7 +82,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var rotation_variable := _sanitize_identifier(str(properties.get("rotation_variable", "")))
 	var scale_variable := _sanitize_identifier(str(properties.get("scale_variable", "")))
 	var use_tween := bool(properties.get("use_tween", false))
-	var duration := maxf(float(properties.get("duration", 1.0)), 0.001)
+	# Tween duration as generated code, never below 0.001 s (clamped at runtime for a variable/math).
+	var duration_literal = _literal_number("duration", 1.0)
+	var duration: String = "%.6f" % maxf(float(duration_literal), 0.001) if duration_literal != null \
+		else "maxf(%s, 0.001)" % _num("duration", 1.0, 6)
 	var label := _unique_label(chain_name)
 	var errors: Array[String] = []
 	if not set_position and not set_rotation and not set_scale: errors.append("select Position, Rotation, and/or Scale")
@@ -99,9 +102,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		lines.append("_transform_target_%s = _transform_root_%s.find_child(\"%s\", true, false) if _transform_root_%s else null" % [label,label,_gd_string(node_name),label])
 	for item in [["position",set_position,position_mode,position_variable],["rotation",set_rotation,rotation_mode,rotation_variable],["scale",set_scale,scale_mode,scale_variable]]:
 		if item[1] and item[2] != "values": _append_variable_lookup(lines, label, item[0], item[3])
-	if set_position and position_mode == "values": lines.append("var _position_value_%s = Vector3(%.6f, %.6f, %.6f)" % [label,float(properties.get("position_x",0.0)),float(properties.get("position_y",0.0)),float(properties.get("position_z",0.0))])
-	if set_rotation and rotation_mode == "values": lines.append("var _rotation_value_%s = Vector3(deg_to_rad(%.6f), deg_to_rad(%.6f), deg_to_rad(%.6f))" % [label,float(properties.get("rotation_x",0.0)),float(properties.get("rotation_y",0.0)),float(properties.get("rotation_z",0.0))])
-	if set_scale and scale_mode == "values": lines.append("var _scale_value_%s = Vector3(%.6f, %.6f, %.6f)" % [label,float(properties.get("scale_x",1.0)),float(properties.get("scale_y",1.0)),float(properties.get("scale_z",1.0))])
+	if set_position and position_mode == "values": lines.append("var _position_value_%s = Vector3(%s, %s, %s)" % [label,_num("position_x",0.0,6),_num("position_y",0.0,6),_num("position_z",0.0,6)])
+	if set_rotation and rotation_mode == "values": lines.append("var _rotation_value_%s = Vector3(deg_to_rad(%s), deg_to_rad(%s), deg_to_rad(%s))" % [label,_num("rotation_x",0.0,6),_num("rotation_y",0.0,6),_num("rotation_z",0.0,6)])
+	if set_scale and scale_mode == "values": lines.append("var _scale_value_%s = Vector3(%s, %s, %s)" % [label,_num("scale_x",1.0,6),_num("scale_y",1.0,6),_num("scale_z",1.0,6)])
 	lines.append("if _transform_target_%s is Node2D:" % label)
 	_append_node2d(lines,label,use_global,set_position,set_rotation,set_scale,use_tween,duration,position_variable,rotation_variable,scale_variable)
 	lines.append("elif _transform_target_%s is Node3D:" % label)
@@ -112,52 +115,52 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 func _append_variable_lookup(lines:Array[String], label:String, prefix:String, variable_name:String) -> void:
 	lines.append("var _%s_value_%s = null" % [prefix,label])
-	lines.append("if \"%s\" in self:" % variable_name)
-	lines.append("\t_%s_value_%s = get(\"%s\")" % [prefix,label,variable_name])
+	lines.append("if \"%s\" in self:" % _gd_string(str(variable_name)))
+	lines.append("\t_%s_value_%s = get(\"%s\")" % [prefix,label,_gd_string(str(variable_name))])
 	lines.append("else:")
 	lines.append("\tvar _%s_globals_%s = get_node_or_null(\"/root/GlobalVars\")" % [prefix,label])
-	lines.append("\tif _%s_globals_%s and \"%s\" in _%s_globals_%s:" % [prefix,label,variable_name,prefix,label])
-	lines.append("\t\t_%s_value_%s = _%s_globals_%s.get(\"%s\")" % [prefix,label,prefix,label,variable_name])
+	lines.append("\tif _%s_globals_%s and \"%s\" in _%s_globals_%s:" % [prefix,label,_gd_string(str(variable_name)),prefix,label])
+	lines.append("\t\t_%s_value_%s = _%s_globals_%s.get(\"%s\")" % [prefix,label,prefix,label,_gd_string(str(variable_name))])
 
-func _append_node2d(lines:Array[String], label:String, use_global:bool, sp:bool, sr:bool, ss:bool, tween:bool, duration:float, pv:String, rv:String, sv:String) -> void:
+func _append_node2d(lines:Array[String], label:String, use_global:bool, sp:bool, sr:bool, ss:bool, tween:bool, duration:String, pv:String, rv:String, sv:String) -> void:
 	var props:Array[String] = []
 	if sp:
 		lines.append("\tvar _p2_%s = _position_value_%s if _position_value_%s is Vector2 else Vector2(_position_value_%s.x, _position_value_%s.y) if _position_value_%s is Vector3 else null" % [label,label,label,label,label,label])
-		lines.append("\tif _p2_%s == null: push_warning(\"Transforms Actuator: Position variable '%s' must be Vector2 or Vector3\")" % [label,pv])
+		lines.append("\tif _p2_%s == null: push_warning(\"Transforms Actuator: Position variable '%s' must be Vector2 or Vector3\")" % [label,_gd_string(str(pv))])
 		props.append("[\"%s\", _p2_%s]" % ["global_position" if use_global else "position",label])
 	if sr:
 		lines.append("\tvar _r2_%s = _rotation_value_%s if _rotation_value_%s is float or _rotation_value_%s is int else _rotation_value_%s.z if _rotation_value_%s is Vector3 else null" % [label,label,label,label,label,label])
-		lines.append("\tif _r2_%s == null: push_warning(\"Transforms Actuator: Rotation variable '%s' must be a number or Vector3\")" % [label,rv])
+		lines.append("\tif _r2_%s == null: push_warning(\"Transforms Actuator: Rotation variable '%s' must be a number or Vector3\")" % [label,_gd_string(str(rv))])
 		props.append("[\"%s\", _r2_%s]" % ["global_rotation" if use_global else "rotation",label])
 	if ss:
 		lines.append("\tvar _s2_%s = _scale_value_%s if _scale_value_%s is Vector2 else Vector2(_scale_value_%s.x, _scale_value_%s.y) if _scale_value_%s is Vector3 else null" % [label,label,label,label,label,label])
-		lines.append("\tif _s2_%s == null: push_warning(\"Transforms Actuator: Scale variable '%s' must be Vector2 or Vector3\")" % [label,sv])
+		lines.append("\tif _s2_%s == null: push_warning(\"Transforms Actuator: Scale variable '%s' must be Vector2 or Vector3\")" % [label,_gd_string(str(sv))])
 		props.append("[\"%s\", _s2_%s]" % ["global_scale" if use_global else "scale",label])
 	_append_apply(lines,label,props,tween,duration)
 
-func _append_node3d(lines:Array[String], label:String, use_global:bool, sp:bool, sr:bool, ss:bool, tween:bool, duration:float, pv:String, rv:String, sv:String) -> void:
+func _append_node3d(lines:Array[String], label:String, use_global:bool, sp:bool, sr:bool, ss:bool, tween:bool, duration:String, pv:String, rv:String, sv:String) -> void:
 	var props:Array[String] = []
 	if sp:
 		lines.append("\tvar _p3_%s = _position_value_%s if _position_value_%s is Vector3 else null" % [label,label,label])
-		lines.append("\tif _p3_%s == null: push_warning(\"Transforms Actuator: Position variable '%s' must be Vector3\")" % [label,pv])
+		lines.append("\tif _p3_%s == null: push_warning(\"Transforms Actuator: Position variable '%s' must be Vector3\")" % [label,_gd_string(str(pv))])
 		props.append("[\"%s\", _p3_%s]" % ["global_position" if use_global else "position",label])
 	if sr:
 		lines.append("\tvar _r3_%s = _rotation_value_%s if _rotation_value_%s is Vector3 else null" % [label,label,label])
-		lines.append("\tif _r3_%s == null: push_warning(\"Transforms Actuator: Rotation variable '%s' must be Vector3\")" % [label,rv])
+		lines.append("\tif _r3_%s == null: push_warning(\"Transforms Actuator: Rotation variable '%s' must be Vector3\")" % [label,_gd_string(str(rv))])
 		props.append("[\"%s\", _r3_%s]" % ["global_rotation" if use_global else "rotation",label])
 	if ss:
 		lines.append("\tvar _s3_%s = _scale_value_%s if _scale_value_%s is Vector3 else null" % [label,label,label])
-		lines.append("\tif _s3_%s == null: push_warning(\"Transforms Actuator: Scale variable '%s' must be Vector3\")" % [label,sv])
+		lines.append("\tif _s3_%s == null: push_warning(\"Transforms Actuator: Scale variable '%s' must be Vector3\")" % [label,_gd_string(str(sv))])
 		props.append("[\"scale\", _s3_%s]" % label)
 	_append_apply(lines,label,props,tween,duration)
 
-func _append_apply(lines:Array[String], label:String, props:Array[String], tween:bool, duration:float) -> void:
+func _append_apply(lines:Array[String], label:String, props:Array[String], tween:bool, duration:String) -> void:
 	lines.append("\tvar _transform_values_%s = [%s]" % [label,", ".join(props)])
 	if tween:
 		lines.append("\tvar _transform_tween_%s = create_tween().set_parallel(true)" % label)
 		lines.append("\t_transform_tween_%s.set_trans(%s).set_ease(%s)" % [label,_transition_const(),_ease_const()])
 		lines.append("\tfor _entry_%s in _transform_values_%s:" % [label,label])
-		lines.append("\t\tif _entry_%s[1] != null: _transform_tween_%s.tween_property(_transform_target_%s, _entry_%s[0], _entry_%s[1], %.6f)" % [label,label,label,label,label,duration])
+		lines.append("\t\tif _entry_%s[1] != null: _transform_tween_%s.tween_property(_transform_target_%s, _entry_%s[0], _entry_%s[1], %s)" % [label,label,label,label,label,duration])
 	else:
 		lines.append("\tfor _entry_%s in _transform_values_%s:" % [label,label])
 		lines.append("\t\tif _entry_%s[1] != null: _transform_target_%s.set(_entry_%s[0], _entry_%s[1])" % [label,label,label,label])

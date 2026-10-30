@@ -20,7 +20,8 @@ func _initialize_properties() -> void:
 	properties = {
 		"mode": "save",         # save, load
 		"scope": "this_node",   # this_node, target_node, group
-		"target": "",           # Node name (target_node) or group name (group)
+		"target_node_name": "", # Node to save/load (Target Node scope)
+		"target_group": "",     # Group to save/load (Group scope; empty = "save")
 		"slot": "slot1",        # Save slot name → user://saves/slot1.json
 		"save_path": "",        # Custom path, overrides slot if set
 		"save_position": true,
@@ -46,12 +47,19 @@ func get_property_definitions() -> Array:
 			"default": "this_node"
 		},
 		{
-			"name": "target",
-			"group_picker": true,
-			"group_picker_if": {"scope": "group"},
+			"name": "target_node_name",
 			"type": TYPE_STRING,
 			"default": "",
-			"placeholder": "Node name or group name"
+			"placeholder": "Node name",
+			"visible_if": {"scope": "target_node"}
+		},
+		{
+			"name": "target_group",
+			"group_picker": true,
+			"type": TYPE_STRING,
+			"default": "",
+			"placeholder": "save",
+			"visible_if": {"scope": "group"}
 		},
 		{
 			"name": "slot",
@@ -85,7 +93,10 @@ func get_property_definitions() -> Array:
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = properties.get("mode", "save")
 	var scope = properties.get("scope", "this_node")
-	var target = properties.get("target", "")
+	var scope_key := str(scope).to_lower().replace(" ", "_")
+	var target = properties.get("target_group", "") if scope_key == "group" else properties.get("target_node_name", "")
+	if str(target).strip_edges().is_empty():
+		target = properties.get("target", "")  # data from before the split (templates, old copies)
 	var slot = properties.get("slot", "slot1")
 	var save_path = properties.get("save_path", "")
 	var save_position = properties.get("save_position", true)
@@ -129,8 +140,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	var code_lines: Array[String] = []
 
-	# Ensure the saves directory exists before any file operation
-	code_lines.append("DirAccess.make_dir_recursive_absolute(\"user://saves\")")
+	# Ensure the folder of the file actually used exists before any file
+	# operation. This used to always create user://saves, so a custom Save Path
+	# in another folder (e.g. user://profiles/a.json) failed to open.
+	code_lines.append("DirAccess.make_dir_recursive_absolute(\"%s\")" % _gd_string(resolved_path.get_base_dir()))
 
 	# Build a helper that serializes a single node's state into a sub-dictionary
 	# We inline this logic per-scope rather than emitting a helper function,
@@ -145,17 +158,17 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					code_lines.append("# Save game state (this node)")
 					code_lines.append("var _save_data: Dictionary = {}")
 					_append_node_save_lines(code_lines, "self", save_position, save_rotation, save_variables, "")
-					code_lines.append("var _file = FileAccess.open(\"%s\", FileAccess.WRITE)" % resolved_path)
+					code_lines.append("var _file = FileAccess.open(\"%s\", FileAccess.WRITE)" % _gd_string(str(resolved_path)))
 					code_lines.append("if _file:")
 					code_lines.append("\t_file.store_string(JSON.stringify(_save_data))")
 					code_lines.append("\t_file.close()")
 					code_lines.append("else:")
-					code_lines.append("\tpush_error(\"Save/Load Actuator: Failed to open save file: %s\")" % resolved_path)
+					code_lines.append("\tpush_error(\"Save/Load Actuator: Failed to open save file: %s\")" % _gd_string(str(resolved_path)))
 
 				"load":
 					code_lines.append("# Load game state (this node)")
-					code_lines.append("if FileAccess.file_exists(\"%s\"):" % resolved_path)
-					code_lines.append("\tvar _file = FileAccess.open(\"%s\", FileAccess.READ)" % resolved_path)
+					code_lines.append("if FileAccess.file_exists(\"%s\"):" % _gd_string(str(resolved_path)))
+					code_lines.append("\tvar _file = FileAccess.open(\"%s\", FileAccess.READ)" % _gd_string(str(resolved_path)))
 					code_lines.append("\tif _file:")
 					code_lines.append("\t\tvar _json = JSON.new()")
 					code_lines.append("\t\tvar _err = _json.parse(_file.get_as_text())")
@@ -163,39 +176,39 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					code_lines.append("\t\tif _err == OK and _json.data is Dictionary:")
 					_append_node_load_lines(code_lines, "self", save_position, save_rotation, save_variables, "\t\t\t")
 					code_lines.append("\t\telse:")
-					code_lines.append("\t\t\tpush_error(\"Save/Load Actuator: Invalid or missing save file: %s\")" % resolved_path)
+					code_lines.append("\t\t\tpush_error(\"Save/Load Actuator: Invalid or missing save file: %s\")" % _gd_string(str(resolved_path)))
 					code_lines.append("\telse:")
-					code_lines.append("\t\tpush_error(\"Save/Load Actuator: Failed to open save file: %s\")" % resolved_path)
+					code_lines.append("\t\tpush_error(\"Save/Load Actuator: Failed to open save file: %s\")" % _gd_string(str(resolved_path)))
 					code_lines.append("else:")
-					code_lines.append("\tpush_warning(\"Save/Load Actuator: Save file not found: %s\")" % resolved_path)
+					code_lines.append("\tpush_warning(\"Save/Load Actuator: Save file not found: %s\")" % _gd_string(str(resolved_path)))
 
 		# ── Target Node ────────────────────────────────────────────────────────
 		"target_node":
 			if target.is_empty():
-				code_lines.append("push_warning(\"Save/Load Actuator: Target Node scope requires a node name in the Target field.\")")
+				code_lines.append("push_warning(\"Save/Load Actuator: Target Node scope requires a node name in the Target Node Name field.\")")
 			else:
 				match mode:
 					"save":
-						code_lines.append("# Save game state (target node: %s)" % target)
-						code_lines.append("var _target_node = get_tree().root.find_child(\"%s\", true, false)" % target)
+						code_lines.append("# Save game state (target node: %s)" % _gd_string(str(target)))
+						code_lines.append("var _target_node = get_tree().root.find_child(\"%s\", true, false)" % _gd_string(str(target)))
 						code_lines.append("if _target_node:")
 						code_lines.append("\tvar _save_data: Dictionary = {}")
 						_append_node_save_lines(code_lines, "_target_node", save_position, save_rotation, save_variables, "\t")
-						code_lines.append("\tvar _file = FileAccess.open(\"%s\", FileAccess.WRITE)" % resolved_path)
+						code_lines.append("\tvar _file = FileAccess.open(\"%s\", FileAccess.WRITE)" % _gd_string(str(resolved_path)))
 						code_lines.append("\tif _file:")
 						code_lines.append("\t\t_file.store_string(JSON.stringify(_save_data))")
 						code_lines.append("\t\t_file.close()")
 						code_lines.append("\telse:")
-						code_lines.append("\t\tpush_error(\"Save/Load Actuator: Failed to open save file: %s\")" % resolved_path)
+						code_lines.append("\t\tpush_error(\"Save/Load Actuator: Failed to open save file: %s\")" % _gd_string(str(resolved_path)))
 						code_lines.append("else:")
-						code_lines.append("\tpush_warning(\"Save/Load Actuator: Could not find node named '%s'.\")" % target)
+						code_lines.append("\tpush_warning(\"Save/Load Actuator: Could not find node named '%s'.\")" % _gd_string(str(target)))
 
 					"load":
-						code_lines.append("# Load game state (target node: %s)" % target)
-						code_lines.append("var _target_node = get_tree().root.find_child(\"%s\", true, false)" % target)
+						code_lines.append("# Load game state (target node: %s)" % _gd_string(str(target)))
+						code_lines.append("var _target_node = get_tree().root.find_child(\"%s\", true, false)" % _gd_string(str(target)))
 						code_lines.append("if _target_node:")
-						code_lines.append("\tif FileAccess.file_exists(\"%s\"):" % resolved_path)
-						code_lines.append("\t\tvar _file = FileAccess.open(\"%s\", FileAccess.READ)" % resolved_path)
+						code_lines.append("\tif FileAccess.file_exists(\"%s\"):" % _gd_string(str(resolved_path)))
+						code_lines.append("\t\tvar _file = FileAccess.open(\"%s\", FileAccess.READ)" % _gd_string(str(resolved_path)))
 						code_lines.append("\t\tif _file:")
 						code_lines.append("\t\t\tvar _json = JSON.new()")
 						code_lines.append("\t\t\tvar _err = _json.parse(_file.get_as_text())")
@@ -203,22 +216,22 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 						code_lines.append("\t\t\tif _err == OK and _json.data is Dictionary:")
 						_append_node_load_lines(code_lines, "_target_node", save_position, save_rotation, save_variables, "\t\t\t\t")
 						code_lines.append("\t\t\telse:")
-						code_lines.append("\t\t\t\tpush_error(\"Save/Load Actuator: Invalid save data: %s\")" % resolved_path)
+						code_lines.append("\t\t\t\tpush_error(\"Save/Load Actuator: Invalid save data: %s\")" % _gd_string(str(resolved_path)))
 						code_lines.append("\t\telse:")
-						code_lines.append("\t\t\tpush_error(\"Save/Load Actuator: Failed to open save file: %s\")" % resolved_path)
+						code_lines.append("\t\t\tpush_error(\"Save/Load Actuator: Failed to open save file: %s\")" % _gd_string(str(resolved_path)))
 						code_lines.append("\telse:")
-						code_lines.append("\t\tpush_warning(\"Save/Load Actuator: Save file not found: %s\")" % resolved_path)
+						code_lines.append("\t\tpush_warning(\"Save/Load Actuator: Save file not found: %s\")" % _gd_string(str(resolved_path)))
 						code_lines.append("else:")
-						code_lines.append("\tpush_warning(\"Save/Load Actuator: Could not find node named '%s'.\")" % target)
+						code_lines.append("\tpush_warning(\"Save/Load Actuator: Could not find node named '%s'.\")" % _gd_string(str(target)))
 
 		# ── Group ──────────────────────────────────────────────────────────────
 		"group":
 			var group_name = target if not target.is_empty() else "save"
 			match mode:
 				"save":
-					code_lines.append("# Save game state (group: %s)" % group_name)
+					code_lines.append("# Save game state (group: %s)" % _gd_string(str(group_name)))
 					code_lines.append("var _save_data: Dictionary = {}")
-					code_lines.append("for _gnode in get_tree().get_nodes_in_group(\"%s\"):" % group_name)
+					code_lines.append("for _gnode in get_tree().get_nodes_in_group(\"%s\"):" % _gd_string(str(group_name)))
 					code_lines.append("\tvar _ndata: Dictionary = {}")
 					if save_position:
 						code_lines.append("\tif _gnode.get(\"global_position\") != null:")
@@ -238,18 +251,18 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 						code_lines.append("\t\t\t\t_vars[_pname] = _val")
 						code_lines.append("\t\t_ndata[\"variables\"] = _vars")
 					code_lines.append("\t_save_data[str(_gnode.get_path())] = _ndata")
-					code_lines.append("var _file = FileAccess.open(\"%s\", FileAccess.WRITE)" % resolved_path)
+					code_lines.append("var _file = FileAccess.open(\"%s\", FileAccess.WRITE)" % _gd_string(str(resolved_path)))
 					code_lines.append("if _file:")
 					code_lines.append("\t_file.store_string(JSON.stringify(_save_data))")
 					code_lines.append("\t_file.close()")
-					code_lines.append("\tprint(\"Game saved to: %s\")" % resolved_path)
+					code_lines.append("\tprint(\"Game saved to: %s\")" % _gd_string(str(resolved_path)))
 					code_lines.append("else:")
-					code_lines.append("\tpush_error(\"Save/Load Actuator: Failed to open save file: %s\")" % resolved_path)
+					code_lines.append("\tpush_error(\"Save/Load Actuator: Failed to open save file: %s\")" % _gd_string(str(resolved_path)))
 
 				"load":
-					code_lines.append("# Load game state (group: %s)" % group_name)
-					code_lines.append("if FileAccess.file_exists(\"%s\"):" % resolved_path)
-					code_lines.append("\tvar _file = FileAccess.open(\"%s\", FileAccess.READ)" % resolved_path)
+					code_lines.append("# Load game state (group: %s)" % _gd_string(str(group_name)))
+					code_lines.append("if FileAccess.file_exists(\"%s\"):" % _gd_string(str(resolved_path)))
+					code_lines.append("\tvar _file = FileAccess.open(\"%s\", FileAccess.READ)" % _gd_string(str(resolved_path)))
 					code_lines.append("\tif _file:")
 					code_lines.append("\t\tvar _json = JSON.new()")
 					code_lines.append("\t\tvar _err = _json.parse(_file.get_as_text())")
@@ -273,13 +286,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 						code_lines.append("\t\t\t\tif _ndata.has(\"variables\"):")
 						code_lines.append("\t\t\t\t\tfor _vname in _ndata[\"variables\"]:")
 						code_lines.append("\t\t\t\t\t\t_gnode.set(_vname, _ndata[\"variables\"][_vname])")
-					code_lines.append("\t\t\tprint(\"Game loaded from: %s\")" % resolved_path)
+					code_lines.append("\t\t\tprint(\"Game loaded from: %s\")" % _gd_string(str(resolved_path)))
 					code_lines.append("\t\telse:")
-					code_lines.append("\t\t\tpush_error(\"Save/Load Actuator: Invalid save data: %s\")" % resolved_path)
+					code_lines.append("\t\t\tpush_error(\"Save/Load Actuator: Invalid save data: %s\")" % _gd_string(str(resolved_path)))
 					code_lines.append("\telse:")
-					code_lines.append("\t\tpush_error(\"Save/Load Actuator: Failed to open save file: %s\")" % resolved_path)
+					code_lines.append("\t\tpush_error(\"Save/Load Actuator: Failed to open save file: %s\")" % _gd_string(str(resolved_path)))
 					code_lines.append("else:")
-					code_lines.append("\tpush_warning(\"Save/Load Actuator: Save file not found: %s\")" % resolved_path)
+					code_lines.append("\tpush_warning(\"Save/Load Actuator: Save file not found: %s\")" % _gd_string(str(resolved_path)))
 
 	return {
 		"actuator_code": "\n".join(code_lines)
@@ -319,3 +332,17 @@ func _append_node_load_lines(lines: Array, node_ref: String, pos: bool, rot: boo
 		lines.append("%sif _json.data.has(\"variables\"):" % indent)
 		lines.append("%s\tfor _vname in _json.data[\"variables\"]:" % indent)
 		lines.append("%s\t\t%s.set(_vname, _json.data[\"variables\"][_vname])" % [indent, node_ref])
+
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Saves or loads game state to/from a JSON file.\nThree scopes — no custom save()/load() methods needed on any node.\n• This Node: saves the node this brick is on\n• Target Node: saves a specific node found by name\n• Group: saves every node in a named group",
+		"mode": "Save: write data to file. Load: read data from file.",
+		"scope": "This Node: save/load the node this brick is on.\nTarget Node: save/load a specific node by name.\nGroup: save/load every node in a named group automatically.",
+		"target_node_name": "Target Node scope: the name of the node to save/load.",
+		"target_group": "Group scope: every node in this group is saved/loaded (defaults to 'save' if left empty).",
+		"slot": "Named save slot. Used as the filename when Save Path is empty (e.g. \'slot1\' → user://saves/slot1.json).",
+		"save_path": "Custom file path, e.g. \'user://saves/my_save.json\'. Leave empty to use the Slot name instead.",
+		"save_position": "Include the node\'s global position in the save data.",
+		"save_rotation": "Include the node\'s global rotation in the save data.",
+		"save_variables": "Include non-private script variables in the save data.",
+	}

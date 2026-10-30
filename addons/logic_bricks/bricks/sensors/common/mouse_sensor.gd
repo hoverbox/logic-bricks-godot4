@@ -18,7 +18,8 @@ func _initialize_properties() -> void:
 		"button_state": "pressed",      # pressed, released, held (for button type)
 		"wheel_direction": "up",        # up, down (for wheel type)
 		"movement_threshold": 0.1,      # Minimum movement to trigger (for movement type)
-		"target_node_name": "self"      # Node to test for Hover Object; self or child node name
+		"target_node_name": "self",     # Node to test for Hover Object; self or child node name
+		"check_interval": 0.0           # Hover modes: seconds between checks; 0 = every frame
 	}
 
 
@@ -61,8 +62,47 @@ func get_property_definitions() -> Array:
 			"name": "target_node_name",
 			"type": TYPE_STRING,
 			"default": "self"
+		},
+		{
+			"name": "check_interval",
+			"type": TYPE_FLOAT,
+			"hint": PROPERTY_HINT_RANGE,
+			"hint_string": "0.0,5.0,0.05",
+			"default": 0.0
 		}
 	]
+
+
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var detection_type = properties.get("detection_type", "button")
+
+	# Normalize
+	if typeof(detection_type) == TYPE_STRING:
+		detection_type = detection_type.to_lower().replace(" ", "_")
+
+	# Show/hide fields based on detection type
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"mouse_button", "button_state":
+					shown[child] = (detection_type == "button")
+				"wheel_direction":
+					shown[child] = (detection_type == "wheel")
+				"movement_threshold":
+					shown[child] = (detection_type == "movement")
+				"target_node_name":
+					shown[child] = (detection_type == "hover_object")
+				"check_interval":
+					shown[child] = (detection_type == "hover_object" or detection_type == "hover_any")
+				"area_node_name":
+					shown[child] = false
+	return shown
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
@@ -70,7 +110,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mouse_button = properties.get("mouse_button", "left")
 	var button_state = properties.get("button_state", "pressed")
 	var wheel_direction = properties.get("wheel_direction", "up")
-	var movement_threshold = properties.get("movement_threshold", 0.1)
 	var target_node_name = properties.get("target_node_name", "self")
 	# Backward compatibility for older bricks that saved the old Area3D-specific field.
 	# Treat the old default as self, but preserve any custom name the user typed.
@@ -160,13 +199,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("# Mouse movement detection")
 			code_lines.append("var _current_pos = get_viewport().get_mouse_position()")
 			code_lines.append("var _delta_mouse = _current_pos - %s" % last_pos_var)
-			code_lines.append("var sensor_active = _delta_mouse.length() > %.3f" % movement_threshold)
+			code_lines.append("var sensor_active = _delta_mouse.length() > %s" % _num("movement_threshold", 0.1))
 			code_lines.append("%s = _current_pos" % last_pos_var)
 
 		"hover_object":
 			code_lines.append("# Hover over target object detection")
 			code_lines.append("var sensor_active = false")
-			var escaped_target = str(target_node_name).replace("\"", "\\\"").strip_edges()
+			var escaped_target = _gd_string(str(target_node_name)).strip_edges()
 			if escaped_target.is_empty() or escaped_target == "self":
 				code_lines.append("var _hover_target = self")
 			else:
@@ -230,6 +269,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("\tif _result:")
 				code_lines.append("\t\tsensor_active = true")
 
+	if detection_type == "hover_object" or detection_type == "hover_any":
+		var interval_number = _literal_number("check_interval", 0.0)
+		var interval = _num("check_interval") if interval_number == null else maxf(0.0, interval_number)
+		var timed := _wrap_sensor_interval(code_lines, interval, chain_name)
+		code_lines = timed["code"]
+		member_vars.append_array(timed["member_vars"])
+
 	var result = {
 		"sensor_code": "\n".join(code_lines)
 	}
@@ -240,3 +286,15 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		result["methods"] = extra_methods
 
 	return result
+
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Detects mouse buttons, wheel movement, mouse motion, and mouse hover ray hits.",
+		"detection_type": "What mouse event to detect: Button, Wheel, Movement, Hover Object, or Hover Any.",
+		"mouse_button": "Which mouse button to detect: Left, Right, or Middle.",
+		"button_state": "When to activate: Pressed, Released, or Held.",
+		"wheel_direction": "Which wheel direction to detect.",
+		"movement_threshold": "Minimum mouse movement before the trigger activates.",
+		"target_node_name": "For Hover Object: self, or the name/path of a child node to detect under the mouse. The target or one of its child collision objects must be hit by the ray.",
+		"check_interval": "Hover modes: seconds between checks. 0 = check every frame.\nEach hover check casts a ray, so checking less often saves work when many objects use hover; between checks the trigger keeps its last result. 0.05 to 0.1 still feels instant.",
+	}

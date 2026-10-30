@@ -96,6 +96,23 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var group_mode = str(properties.get("mode", "add")).to_lower().replace(" ", "_")
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			if prop_name == "group_name":
+				shown[child] = group_mode in ["add", "remove"]
+			elif prop_name in ["from_group", "to_group"]:
+				shown[child] = group_mode == "change"
+	return shown
+
+
 func generate_code(_node: Node, _chain_name: String) -> Dictionary:
 	var mode := str(properties.get("mode", "add")).strip_edges().to_lower().replace(" ", "_")
 	var target_node := str(properties.get("target_node", "")).strip_edges()

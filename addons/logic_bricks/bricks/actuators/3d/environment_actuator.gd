@@ -163,7 +163,7 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Modifies WorldEnvironment properties at runtime.\nDrag your WorldEnvironment node into the inspector slot.\nAll value fields accept a number or a variable name / expression.",
+		"_description": "Modifies WorldEnvironment properties at runtime.\nChoose the WorldEnvironment by name; it is found anywhere in the current scene.\nAll value fields accept a number or a variable name / expression.",
 		# Fog
 		"fog_enabled":            "Enable or disable fog.",
 		"fog_density":            "Overall fog density.\nAccepts: 0.01  or  fog_var  or  base_density * 2.0",
@@ -342,7 +342,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			var cur = "_env_cur_%s_%s" % [prop_name, chain_name]
 			var tgt = "_env_tgt_%s_%s" % [prop_name, chain_name]
 			if use_set:
-				code_lines.append("\tvar %s = %s.environment.get(\"%s\")" % [cur, env_var, env_path])
+				code_lines.append("\tvar %s = %s.environment.get(\"%s\")" % [cur, env_var, _gd_string(str(env_path))])
 			else:
 				code_lines.append("\tvar %s = %s.environment.%s" % [cur, env_var, env_path])
 			code_lines.append("\tvar %s = %s" % [tgt, val_str])
@@ -353,12 +353,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			else:
 				code_lines.append("\tvar %s = lerpf(%s, %s, %s * _delta)" % [lerped, cur, tgt, speed])
 			if use_set:
-				code_lines.append("\t%s.environment.set(\"%s\", %s)" % [env_var, env_path, lerped])
+				code_lines.append("\t%s.environment.set(\"%s\", %s)" % [env_var, _gd_string(str(env_path)), lerped])
 			else:
 				code_lines.append("\t%s.environment.%s = %s" % [env_var, env_path, lerped])
 		else:
 			if use_set:
-				code_lines.append("\t%s.environment.set(\"%s\", %s)" % [env_var, env_path, val_str])
+				code_lines.append("\t%s.environment.set(\"%s\", %s)" % [env_var, _gd_string(str(env_path)), val_str])
 			else:
 				code_lines.append("\t%s.environment.%s = %s" % [env_var, env_path, val_str])
 

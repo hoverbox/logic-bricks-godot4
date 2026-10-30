@@ -68,6 +68,8 @@ func get_property_definitions() -> Array:
 		{
 			"name": "threshold",
 			"type": TYPE_FLOAT,
+			"hint": PROPERTY_HINT_RANGE,
+			"hint_string": "0,10000,0.01",
 			"default": 0.1
 		},
 		{
@@ -98,21 +100,57 @@ func get_tooltip_definitions() -> Dictionary:
 		"neg_y": "-Y direction (down / falling).",
 		"pos_z": "+Z direction (back).",
 		"neg_z": "-Z direction (forward).",
-		"threshold": "Minimum speed to count as moving.\nFor CharacterBody3D this checks body velocity, which is stable between physics ticks.",
+		"threshold": "Minimum speed to count as moving (positive magnitude; direction supplies the sign).\nFor CharacterBody3D this checks body velocity, which is stable between physics ticks.",
 		"use_local_axes": "Use the node's local axes instead of world axes.",
 		"invert": "Invert the result.\nActive when NOT moving in the checked directions.",
 	}
 
 
+## Member variables this brick declares that keep their value when the node
+## changes state (other state-specific variables are reset on state entry).
+## Read from the Character brick's runtime state.
+func get_kept_member_vars() -> PackedStringArray:
+	return PackedStringArray(["_inherited_platform_velocity*", "_logic_brick_external_motion_*"])
+
+
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var detection_mode = properties.get("detection_mode", "any_movement")
+
+	# Normalize detection_mode
+	if typeof(detection_mode) == TYPE_STRING:
+		detection_mode = detection_mode.to_lower().replace(" ", "_")
+
+	# Show/hide fields based on detection mode
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"axis", "direction":
+					# Only show for specific_axis mode
+					shown[child] = (detection_mode == "specific_axis")
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var threshold = properties.get("threshold", 0.1)
 	var use_local = properties.get("use_local_axes", false)
 	var invert = properties.get("invert", false)
 	var all_axis = properties.get("all_axis", false)
 	var ignore_platform_motion = properties.get("ignore_platform_motion", true)
 
-	if typeof(threshold) == TYPE_STRING:
-		threshold = float(threshold) if str(threshold).is_valid_float() else 0.1
+	# Direction checkboxes supply the sign; thresholds are speed magnitudes.
+	# A variable/math threshold is read into _ms_threshold each time the brick runs.
+	var threshold_number = _literal_number("threshold", 0.1)
+	var threshold := "_ms_threshold"
+	if threshold_number != null:
+		threshold_number = absf(threshold_number)
+		if not is_finite(threshold_number):
+			threshold_number = 0.1
+		threshold = "%.3f" % threshold_number
 
 	var code_lines: Array[String] = []
 	var member_vars: Array[String] = []
@@ -165,25 +203,28 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	if all_axis:
 		# Any movement on any axis past the threshold
-		conditions.append("_ms_vel.x > %.3f" % threshold)
-		conditions.append("_ms_vel.x < -%.3f" % threshold)
-		conditions.append("_ms_vel.y > %.3f" % threshold)
-		conditions.append("_ms_vel.y < -%.3f" % threshold)
-		conditions.append("_ms_vel.z > %.3f" % threshold)
-		conditions.append("_ms_vel.z < -%.3f" % threshold)
+		conditions.append("_ms_vel.x > %s" % threshold)
+		conditions.append("_ms_vel.x < -%s" % threshold)
+		conditions.append("_ms_vel.y > %s" % threshold)
+		conditions.append("_ms_vel.y < -%s" % threshold)
+		conditions.append("_ms_vel.z > %s" % threshold)
+		conditions.append("_ms_vel.z < -%s" % threshold)
 	else:
 		if properties.get("pos_x", false):
-			conditions.append("_ms_vel.x > %.3f" % threshold)
+			conditions.append("_ms_vel.x > %s" % threshold)
 		if properties.get("neg_x", false):
-			conditions.append("_ms_vel.x < -%.3f" % threshold)
+			conditions.append("_ms_vel.x < -%s" % threshold)
 		if properties.get("pos_y", false):
-			conditions.append("_ms_vel.y > %.3f" % threshold)
+			conditions.append("_ms_vel.y > %s" % threshold)
 		if properties.get("neg_y", false):
-			conditions.append("_ms_vel.y < -%.3f" % threshold)
+			conditions.append("_ms_vel.y < -%s" % threshold)
 		if properties.get("pos_z", false):
-			conditions.append("_ms_vel.z > %.3f" % threshold)
+			conditions.append("_ms_vel.z > %s" % threshold)
 		if properties.get("neg_z", false):
-			conditions.append("_ms_vel.z < -%.3f" % threshold)
+			conditions.append("_ms_vel.z < -%s" % threshold)
+
+	if threshold_number == null and not conditions.is_empty():
+		code_lines.append("var _ms_threshold = absf(%s)" % _num("threshold", 0.1))
 
 	if conditions.is_empty():
 		code_lines.append("var sensor_active = %s  # No directions checked" % ("true" if invert else "false"))

@@ -111,17 +111,53 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+## Member variables this brick declares that keep their value when the node
+## changes state (other state-specific variables are reset on state entry).
+## Pools are built once in _ready(); resetting them on state entry would empty
+## the pool on the first frame.
+func get_kept_member_vars() -> PackedStringArray:
+	return PackedStringArray(["_pools_*", "_pool_scene_*", "_pool_scenes_*", "_pool_cap_*", "_pool_timers_*"])
+
+
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var action = properties.get("action", "spawn")
+	if typeof(action) == TYPE_STRING:
+		action = action.to_lower().replace(" ", "_")
+	var spawn_at_self = properties.get("spawn_at_self", true)
+	var is_spawn = (action == "spawn")
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"pool_sizes":
+					shown[child] = false  # managed automatically by the scenes array
+				"scenes", "spawn_mode", "spawn_delay", "spawn_at_self", "inherit_rotation", "lifespan":
+					shown[child] = is_spawn
+				"spawn_node":
+					shown[child] = is_spawn and not spawn_at_self
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var action          = properties.get("action", "spawn")
 	var scenes          = properties.get("scenes", [])
 	var pool_sizes      = properties.get("pool_sizes", [])
 	var spawn_mode      = properties.get("spawn_mode", "random")
 	var spawn_amount    = properties.get("spawn_amount", "1")
-	var spawn_delay     = float(properties.get("spawn_delay", 0.0))
+	# Plain numbers are decided now; a variable/math is checked while the game runs.
+	var delay_is_expr   = _is_number_expression("spawn_delay")
+	var spawn_delay     = 0.0 if delay_is_expr else float(_literal_number("spawn_delay", 0.0))
 	var spawn_at_self   = properties.get("spawn_at_self", true)
 	var spawn_node_path = str(properties.get("spawn_node", "")).strip_edges()
 	var inherit_rot     = properties.get("inherit_rotation", true)
-	var lifespan        = float(properties.get("lifespan", 0.0))
+	var lifespan_is_expr = _is_number_expression("lifespan")
+	var lifespan        = 0.0 if lifespan_is_expr else float(_literal_number("lifespan", 0.0))
+	var uses_lifespan   = lifespan_is_expr or lifespan > 0.0
 
 	if typeof(action) == TYPE_STRING:
 		action = action.to_lower().replace(" ", "_")
@@ -189,19 +225,25 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# Lifespan: per-object spawn-time tracking
 	var timers_var = "_pool_timers_%s" % _export_label
 	var pre_process_code: Array[String] = []
-	if lifespan > 0.0:
+	if uses_lifespan:
 		member_vars.append("")
 		member_vars.append("var %s: Dictionary = {}  # instance_id -> spawn time (msec)" % timers_var)
 		# pre_process tick: check all visible objects and despawn expired ones
-		pre_process_code.append("# Object Pool lifespan tick for %s" % _export_label)
-		pre_process_code.append("if not %s.is_empty():" % timers_var)
+		pre_process_code.append("# Object Pool lifespan tick for %s" % _gd_string(str(_export_label)))
+		var lifespan_ms = "%.1f" % (lifespan * 1000.0)
+		if lifespan_is_expr:
+			lifespan_ms = "_lifespan_ms_%s" % _export_label
+			pre_process_code.append("var %s = %s * 1000.0  # 0 or less = no limit" % [lifespan_ms, _num("lifespan")])
+			pre_process_code.append("if %s > 0.0 and not %s.is_empty():" % [lifespan_ms, timers_var])
+		else:
+			pre_process_code.append("if not %s.is_empty():" % timers_var)
 		pre_process_code.append("\tvar _now_ms_%s = Time.get_ticks_msec()" % _export_label)
 		pre_process_code.append("\tfor _sub_pool_%s in %s:" % [_export_label, pools_var])
 		pre_process_code.append("\t\tfor _lobj_%s in _sub_pool_%s:" % [_export_label, _export_label])
 		pre_process_code.append("\t\t\tif _lobj_%s.visible:" % _export_label)
 		pre_process_code.append("\t\t\t\tvar _lid_%s = _lobj_%s.get_instance_id()" % [_export_label, _export_label])
 		pre_process_code.append("\t\t\t\tif %s.has(_lid_%s):" % [timers_var, _export_label])
-		pre_process_code.append("\t\t\t\t\tif _now_ms_%s - %s[_lid_%s] >= %.1f:" % [_export_label, timers_var, _export_label, lifespan * 1000.0])
+		pre_process_code.append("\t\t\t\t\tif _now_ms_%s - %s[_lid_%s] >= %s:" % [_export_label, timers_var, _export_label, lifespan_ms])
 		pre_process_code.append("\t\t\t\t\t\t%s.erase(_lid_%s)" % [timers_var, _export_label])
 		pre_process_code.append("\t\t\t\t\t\t_pool_set_collision(_lobj_%s, false)" % _export_label)
 		pre_process_code.append("\t\t\t\t\t\t_lobj_%s.visible = false" % _export_label)
@@ -215,7 +257,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		var sv   = "_pool_scene_%s_%d" % [_export_label, i]
 		var pv   = "_pool_%s_%d" % [_export_label, i]
 		var cap_var = "_pool_cap_%s_%d" % [_export_label, i]
-		member_vars.append("var %s: PackedScene = preload(\"%s\")" % [sv, path])
+		member_vars.append("var %s: PackedScene = preload(\"%s\")" % [sv, _gd_string(str(path))])
 		ready_code.append("var %s: Array = []" % pv)
 		ready_code.append("for _i_%d in range(%s):" % [i, sz])
 		ready_code.append("\tvar _inst_%s_%d = %s.instantiate()" % [_export_label, i, sv])
@@ -229,7 +271,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		if _is_variable(sz):
 			member_vars.append("var %s: int = 0" % cap_var)
 			ready_code.append("%s = %s" % [cap_var, sz])
-			code_lines.append("# Auto-grow pool %d when %s increases" % [i, sz])
+			code_lines.append("# Auto-grow pool %d when %s increases" % [i, _gd_string(str(sz))])
 			code_lines.append("if %s > %s:" % [sz, cap_var])
 			code_lines.append("\t_pool_grow_%s(%d, %s)" % [_export_label, i, sz])
 			code_lines.append("\t%s = %s" % [cap_var, sz])
@@ -241,7 +283,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		if inherit_rot:
 			pos_lines.append("\t\t_spawn_obj.global_rotation = global_rotation")
 	elif not spawn_node_path.is_empty():
-		pos_lines.append("\t\tvar _sp = get_node_or_null(\"%s\")" % spawn_node_path)
+		pos_lines.append("\t\tvar _sp = get_node_or_null(\"%s\")" % _gd_string(str(spawn_node_path)))
 		pos_lines.append("\t\tif _sp:")
 		pos_lines.append("\t\t\t_spawn_obj.global_position = _sp.global_position")
 		if inherit_rot:
@@ -249,7 +291,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	# Spawn delay timer
 	var delay_var = "_pool_last_spawn_%s" % _export_label
-	if spawn_delay > 0.0:
+	if delay_is_expr or spawn_delay > 0.0:
 		member_vars.append("var %s: float = -999.0" % delay_var)
 
 	# Actuator code
@@ -258,20 +300,19 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"spawn":
 			# Wrap entire spawn block in delay check if needed
 			var ind = ""
-			if spawn_delay > 0.0:
+			if delay_is_expr or spawn_delay > 0.0:
 				code_lines.append("var _now_%s = Time.get_ticks_msec() / 1000.0" % chain_name)
-				code_lines.append("if _now_%s - %s >= %.3f:" % [chain_name, delay_var, spawn_delay])
+				code_lines.append("if _now_%s - %s >= %s:" % [chain_name, delay_var, _num("spawn_delay")])
 				code_lines.append("\t%s = _now_%s" % [delay_var, chain_name])
 				ind = "\t"
 			# Spawn-amount loop
+			# A number, a variable or math (level * 2): that many per trigger.
 			var amount_expr = _expr(spawn_amount, "1")
-			var amount_is_var = _is_variable(spawn_amount)
 			var ind2 = ind + "\t"
-			if amount_is_var:
-				code_lines.append("%sif %s > 0:" % [ind, amount_expr])
-				code_lines.append("%s\t%s -= 1" % [ind, amount_expr])
+			if _is_variable(spawn_amount):
+				code_lines.append("%sfor _spawn_i in range(int(%s)):" % [ind, amount_expr])
 			else:
-				code_lines.append("%sfor _spawn_i in range(%s):" % [ind, amount_expr])
+				code_lines.append("%sfor _spawn_i in range(%d):" % [ind, int(float(str(spawn_amount)))])
 			match spawn_mode:
 				"random":
 					code_lines.append("%sif not %s.is_empty():" % [ind2, pools_var])
@@ -283,7 +324,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 						code_lines.append(ind2 + "\t" + l)
 					code_lines.append("%s\t\t\t_pool_set_collision(_spawn_obj, true)" % ind2)
 					code_lines.append("%s\t\t\t_spawn_obj.visible = true" % ind2)
-					if lifespan > 0.0:
+					if uses_lifespan:
 						code_lines.append("%s\t\t\t%s[_spawn_obj.get_instance_id()] = Time.get_ticks_msec()" % [ind2, timers_var])
 					code_lines.append("%s\t\t\t_spawned = true" % ind2)
 					code_lines.append("%s\t\t\tbreak" % ind2)
@@ -296,7 +337,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 						code_lines.append(ind2 + "\t" + l)
 					code_lines.append("%s\t\t\t_pool_set_collision(_spawn_obj, true)" % ind2)
 					code_lines.append("%s\t\t\t_spawn_obj.visible = true" % ind2)
-					if lifespan > 0.0:
+					if uses_lifespan:
 						code_lines.append("%s\t\t\t%s[_spawn_obj.get_instance_id()] = Time.get_ticks_msec()" % [ind2, timers_var])
 					code_lines.append("%s\t\t\t_spawned = true" % ind2)
 					code_lines.append("%s\t\t\tbreak" % ind2)

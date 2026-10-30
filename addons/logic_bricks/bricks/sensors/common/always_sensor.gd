@@ -40,3 +40,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	return {
 		"sensor_code": code
 	}
+
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Always active trigger. Fires every frame.\nUseful for continuous actions like gravity or idle animations.",
+	}

@@ -26,7 +26,7 @@ func get_brick_info() -> Dictionary:
 		"class": "CharacterActuator",
 		"name": "Character Physics",
 		"type": "actuator",
-		"category": "Motion",
+		"category": "Physics",
 		"description": "Applies character gravity, grounding, acceleration, friction, and move_and_slide().",
 		"menu_order": 10,
 		"domain": "3d"
@@ -128,6 +128,14 @@ func get_property_definitions() -> Array:
 ## Convert a value to a code expression.
 ## If it's a number (or string of a number), returns the numeric literal.
 ## Otherwise returns it as-is (a variable name or expression).
+## Member variables this brick declares that keep their value when the node
+## changes state (other state-specific variables are reset on state entry).
+## Character movement, jump and moving-platform state is shared with Jump and
+## Movement bricks and must not be wiped when the node changes state.
+func get_kept_member_vars() -> PackedStringArray:
+	return PackedStringArray(["_logic_brick_character_*", "_on_ground*", "_moving_platform_*", "_inherited_platform_velocity*", "_logic_brick_pre_slide_velocity*", "_jumps_remaining*", "_max_jumps*", "_logic_brick_external_motion_*"])
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var gravity_strength = properties.get("gravity_strength", "9.8")
 	var max_fall_speed = properties.get("max_fall_speed", "50.0")
@@ -230,7 +238,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 		var group_checks: Array[String] = []
 		for g in groups:
-			group_checks.append("_collider.is_in_group(\"%s\")" % g)
+			group_checks.append("_collider.is_in_group(\"%s\")" % _gd_string(str(g)))
 		var condition = " or ".join(group_checks)
 
 		code_lines.append("\t\t\tif %s:" % condition)
@@ -245,7 +253,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if has_platform_filter:
 		var platform_checks: Array[String] = []
 		for g in platform_group_list:
-			platform_checks.append("_platform_search_node.is_in_group(\"%s\")" % g)
+			platform_checks.append("_platform_search_node.is_in_group(\"%s\")" % _gd_string(str(g)))
 		var platform_condition = " or ".join(platform_checks)
 		code_lines.append("_moving_platform_delta = Vector3.ZERO")
 		code_lines.append("_moving_platform_velocity = Vector3.ZERO")
@@ -349,9 +357,36 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	post_process.append("					_on_ground = false")
 	post_process.append("				break")
 
+	# Surface Attachment owns gravity and sliding while clinging.
+	# Keep the normal chains running so detach inputs and movement requests still work.
+	var attachment_guard = "if not bool(get_meta(\"_lb_surface_attached\", false)):"
+	var unattached_code: Array[String] = [attachment_guard]
+	for line in code_lines:
+		unattached_code.append("\t" + str(line))
+	code_lines = unattached_code
+	var unattached_post: Array[String] = [attachment_guard]
+	for line in post_process:
+		unattached_post.append("\t" + str(line))
+	post_process = unattached_post
+
 	return {
 		"actuator_code": "\n".join(code_lines),
 		"member_vars": member_vars,
 		"pre_process_code": pre_process,
 		"post_process_code": post_process,
+	}
+
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "CharacterBody3D body rules: gravity, fall speed, floor snapping, slope limit, acceleration, friction, bounce, ground detection, and move_and_slide().\nHorizontal speed is still controlled by movement Actions. Jumping is handled by the Character Jump Action.",
+		"gravity_strength": "Downward acceleration applied while airborne. Accepts a number, variable name, or expression.",
+		"max_fall_speed": "Maximum downward speed. Accepts a number, variable name, or expression.",
+		"floor_snap_length": "How strongly the character sticks to floors, ramps, and small uneven surfaces. Larger values help stay grounded.",
+		"slope_limit": "Steepest walkable slope in degrees. Higher values allow steeper slopes.",
+		"use_acceleration": "Off by default. When enabled, the character eases toward Position/Steering Action speed instead of instantly reaching it.",
+		"acceleration": "Normalized 0 to 1. 0 = barely accelerates; 1 = reaches requested speed quickly.",
+		"friction": "Normalized 0 to 1 slowdown when no Position/Steering Action is moving the character. 0 = icy/no slowdown; 1 = quick stop.",
+		"bounce": "How much the character rebounds after hitting a surface. 0 = no bounce; 1 = full rebound.",
+		"ground_groups": "Optional comma-separated groups that count as ground. Empty = any floor.",
+		"platform_groups": "Optional comma-separated groups used as moving platforms.",
 	}

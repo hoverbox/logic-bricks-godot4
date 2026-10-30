@@ -59,15 +59,18 @@ func get_tooltip_definitions() -> Dictionary:
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var camera_node_name = str(properties.get("camera_node_name", "Camera2D")).strip_edges()
 	var positioning := str(properties.get("positioning", "Keep Offset")).strip_edges().to_lower()
-	var position_offset_amount := abs(float(properties.get("position_offset_amount", 100.0)))
-	var follow_speed = float(properties.get("follow_speed", 5.0))
-	var dead_zone_x = float(properties.get("dead_zone_x", 0.0))
-	var dead_zone_y = float(properties.get("dead_zone_y", 0.0))
+	# Number fields as generated code (a number, or the typed variable/math)
+	var position_offset_amount := "%.6f" % absf(_literal_number("position_offset_amount", 100.0)) \
+		if not _is_number_expression("position_offset_amount") \
+		else "absf(%s)" % _num("position_offset_amount", 100.0, 6)
+	var follow_speed := _num("follow_speed", 5.0, 6)
+	var dead_zone_x := _num("dead_zone_x", 0.0, 6)
+	var dead_zone_y := _num("dead_zone_y", 0.0, 6)
 	var follow_pos_x = bool(properties.get("follow_pos_x", true))
 	var follow_pos_y = bool(properties.get("follow_pos_y", true))
 	var rotation_source_node_name = str(properties.get("rotation_source_node_name", "")).strip_edges()
 	var follow_rotation = bool(properties.get("follow_rotation", false))
-	var rotation_speed = float(properties.get("rotation_speed", 5.0))
+	var rotation_speed := _num("rotation_speed", 5.0, 6)
 	var base_name = instance_name.to_lower().replace(" ", "_") if not instance_name.is_empty() else "smooth_follow_camera_2d"
 	var camera_var = base_name
 	var offset_var = "_%s_initial_offset" % base_name
@@ -110,24 +113,24 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	lines.append("\tif not %s:" % ready_var)
 	lines.append("\t\t%s = %s.global_position - _follow_pos_%s" % [offset_var, camera_var, chain_name])
 	if positioning == "left":
-		lines.append("\t\t%s.x = -%.6f" % [offset_var, position_offset_amount])
+		lines.append("\t\t%s.x = -%s" % [offset_var, position_offset_amount])
 	elif positioning == "center":
 		lines.append("\t\t%s.x = 0.0" % offset_var)
 	elif positioning == "right":
-		lines.append("\t\t%s.x = %.6f" % [offset_var, position_offset_amount])
+		lines.append("\t\t%s.x = %s" % [offset_var, position_offset_amount])
 	lines.append("\t\t%s = true" % ready_var)
 	lines.append("\tvar _target_pos_%s = _follow_pos_%s + %s" % [chain_name, chain_name, offset_var])
 	lines.append("\tvar _desired_pos_%s = %s.global_position" % [chain_name, camera_var])
 	if follow_pos_x:
-		lines.append("\tif abs(_target_pos_%s.x - %s.global_position.x) > %.6f:" % [chain_name, camera_var, dead_zone_x])
+		lines.append("\tif abs(_target_pos_%s.x - %s.global_position.x) > %s:" % [chain_name, camera_var, dead_zone_x])
 		lines.append("\t\t_desired_pos_%s.x = _target_pos_%s.x" % [chain_name, chain_name])
 	if follow_pos_y:
-		lines.append("\tif abs(_target_pos_%s.y - %s.global_position.y) > %.6f:" % [chain_name, camera_var, dead_zone_y])
+		lines.append("\tif abs(_target_pos_%s.y - %s.global_position.y) > %s:" % [chain_name, camera_var, dead_zone_y])
 		lines.append("\t\t_desired_pos_%s.y = _target_pos_%s.y" % [chain_name, chain_name])
-	lines.append("\t%s.global_position = %s.global_position.lerp(_desired_pos_%s, %.6f * _delta)" % [camera_var, camera_var, chain_name, follow_speed])
+	lines.append("\t%s.global_position = %s.global_position.lerp(_desired_pos_%s, %s * _delta)" % [camera_var, camera_var, chain_name, follow_speed])
 	if follow_rotation:
 		lines.append("\tif %s:" % rot_source_var)
-		lines.append("\t\t%s.global_rotation = lerp_angle(%s.global_rotation, %s.global_rotation, %.6f * _delta)" % [camera_var, camera_var, rot_source_var, rotation_speed])
+		lines.append("\t\t%s.global_rotation = lerp_angle(%s.global_rotation, %s.global_rotation, %s * _delta)" % [camera_var, camera_var, rot_source_var, rotation_speed])
 	lines.append("elif not %s:" % camera_var)
 	lines.append("\tpush_warning(\"Smooth Follow Camera 2D: No Camera2D assigned\")")
 	return {"actuator_code": "\n".join(lines), "member_vars": member_vars}

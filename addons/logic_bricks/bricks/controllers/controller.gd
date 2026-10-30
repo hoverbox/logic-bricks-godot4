@@ -48,7 +48,28 @@ func get_property_definitions() -> Array:
 	]
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var all_states = properties.get("all_states", false)
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			if prop_name == "state_id":
+				shown[child] = not all_states
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	return {
 		"controller_code": ""
+	}
+
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Logic gate that combines Trigger inputs.\nAND: all Triggers must be active. OR: any Trigger active.\nNAND/NOR/XOR: inverted and exclusive logic.",
+		"logic_mode": "Logic gate type:\n• AND: All connected Triggers must be active\n• OR: At least one Trigger must be active\n• NAND: NOT AND — active when not all Triggers are active\n• NOR: NOT OR — active only when no Triggers are active\n• XOR: Exclusive OR — active when exactly one Trigger is active",
 	}

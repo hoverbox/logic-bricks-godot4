@@ -56,7 +56,15 @@ func sync_graph_ui_to_bricks() -> void:
 				if not line_edit.editable and not line_edit.tooltip_text.is_empty():
 					brick_instance.set_property(property_name, line_edit.tooltip_text)
 				else:
-					brick_instance.set_property(property_name, line_edit.text)
+					var number_type := TYPE_NIL
+					for prop_def in brick_instance.get_property_definitions():
+						if prop_def.get("name", "") == property_name and int(prop_def.get("hint", 0)) != PROPERTY_HINT_ENUM:
+							number_type = int(prop_def.get("type", TYPE_NIL))
+							break
+					if number_type in [TYPE_INT, TYPE_FLOAT]:
+						brick_instance.set_property(property_name, brick_instance.numeric_value_from_text(line_edit.text, number_type))
+					else:
+						brick_instance.set_property(property_name, line_edit.text)
 			elif control is ColorPickerButton:
 				brick_instance.set_property(property_name, control.color)
 
@@ -162,7 +170,17 @@ func extract_chains_from_graph(include_incomplete: bool = false) -> Array:
 				"actuators": chain["actuators"]
 			})
 
+	panel.manager.assign_readable_chain_names(chains)
 	return chains
+
+
+## The chain's function name as it appears in the generated script.
+func get_chain_function_name(controller_node: GraphNode) -> String:
+	for chain in extract_chains_from_graph(false):
+		var controllers: Array = chain.get("controllers", [])
+		if not controllers.is_empty() and str(controllers[0].get("graph_node_id", "")) == str(controller_node.name):
+			return "_logic_brick_%s" % panel.manager._sanitize_chain_name(str(chain["name"]))
+	return ""
 
 func build_chain_from_controller(controller_node: GraphNode, connections: Array) -> Dictionary:
 	var tree = build_controller_input_tree(controller_node, connections, {})
@@ -173,7 +191,7 @@ func build_chain_from_controller(controller_node: GraphNode, connections: Array)
 		if to_node.has_meta("brick_data"):
 			var brick_data = to_node.get_meta("brick_data")
 			if brick_data["brick_type"] == "actuator":
-				actuators.append(brick_data["brick_instance"].serialize())
+				actuators.append(_serialize_graph_brick(to_node))
 
 	return {
 		"sensors": tree["sensors"],
@@ -188,8 +206,7 @@ func build_controller_input_tree(controller_node: GraphNode, connections: Array,
 	var controller_brick = null
 
 	if controller_node.has_meta("brick_data"):
-		var brick_data = controller_node.get_meta("brick_data")
-		controller_brick = brick_data["brick_instance"].serialize()
+		controller_brick = _serialize_graph_brick(controller_node)
 
 	if visited.has(controller_node.name):
 		return {
@@ -207,7 +224,7 @@ func build_controller_input_tree(controller_node: GraphNode, connections: Array,
 		if from_node.has_meta("brick_data"):
 			var brick_data = from_node.get_meta("brick_data")
 			if brick_data["brick_type"] == "sensor":
-				sensors.append(brick_data["brick_instance"].serialize())
+				sensors.append(_serialize_graph_brick(from_node))
 			elif brick_data["brick_type"] == "controller":
 				controller_inputs.append(build_controller_input_tree(from_node, connections, next_visited))
 
@@ -216,6 +233,22 @@ func build_controller_input_tree(controller_node: GraphNode, connections: Array,
 		"controller_inputs": controller_inputs,
 		"controller": controller_brick
 	}
+
+
+func _serialize_graph_brick(graph_node: GraphNode) -> Dictionary:
+	if graph_node == null or not graph_node.has_meta("brick_data"):
+		return {}
+	var brick_data: Dictionary = graph_node.get_meta("brick_data")
+	var brick_instance = brick_data.get("brick_instance", null)
+	if brick_instance == null:
+		return {}
+	var data: Dictionary = brick_instance.serialize()
+	# Stable bridge between the visual graph, generated source and runtime debugger.
+	# GraphNode names are persisted in logic_bricks_graph, so this ID survives saves
+	# and addon reloads without adding another fragile identifier system.
+	data["graph_node_id"] = str(graph_node.name)
+	data["brick_role"] = str(brick_data.get("brick_type", ""))
+	return data
 
 func trace_inputs(node_name: String, connections: Array, visited: Dictionary = {}) -> Array:
 	if visited.has(node_name):

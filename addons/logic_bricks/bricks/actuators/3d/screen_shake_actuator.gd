@@ -113,6 +113,22 @@ func get_preset_values(preset_name: String) -> Array:
 	return PRESETS.get(key, [])
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var export_params = properties.get("export_params", false)
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"trauma", "max_offset", "decay", "noise_speed":
+					shown[child] = not export_params
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var camera_node_name = str(properties.get("camera_node_name", "Camera3D")).strip_edges()
 	var node_name_source = str(properties.get("node_name_source", "literal")).to_lower().replace(" ", "_")

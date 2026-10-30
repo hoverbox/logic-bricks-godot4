@@ -167,6 +167,30 @@ func _get_smallest_mapped_frame_for_node(panel, node: GraphNode):
 			owner_area = area
 	return owner
 
+func remove_node_from_frames(panel, node: GraphNode, record_change: bool = true) -> void:
+	if not is_instance_valid(node) or _get_smallest_mapped_frame_for_node(panel, node) == null:
+		return
+	var before_snapshot = panel._take_graph_snapshot()
+	for frame in panel.graph_edit.get_children():
+		if not (frame is GraphFrame):
+			continue
+		var members: Array = panel.frame_node_mapping.get(frame.name, [])
+		if node.name not in members:
+			continue
+		members.erase(node.name)
+		panel.frame_node_mapping[frame.name] = members
+		# Keep removal effective while the brick still overlaps the frame.
+		# Dragging it outside and back in restores normal automatic membership.
+		var excluded: Array = frame.get_meta("excluded_nodes", [])
+		if node.name not in excluded:
+			excluded.append(node.name)
+		frame.set_meta("excluded_nodes", excluded)
+	_refresh_frame_z_order(panel)
+	save_frames_to_metadata(panel, false)
+	if record_change:
+		panel._record_undo("Remove Logic Brick from Frame", before_snapshot, panel._take_graph_snapshot(), panel.current_node, false)
+
+
 func on_frame_resize_request(panel, new_size: Vector2, frame: GraphFrame) -> void:
 	frame.size = new_size
 	_refresh_frame_z_order(panel)
@@ -185,6 +209,13 @@ func check_node_frame_membership(panel, moved_node: GraphNode) -> void:
 
 		var frame = child as GraphFrame
 		var current_members = panel.frame_node_mapping.get(frame.name, [])
+		var excluded: Array = frame.get_meta("excluded_nodes", [])
+		if moved_node.name in excluded:
+			if not Rect2(frame.position_offset, frame.size).has_point(node_center):
+				excluded.erase(moved_node.name)
+				frame.set_meta("excluded_nodes", excluded)
+				save_frames_to_metadata(panel)
+			continue
 
 		if moved_node.name in current_members:
 			auto_resize_frame(panel, frame)
@@ -213,10 +244,12 @@ func save_frames_to_metadata(panel, record_change: bool = true, action_name: Str
 			"position": child.position_offset,
 			"size": child.size,
 			"color": child.tint_color,
-			"nodes": panel.frame_node_mapping.get(child.name, [])
+			"nodes": panel.frame_node_mapping.get(child.name, []),
+			"excluded_nodes": child.get_meta("excluded_nodes", []).duplicate()
 		})
 
 	target_node.set_meta("logic_bricks_frames", frames_data)
+	panel._states_helper.apply_view_filter.call_deferred()
 	panel._mark_scene_modified()
 	if record_change:
 		panel._record_undo(action_name, before_snapshot, panel._take_graph_snapshot(), target_node, true)
@@ -250,6 +283,7 @@ func load_frames_from_metadata(panel) -> void:
 			frame.resizable = true
 			frame.draggable = true
 			frame.autoshrink_enabled = false
+			frame.set_meta("excluded_nodes", frame_data.get("excluded_nodes", []).duplicate())
 
 			panel.frame_titles[frame.name] = frame_data.get("title", "Frame")
 			panel.frame_comments[frame.name] = frame_data.get("comment", "")

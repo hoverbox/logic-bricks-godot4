@@ -64,6 +64,40 @@ func get_tooltip_definitions() -> Dictionary:
 		"wander_frequency":"Wander only. Seconds between heading changes."
 	}
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var behavior_2d = str(properties.get("behavior", "seek")).to_lower().replace(" ", "_")
+	var needs_target_2d = behavior_2d != "wander"
+	var target_mode_2d = str(properties.get("target_mode", "node_name")).to_lower().replace(" ", "_")
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"target_mode":
+					shown[child] = needs_target_2d
+				"target_name":
+					shown[child] = needs_target_2d and target_mode_2d in ["node_name", "group"]
+				"coordinate_x", "coordinate_y":
+					shown[child] = needs_target_2d and target_mode_2d == "coordinates"
+				"arrival_distance":
+					shown[child] = behavior_2d in ["seek", "flee", "arrive"]
+				"slowing_distance":
+					shown[child] = (behavior_2d == "arrive")
+				"desired_distance", "distance_tolerance":
+					shown[child] = (behavior_2d == "maintain_distance")
+				"orbit_distance", "orbit_direction":
+					shown[child] = (behavior_2d == "orbit")
+				"wander_amount", "wander_frequency":
+					shown[child] = (behavior_2d == "wander")
+				"use_navigation":
+					shown[child] = behavior_2d in ["seek", "arrive"]
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = str(properties.get("target_mode","node_name")).to_lower().replace(" ","_")
 	var behavior = str(properties.get("behavior","seek")).to_lower().replace(" ","_")

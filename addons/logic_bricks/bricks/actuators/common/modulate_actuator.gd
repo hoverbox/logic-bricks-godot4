@@ -42,6 +42,29 @@ func get_tooltip_definitions() -> Dictionary:
 		"transition_speed": "Lerp speed. Higher = faster. Accepts a number or variable.",
 	}
 
+## Member variables this brick declares that keep their value when the node
+## changes state (other state-specific variables are reset on state entry).
+## The lerp destination must survive state entry or the colour transition
+## never completes.
+func get_kept_member_vars() -> PackedStringArray:
+	return PackedStringArray(["*_target_color*"])
+
+
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var transition = properties.get("transition", false)
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			if prop_name == "transition_speed":
+				shown[child] = transition
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target_node_name = str(properties.get("target_node_name", "")).strip_edges()
 	var node_name_source = str(properties.get("node_name_source", "literal")).to_lower().replace(" ", "_")
@@ -90,7 +113,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
 
 func _append_resolve_code(code_lines: Array[String], node_var: String, label: String, name_expr: String, expected_type: String, actuator_name: String) -> void:
-	code_lines.append("# %s" % actuator_name)
+	code_lines.append("# %s" % _gd_string(str(actuator_name)))
 	code_lines.append("var _target_name_%s = %s" % [label, name_expr])
 	code_lines.append("if %s == null or %s.name != _target_name_%s:" % [node_var, node_var, label])
 	code_lines.append("\tvar _found_%s = _lb_find_node_in_current_scene(_target_name_%s)" % [label, label])

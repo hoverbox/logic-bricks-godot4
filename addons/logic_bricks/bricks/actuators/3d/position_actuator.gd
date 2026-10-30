@@ -76,3 +76,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if str(properties.get("movement_method", "character_velocity")).to_lower().replace(" ", "_") == "set_position":
 		properties["movement_method"] = "position"
 	return _generate_location_code(node, chain_name)
+
+
+## Shows every field: the parent brick's show/hide rules are for its own
+## fields and were never applied to this brick.
+func get_field_visibility_rules(_context_node: Node) -> Dictionary:
+	return {}

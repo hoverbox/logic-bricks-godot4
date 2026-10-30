@@ -136,6 +136,18 @@
       When a behavior cannot be expressed cleanly with existing bricks, a Script Gate can bridge to a small custom module. Keep that module narrow in scope and treat it as an extension point rather than moving the entire system into one script.
      </p>
 </section>
+<section>
+<h2 id="automated-tests">
+      Automated tests
+     </h2>
+<p>
+      The add-on ships with tests in <code>addons/logic_bricks/tests/</code>. Run them after editing the add-on, or to confirm an installation works:
+     </p>
+<ul>
+<li><strong>In the editor:</strong> open <code>tests/run_all_tests_in_editor.gd</code> in the Script editor and choose <strong>File → Run</strong>. Results appear in the Output panel after about a minute. Each test runs in its own background process, so open scenes are not touched.</li>
+<li><strong>From a terminal:</strong> <code>godot --headless --path . --script res://addons/logic_bricks/tests/run_all_tests.gd</code>. Add <code>-- --filter=camera</code> to run only matching tests. The command exits with 0 only when every test passes, and full logs are saved under <code>user://logic_bricks_test_logs/</code>.</li>
+</ul>
+</section>
 <section class="related-topics">
 <span class="section-kicker">
       Keep learning
@@ -223,6 +235,11 @@
 <li>
 <a data-toc-target="custom-scripts" href="#custom-scripts">
         Custom scripts
+       </a>
+</li>
+<li>
+<a data-toc-target="automated-tests" href="#automated-tests">
+        Automated tests
        </a>
 </li>
 </ul>

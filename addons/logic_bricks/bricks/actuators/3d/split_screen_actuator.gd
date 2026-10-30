@@ -114,12 +114,16 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	member_vars.append("var %s: Array"  % viewports_var)
 	member_vars.append("var %s: Array" % proxy_cameras_var)
 	member_vars.append("var %s: CanvasLayer" % canvas_var)
-	member_vars.append("var split_screen_players: int = %d" % default_player_count)
+	# Declared without a default so the line is identical for every Split
+	# Screen brick on the node (the manager merges identical member lines).
+	# A per-brick default here made two bricks declare the variable twice,
+	# which is a parse error. The default is set in _ready instead.
+	member_vars.append("var split_screen_players: int")
 	for i in range(4):
 		member_vars.append("var camera_%d: Camera3D = null" % (i + 1))
 	_append_find_node_helpers(member_vars)
 	if not _pc_is_literal:
-		member_vars.append("# split_screen_players is driven by: %s" % _pc_raw)
+		member_vars.append("# split_screen_players is driven by: %s" % _gd_string(str(_pc_raw)))
 
 	# --- _ready: create SubViewports at runtime, never in the editor scene ---
 	# SubViewports created by Apply Code and saved into .tscn cause Godot to
@@ -140,7 +144,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	ready_lines.append("var _ss_sw = DisplayServer.window_get_size().x")
 	ready_lines.append("var _ss_sh = DisplayServer.window_get_size().y")
 	ready_lines.append("var _ss_cl = CanvasLayer.new()")
-	ready_lines.append("_ss_cl.name = \"%s\"" % canvas_name)
+	ready_lines.append("_ss_cl.name = \"%s\"" % _gd_string(str(canvas_name)))
 	ready_lines.append("_ss_cl.layer = 0")
 	ready_lines.append("_ss_root.add_child(_ss_cl)")
 	ready_lines.append("%s = _ss_cl" % canvas_var)
@@ -149,7 +153,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		var vp_name  = "_ss_vp_%s_%d"  % [stable_name, i + 1]
 		var is_visible = str(i < default_player_count).to_lower()
 		ready_lines.append("var _ss_svc_%d = SubViewportContainer.new()" % i)
-		ready_lines.append("_ss_svc_%d.name = \"%s\"" % [i, svc_name])
+		ready_lines.append("_ss_svc_%d.name = \"%s\"" % [i, _gd_string(str(svc_name))])
 		ready_lines.append("_ss_svc_%d.stretch = false" % i)
 		ready_lines.append("_ss_svc_%d.set_anchor(SIDE_LEFT,   0.0)" % i)
 		ready_lines.append("_ss_svc_%d.set_anchor(SIDE_TOP,    0.0)" % i)
@@ -159,7 +163,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		ready_lines.append("_ss_cl.add_child(_ss_svc_%d)" % i)
 		ready_lines.append("%s.append(_ss_svc_%d)" % [containers_var, i])
 		ready_lines.append("var _ss_svp_%d = SubViewport.new()" % i)
-		ready_lines.append("_ss_svp_%d.name = \"%s\"" % [i, vp_name])
+		ready_lines.append("_ss_svp_%d.name = \"%s\"" % [i, _gd_string(str(vp_name))])
 		ready_lines.append("_ss_svp_%d.size = Vector2i(int(max(1.0, _ss_sw / 2.0)), int(max(1.0, _ss_sh / 2.0)))" % i)
 		ready_lines.append("_ss_svp_%d.render_target_update_mode = SubViewport.UPDATE_DISABLED" % i)
 		ready_lines.append("_ss_svc_%d.add_child(_ss_svp_%d)" % [i, i])
@@ -212,8 +216,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	for _ss_ready_line in ready_lines:
 		member_vars.append("\t" + _ss_ready_line)
 	ready_lines = [
+		# One line on purpose: the manager merges identical _ready lines across
+		# bricks, which would orphan the body of a two-line "if".
+		"split_screen_players = split_screen_players if split_screen_players > 0 else %d" % default_player_count,
 		"# Split Screen: defer runtime viewport/camera setup until the scene tree is no longer blocked",
-		"call_deferred(\"%s\")" % setup_func_name,
+		"call_deferred(\"%s\")" % _gd_string(str(setup_func_name)),
 	]
 
 	# --- Actuator code (runs every frame) ---

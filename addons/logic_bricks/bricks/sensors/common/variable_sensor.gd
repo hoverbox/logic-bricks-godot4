@@ -78,6 +78,31 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var eval_type = properties.get("evaluation_type", "equal")
+	# Normalize to lowercase
+	if typeof(eval_type) == TYPE_STRING:
+		eval_type = eval_type.to_lower().replace(" ", "_")
+
+	# Show/hide fields based on evaluation type
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"value":
+					shown[child] = (eval_type in ["equal", "not_equal", "greater_than", "less_than", "greater_or_equal", "less_or_equal", "contains", "does_not_contain", "size_equals", "size_greater_than", "size_less_than"])
+				"min_value", "max_value":
+					shown[child] = (eval_type == "interval")
+				"item_type":
+					shown[child] = (eval_type in ["contains", "does_not_contain"])
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var var_name = properties.get("variable_name", "")
 	var eval_type = properties.get("evaluation_type", "equal")
@@ -105,14 +130,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# Generate a helper to get the variable value
 	# Checks local first (covers both local vars and global proxies), then GlobalVars fallback
 	var val_expr = "_vs_%s" % sanitized_name
-	code_lines.append("# Get variable '%s' (local or global)" % sanitized_name)
+	code_lines.append("# Get variable '%s' (local or global)" % _gd_string(str(sanitized_name)))
 	code_lines.append("var %s" % val_expr)
-	code_lines.append("if \"%s\" in self:" % sanitized_name)
-	code_lines.append("\t%s = self.get(\"%s\")" % [val_expr, sanitized_name])
+	code_lines.append("if \"%s\" in self:" % _gd_string(str(sanitized_name)))
+	code_lines.append("\t%s = self.get(\"%s\")" % [val_expr, _gd_string(str(sanitized_name))])
 	code_lines.append("elif Engine.has_singleton(\"GlobalVars\") or get_node_or_null(\"/root/GlobalVars\"):")
 	code_lines.append("\tvar _gv = get_node_or_null(\"/root/GlobalVars\")")
-	code_lines.append("\tif _gv and \"%s\" in _gv:" % sanitized_name)
-	code_lines.append("\t\t%s = _gv.get(\"%s\")" % [val_expr, sanitized_name])
+	code_lines.append("\tif _gv and \"%s\" in _gv:" % _gd_string(str(sanitized_name)))
+	code_lines.append("\t\t%s = _gv.get(\"%s\")" % [val_expr, _gd_string(str(sanitized_name))])
 	code_lines.append("\telse:")
 	code_lines.append("\t\t%s = null" % val_expr)
 	code_lines.append("else:")
@@ -179,7 +204,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"contains", "does_not_contain":
 			if value.is_empty():
 				code_lines.append("var sensor_active = false")
-				code_lines.append("push_warning(\"Compare Variable: No array item value set for '%s'\")" % sanitized_name)
+				code_lines.append("push_warning(\"Compare Variable: No array item value set for '%s'\")" % _gd_string(str(sanitized_name)))
 			else:
 				var compare_value = _parse_typed_value(value, item_type)
 				var contains_expr = "(%s is Array and %s.has(%s))" % [val_expr, val_expr, compare_value]
@@ -249,7 +274,7 @@ func _parse_value(value_str: String) -> String:
 		return value_str
 
 	# Default: treat as string
-	return "\"%s\"" % value_str.replace("\"", "\\\"")
+	return "\"%s\"" % _gd_string(value_str)
 
 
 func _parse_typed_value(value_str: String, type_name: String) -> String:
@@ -259,4 +284,4 @@ func _parse_typed_value(value_str: String, type_name: String) -> String:
 		"int": return str(text.to_int()) if text.is_valid_int() else "0"
 		"float": return text if text.is_valid_float() else "0.0"
 		"Vector2", "Vector3": return text if text.begins_with(type_name + "(") else type_name + ".ZERO"
-		_: return '"%s"' % text.replace('\"', '\\"')
+		_: return '"%s"' % _gd_string(text)

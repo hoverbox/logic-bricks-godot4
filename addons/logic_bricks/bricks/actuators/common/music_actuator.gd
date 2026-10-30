@@ -151,6 +151,45 @@ func _is_literal_int(val) -> bool:
 	return s.is_valid_int() or s.is_valid_float()
 
 
+## Member variables this brick declares that keep their value when the node
+## changes state (other state-specific variables are reset on state entry).
+## Music players are built once in _ready(); resetting them would silence music
+## before a Set brick gets a chance to play anything.
+func get_kept_member_vars() -> PackedStringArray:
+	return PackedStringArray(["_music_players*", "_music_current*", "_music_crossfading*", "_music_initialized*"])
+
+
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var music_mode = properties.get("music_mode", "tracks")
+	if typeof(music_mode) == TYPE_STRING:
+		music_mode = music_mode.to_lower()
+	var is_tracks  = (music_mode == "tracks")
+	var is_set     = (music_mode == "set")
+	var is_control = (music_mode == "control")
+	var control_action = properties.get("control_action", "play")
+	if typeof(control_action) == TYPE_STRING:
+		control_action = control_action.to_lower()
+	var is_crossfade = (control_action == "crossfade")
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"tracks", "volume_db", "loop", "audio_bus", "persist":
+					shown[child] = is_tracks
+				"set_track", "set_play":
+					shown[child] = is_set
+				"control_action":
+					shown[child] = is_control
+				"to_track", "crossfade_time":
+					shown[child] = is_control and is_crossfade
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var music_mode = properties.get("music_mode", "tracks")
 	if typeof(music_mode) == TYPE_STRING:
@@ -170,7 +209,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	match music_mode:
 		"tracks":
 			var tracks     = properties.get("tracks", [])
-			var volume_db  = float(properties.get("volume_db", 0.0))
+			var volume_db  := _num("volume_db", 0.0, 2)
 			var loop       = properties.get("loop", true)
 			var audio_bus  = str(properties.get("audio_bus", "")).strip_edges()
 			var persist    = properties.get("persist", false)
@@ -194,7 +233,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				ready_lines.append("if _gv:")
 				ready_lines.append("\tvar _existing: Array[AudioStreamPlayer] = []")
 				ready_lines.append("\tfor c in _gv.get_children():")
-				ready_lines.append("\t\tif c is AudioStreamPlayer and c.is_in_group(\"%s\"):" % group_name)
+				ready_lines.append("\t\tif c is AudioStreamPlayer and c.is_in_group(\"%s\"):" % _gd_string(str(group_name)))
 				ready_lines.append("\t\t\t_existing.append(c)")
 				ready_lines.append("\tif not _existing.is_empty():")
 				ready_lines.append("\t\t%s = _existing" % arr_var)
@@ -208,16 +247,16 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					continue
 				var pvar = "_mt_%s_%d" % [chain_name, i]
 				ready_lines.append("var %s = AudioStreamPlayer.new()" % pvar)
-				ready_lines.append("%s.stream = load(\"%s\")" % [pvar, path])
-				ready_lines.append("%s.volume_db = %.2f" % [pvar, volume_db])
+				ready_lines.append("%s.stream = load(\"%s\")" % [pvar, _gd_string(str(path))])
+				ready_lines.append("%s.volume_db = %s" % [pvar, volume_db])
 				if not audio_bus.is_empty():
-					ready_lines.append("%s.bus = \"%s\"" % [pvar, audio_bus])
+					ready_lines.append("%s.bus = \"%s\"" % [pvar, _gd_string(str(audio_bus))])
 				if loop:
 					ready_lines.append("if %s.stream is AudioStreamWAV:" % pvar)
 					ready_lines.append("\t%s.stream.loop_mode = AudioStreamWAV.LOOP_FORWARD" % pvar)
 					ready_lines.append("elif %s.stream is AudioStreamOggVorbis:" % pvar)
 					ready_lines.append("\t%s.stream.loop = true" % pvar)
-				ready_lines.append("%s.add_to_group(\"%s\")" % [pvar, group_name])
+				ready_lines.append("%s.add_to_group(\"%s\")" % [pvar, _gd_string(str(group_name))])
 				if persist:
 					ready_lines.append("if _gv: _gv.add_child(%s)" % pvar)
 					ready_lines.append("else: add_child(%s)" % pvar)
@@ -254,7 +293,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("if %s or not _music_initialized or %s.is_empty():" % [set_done_var, arr_var])
 				code_lines.append("\tpass  # Already set, or tracks not ready yet")
 				code_lines.append("elif %s >= %s.size():" % [set_track_expr, arr_var])
-				code_lines.append("\tpush_warning(\"Music Actuator: Track index %s out of range\")" % set_track_expr)
+				code_lines.append("\tpush_warning(\"Music Actuator: Track index %s out of range\")" % _gd_string(str(set_track_expr)))
 				code_lines.append("else:")
 				code_lines.append("\t%s = true" % set_done_var)
 				code_lines.append("\t%s = %s" % [cur_var, set_track_expr])
@@ -284,8 +323,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"control":
 			var control_action = properties.get("control_action", "play")
 			var to_track_raw   = properties.get("to_track", "1")
-			var crossfade_time = float(properties.get("crossfade_time", 1.0))
-			var volume_db      = float(properties.get("volume_db", 0.0))
+			var crossfade_time := _num("crossfade_time", 1.0, 2)
+			var volume_db      := _num("volume_db", 0.0, 2)
 
 			if typeof(control_action) == TYPE_STRING:
 				control_action = control_action.to_lower()
@@ -293,7 +332,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			var to_track_expr = _to_int_expr(to_track_raw)
 			var is_literal_to = _is_literal_int(to_track_raw)
 
-			code_lines.append("# Music Actuator (Control): %s" % control_action)
+			code_lines.append("# Music Actuator (Control): %s" % _gd_string(str(control_action)))
 			code_lines.append("if %s.is_empty():" % arr_var)
 			code_lines.append("\tpush_warning(\"Music Actuator: No tracks loaded — add a Tracks brick first\")")
 			code_lines.append("else:")
@@ -324,11 +363,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 						code_lines.append("\t\t# Crossfade using parallel tween")
 						code_lines.append("\t\tvar _cf = create_tween()")
 						code_lines.append("\t\t_cf.set_parallel(true)")
-						code_lines.append("\t\t_cf.tween_property(_from, \"volume_db\", -80.0, %.2f)" % crossfade_time)
-						code_lines.append("\t\t_cf.tween_property(_to, \"volume_db\", %.2f, %.2f)" % [volume_db, crossfade_time])
+						code_lines.append("\t\t_cf.tween_property(_from, \"volume_db\", -80.0, %s)" % crossfade_time)
+						code_lines.append("\t\t_cf.tween_property(_to, \"volume_db\", %s, %s)" % [volume_db, crossfade_time])
 						code_lines.append("\t\tawait _cf.finished")
 						code_lines.append("\t\t_from.stop()")
-						code_lines.append("\t\t_from.volume_db = %.2f" % volume_db)
+						code_lines.append("\t\t_from.volume_db = %s" % volume_db)
 						code_lines.append("\t\t%s = %s" % [cur_var, to_track_expr])
 						code_lines.append("\t\t%s = false" % fading_var)
 					else:
@@ -354,11 +393,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 						code_lines.append("\t\tif not _to.playing: _to.play()")
 						code_lines.append("\t\tvar _cf = create_tween()")
 						code_lines.append("\t\t_cf.set_parallel(true)")
-						code_lines.append("\t\t_cf.tween_property(_from, \"volume_db\", -80.0, %.2f)" % crossfade_time)
-						code_lines.append("\t\t_cf.tween_property(_to, \"volume_db\", %.2f, %.2f)" % [volume_db, crossfade_time])
+						code_lines.append("\t\t_cf.tween_property(_from, \"volume_db\", -80.0, %s)" % crossfade_time)
+						code_lines.append("\t\t_cf.tween_property(_to, \"volume_db\", %s, %s)" % [volume_db, crossfade_time])
 						code_lines.append("\t\tawait _cf.finished")
 						code_lines.append("\t\t_from.stop()")
-						code_lines.append("\t\t_from.volume_db = %.2f" % volume_db)
+						code_lines.append("\t\t_from.volume_db = %s" % volume_db)
 						code_lines.append("\t\t%s = _target_track" % cur_var)
 						code_lines.append("\t\t%s = false" % fading_var)
 						# If the variable changed again while the fade was running,

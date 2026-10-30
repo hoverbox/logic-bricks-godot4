@@ -89,6 +89,34 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var input_mode = properties.get("input_mode", "pressed")
+
+	# Normalize
+	if typeof(input_mode) == TYPE_STRING:
+		input_mode = input_mode.to_lower().replace(" ", "_")
+
+	var is_button = input_mode in ["pressed", "just_pressed", "just_released"]
+	var is_axis = (input_mode == "axis")
+
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"action_name":
+					shown[child] = is_button
+				"negative_action", "positive_action", "store_in", "deadzone":
+					shown[child] = is_axis
+				"invert":
+					shown[child] = true  # Invert is useful for all input modes
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var input_mode = properties.get("input_mode", "pressed")
 
@@ -116,13 +144,13 @@ func _generate_button_code(input_mode: String) -> Dictionary:
 
 	match input_mode:
 		"pressed":
-			raw = "Input.is_action_pressed(\"%s\")" % action_name
+			raw = "Input.is_action_pressed(\"%s\")" % _gd_string(str(action_name))
 		"just_pressed":
-			raw = "Input.is_action_just_pressed(\"%s\")" % action_name
+			raw = "Input.is_action_just_pressed(\"%s\")" % _gd_string(str(action_name))
 		"just_released":
-			raw = "Input.is_action_just_released(\"%s\")" % action_name
+			raw = "Input.is_action_just_released(\"%s\")" % _gd_string(str(action_name))
 		_:
-			raw = "Input.is_action_pressed(\"%s\")" % action_name
+			raw = "Input.is_action_pressed(\"%s\")" % _gd_string(str(action_name))
 
 	var code = "var sensor_active = %s%s" % ["not " if invert else "", raw]
 	return {"sensor_code": code}
@@ -156,14 +184,12 @@ func _generate_axis_code() -> Dictionary:
 	var pos_action = str(properties.get("positive_action", "")).strip_edges()
 	var store_var = str(properties.get("store_in", "")).strip_edges()
 	var invert = properties.get("invert", false)
-	var deadzone = properties.get("deadzone", 0.1)
-	if typeof(deadzone) == TYPE_STRING:
-		deadzone = float(deadzone) if str(deadzone).is_valid_float() else 0.1
+	var deadzone := _num("deadzone", 0.1)
 
 	if neg_action.is_empty() or pos_action.is_empty():
 		return {"sensor_code": "var sensor_active = false  # Axis: actions not set"}
 
-	var axis_expr = "Input.get_axis(\"%s\", \"%s\")" % [neg_action, pos_action]
+	var axis_expr = "Input.get_axis(\"%s\", \"%s\")" % [_gd_string(str(neg_action)), _gd_string(str(pos_action))]
 	var code_lines: Array[String] = []
 
 	# Axis invert must invert the final boolean sensor result, not the numeric axis.
@@ -171,9 +197,9 @@ func _generate_axis_code() -> Dictionary:
 	# This matters for idle logic such as: NOT horizontal AND NOT vertical.
 	if not store_var.is_empty():
 		code_lines.append("%s = %s" % [store_var, axis_expr])
-		code_lines.append("var sensor_active = absf(%s) > %.3f" % [store_var, deadzone])
+		code_lines.append("var sensor_active = absf(%s) > %s" % [store_var, deadzone])
 	else:
-		code_lines.append("var sensor_active = absf(%s) > %.3f" % [axis_expr, deadzone])
+		code_lines.append("var sensor_active = absf(%s) > %s" % [axis_expr, deadzone])
 
 	if invert:
 		code_lines.append("sensor_active = not sensor_active")

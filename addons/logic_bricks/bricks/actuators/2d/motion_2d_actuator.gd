@@ -66,6 +66,13 @@ func get_tooltip_definitions() -> Dictionary:
 		"_description": "Legacy combined 2D movement brick kept for existing graphs. New work is usually clearer with Position and Rotation bricks.",
 	}
 
+## Member variables this brick declares that keep their value when the node
+## changes state (other state-specific variables are reset on state entry).
+## Shared with the Character 2D brick, which consumes it every frame.
+func get_kept_member_vars() -> PackedStringArray:
+	return PackedStringArray(["_logic_brick_character_*"])
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var motion_type = str(properties.get("motion_type", "location")).to_lower()
 	var movement_method = str(properties.get("movement_method", "character_velocity")).to_lower().replace(" ", "_")

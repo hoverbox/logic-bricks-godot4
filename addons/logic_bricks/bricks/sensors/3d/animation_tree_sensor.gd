@@ -123,9 +123,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if state_name.strip_edges().is_empty():
 				code_lines.append("\tpass  # No state name set")
 			else:
-				code_lines.append("\tvar _playback = %s.get(\"%s\")" % [anim_tree_var, sm_path.strip_edges()])
+				code_lines.append("\tvar _playback = %s.get(\"%s\")" % [anim_tree_var, _gd_string(str(sm_path.strip_edges()))])
 				code_lines.append("\tif _playback:")
-				code_lines.append("\t\tsensor_active = _playback.get_current_node() == \"%s\"" % state_name.strip_edges())
+				code_lines.append("\t\tsensor_active = _playback.get_current_node() == \"%s\"" % _gd_string(str(state_name.strip_edges())))
 
 		"condition":
 			var condition_name = properties.get("condition_name", "")
@@ -135,13 +135,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("\tpass  # No condition name set")
 			else:
 				var expected_str = "true" if condition_expected else "false"
-				code_lines.append("\tvar _cond_val = %s.get(\"parameters/conditions/%s\")" % [anim_tree_var, condition_name.strip_edges()])
+				code_lines.append("\tvar _cond_val = %s.get(\"parameters/conditions/%s\")" % [anim_tree_var, _gd_string(str(condition_name.strip_edges()))])
 				code_lines.append("\tsensor_active = _cond_val == %s" % expected_str)
 
 		"parameter_compare":
 			var param_path = properties.get("parameter_path", "")
 			var compare_op = properties.get("compare_op", "equal")
-			var compare_value = properties.get("compare_value", 0.0)
 
 			if typeof(compare_op) == TYPE_STRING:
 				compare_op = compare_op.to_lower().replace(" ", "_")
@@ -149,7 +148,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if param_path.strip_edges().is_empty():
 				code_lines.append("\tpass  # No parameter path set")
 			else:
-				code_lines.append("\tvar _param_val = %s.get(\"%s\")" % [anim_tree_var, param_path.strip_edges()])
+				code_lines.append("\tvar _param_val = %s.get(\"%s\")" % [anim_tree_var, _gd_string(str(param_path.strip_edges()))])
 				code_lines.append("\tif _param_val != null:")
 
 				var op_str = "=="
@@ -167,7 +166,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					"less_equal":
 						op_str = "<="
 
-				code_lines.append("\t\tsensor_active = _param_val %s %.3f" % [op_str, compare_value])
+				code_lines.append("\t\tsensor_active = _param_val %s %s" % [op_str, _num("compare_value")])
 
 		_:
 			code_lines.append("\tpass  # Unknown mode")
@@ -177,4 +176,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"member_vars": member_vars
 	}
 
-
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Detects animation tree state changes and conditions.",
+		"state_machine_path": "Path to the AnimationNodeStateMachinePlayback parameter in the AnimationTree.",
+		"state_name": "Name of the animation state to check for (e.g. \'idle\', \'run\').",
+		"condition_name": "Name of the boolean condition parameter in the AnimationTree.",
+		"compare_value": "Value to compare against the parameter.",
+	}

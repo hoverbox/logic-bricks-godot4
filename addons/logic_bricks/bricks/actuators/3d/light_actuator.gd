@@ -19,7 +19,7 @@ func _initialize_properties() -> void:
 		"target_node_name":   "",
 
 		# Light type
-		"light_type":         "omni",
+		"light_type":         "omnilight3d",
 
 		# Common properties
 		"set_color":          false,
@@ -90,7 +90,7 @@ func get_property_definitions() -> Array:
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
 			"hint_string": "OmniLight3D,SpotLight3D,DirectionalLight3D",
-			"default": "omni"
+			"default": "omnilight3d"
 		},
 
 		# ── Common Properties ──
@@ -196,44 +196,83 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var light_type = _light_type()
+	var fx         = properties.get("fx", "normal").to_lower().replace(" ", "_")
+	var is_spot    = (light_type == "spotlight3d")
+	var is_omni_or_spot = (light_type in ["omnilight3d", "spotlight3d"])
+	for node in _get_field_names():
+		var prop_name = node
+		match prop_name:
+			"set_range", "light_range":
+				shown[node] = is_omni_or_spot
+			"set_spot_angle", "spot_angle", "set_spot_attenuation", "spot_attenuation":
+				shown[node] = is_spot
+			"fx_params_group":
+				shown[node] = (fx != "normal")
+			"flicker_normal_energy", "flicker_min", "flicker_max", "flicker_idle_min", "flicker_idle_max", "flicker_burst_duration":
+				shown[node] = (fx == "flicker")
+			"strobe_frequency", "strobe_on_energy", "strobe_off_energy":
+				shown[node] = (fx == "strobe")
+			"pulse_min", "pulse_max", "pulse_speed":
+				shown[node] = (fx == "pulse")
+			"fade_target", "fade_speed":
+				shown[node] = (fx in ["fade_in", "fade_out"])
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target_node_name   = str(properties.get("target_node_name", "")).strip_edges()
-	var light_type         = str(properties.get("light_type", "omni")).to_lower().replace(" ", "_")
+	var light_type         = _light_type()
+	# On its own node the light's type is known, so use it: a type that does
+	# not match the node (an old "omni" default on a SpotLight3D, or a wrong
+	# pick in the dropdown) would make `self as <type>` a cast GDScript
+	# rejects, and the whole script would fail to load.
+	if target_node_name.is_empty() and node != null:
+		var node_type := _light_type_of(node)
+		if node_type.is_empty():
+			return {"actuator_code": "push_warning(\"Light Actuator: this node is not a light. Put it on an OmniLight3D, SpotLight3D or DirectionalLight3D, or set Target Node.\")"}
+		light_type = node_type
 	var fx                 = str(properties.get("fx", "normal")).to_lower().replace(" ", "_")
 
 	var set_color          = properties.get("set_color", false)
 	var color              = properties.get("color", Color(1, 1, 1, 1))
 	var set_energy         = properties.get("set_energy", false)
-	var energy             = float(properties.get("energy", 1.0))
+	var energy             = _fv("energy", 1.0)
 	var set_indirect       = properties.get("set_indirect_energy", false)
-	var indirect_energy    = float(properties.get("indirect_energy", 1.0))
+	var indirect_energy    = _fv("indirect_energy", 1.0)
 	var set_specular       = properties.get("set_specular", false)
-	var specular           = float(properties.get("specular", 0.5))
+	var specular           = _fv("specular", 0.5)
 	var set_shadow         = properties.get("set_shadow", false)
 	var shadow_enabled     = properties.get("shadow_enabled", false)
 	var set_visible        = properties.get("set_visible", false)
 	var light_visible      = properties.get("light_visible", true)
 	var set_range          = properties.get("set_range", false)
-	var light_range        = float(properties.get("light_range", 10.0))
+	var light_range        = _fv("light_range", 10.0)
 	var set_spot_angle     = properties.get("set_spot_angle", false)
-	var spot_angle         = float(properties.get("spot_angle", 45.0))
+	var spot_angle         = _fv("spot_angle", 45.0)
 	var set_spot_atten     = properties.get("set_spot_attenuation", false)
-	var spot_atten         = float(properties.get("spot_attenuation", 1.0))
+	var spot_atten         = _fv("spot_attenuation", 1.0)
 
-	var flicker_normal     = float(properties.get("flicker_normal_energy", 1.0))
-	var flicker_min        = float(properties.get("flicker_min", 0.0))
-	var flicker_max        = float(properties.get("flicker_max", 0.8))
-	var flicker_idle_min   = float(properties.get("flicker_idle_min", 1.0))
-	var flicker_idle_max   = float(properties.get("flicker_idle_max", 4.0))
-	var flicker_burst      = float(properties.get("flicker_burst_duration", 0.3))
-	var strobe_freq        = float(properties.get("strobe_frequency", 10.0))
-	var strobe_on          = float(properties.get("strobe_on_energy", 1.0))
-	var strobe_off         = float(properties.get("strobe_off_energy", 0.0))
-	var pulse_min          = float(properties.get("pulse_min", 0.2))
-	var pulse_max          = float(properties.get("pulse_max", 1.0))
-	var pulse_speed        = float(properties.get("pulse_speed", 2.0))
-	var fade_target        = float(properties.get("fade_target", 1.0))
-	var fade_speed         = float(properties.get("fade_speed", 2.0))
+	var flicker_normal     = _fv("flicker_normal_energy", 1.0)
+	var flicker_min        = _fv("flicker_min", 0.0)
+	var flicker_max        = _fv("flicker_max", 0.8)
+	var flicker_idle_min   = _fv("flicker_idle_min", 1.0)
+	var flicker_idle_max   = _fv("flicker_idle_max", 4.0)
+	var flicker_burst      = _fv("flicker_burst_duration", 0.3)
+	var strobe_freq        = _fv("strobe_frequency", 10.0)
+	var strobe_on          = _fv("strobe_on_energy", 1.0)
+	var strobe_off         = _fv("strobe_off_energy", 0.0)
+	var pulse_min          = _fv("pulse_min", 0.2)
+	var pulse_max          = _fv("pulse_max", 1.0)
+	var pulse_speed        = _fv("pulse_speed", 2.0)
+	var fade_target        = _fv("fade_target", 1.0)
+	var fade_speed         = _fv("fade_speed", 2.0)
 
 	# Unique per-chain variable names
 	var light_var  = "_light_%s" % chain_name
@@ -245,7 +284,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# FX modes that need per-frame state
 	if fx == "flicker":
 		member_vars.append("var %s: bool = false" % ("_flicker_bursting_%s" % chain_name))
-		member_vars.append("var %s: float = randf_range(%s, %s)" % ["_flicker_idle_%s" % chain_name, _f(flicker_idle_min), _f(flicker_idle_max)])
+		if _is_number_expression("flicker_idle_min") or _is_number_expression("flicker_idle_max"):
+			# Variables are not ready yet when member variables are created:
+			# pick the first idle time the first time the brick runs instead.
+			member_vars.append("var %s: float = -1.0" % ("_flicker_idle_%s" % chain_name))
+		else:
+			member_vars.append("var %s: float = randf_range(%s, %s)" % ["_flicker_idle_%s" % chain_name, flicker_idle_min, flicker_idle_max])
 		member_vars.append("var %s: float = 0.0" % ("_flicker_burst_%s" % chain_name))
 	if fx in ["strobe", "pulse"]:
 		member_vars.append("var %s: float = 0.0" % timer_var)
@@ -256,7 +300,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if target_node_name.is_empty():
 		code_lines.append("var %s = self as %s" % [light_var, light_class])
 		code_lines.append("if not %s:" % light_var)
-		code_lines.append("\tpush_warning(\"Light Actuator: This node is not a %s\")" % light_class)
+		code_lines.append("\tpush_warning(\"Light Actuator: This node is not a %s\")" % _gd_string(str(light_class)))
 	else:
 		var escaped_target = _gd_string(target_node_name)
 		var target_var = "_light_target_%s" % chain_name
@@ -265,29 +309,29 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("\t%s = get_tree().current_scene.find_child(\"%s\", true, false)" % [target_var, escaped_target])
 		code_lines.append("var %s = %s as %s" % [light_var, target_var, light_class])
 		code_lines.append("if not %s:" % light_var)
-		code_lines.append("\tpush_warning(\"Light Actuator: Could not find %s named '%s'\")" % [light_class, escaped_target])
+		code_lines.append("\tpush_warning(\"Light Actuator: Could not find %s named '%s'\")" % [_gd_string(str(light_class)), escaped_target])
 	code_lines.append("else:")
 
 	# ── Static property sets ──
 	if set_color:
 		code_lines.append("\t%s.light_color = %s" % [light_var, _color_expr(color)])
 	if set_energy:
-		code_lines.append("\t%s.light_energy = %s" % [light_var, _f(energy)])
+		code_lines.append("\t%s.light_energy = %s" % [light_var, energy])
 	if set_indirect:
-		code_lines.append("\t%s.light_indirect_energy = %s" % [light_var, _f(indirect_energy)])
+		code_lines.append("\t%s.light_indirect_energy = %s" % [light_var, indirect_energy])
 	if set_specular:
-		code_lines.append("\t%s.light_specular = %s" % [light_var, _f(specular)])
+		code_lines.append("\t%s.light_specular = %s" % [light_var, specular])
 	if set_shadow:
 		code_lines.append("\t%s.shadow_enabled = %s" % [light_var, str(shadow_enabled).to_lower()])
 	if set_visible:
 		code_lines.append("\t%s.visible = %s" % [light_var, str(light_visible).to_lower()])
 	if set_range and light_type in ["omnilight3d", "spotlight3d"]:
 		var range_prop = "omni_range" if light_type == "omnilight3d" else "spot_range"
-		code_lines.append("\t%s.%s = %s" % [light_var, range_prop, _f(light_range)])
+		code_lines.append("\t%s.%s = %s" % [light_var, range_prop, light_range])
 	if set_spot_angle and light_type == "spotlight3d":
-		code_lines.append("\t%s.spot_angle = %s" % [light_var, _f(spot_angle)])
+		code_lines.append("\t%s.spot_angle = %s" % [light_var, spot_angle])
 	if set_spot_atten and light_type == "spotlight3d":
-		code_lines.append("\t%s.spot_angle_attenuation = %s" % [light_var, _f(spot_atten)])
+		code_lines.append("\t%s.spot_angle_attenuation = %s" % [light_var, spot_atten])
 
 	# ── FX ──
 	match fx:
@@ -298,45 +342,98 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			var bursting_var  = "_flicker_bursting_%s" % chain_name
 			var idle_var      = "_flicker_idle_%s" % chain_name
 			var burst_var     = "_flicker_burst_%s" % chain_name
+			if _is_number_expression("flicker_idle_min") or _is_number_expression("flicker_idle_max"):
+				code_lines.append("\tif %s < 0.0 and not %s:" % [idle_var, bursting_var])
+				code_lines.append("\t\t%s = randf_range(%s, %s)" % [idle_var, flicker_idle_min, flicker_idle_max])
 			code_lines.append("\tif %s:" % bursting_var)
 			code_lines.append("\t\t# During burst: randomise energy each frame")
-			code_lines.append("\t\t%s.light_energy = randf_range(%s, %s)" % [light_var, _f(flicker_min), _f(flicker_max)])
+			code_lines.append("\t\t%s.light_energy = randf_range(%s, %s)" % [light_var, flicker_min, flicker_max])
 			code_lines.append("\t\t%s -= _delta" % burst_var)
 			code_lines.append("\t\tif %s <= 0.0:" % burst_var)
 			code_lines.append("\t\t\t%s = false" % bursting_var)
-			code_lines.append("\t\t\t%s.light_energy = %s" % [light_var, _f(flicker_normal)])
-			code_lines.append("\t\t\t%s = randf_range(%s, %s)" % [idle_var, _f(flicker_idle_min), _f(flicker_idle_max)])
+			code_lines.append("\t\t\t%s.light_energy = %s" % [light_var, flicker_normal])
+			code_lines.append("\t\t\t%s = randf_range(%s, %s)" % [idle_var, flicker_idle_min, flicker_idle_max])
 			code_lines.append("\telse:")
 			code_lines.append("\t\t# Idle: hold normal energy, count down to next burst")
-			code_lines.append("\t\t%s.light_energy = %s" % [light_var, _f(flicker_normal)])
+			code_lines.append("\t\t%s.light_energy = %s" % [light_var, flicker_normal])
 			code_lines.append("\t\t%s -= _delta" % idle_var)
 			code_lines.append("\t\tif %s <= 0.0:" % idle_var)
 			code_lines.append("\t\t\t%s = true" % bursting_var)
-			code_lines.append("\t\t\t%s = %s" % [burst_var, _f(flicker_burst)])
+			code_lines.append("\t\t\t%s = %s" % [burst_var, flicker_burst])
 
 		"strobe":
 			code_lines.append("\t%s += _delta" % timer_var)
-			code_lines.append("\tvar _strobe_cycle_%s = 1.0 / %s" % [chain_name, _f(strobe_freq)])
+			code_lines.append("\tvar _strobe_cycle_%s = 1.0 / %s" % [chain_name, strobe_freq])
 			code_lines.append("\tif fmod(%s, _strobe_cycle_%s) < _strobe_cycle_%s * 0.5:" % [timer_var, chain_name, chain_name])
-			code_lines.append("\t\t%s.light_energy = %s" % [light_var, _f(strobe_on)])
+			code_lines.append("\t\t%s.light_energy = %s" % [light_var, strobe_on])
 			code_lines.append("\telse:")
-			code_lines.append("\t\t%s.light_energy = %s" % [light_var, _f(strobe_off)])
+			code_lines.append("\t\t%s.light_energy = %s" % [light_var, strobe_off])
 
 		"pulse":
-			code_lines.append("\t%s += _delta * %s" % [timer_var, _f(pulse_speed)])
+			code_lines.append("\t%s += _delta * %s" % [timer_var, pulse_speed])
 			code_lines.append("\tvar _pulse_t_%s = (sin(%s) + 1.0) * 0.5" % [chain_name, timer_var])
-			code_lines.append("\t%s.light_energy = lerpf(%s, %s, _pulse_t_%s)" % [light_var, _f(pulse_min), _f(pulse_max), chain_name])
+			code_lines.append("\t%s.light_energy = lerpf(%s, %s, _pulse_t_%s)" % [light_var, pulse_min, pulse_max, chain_name])
 
 		"fade_in":
-			code_lines.append("\t%s.light_energy = lerpf(%s.light_energy, %s, %s * _delta)" % [light_var, light_var, _f(fade_target), _f(fade_speed)])
+			code_lines.append("\t%s.light_energy = lerpf(%s.light_energy, %s, %s * _delta)" % [light_var, light_var, fade_target, fade_speed])
 
 		"fade_out":
-			code_lines.append("\t%s.light_energy = lerpf(%s.light_energy, %s, %s * _delta)" % [light_var, light_var, _f(fade_target), _f(fade_speed)])
+			code_lines.append("\t%s.light_energy = lerpf(%s.light_energy, %s, %s * _delta)" % [light_var, light_var, fade_target, fade_speed])
+
+	if code_lines[-1] == "else:":
+		# No Set option ticked and FX is Normal: the brick has nothing to change
+		# yet. Keep the block valid (an empty else: stops the script loading).
+		code_lines.append("\tpass  # Nothing to change yet: tick a Set option or choose an FX")
 
 	var result: Dictionary = {"actuator_code": "\n".join(code_lines)}
 	if member_vars.size() > 0:
 		result["member_vars"] = member_vars
 	return result
+
+
+## The light type as the generator compares it ("omnilight3d", ...).
+## Older graphs saved the short names "omni", "spot" and "directional".
+func _light_type() -> String:
+	var light_type := str(properties.get("light_type", "omnilight3d")).to_lower().replace(" ", "_")
+	match light_type:
+		"omni", "omni_light", "omnilight":
+			return "omnilight3d"
+		"spot", "spot_light", "spotlight":
+			return "spotlight3d"
+		"directional", "directional_light", "directionallight":
+			return "directionallight3d"
+	return light_type
+
+
+## "omnilight3d", "spotlight3d" or "directionallight3d" for a light node,
+## "" for anything else.
+static func _light_type_of(node: Node) -> String:
+	if node is SpotLight3D:
+		return "spotlight3d"
+	if node is DirectionalLight3D:
+		return "directionallight3d"
+	if node is OmniLight3D:
+		return "omnilight3d"
+	return ""
+
+
+## When the brick is added to a light, pick that light's type.
+func apply_context_defaults(node: Node) -> void:
+	var node_type := _light_type_of(node)
+	if not node_type.is_empty():
+		properties["light_type"] = node_type
+
+
+func get_configuration_warnings(node: Node = null) -> Array[String]:
+	var warnings := super.get_configuration_warnings(node)
+	var any_set := false
+	for key in ["set_color", "set_energy", "set_indirect_energy", "set_specular", "set_shadow", "set_visible", "set_range", "set_spot_angle", "set_spot_attenuation"]:
+		if properties.get(key, false):
+			any_set = true
+			break
+	if not any_set and str(properties.get("fx", "normal")).to_lower().replace(" ", "_") == "normal":
+		warnings.append("Tick a Set option or choose an FX so this brick changes the light")
+	return warnings
 
 
 func _godot_class(light_type: String) -> String:
@@ -353,6 +450,13 @@ func _f(val: float) -> String:
 	while s.ends_with("0") and not s.ends_with(".0"):
 		s = s.left(s.length() - 1)
 	return s
+
+
+## Generated code for a number field: a clean literal ("0.8") or float(expression).
+func _fv(key: String, fallback: float) -> String:
+	if _is_number_expression(key):
+		return _num(key, fallback)
+	return _f(float(_literal_number(key, fallback)))
 
 
 func _color_expr(c: Color) -> String:

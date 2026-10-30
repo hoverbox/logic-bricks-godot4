@@ -60,6 +60,14 @@ func get_tooltip_definitions() -> Dictionary:
 		"max_fall_speed": "Maximum downward speed while falling.",
 	}
 
+## Member variables this brick declares that keep their value when the node
+## changes state (other state-specific variables are reset on state entry).
+## Character movement, jump and moving-platform state is shared with Jump and
+## Movement bricks and must not be wiped when the node changes state.
+func get_kept_member_vars() -> PackedStringArray:
+	return PackedStringArray(["_logic_brick_character_*", "_on_ground*", "_moving_platform_*", "_inherited_platform_velocity*", "_logic_brick_pre_slide_velocity*", "_jumps_remaining*", "_max_jumps*"])
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var gravity_expr := _numeric_expr(properties.get("gravity_strength", "980.0"))
 	var max_fall_expr := _numeric_expr(properties.get("max_fall_speed", "1000.0"))
@@ -155,6 +163,18 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	post_process.append("\t\t\t\tif _logic_brick_normal.dot(up_direction) > cos(floor_max_angle) and _logic_brick_impact_speed > 0.08:")
 	post_process.append("\t\t\t\t\tvelocity.y = -_logic_brick_impact_speed * _logic_brick_2d_bounce")
 	post_process.append("\t\t\t\t\tbreak")
+
+	# Surface Attachment owns gravity and sliding while clinging.
+	# Keep the normal chains running so detach inputs and movement requests still work.
+	var attachment_guard = "if not bool(get_meta(\"_lb_surface_attached\", false)):"
+	var unattached_code: Array[String] = [attachment_guard]
+	for line in actuator_code:
+		unattached_code.append("\t" + str(line))
+	actuator_code = unattached_code
+	var unattached_post: Array[String] = [attachment_guard]
+	for line in post_process:
+		unattached_post.append("\t" + str(line))
+	post_process = unattached_post
 
 	return {
 		"actuator_code": "\n".join(actuator_code),

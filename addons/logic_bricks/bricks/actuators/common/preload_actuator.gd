@@ -124,8 +124,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		# Build the pending list
 		lines.append("var _to_load: Array[String] = []")
 		for path in valid_resources:
-			lines.append("if not _preload_cache.has(\"%s\"):" % path)
-			lines.append("\t_to_load.append(\"%s\")" % path)
+			lines.append("if not _preload_cache.has(\"%s\"):" % _gd_string(str(path)))
+			lines.append("\t_to_load.append(\"%s\")" % _gd_string(str(path)))
 		lines.append("")
 		lines.append("if not _to_load.is_empty():")
 		lines.append("\tfor _path in _to_load:")
@@ -151,7 +151,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			lines.append("\t\t\t\t\t_done.append(_p)")
 			lines.append("\t\t\tfor _d in _done:")
 			lines.append("\t\t\t\t_rem.erase(_d)")
-			lines.append("\t\tget_tree().call_group(\"%s\", \"receive_message\", \"%s\")" % [signal_group, signal_message])
+			lines.append("\t\tget_tree().call_group(\"%s\", \"receive_message\", \"%s\")" % [_gd_string(str(signal_group)), _gd_string(str(signal_message))])
 			lines.append("\t_monitor_%s.call()" % suffix)
 
 	else:
@@ -159,14 +159,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		lines.append("# Immediately load all resources (blocks the main thread)")
 		for path in valid_resources:
 			var v = _safe_var(path)
-			lines.append("if not _preload_cache.has(\"%s\"):" % path)
-			lines.append("\tvar _res_%s = load(\"%s\")" % [v, path])
+			lines.append("if not _preload_cache.has(\"%s\"):" % _gd_string(str(path)))
+			lines.append("\tvar _res_%s = load(\"%s\")" % [v, _gd_string(str(path))])
 			lines.append("\tif _res_%s:" % v)
-			lines.append("\t\t_preload_cache[\"%s\"] = _res_%s" % [path, v])
+			lines.append("\t\t_preload_cache[\"%s\"] = _res_%s" % [_gd_string(str(path)), v])
 			lines.append("\telse:")
-			lines.append("\t\tpush_warning(\"Preload Actuator: failed to load '%s'\")" % path)
+			lines.append("\t\tpush_warning(\"Preload Actuator: failed to load '%s'\")" % _gd_string(str(path)))
 		if on_complete and not signal_group.is_empty():
-			lines.append("get_tree().call_group(\"%s\", \"receive_message\", \"%s\")" % [signal_group, signal_message])
+			lines.append("get_tree().call_group(\"%s\", \"receive_message\", \"%s\")" % [_gd_string(str(signal_group)), _gd_string(str(signal_message))])
 
 	return {"actuator_code": "\n".join(lines)}
 

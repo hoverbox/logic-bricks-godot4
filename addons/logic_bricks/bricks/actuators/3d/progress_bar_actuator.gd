@@ -54,6 +54,31 @@ func get_tooltip_definitions() -> Dictionary:
 		"transition_speed": "Lerp speed. Higher = faster. Accepts a number or variable.",
 	}
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var set_value = properties.get("set_value", true)
+	var set_min = properties.get("set_min", false)
+	var set_max = properties.get("set_max", false)
+	var transition = properties.get("transition", false)
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"value":
+					shown[child] = set_value
+				"min_value":
+					shown[child] = set_min
+				"max_value":
+					shown[child] = set_max
+				"transition_speed":
+					shown[child] = transition and set_value
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target_node_name = str(properties.get("target_node_name", "ProgressBar")).strip_edges()
 	var node_name_source = str(properties.get("node_name_source", "literal")).to_lower().replace(" ", "_")

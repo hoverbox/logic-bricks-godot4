@@ -72,6 +72,7 @@ func get_tooltip_definitions() -> Dictionary:
 		"mode": "Number: Assign, Adjust By, Copy, Toggle\nString: Replace, Add Before, Add After, Copy\nArray: item operations, Assign, Copy",
 		"value": "Value used by the selected operation. String values are plain text — do not add quotation marks. Numeric values can use variables or math expressions (for example: MinSpeed * 2).",
 		"source_variable": "Source variable name (Copy mode only). Type a name or choose an existing variable from the dropdown.",
+		"index": "Position in the array (0 = first item). Accepts a number, a variable, or math (for example: count - 1).",
 	}
 
 
@@ -81,12 +82,12 @@ func _generate_resolve_code(sanitized_name: String, indent: String = "") -> Arra
 	var lines: Array[String] = []
 	lines.append("%s# Resolve variable (local or global)" % indent)
 	lines.append("%svar _target = self" % indent)
-	lines.append("%sif not (\"%s\" in self):" % [indent, sanitized_name])
+	lines.append("%sif not (\"%s\" in self):" % [indent, _gd_string(str(sanitized_name))])
 	lines.append("%s\tvar _gv = get_node_or_null(\"/root/GlobalVars\")" % indent)
-	lines.append("%s\tif _gv and \"%s\" in _gv:" % [indent, sanitized_name])
+	lines.append("%s\tif _gv and \"%s\" in _gv:" % [indent, _gd_string(str(sanitized_name))])
 	lines.append("%s\t\t_target = _gv" % indent)
 	lines.append("%s\telse:" % indent)
-	lines.append("%s\t\tpush_warning(\"Modify Variable: '%s' not found locally or in GlobalVars\")" % [indent, sanitized_name])
+	lines.append("%s\t\tpush_warning(\"Modify Variable: '%s' not found locally or in GlobalVars\")" % [indent, _gd_string(str(sanitized_name))])
 	lines.append("%s\t\t_target = null" % indent)
 	return lines
 
@@ -96,6 +97,33 @@ func _sanitize_name(name: String) -> String:
 	var regex = RegEx.new()
 	regex.compile("[^a-zA-Z0-9_]")
 	return regex.sub(sanitized, "", true)
+
+
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var mode = properties.get("mode", "assign")
+	# Normalize to lowercase
+	if typeof(mode) == TYPE_STRING:
+		mode = mode.to_lower()
+
+	# Show/hide fields based on mode
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"value":
+					shown[child] = (mode in ["assign", "add", "replace", "prepend", "append", "add_item", "remove_item", "set_item_at_index"])
+				"source_variable":
+					shown[child] = (mode == "copy")
+				"item_type":
+					shown[child] = (mode in ["add_item", "remove_item", "set_item_at_index"])
+				"index":
+					shown[child] = (mode in ["remove_at_index", "set_item_at_index"])
+	return shown
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
@@ -126,29 +154,29 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	match mode:
 		"assign":
 			if value.is_empty():
-				code_lines.append("\tpush_warning(\"Modify Variable: No value set for '%s' — open the brick and enter a value\")" % sanitized_name)
+				code_lines.append("\tpush_warning(\"Modify Variable: No value set for '%s' — open the brick and enter a value\")" % _gd_string(str(sanitized_name)))
 			else:
 				var parsed_value = _parse_value(value)
-				code_lines.append("\t_target.set(\"%s\", %s)" % [sanitized_name, parsed_value])
+				code_lines.append("\t_target.set(\"%s\", %s)" % [_gd_string(str(sanitized_name)), parsed_value])
 
 		"add":
 			if value.is_empty():
-				code_lines.append("\tpush_warning(\"Modify Variable: No value set for '%s' — open the brick and enter a value\")" % sanitized_name)
+				code_lines.append("\tpush_warning(\"Modify Variable: No value set for '%s' — open the brick and enter a value\")" % _gd_string(str(sanitized_name)))
 			else:
 				var parsed_value = _parse_value(value)
-				code_lines.append("\t_target.set(\"%s\", _target.get(\"%s\") + %s)" % [sanitized_name, sanitized_name, parsed_value])
+				code_lines.append("\t_target.set(\"%s\", _target.get(\"%s\") + %s)" % [_gd_string(str(sanitized_name)), _gd_string(str(sanitized_name)), parsed_value])
 
 		"replace", "prepend", "append":
 			if value.is_empty():
-				code_lines.append("\tpush_warning(\"Modify Variable: No text set for '%s' — open the brick and enter text\")" % sanitized_name)
+				code_lines.append("\tpush_warning(\"Modify Variable: No text set for '%s' — open the brick and enter text\")" % _gd_string(str(sanitized_name)))
 			else:
 				var string_value := _quote_string(value)
 				if mode == "replace":
-					code_lines.append("\t_target.set(\"%s\", %s)" % [sanitized_name, string_value])
+					code_lines.append("\t_target.set(\"%s\", %s)" % [_gd_string(str(sanitized_name)), string_value])
 				elif mode == "prepend":
-					code_lines.append("\t_target.set(\"%s\", %s + str(_target.get(\"%s\")))" % [sanitized_name, string_value, sanitized_name])
+					code_lines.append("\t_target.set(\"%s\", %s + str(_target.get(\"%s\")))" % [_gd_string(str(sanitized_name)), string_value, _gd_string(str(sanitized_name))])
 				else:
-					code_lines.append("\t_target.set(\"%s\", str(_target.get(\"%s\")) + %s)" % [sanitized_name, sanitized_name, string_value])
+					code_lines.append("\t_target.set(\"%s\", str(_target.get(\"%s\")) + %s)" % [_gd_string(str(sanitized_name)), _gd_string(str(sanitized_name)), string_value])
 
 		"copy":
 			if source_var.is_empty():
@@ -158,21 +186,21 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				# Resolve source variable too
 				code_lines.append("\t# Resolve source variable")
 				code_lines.append("\tvar _src_val = null")
-				code_lines.append("\tif \"%s\" in self:" % sanitized_source)
-				code_lines.append("\t\t_src_val = self.get(\"%s\")" % sanitized_source)
+				code_lines.append("\tif \"%s\" in self:" % _gd_string(str(sanitized_source)))
+				code_lines.append("\t\t_src_val = self.get(\"%s\")" % _gd_string(str(sanitized_source)))
 				code_lines.append("\telse:")
 				code_lines.append("\t\tvar _gv_src = get_node_or_null(\"/root/GlobalVars\")")
-				code_lines.append("\t\tif _gv_src and \"%s\" in _gv_src:" % sanitized_source)
-				code_lines.append("\t\t\t_src_val = _gv_src.get(\"%s\")" % sanitized_source)
+				code_lines.append("\t\tif _gv_src and \"%s\" in _gv_src:" % _gd_string(str(sanitized_source)))
+				code_lines.append("\t\t\t_src_val = _gv_src.get(\"%s\")" % _gd_string(str(sanitized_source)))
 				code_lines.append("\tif _src_val != null:")
-				code_lines.append("\t\t_target.set(\"%s\", _src_val.duplicate(true) if _src_val is Array else _src_val)" % sanitized_name)
+				code_lines.append("\t\t_target.set(\"%s\", _src_val.duplicate(true) if _src_val is Array else _src_val)" % _gd_string(str(sanitized_name)))
 
 		"add_item", "remove_item":
 			if value.is_empty():
-				code_lines.append("\tpush_warning(\"Modify Variable: Array item value is empty for '%s'\")" % sanitized_name)
+				code_lines.append("\tpush_warning(\"Modify Variable: Array item value is empty for '%s'\")" % _gd_string(str(sanitized_name)))
 			else:
 				var parsed_item = _parse_typed_value(value, item_type)
-				code_lines.append("\tvar _arr = _target.get(\"%s\")" % sanitized_name)
+				code_lines.append("\tvar _arr = _target.get(\"%s\")" % _gd_string(str(sanitized_name)))
 				code_lines.append("\tif _arr is Array:")
 				if mode == "add_item":
 					code_lines.append("\t\t_arr.append(%s)" % parsed_item)
@@ -180,37 +208,37 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					code_lines.append("\t\t_arr.erase(%s)" % parsed_item)
 
 		"remove_at_index":
-			if not index_value.is_valid_int():
-				code_lines.append("\tpush_warning(\"Modify Variable: Remove At Index requires an integer index\")")
+			if index_value.is_empty():
+				code_lines.append("\tpush_warning(\"Modify Variable: Remove At Index requires an index\")")
 			else:
-				code_lines.append("\tvar _arr = _target.get(\"%s\")" % sanitized_name)
-				code_lines.append("\tvar _idx = %s" % index_value)
+				code_lines.append("\tvar _arr = _target.get(\"%s\")" % _gd_string(str(sanitized_name)))
+				code_lines.append("\tvar _idx: int = %s" % (index_value if index_value.is_valid_int() else "int(%s)" % index_value))
 				code_lines.append("\tif _arr is Array and _idx >= 0 and _idx < _arr.size():")
 				code_lines.append("\t\t_arr.remove_at(_idx)")
 				code_lines.append("\telse:")
 				code_lines.append("\t\tpush_warning(\"Modify Variable: Array index out of range\")")
 
 		"set_item_at_index":
-			if not index_value.is_valid_int() or value.is_empty():
-				code_lines.append("\tpush_warning(\"Modify Variable: Set Item At Index requires an integer index and value\")")
+			if index_value.is_empty() or value.is_empty():
+				code_lines.append("\tpush_warning(\"Modify Variable: Set Item At Index requires an index and a value\")")
 			else:
 				var parsed_item = _parse_typed_value(value, item_type)
-				code_lines.append("\tvar _arr = _target.get(\"%s\")" % sanitized_name)
-				code_lines.append("\tvar _idx = %s" % index_value)
+				code_lines.append("\tvar _arr = _target.get(\"%s\")" % _gd_string(str(sanitized_name)))
+				code_lines.append("\tvar _idx: int = %s" % (index_value if index_value.is_valid_int() else "int(%s)" % index_value))
 				code_lines.append("\tif _arr is Array and _idx >= 0 and _idx < _arr.size():")
 				code_lines.append("\t\t_arr[_idx] = %s" % parsed_item)
 				code_lines.append("\telse:")
 				code_lines.append("\t\tpush_warning(\"Modify Variable: Array index out of range\")")
 
 		"clear":
-			code_lines.append("\tvar _arr = _target.get(\"%s\")" % sanitized_name)
+			code_lines.append("\tvar _arr = _target.get(\"%s\")" % _gd_string(str(sanitized_name)))
 			code_lines.append("\tif _arr is Array:")
 			code_lines.append("\t\t_arr.clear()")
 
 		"toggle":
-			code_lines.append("\tvar _cur = _target.get(\"%s\")" % sanitized_name)
+			code_lines.append("\tvar _cur = _target.get(\"%s\")" % _gd_string(str(sanitized_name)))
 			code_lines.append("\tif typeof(_cur) == TYPE_BOOL:")
-			code_lines.append("\t\t_target.set(\"%s\", not _cur)" % sanitized_name)
+			code_lines.append("\t\t_target.set(\"%s\", not _cur)" % _gd_string(str(sanitized_name)))
 
 	return {
 		"actuator_code": "\n".join(code_lines)
@@ -259,7 +287,7 @@ func _parse_value(value_str: String) -> String:
 		return value_str
 
 	# Default: string
-	return "\"%s\"" % value_str.replace("\"", "\\\"")
+	return "\"%s\"" % _gd_string(value_str)
 
 
 func _is_math_expression(value_str: String) -> bool:
@@ -283,4 +311,4 @@ func _parse_typed_value(value_str: String, type_name: String) -> String:
 		"int": return str(text.to_int()) if text.is_valid_int() else "0"
 		"float": return text if text.is_valid_float() else "0.0"
 		"Vector2", "Vector3": return text if text.begins_with(type_name + "(") else type_name + ".ZERO"
-		_: return '"%s"' % text.replace('\"', '\\"')
+		_: return '"%s"' % _gd_string(text)

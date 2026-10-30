@@ -195,6 +195,31 @@ static func sync_path3d_node(owner_node: Node3D, brick_instance) -> void:
 ## Convert a value to a code expression.
 ## If it is a number (or string of a number), returns a float literal.
 ## Otherwise returns it as-is, allowing variable names or expressions.
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var path_source = str(properties.get("path_source", "node_positions")).to_lower()
+	var path_mode = str(properties.get("path_mode", "sequential")).to_lower().replace(" ", "_")
+	var node_points = (path_source != "path3d")
+	var random_mode = node_points and path_mode == "random"
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"waypoints", "path_mode":
+					shown[child] = node_points
+				"loop_mode":
+					shown[child] = not random_mode
+				"avoid_immediate_repeat", "random_neighbor_count":
+					shown[child] = random_mode
+				"follow_curve_tilt":
+					shown[child] = (path_source == "path3d")
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var path_source = str(properties.get("path_source", "node_positions")).to_lower()
 
@@ -211,7 +236,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var loop_mode = properties.get("loop_mode", "loop")
 	var path_mode = properties.get("path_mode", "sequential")
 	var avoid_immediate_repeat = bool(properties.get("avoid_immediate_repeat", true))
-	var random_neighbor_count = int(properties.get("random_neighbor_count", 0))
+	var random_neighbor_count = int(_literal_number("random_neighbor_count", 0.0)) if not _is_number_expression("random_neighbor_count") else 0
 	var speed_expr = _numeric_expr(properties.get("speed", "5.0"))
 	var arrival_dist_expr = _numeric_expr(properties.get("arrival_distance", "0.5"))
 	var face_dir = properties.get("face_direction", false)
@@ -242,7 +267,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var wp_literals: Array[String] = []
 	for wp in waypoints:
 		var v = parse_waypoint(str(wp))
-		wp_literals.append("Vector3(%.3f, %.3f, %.3f)" % [v.x, v.y, v.z])
+		wp_literals.append("Vector3(%.3f, %.3f, %.3f)" % [v.x - node.global_position.x, v.y - node.global_position.y, v.z - node.global_position.z])
 	var wp_array = "[%s]" % ", ".join(wp_literals)
 
 	var member_vars: Array[String] = [
@@ -279,7 +304,9 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			"var %s: Array = []" % points_var,
 			"",
 			"func %s() -> void:" % init_func,
-			"\t%s = %s.duplicate()" % [points_var, wp_array],
+			"\t%s = []" % points_var,
+			"\tfor _wp_offset in %s:" % wp_array,
+			"\t\t%s.append(global_position + _wp_offset)" % points_var,
 			"\tfor _wp_i in range(%s.size()):" % points_var,
 			"\t\tvar _wp_child = get_node_or_null(\"pos_%d\" % _wp_i)",
 			"\t\tif _wp_child is Node3D:",
@@ -410,7 +437,14 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				lines.append("\t\tif _wp_candidate_i == %s and %s.size() > 2:" % [prev_idx_var, points_var])
 				lines.append("\t\t\tcontinue")
 			lines.append("\t\t_wp_candidates.append(_wp_candidate_i)")
-			if random_neighbor_count > 0:
+			if _is_number_expression("random_neighbor_count"):
+				# Neighbor count is a variable/math: decide at runtime (0 or less = any waypoint).
+				lines.append("\tvar _wp_neighbor_count: int = %s" % _int_num("random_neighbor_count"))
+				lines.append("\tif _wp_neighbor_count > 0:")
+				lines.append("\t\t_wp_candidates.sort_custom(func(a: int, b: int): return %s[%s].distance_squared_to(%s[a]) < %s[%s].distance_squared_to(%s[b]))" % [points_var, idx_var, points_var, points_var, idx_var, points_var])
+				lines.append("\t\tif _wp_candidates.size() > _wp_neighbor_count:")
+				lines.append("\t\t\t_wp_candidates.resize(_wp_neighbor_count)")
+			elif random_neighbor_count > 0:
 				lines.append("\t_wp_candidates.sort_custom(func(a: int, b: int): return %s[%s].distance_squared_to(%s[a]) < %s[%s].distance_squared_to(%s[b]))" % [points_var, idx_var, points_var, points_var, idx_var, points_var])
 				lines.append("\tif _wp_candidates.size() > %d:" % random_neighbor_count)
 				lines.append("\t\t_wp_candidates.resize(%d)" % random_neighbor_count)

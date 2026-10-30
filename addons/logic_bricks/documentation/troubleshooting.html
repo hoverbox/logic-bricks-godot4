@@ -48,7 +48,7 @@
      </p>
 <div aria-label="Page information" class="page-reading-meta">
 <span>
-       ◷ 1 min read
+       ◷ 3 min read
       </span>
 <span>
        Phase 5 enhanced
@@ -104,6 +104,49 @@
      </h2>
 <p>
       A chain that mixes physics movement with timing-sensitive animation, UI, audio, or other time-based actions can be assigned to physics processing. Split timing-sensitive actions into a separate chain when the addon warns about this combination.
+     </p>
+</section>
+<section>
+<h2 id="after-updating">
+      Errors after updating the add-on
+     </h2>
+<p>
+      Errors such as <code>Nonexistent function '…' in base 'Nil'</code> right after replacing the add-on mean the editor is still running parts of the old version. Choose <strong>Project → Tools → Reload Logic Bricks</strong>, or restart the project. Then press <strong>Apply Code</strong> on nodes with bricks; <strong>Options → Find Outdated Scripts</strong> lists the ones that still need it.
+     </p>
+<p>
+      If a fix seems to disappear after an update, an add-on script that was open in the Script editor may have been saved over the new file. Close add-on scripts before updating, and replace the folder again.
+     </p>
+</section>
+<section>
+<h2 id="lost-graph">
+      The bricks are gone but the script still has code
+     </h2>
+<p>
+      Select the node and choose <strong>Options → Sync Bricks from Script</strong>. The graph is restored from the backup saved by the last Apply Code. See <a href="interface.html#graph-backup">Graph backup</a>.
+     </p>
+</section>
+<section>
+<h2 id="renamed-node">
+      A brick stopped finding a node after a rename
+     </h2>
+<p>
+      Bricks are updated automatically when you rename a node, but the script keeps the old name until you press <strong>Apply Code</strong>. If the notice says the bricks were not updated, another node still uses the old name. Rename that node or fix the brick field. See <a href="interface.html#renaming-nodes">Renaming nodes</a>.
+     </p>
+</section>
+<section>
+<h2 id="camera-stutter">
+      Mouse look or the 3rd person camera stutters
+     </h2>
+<p>
+      Both rely on <em>Project Settings → Physics → Common → Physics Interpolation</em>. Apply Code turns it on when <strong>Enable Physics Interpolation</strong> (Mouse) or <strong>Smooth Physics Motion</strong> (3rd Person Camera) is checked. Restart the running game after it changes. Keep the camera's Physics Interpolation Mode at Inherit or On. Tearing that appears on only one monitor is usually a display or V-Sync issue, not the bricks.
+     </p>
+</section>
+<section>
+<h2 id="camera-walls">
+      The 3rd person camera goes through walls or zooms in for small objects
+     </h2>
+<p>
+      Turn on <strong>Avoid Walls</strong> and make sure the walls are on a layer in <strong>Collision Mask</strong>. If the camera pulls in for pillars, posts or props, raise <strong>Narrow Obstacle Width</strong> or put those objects on a layer that is not in Collision Mask. See <a href="actuators-3d.html#3rd-person-camera-3d">3rd Person Camera</a>.
      </p>
 </section>
 <section class="related-topics">
@@ -178,6 +221,31 @@
 <li>
 <a data-toc-target="timing-and-physics-warnings" href="#timing-and-physics-warnings">
         Timing and physics warnings
+       </a>
+</li>
+<li>
+<a data-toc-target="after-updating" href="#after-updating">
+        After updating
+       </a>
+</li>
+<li>
+<a data-toc-target="lost-graph" href="#lost-graph">
+        Lost bricks
+       </a>
+</li>
+<li>
+<a data-toc-target="renamed-node" href="#renamed-node">
+        Renamed nodes
+       </a>
+</li>
+<li>
+<a data-toc-target="camera-stutter" href="#camera-stutter">
+        Camera stutter
+       </a>
+</li>
+<li>
+<a data-toc-target="camera-walls" href="#camera-walls">
+        Camera and walls
        </a>
 </li>
 </ul>

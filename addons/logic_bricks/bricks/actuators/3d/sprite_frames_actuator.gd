@@ -86,6 +86,22 @@ func _is_literal_speed(val) -> bool:
 	return s.is_valid_float() or s.is_valid_int() or s.is_empty()
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var sf_mode = properties.get("mode", "play").to_lower()
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"animation_name", "loop", "speed_scale":
+					shown[child] = (sf_mode == "play")
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode         = properties.get("mode", "play")
 	var anim_name    = properties.get("animation_name", "")
@@ -124,8 +140,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("# Sprite Frames Actuator: target is self")
 		code_lines.append("var %s = self" % sprite_var)
 	else:
-		code_lines.append("# Sprite Frames Actuator: find '%s'" % target_name)
-		code_lines.append("var %s = _find_sprite_node(\"%s\")" % [sprite_var, target_name])
+		code_lines.append("# Sprite Frames Actuator: find '%s'" % _gd_string(str(target_name)))
+		code_lines.append("var %s = _find_sprite_node(\"%s\")" % [sprite_var, _gd_string(str(target_name))])
 
 	code_lines.append("if %s:" % sprite_var)
 
@@ -142,7 +158,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 					code_lines.append("\t%s.speed_scale = %s" % [sprite_var, speed_expr])
 				code_lines.append("\t%s.play(\"%s\", %s, %s)" % [
 					sprite_var,
-					anim_name,
+					_gd_string(str(anim_name)),
 					speed_expr if not is_literal else "%.3f" % literal_speed,
 					"true" if do_loop else "false"
 				])
@@ -155,7 +171,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	if target_name.is_empty():
 		code_lines.append("\tpush_warning(\"Sprite Frames Actuator: self is not a Sprite3D or AnimatedSprite3D\")")
 	else:
-		code_lines.append("\tpush_warning(\"Sprite Frames Actuator: Could not find Sprite3D/AnimatedSprite3D named '%s'\")" % target_name)
+		code_lines.append("\tpush_warning(\"Sprite Frames Actuator: Could not find Sprite3D/AnimatedSprite3D named '%s'\")" % _gd_string(str(target_name)))
 
 	return {
 		"actuator_code": "\n".join(code_lines),

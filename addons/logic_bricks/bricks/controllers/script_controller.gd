@@ -111,6 +111,21 @@ func get_script_body(chain_name: String) -> String:
 
 ## Emits the member variable declaration and _ready() initialisation so the
 ## script is loaded and instantiated exactly once, not on every process frame.
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var all_states = properties.get("all_states", false)
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			if prop_name == "state_id":
+				shown[child] = not all_states
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var path: String = properties.get("script_path", "").strip_edges()
 	if path.is_empty():
@@ -124,17 +139,24 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	var ready_code: Array[String] = [
 		"# Script Controller (%s): load and cache instance" % chain_name,
-		"var _sc_res_%s = load(\"%s\")" % [chain_name, path],
+		"var _sc_res_%s = load(\"%s\")" % [chain_name, _gd_string(str(path))],
 		"if _sc_res_%s and _sc_res_%s is GDScript:" % [chain_name, chain_name],
 		"\t%s = _sc_res_%s.new()" % [cache_var, chain_name],
 		"\tif not %s.has_method(\"run\"):" % cache_var,
-		"\t\tpush_warning(\"Script Controller: '%s' has no run(node) function\")" % path,
+		"\t\tpush_warning(\"Script Controller: '%s' has no run(node) function\")" % _gd_string(str(path)),
 		"\t\t%s = null" % cache_var,
 		"else:",
-		"\tpush_warning(\"Script Controller: could not load '%s'\")" % path,
+		"\tpush_warning(\"Script Controller: could not load '%s'\")" % _gd_string(str(path)),
 	]
 
 	return {
 		"member_vars": member_vars,
 		"ready_code": ready_code,
+	}
+
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Calls a function in a custom .gd script when triggers fire.\nRuns a custom GDScript module function:\nno separate Action is needed — the script performs the action.",
+		"logic_mode": "Logic gate type:\n• AND: All connected Triggers must be active\n• OR: At least one Trigger must be active\n• NAND: NOT AND — active when not all Triggers are active\n• NOR: NOT OR — active only when no Triggers are active\n• XOR: Exclusive OR — active when exactly one Trigger is active",
+		"script_path": "Path to the .gd script file to run.\nThe script must define: func run(node: Node) -> void:\n\'node\' is the scene object this brick is attached to.\nDo NOT add \'extends\' to the script — it is called as a module.",
 	}

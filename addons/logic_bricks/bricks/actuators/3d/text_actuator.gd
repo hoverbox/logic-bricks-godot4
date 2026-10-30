@@ -12,7 +12,7 @@ func _init() -> void:
 
 func _initialize_properties() -> void:
 	properties = {
-		"target_node_name": "Label",
+		"target_node_name": "self",
 		"node_name_source": "literal",
 		"export_node_name": false,
 		"mode": "variable",
@@ -24,11 +24,11 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
-		{"name": "target_node_name", "required": true, "required_label": "a text node or String variable name", "type": TYPE_STRING, "default": "Label"},
+		{"name": "target_node_name", "required": true, "required_label": "a text node or String variable name", "type": TYPE_STRING, "default": "self"},
 		{"name": "node_name_source", "type": TYPE_STRING, "hint": PROPERTY_HINT_ENUM, "hint_string": "Literal Node Name,String Variable", "default": "literal"},
 		{"name": "export_node_name", "type": TYPE_BOOL, "default": false},
 		{"name": "mode", "type": TYPE_STRING, "hint": PROPERTY_HINT_ENUM, "hint_string": "Variable,Static", "default": "variable"},
-		{"name": "variable_name", "required": true, "required_label": "a variable name", "required_if": {"mode": "variable"}, "type": TYPE_STRING, "default": ""},
+		{"name": "variable_name", "variable_picker": true, "required": true, "required_label": "a variable name", "required_if": {"mode": "variable"}, "type": TYPE_STRING, "default": ""},
 		{"name": "prefix", "type": TYPE_STRING, "default": ""},
 		{"name": "suffix", "type": TYPE_STRING, "default": ""},
 		{"name": "static_text", "type": TYPE_STRING, "default": ""},
@@ -37,7 +37,7 @@ func get_property_definitions() -> Array:
 func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Updates a Label, Label3D, or RichTextLabel by node name. Searches the whole current scene tree, so this brick can live on any node.",
-		"target_node_name": "Literal Node Name: type the UI node name, such as ScoreLabel.\nString Variable: type the name of a String variable that stores the node name.",
+		"target_node_name": "Literal Node Name: use self for this node, or type another UI node name, such as ScoreLabel.\nString Variable: type the name of a String variable that stores the node name.",
 		"node_name_source": "Literal Node Name: use Target Node Name directly.\nString Variable: treat Target Node Name as a variable name and read that String at runtime.",
 		"export_node_name": "Literal mode only. Adds an @export String to the generated script so the node name can be edited in the Inspector without exposing a node reference.",
 		"mode": "Variable: display a variable's value\nStatic: display fixed text",
@@ -48,7 +48,7 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var target_node_name = str(properties.get("target_node_name", "Label")).strip_edges()
+	var target_node_name = str(properties.get("target_node_name", "self")).strip_edges()
 	var node_name_source = str(properties.get("node_name_source", "literal")).to_lower().replace(" ", "_")
 	var export_node_name = properties.get("export_node_name", false)
 	var mode = properties.get("mode", "variable")
@@ -79,7 +79,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("# Text Actuator")
 	code_lines.append("var _target_name_%s = %s" % [label, name_expr])
 	code_lines.append("if %s == null or %s.name != _target_name_%s:" % [text_node_var, text_node_var, label])
-	code_lines.append("\t%s = _lb_find_node_in_current_scene(_target_name_%s)" % [text_node_var, label])
+	code_lines.append("\t%s = self if _target_name_%s.to_lower() == \"self\" else _lb_find_node_in_current_scene(_target_name_%s)" % [text_node_var, label, label])
 	code_lines.append("if %s:" % text_node_var)
 	match mode:
 		"variable":

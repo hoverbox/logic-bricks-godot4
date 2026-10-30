@@ -17,11 +17,12 @@ func _initialize_properties() -> void:
 		"target_group": "",          # Group to detect (empty = detect all)
 		"distance": 10.0,            # Detection distance in meters
 		"angle": 360.0,              # Detection angle in degrees (0-360, 360 = full circle)
-		"axis": "all",               # Axis to measure angle from: all, +x, -x, +y, -y, +z, -z
+		"axis": "all",               # Axis to measure angle from: all, +x, -x, +y, -y
 		"detection_mode": "any",     # any = detect any object, all = detect all objects, none = detect no objects
 		"inverse": false,            # Invert the result (triggers when NOT in range)
-		"store_object": false,       # If true, stores the first detected object in a variable
-		"object_variable": ""        # Variable name to store detected object (only if store_object is true)
+		"store_object": false,       # If true, stores the nearest detected object in a variable
+		"object_variable": "",       # Variable name to store detected object (only if store_object is true)
+		"check_interval": 0.0        # Seconds between checks; 0 = every frame
 	}
 
 
@@ -47,7 +48,7 @@ func get_property_definitions() -> Array:
 			"name": "axis",
 			"type": TYPE_STRING,
 			"hint": PROPERTY_HINT_ENUM,
-			"hint_string": "All,+X,-X,+Y,-Y,+Z,-Z",
+			"hint_string": "All,+X,-X,+Y,-Y",
 			"default": "all"
 		},
 		{
@@ -71,6 +72,13 @@ func get_property_definitions() -> Array:
 			"name": "object_variable", "required": true, "required_label": "a variable to store the detected object", "required_if": {"store_object": true},
 			"type": TYPE_STRING,
 			"default": ""
+		},
+		{
+			"name": "check_interval",
+			"type": TYPE_FLOAT,
+			"hint": PROPERTY_HINT_RANGE,
+			"hint_string": "0.0,5.0,0.05",
+			"default": 0.0
 		}
 	]
 
@@ -81,18 +89,17 @@ func get_tooltip_definitions() -> Dictionary:
 		"target_group": "Group name to detect.\nLeave empty to detect all Node2D objects.",
 		"distance": "Detection radius in meters.",
 		"angle": "Detection cone angle in degrees (360 = all directions).",
-		"axis": "Which axis the detection cone faces.\nAll = detect in all directions (ignores angle).",
+		"axis": "Which way the detection cone faces, turning with the node.\n+X = right, -X = left, -Y = up, +Y = down (2D +Y points down the screen).\nAll = detect in all directions (ignores angle).",
 		"detection_mode": "Any: active if at least one object detected\nAll: active if all objects in group detected\nNone: active if no objects detected",
 		"inverse": "Invert the result.",
 		"store_object": "Store the nearest detected object in a variable.",
 		"object_variable": "Variable name to store the detected object.",
+		"check_interval": "Seconds between checks. 0 = check every frame.\nChecking less often saves work when many objects use Proximity; between checks the trigger keeps its last result. 0.2 (five times a second) is usually plenty for enemies noticing the player.",
 	}
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target_group = properties.get("target_group", "")
-	var distance = properties.get("distance", 10.0)
-	var angle = properties.get("angle", 360.0)
 	var axis = properties.get("axis", "all")
 	var detection_mode = properties.get("detection_mode", "any")
 	var inverse = properties.get("inverse", false)
@@ -100,7 +107,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var object_var = properties.get("object_variable", "")
 
 	# Normalize — PROPERTY_HINT_ENUM stores an integer index at runtime
-	var axis_names = ["all", "+x", "-x", "+y", "-y", "+z", "-z"]
+	var axis_names = ["all", "+x", "-x", "+y", "-y"]
 	if typeof(axis) == TYPE_INT:
 		axis = axis_names[axis] if axis < axis_names.size() else "all"
 	elif typeof(axis) == TYPE_STRING:
@@ -125,23 +132,27 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("\t\tif _c is Node2D and _c != self:")
 		code_lines.append("\t\t\t_prox_targets.append(_c)")
 	else:
-		code_lines.append("var _prox_targets = get_tree().get_nodes_in_group(\"%s\")" % target_group)
+		code_lines.append("var _prox_targets = get_tree().get_nodes_in_group(\"%s\")" % _gd_string(str(target_group)))
 
 	code_lines.append("var _detected_objects: Array[Node] = []")
+	var keep_nearest: bool = store_object and not str(object_var).strip_edges().is_empty()
+	if keep_nearest:
+		code_lines.append("var _prox_nearest: Node = null")
+		code_lines.append("var _prox_nearest_dist: float = INF")
 	code_lines.append("")
 
 	# Determine forward vector for angle check
 	# Use a local-space basis vector that gets transformed to world space at runtime
 	var local_axis_vector = "Vector2.ZERO"
-	var skip_angle_check = angle >= 360.0
+	# Angle 360 = no cone. A variable/math angle keeps the check: half of 360+ is never exceeded.
+	var angle_number = _literal_number("angle", 360.0)
+	var skip_angle_check = angle_number != null and angle_number >= 360.0
 	match axis:
 		"+x": local_axis_vector = "Vector2.RIGHT"
 		"-x": local_axis_vector = "Vector2.LEFT"
-		"+y": local_axis_vector = "Vector2.UP"
-		"-y": local_axis_vector = "Vector2.DOWN"
-		"+z": local_axis_vector = "Vector2.BACK"   # Godot's -Z is local forward, +Z is back
-		"-z": local_axis_vector = "Vector2.FORWARD"
-		"all": skip_angle_check = true
+		"+y": local_axis_vector = "Vector2.DOWN"   # 2D +Y points down the screen
+		"-y": local_axis_vector = "Vector2.UP"
+		_: skip_angle_check = true                 # "all" (and old +Z/-Z values, which 2D has no use for)
 
 	# Detection loop
 	code_lines.append("for _pt in _prox_targets:")
@@ -149,19 +160,25 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\t\tcontinue")
 	code_lines.append("\tvar _to_target = _pt.global_position - global_position")
 	code_lines.append("\tvar _dist = _to_target.length()")
-	code_lines.append("\tif _dist > %.2f or _dist < 0.01:" % distance)
+	code_lines.append("\tif _dist > %s or _dist < 0.01:" % _num("distance", 10.0, 2))
 	code_lines.append("\t\tcontinue")
 
 	# Angle check (only if not full circle and not "all" axis)
-	# Transform the local axis into world space using global_basis so the
-	# cone rotates with the object instead of staying fixed in world space.
+	# Rotate the local axis with the node so the cone turns with the object.
 	if not skip_angle_check:
-		code_lines.append("\tvar _forward = global_basis * %s" % local_axis_vector)
-		code_lines.append("\tvar _angle_to = rad_to_deg(_forward.angle_to(_to_target.normalized()))")
-		code_lines.append("\tif _angle_to > %.2f:" % (angle / 2.0))
+		code_lines.append("\tvar _forward = global_transform.basis_xform(%s)" % local_axis_vector)
+		code_lines.append("\tvar _angle_to = rad_to_deg(absf(_forward.angle_to(_to_target)))")
+		if angle_number == null:
+			code_lines.append("\tif _angle_to > %s / 2.0:" % _num("angle", 360.0))
+		else:
+			code_lines.append("\tif _angle_to > %.2f:" % (angle_number / 2.0))
 		code_lines.append("\t\tcontinue")
 
 	code_lines.append("\t_detected_objects.append(_pt)")
+	if keep_nearest:
+		code_lines.append("\tif _dist < _prox_nearest_dist:")
+		code_lines.append("\t\t_prox_nearest_dist = _dist")
+		code_lines.append("\t\t_prox_nearest = _pt")
 	code_lines.append("")
 
 	# Store detected object if requested
@@ -171,11 +188,8 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		regex.compile("[^a-zA-Z0-9_]")
 		sanitized_var = regex.sub(sanitized_var, "", true)
 
-		code_lines.append("# Store nearest detected object")
-		code_lines.append("if _detected_objects.size() > 0:")
-		code_lines.append("\t%s = _detected_objects[0]" % sanitized_var)
-		code_lines.append("else:")
-		code_lines.append("\t%s = null" % sanitized_var)
+		code_lines.append("# Store the nearest detected object (null when nothing is in range)")
+		code_lines.append("%s = _prox_nearest" % sanitized_var)
 		code_lines.append("")
 
 	# Determine result based on detection mode
@@ -186,7 +200,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if target_group.is_empty():
 				code_lines.append("var _prox_result = false  # Cannot use 'all' mode without a target group")
 			else:
-				code_lines.append("var _prox_total = get_tree().get_nodes_in_group(\"%s\").size()" % target_group)
+				code_lines.append("var _prox_total = get_tree().get_nodes_in_group(\"%s\").size()" % _gd_string(str(target_group)))
 				code_lines.append("var _prox_result = _detected_objects.size() == _prox_total and _prox_total > 0")
 		"none":
 			code_lines.append("var _prox_result = _detected_objects.size() == 0")
@@ -197,9 +211,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	else:
 		code_lines.append("var sensor_active = _prox_result")
 
-	return {
-		"sensor_code": "\n".join(code_lines)
-	}
+	var interval_number = _literal_number("check_interval", 0.0)
+	var interval = _num("check_interval") if interval_number == null else maxf(0.0, interval_number)
+	var timed := _wrap_sensor_interval(code_lines, interval, chain_name)
+	var result := {"sensor_code": "\n".join(timed["code"])}
+	if not timed["member_vars"].is_empty():
+		result["member_vars"] = timed["member_vars"]
+	return result
 
 
 func get_brick_info() -> Dictionary:

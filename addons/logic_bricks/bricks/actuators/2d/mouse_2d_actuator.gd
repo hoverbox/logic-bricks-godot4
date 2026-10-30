@@ -86,6 +86,38 @@ func get_tooltip_definitions() -> Dictionary:
 		"click_button": "Mouse button used by Move To Mouse Click.",
 	}
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var mode = properties.get("mode", "cursor_visibility")
+
+	# Normalize
+	if typeof(mode) == TYPE_STRING:
+		mode = mode.to_lower().replace(" ", "_")
+
+	# Show/hide fields based on mode. Keep 3D-only fields out of the 2D actuator.
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"cursor_visible":
+					shown[child] = (mode == "cursor_visibility")
+				"use_x_axis", "use_y_axis", "x_target", "y_target", "x_sensitivity", "y_sensitivity", "x_invert", "y_invert", "x_threshold", "y_threshold", "x_min_degrees", "x_max_degrees", "y_min_degrees", "y_max_degrees", "recenter_cursor":
+					shown[child] = (mode == "mouse_look")
+				"mouse_turn_speed", "mouse_facing_axis":
+					shown[child] = (mode == "look_towards")
+				"mouse_target":
+					shown[child] = (mode in ["look_towards", "move_towards_cursor", "move_to_mouse_click"])
+				"mouse_velocity", "mouse_acceleration", "mouse_arrival_distance":
+					shown[child] = (mode in ["move_towards_cursor", "move_to_mouse_click"])
+				"click_button":
+					shown[child] = (mode == "move_to_mouse_click")
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = properties.get("mode", "cursor_visibility")
 	if typeof(mode) == TYPE_STRING:
@@ -109,10 +141,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("var _center = _viewport_size / 2.0")
 			code_lines.append("var _mouse_delta = _mouse_pos - _center")
 			if properties.get("use_x_axis", true):
-				for line in _generate_mouse_look_axis_code("x", str(properties.get("x_target", "self")), float(properties.get("x_sensitivity", 0.1)), bool(properties.get("x_invert", false)), float(properties.get("x_threshold", 0.0)), float(properties.get("x_min_degrees", 0.0)), float(properties.get("x_max_degrees", 0.0))).split("\n"):
+				for line in _generate_mouse_look_axis_code("x", str(properties.get("x_target", "self")), bool(properties.get("x_invert", false))).split("\n"):
 					code_lines.append(line)
 			if properties.get("use_y_axis", false):
-				for line in _generate_mouse_look_axis_code("y", str(properties.get("y_target", "self")), float(properties.get("y_sensitivity", 0.1)), bool(properties.get("y_invert", false)), float(properties.get("y_threshold", 0.0)), float(properties.get("y_min_degrees", 0.0)), float(properties.get("y_max_degrees", 0.0))).split("\n"):
+				for line in _generate_mouse_look_axis_code("y", str(properties.get("y_target", "self")), bool(properties.get("y_invert", false))).split("\n"):
 					code_lines.append(line)
 			if properties.get("recenter_cursor", true):
 				code_lines.append("# Recenter cursor")
@@ -156,34 +188,51 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		]
 	return result
 
-func _generate_mouse_look_axis_code(axis_name: String, target_name: String, sensitivity: float, invert: bool, threshold: float, min_degrees: float, max_degrees: float) -> String:
+## Reads the axis's number fields (<axis>_sensitivity, _threshold, _min_degrees,
+## _max_degrees); each may be a number or a variable/math.
+func _generate_mouse_look_axis_code(axis_name: String, target_name: String, invert: bool) -> String:
+	var sensitivity := _num(axis_name + "_sensitivity", 0.1, 3)
+	var threshold := _num(axis_name + "_threshold", 0.0, 3)
+	# Limits: 0 = no limit. null = variable/math, checked at runtime.
+	var min_degrees = _literal_number(axis_name + "_min_degrees", 0.0)
+	var max_degrees = _literal_number(axis_name + "_max_degrees", 0.0)
+	var min_code := _num(axis_name + "_min_degrees", 0.0, 2)
+	var max_code := _num(axis_name + "_max_degrees", 0.0, 2)
 	var lines: Array[String] = []
 	var indent = ""
 	var delta_prop = "x" if axis_name == "x" else "y"
 	if target_name != "self" and not target_name.strip_edges().is_empty():
-		lines.append("var _%s_target = get_node_or_null(\"%s\")" % [axis_name, target_name.replace("\"", "\\\"")])
+		lines.append("var _%s_target = get_node_or_null(\"%s\")" % [axis_name, _gd_string(target_name)])
 		lines.append("if _%s_target == null and get_tree().current_scene:" % axis_name)
-		lines.append("\t_%s_target = get_tree().current_scene.find_child(\"%s\", true, false)" % [axis_name, target_name.replace("\"", "\\\"")])
+		lines.append("\t_%s_target = get_tree().current_scene.find_child(\"%s\", true, false)" % [axis_name, _gd_string(target_name)])
 		lines.append("if _%s_target == null:" % axis_name)
-		lines.append("\t_%s_target = get_tree().root.find_child(\"%s\", true, false)" % [axis_name, target_name.replace("\"", "\\\"")])
+		lines.append("\t_%s_target = get_tree().root.find_child(\"%s\", true, false)" % [axis_name, _gd_string(target_name)])
 		lines.append("if _%s_target and _%s_target is Node2D:" % [axis_name, axis_name])
 		indent = "\t"
 	else:
 		lines.append("var _%s_target = self" % axis_name)
 		lines.append("if _%s_target and _%s_target is Node2D:" % [axis_name, axis_name])
 		indent = "\t"
-	lines.append("%sif abs(_mouse_delta.%s) > %.3f:" % [indent, delta_prop, threshold])
+	lines.append("%sif abs(_mouse_delta.%s) > %s:" % [indent, delta_prop, threshold])
 	var mult = -1.0 if invert else 1.0
-	lines.append("%s\tvar _%s_rotation = _mouse_delta.%s * %.3f * %.1f" % [indent, axis_name, delta_prop, sensitivity, mult])
+	lines.append("%s\tvar _%s_rotation = _mouse_delta.%s * %s * %.1f" % [indent, axis_name, delta_prop, sensitivity, mult])
 	if min_degrees != 0.0 or max_degrees != 0.0:
 		lines.append("%s\tvar _current_rot = _%s_target.global_rotation_degrees" % [indent, axis_name])
 		lines.append("%s\tvar _new_rot = _current_rot + _%s_rotation" % [indent, axis_name])
-		if min_degrees != 0.0 and max_degrees != 0.0:
-			lines.append("%s\t_new_rot = clamp(_new_rot, %.2f, %.2f)" % [indent, min_degrees, max_degrees])
+		if min_degrees == null or max_degrees == null:
+			# Variable/math limits: apply each one that is not 0 at runtime
+			lines.append("%s\tvar _min_deg = %s" % [indent, min_code])
+			lines.append("%s\tvar _max_deg = %s" % [indent, max_code])
+			lines.append("%s\tif _min_deg != 0.0:" % indent)
+			lines.append("%s\t\t_new_rot = max(_new_rot, _min_deg)" % indent)
+			lines.append("%s\tif _max_deg != 0.0:" % indent)
+			lines.append("%s\t\t_new_rot = min(_new_rot, _max_deg)" % indent)
+		elif min_degrees != 0.0 and max_degrees != 0.0:
+			lines.append("%s\t_new_rot = clamp(_new_rot, %s, %s)" % [indent, min_code, max_code])
 		elif min_degrees != 0.0:
-			lines.append("%s\t_new_rot = max(_new_rot, %.2f)" % [indent, min_degrees])
+			lines.append("%s\t_new_rot = max(_new_rot, %s)" % [indent, min_code])
 		else:
-			lines.append("%s\t_new_rot = min(_new_rot, %.2f)" % [indent, max_degrees])
+			lines.append("%s\t_new_rot = min(_new_rot, %s)" % [indent, max_code])
 		lines.append("%s\t_%s_rotation = _new_rot - _current_rot" % [indent, axis_name])
 	lines.append("%s\t_%s_target.global_rotation_degrees += _%s_rotation" % [indent, axis_name, axis_name])
 	return "\n".join(lines)
@@ -193,11 +242,11 @@ func _generate_mouse_target_ref(target_name: String) -> String:
 	if target_name == "self" or target_name.strip_edges().is_empty():
 		lines.append("var _mouse_node = self")
 	else:
-		lines.append("var _mouse_node = get_node_or_null(\"%s\")" % target_name.replace("\"", "\\\""))
+		lines.append("var _mouse_node = get_node_or_null(\"%s\")" % _gd_string(target_name))
 		lines.append("if _mouse_node == null and get_tree().current_scene:")
-		lines.append("\t_mouse_node = get_tree().current_scene.find_child(\"%s\", true, false)" % target_name.replace("\"", "\\\""))
+		lines.append("\t_mouse_node = get_tree().current_scene.find_child(\"%s\", true, false)" % _gd_string(target_name))
 		lines.append("if _mouse_node == null:")
-		lines.append("\t_mouse_node = get_tree().root.find_child(\"%s\", true, false)" % target_name.replace("\"", "\\\""))
+		lines.append("\t_mouse_node = get_tree().root.find_child(\"%s\", true, false)" % _gd_string(target_name))
 	lines.append("if _mouse_node and _mouse_node is Node2D:")
 	return "\n".join(lines)
 

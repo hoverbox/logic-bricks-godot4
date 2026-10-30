@@ -21,7 +21,7 @@ func get_brick_info() -> Dictionary:
 		"name": "Character Jump",
 		"type": "actuator",
 		"category": "Motion",
-		"description": "Applies a jump impulse to a CharacterBody3D. Pair with Character Physics for gravity and ground detection.",
+		"description": "Jump or reset the available jump count on a CharacterBody3D. Pair with Character Physics for gravity and ground detection.",
 		"menu_order": 20,
 		"domain": "3d"
 	}
@@ -39,6 +39,7 @@ func get_compatibility_error(node: Node) -> String:
 
 func _initialize_properties() -> void:
 	properties = {
+		"mode": "jump",
 		"jump_height": "4.5",              # Desired jump height in units; accepts numbers, variables, or expressions
 		"gravity_strength": "9.8",         # Must match Character Actuator; accepts numbers, variables, or expressions
 		"max_jumps": "1",                  # 1 = single jump, 2 = double jump, etc.; accepts numbers, variables, or expressions
@@ -49,6 +50,7 @@ func _initialize_properties() -> void:
 
 func get_property_definitions() -> Array:
 	return [
+		{"name": "mode", "type": TYPE_STRING, "hint": PROPERTY_HINT_ENUM, "hint_string": "Jump:jump,Reset Jump Count:reset", "default": "jump"},
 		{
 			"name": "jump_height",
 			"type": TYPE_STRING,
@@ -80,9 +82,10 @@ func get_property_definitions() -> Array:
 func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Applies a jump impulse to a CharacterBody3D.\n\nPair with any sensor — InputMap, Proximity, Message, etc.\nThe Character Actuator handles gravity and resets the jump counter when grounded.\nBoth actuators share _jumps_remaining and _on_ground automatically.",
+		"mode": "Jump launches the character. Reset Jump Count restores Max Jumps without changing velocity. Trigger reset when attaching to a wall or reaching a checkpoint.",
 		"jump_height": "Target jump height in world units. Accepts numbers, variable names, or math expressions.",
 		"gravity_strength": "Must match the gravity_strength set on the Character Actuator. Accepts numbers, variable names, or math expressions.",
-		"max_jumps": "How many jumps are allowed before landing. Accepts numbers, variable names, or integer expressions. 1 = single, 2 = double jump, etc.",
+		"max_jumps": "Jump: jumps allowed before landing. Reset Jump Count: jumps to restore; use the same value as your normal Jump action. Accepts numbers, variable names, or integer expressions. 1 = single, 2 = double jump, etc.",
 		"inherit_platform_velocity": "Carry horizontal moving-platform velocity when jumping from a platform.",
 		"ignore_jump_limit": "Jump even when no normal jumps remain. Useful for enemy stomps, bounce pads, knockback launches, and other forced jumps. Does not consume the normal jump counter.",
 	}
@@ -91,10 +94,36 @@ func get_tooltip_definitions() -> Dictionary:
 ## Convert a value to a code expression.
 ## If it's a number (or string of a number), returns the numeric literal.
 ## Otherwise returns it as-is (a variable name or expression).
+## Member variables this brick declares that keep their value when the node
+## changes state (other state-specific variables are reset on state entry).
+## Jump count and ground/platform state carry across states, so a jump that
+## enters a new state still has its jumps (press jump -> enter Jump state -> jump).
+func get_kept_member_vars() -> PackedStringArray:
+	return PackedStringArray(["_on_ground*", "_moving_platform_*", "_inherited_platform_velocity*", "_jumps_remaining*", "_max_jumps*"])
+
+
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var jumping = str(properties.get("mode", "jump")) != "reset"
+	for child in _get_field_names():
+		if str(child) in ["jump_height", "gravity_strength", "inherit_platform_velocity", "ignore_jump_limit"]:
+			shown[child] = jumping
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var jump_height = properties.get("jump_height", "4.5")
 	var gravity_strength = properties.get("gravity_strength", "9.8")
 	var max_jumps = properties.get("max_jumps", "1")
+	if str(properties.get("mode", "jump")) == "reset":
+		return {
+			"actuator_code": "# Jump — reset jump count without launching\n_max_jumps = maxi(0, int(%s))\n_jumps_remaining = _max_jumps" % _gd_string(str(_numeric_expr(max_jumps))),
+			"member_vars": ["var _jumps_remaining: int = 0", "var _max_jumps: int = 0"],
+		}
 	var inherit_platform_velocity = properties.get("inherit_platform_velocity", true)
 	var ignore_jump_limit = properties.get("ignore_jump_limit", false)
 

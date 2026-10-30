@@ -44,6 +44,22 @@ func get_tooltip_definitions() -> Dictionary:
 		"target_node": "Name of the AnimatedSprite2D node to control. Leave empty to target self.",
 	}
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var sf_mode = properties.get("mode", "play").to_lower()
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"animation_name", "loop", "speed_scale":
+					shown[child] = (sf_mode == "play")
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = str(properties.get("mode", "play")).to_lower()
 	var anim_name = str(properties.get("animation_name", ""))

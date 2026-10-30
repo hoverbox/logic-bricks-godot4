@@ -137,7 +137,6 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var left_action = properties.get("left_action", "")
 	var right_action = properties.get("right_action", "")
 	var forward_axis = properties.get("forward_axis", "-z")
-	var smoothing = properties.get("smoothing", 0.1)
 	var camera_relative = properties.get("camera_relative", false)
 	var camera_name = str(properties.get("camera_name", "")).strip_edges()
 
@@ -199,10 +198,20 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("\t\tvar _look_input_cam_basis = Basis(Vector3.UP, _look_input_cam.global_rotation.y)")
 		code_lines.append("\t\t_input_dir = _look_input_cam_basis * _input_dir")
 	code_lines.append("\tif _input_dir.length_squared() > 0.0001:")
-	if smoothing > 0.001:
+	var smoothing = _literal_number("smoothing", 0.1)
+	var smoothing_code := _num("smoothing", 0.1, 6)
+	if smoothing == null:
+		# Smoothing is a variable/math: choose smooth or instant rotation at runtime
+		code_lines.append("\t\tvar _look_smoothing = %s" % smoothing_code)
+		code_lines.append("\t\tif _look_smoothing > 0.001:")
+		code_lines.append("\t\t\tvar _target_angle = atan2(_input_dir.x, _input_dir.z) + %s" % y_offset)
+		code_lines.append("\t\t\t%s.global_rotation.y = lerp_angle(%s.global_rotation.y, _target_angle, _look_smoothing)" % [target_var, target_var])
+		code_lines.append("\t\telse:")
+		code_lines.append("\t\t\t%s.global_rotation.y = atan2(_input_dir.x, _input_dir.z) + %s" % [target_var, y_offset])
+	elif smoothing > 0.001:
 		code_lines.append("\t\tvar _target_angle = atan2(_input_dir.x, _input_dir.z) + %s" % y_offset)
 		code_lines.append("\t\tvar _current_y = %s.global_rotation.y" % target_var)
-		code_lines.append("\t\t%s.global_rotation.y = lerp_angle(_current_y, _target_angle, %f)" % [target_var, smoothing])
+		code_lines.append("\t\t%s.global_rotation.y = lerp_angle(_current_y, _target_angle, %s)" % [target_var, smoothing_code])
 	else:
 		code_lines.append("\t\t%s.global_rotation.y = atan2(_input_dir.x, _input_dir.z) + %s" % [target_var, y_offset])
 

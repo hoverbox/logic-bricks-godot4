@@ -97,15 +97,39 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var axes = properties.get("axes", "y_only")
+	if typeof(axes) == TYPE_STRING:
+		axes = axes.to_lower().split("(")[0].strip_edges().replace(" ", "_")
+	var clamp_x = properties.get("clamp_x", false)
+	var show_clamp = (axes in ["x_only", "both"])
+
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"clamp_x":
+					shown[child] = show_clamp
+				"clamp_x_min", "clamp_x_max":
+					shown[child] = show_clamp and clamp_x
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target_mode = properties.get("target_mode", "node_name")
 	var target_name = properties.get("target_name", "")
 	var axes = properties.get("axes", "y_only")
 	var forward_axis = properties.get("forward_axis", "positive_z")
-	var speed = float(str(properties.get("speed", 5.0)))
+	var speed = _literal_number("speed", 5.0)  # null when the field is a variable/math
+	var speed_code := _num("speed", 5.0, 4)
 	var clamp_x = properties.get("clamp_x", false)
-	var clamp_x_min = float(str(properties.get("clamp_x_min", -45.0)))
-	var clamp_x_max = float(str(properties.get("clamp_x_max", 45.0)))
+	var clamp_x_min := _num("clamp_x_min", -45.0, 4)
+	var clamp_x_max := _num("clamp_x_max", 45.0, 4)
 
 	# Normalize enum values coming from the UI
 	if typeof(target_mode) == TYPE_STRING:
@@ -127,7 +151,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		code_lines.append("pass")
 		return {"actuator_code": "\n".join(code_lines)}
 
-	var escaped_name = target_name.replace("\"", "\\\"")
+	var escaped_name = _gd_string(target_name)
 
 	# --- Find the target node ---
 	code_lines.append("# Rotate Towards: find target")
@@ -151,66 +175,87 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	# --- Rotation logic per axis mode ---
 	match axes:
 		"y_only":
-			_append_y_only(code_lines, speed, flip_dir)
+			_append_y_only(code_lines, speed, speed_code, flip_dir)
 		"x_only":
-			_append_x_only(code_lines, speed, flip_dir, clamp_x, clamp_x_min, clamp_x_max)
+			_append_x_only(code_lines, speed, speed_code, flip_dir, clamp_x, clamp_x_min, clamp_x_max)
 		_:  # "both" or anything else
-			_append_both(code_lines, speed, flip_dir, clamp_x, clamp_x_min, clamp_x_max)
+			_append_both(code_lines, speed, speed_code, flip_dir, clamp_x, clamp_x_min, clamp_x_max)
 
 	return {"actuator_code": "\n".join(code_lines)}
 
 
+## Adds the "instant" lines when Speed is 0, otherwise the "smooth" lines.
+## When Speed is a variable/math (speed == null) the choice is made at runtime.
+func _append_speed_branch(lines: Array[String], speed, speed_code: String, indent: String, instant: Array[String], smooth: Array[String]) -> void:
+	if speed == null:
+		lines.append("%sif %s == 0.0:" % [indent, speed_code])
+		for line in instant:
+			lines.append("\t" + line)
+		lines.append("%selse:" % indent)
+		for line in smooth:
+			lines.append("\t" + line)
+	elif speed == 0.0:
+		lines.append_array(instant)
+	else:
+		lines.append_array(smooth)
+
+
 ## Horizontal-only rotation: rotates around Y axis to face the target,
 ## ignoring any height difference.
-func _append_y_only(lines: Array[String], speed: float, flip_dir: bool) -> void:
+func _append_y_only(lines: Array[String], speed, speed_code: String, flip_dir: bool) -> void:
 	lines.append("\t# Horizontal rotation only (Y axis)")
 	lines.append("\tvar _rt_dir = _rt_target.global_position - global_position")
 	lines.append("\t_rt_dir.y = 0.0")
 	if flip_dir:
 		lines.append("\t_rt_dir = -_rt_dir  # Mesh faces +Z, flip so it faces the target")
 	lines.append("\tif _rt_dir.length_squared() > 0.0001:")
-	if speed == 0.0:
-		lines.append("\t\tlook_at(global_position + _rt_dir, Vector3.UP)")
-	else:
-		lines.append("\t\tvar _rt_target_basis = Basis.looking_at(_rt_dir.normalized(), Vector3.UP)")
-		lines.append("\t\tvar _rt_weight = clampf(deg_to_rad(%.4f) * _delta, 0.0, 1.0)" % speed)
-		lines.append("\t\tbasis = basis.orthonormalized().slerp(_rt_target_basis, _rt_weight)")
+	var instant: Array[String] = ["\t\tlook_at(global_position + _rt_dir, Vector3.UP)"]
+	var smooth: Array[String] = [
+		"\t\tvar _rt_target_basis = Basis.looking_at(_rt_dir.normalized(), Vector3.UP)",
+		"\t\tvar _rt_weight = clampf(deg_to_rad(%s) * _delta, 0.0, 1.0)" % speed_code,
+		"\t\tbasis = basis.orthonormalized().slerp(_rt_target_basis, _rt_weight)",
+	]
+	_append_speed_branch(lines, speed, speed_code, "\t\t", instant, smooth)
 
 
 ## Vertical-only rotation: adjusts pitch (X axis) to aim up/down at the target.
 ## Useful for a turret barrel that sits on top of a rotating base.
-func _append_x_only(lines: Array[String], speed: float, flip_dir: bool, clamp_x: bool, x_min: float, x_max: float) -> void:
+func _append_x_only(lines: Array[String], speed, speed_code: String, flip_dir: bool, clamp_x: bool, x_min: String, x_max: String) -> void:
 	lines.append("\t# Vertical rotation only (X axis / pitch)")
 	lines.append("\tvar _rt_dir = _rt_target.global_position - global_position")
 	if flip_dir:
 		lines.append("\t_rt_dir = -_rt_dir  # Mesh faces +Z, flip so it faces the target")
 	lines.append("\tvar _rt_pitch = -atan2(_rt_dir.y, Vector2(_rt_dir.x, _rt_dir.z).length())")
 	if clamp_x:
-		lines.append("\t_rt_pitch = clampf(_rt_pitch, deg_to_rad(%.4f), deg_to_rad(%.4f))" % [x_min, x_max])
-	if speed == 0.0:
-		lines.append("\trotation.x = _rt_pitch")
-	else:
-		lines.append("\tvar _rt_speed_rad = deg_to_rad(%.4f) * _delta" % speed)
-		lines.append("\trotation.x = rotate_toward(rotation.x, _rt_pitch, _rt_speed_rad)")
+		lines.append("\t_rt_pitch = clampf(_rt_pitch, deg_to_rad(%s), deg_to_rad(%s))" % [x_min, x_max])
+	var instant: Array[String] = ["\trotation.x = _rt_pitch"]
+	var smooth: Array[String] = [
+		"\tvar _rt_speed_rad = deg_to_rad(%s) * _delta" % speed_code,
+		"\trotation.x = rotate_toward(rotation.x, _rt_pitch, _rt_speed_rad)",
+	]
+	_append_speed_branch(lines, speed, speed_code, "\t", instant, smooth)
 
 
 ## Full look-at rotation: rotates on both Y and X to face the target completely.
-func _append_both(lines: Array[String], speed: float, flip_dir: bool, clamp_x: bool, x_min: float, x_max: float) -> void:
+func _append_both(lines: Array[String], speed, speed_code: String, flip_dir: bool, clamp_x: bool, x_min: String, x_max: String) -> void:
 	lines.append("\t# Full look-at rotation (both axes)")
 	lines.append("\tvar _rt_dir = (_rt_target.global_position - global_position).normalized()")
 	if flip_dir:
 		lines.append("\t_rt_dir = -_rt_dir  # Mesh faces +Z, flip so it faces the target")
 	lines.append("\tif _rt_dir.length_squared() > 0.0001:")
-	if speed == 0.0:
-		if flip_dir:
-			lines.append("\t\tlook_at(global_position + _rt_dir, Vector3.UP)")
-		else:
-			lines.append("\t\tlook_at(_rt_target.global_position, Vector3.UP)")
-		if clamp_x:
-			lines.append("\t\trotation.x = clampf(rotation.x, deg_to_rad(%.4f), deg_to_rad(%.4f))" % [x_min, x_max])
+	var clamp_line := "\t\trotation.x = clampf(rotation.x, deg_to_rad(%s), deg_to_rad(%s))" % [x_min, x_max]
+	var instant: Array[String] = []
+	if flip_dir:
+		instant.append("\t\tlook_at(global_position + _rt_dir, Vector3.UP)")
 	else:
-		lines.append("\t\tvar _rt_target_basis = Basis.looking_at(_rt_dir, Vector3.UP)")
-		lines.append("\t\tvar _rt_weight = clampf(deg_to_rad(%.4f) * _delta, 0.0, 1.0)" % speed)
-		lines.append("\t\tbasis = basis.orthonormalized().slerp(_rt_target_basis, _rt_weight)")
-		if clamp_x:
-			lines.append("\t\trotation.x = clampf(rotation.x, deg_to_rad(%.4f), deg_to_rad(%.4f))" % [x_min, x_max])
+		instant.append("\t\tlook_at(_rt_target.global_position, Vector3.UP)")
+	if clamp_x:
+		instant.append(clamp_line)
+	var smooth: Array[String] = [
+		"\t\tvar _rt_target_basis = Basis.looking_at(_rt_dir, Vector3.UP)",
+		"\t\tvar _rt_weight = clampf(deg_to_rad(%s) * _delta, 0.0, 1.0)" % speed_code,
+		"\t\tbasis = basis.orthonormalized().slerp(_rt_target_basis, _rt_weight)",
+	]
+	if clamp_x:
+		smooth.append(clamp_line)
+	_append_speed_branch(lines, speed, speed_code, "\t\t", instant, smooth)

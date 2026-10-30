@@ -126,6 +126,45 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+## Member variables this brick declares that keep their value when the node
+## changes state (other state-specific variables are reset on state entry).
+## Shared with the Character brick, which consumes it every frame.
+func get_kept_member_vars() -> PackedStringArray:
+	return PackedStringArray(["_logic_brick_character_*"])
+
+
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var motion_type = properties.get("motion_type", "location")
+	var movement_method = properties.get("movement_method", "character_velocity")
+
+	# Normalize
+	if typeof(motion_type) == TYPE_STRING:
+		motion_type = motion_type.to_lower().replace(" ", "_")
+	if typeof(movement_method) == TYPE_STRING:
+		movement_method = movement_method.to_lower().replace(" ", "_")
+
+	var is_location = (motion_type == "location")
+	var is_character_velocity = (movement_method == "character_velocity")
+
+	# Show/hide fields based on motion type and movement method
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"movement_method":
+					# Only shown for location type
+					shown[child] = is_location
+				"call_move_and_slide":
+					# Only relevant when using character velocity
+					shown[child] = is_location and is_character_velocity
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var motion_type = properties.get("motion_type", "location")
 
@@ -140,7 +179,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"rotation":
 			return _generate_rotation_code(node, chain_name)
 		_:
-			return {"actuator_code": "# Unknown motion type: %s" % motion_type}
+			return {"actuator_code": "# Unknown motion type: %s" % _gd_string(str(motion_type))}
 
 
 ## Convert a value to a code expression.
@@ -188,11 +227,14 @@ func _indent_lines(lines: Array[String], indent: String = "\t") -> Array[String]
 	return result
 
 
-func _append_character_horizontal_speed_clamp(body_lines: Array[String], velocity_expr: String, indent: String = "\t", suffix: String = "") -> void:
+func _append_character_horizontal_speed_clamp(body_lines: Array[String], velocity_expr: String, indent: String = "\t", suffix: String = "", yaw_expr: String = "0.0") -> void:
 	var hvel_var = "_logic_brick_character_hvel_%s" % suffix
 	var max_axis_var = "_logic_brick_character_max_axis_speed_%s" % suffix
 	body_lines.append("%svar %s = Vector2(%s.x, %s.z)" % [indent, hvel_var, velocity_expr, velocity_expr])
-	body_lines.append("%svar %s = maxf(absf(%s.x), absf(%s.y))" % [indent, max_axis_var, hvel_var, hvel_var])
+	# Measure the cap in input space so turning does not change forward speed.
+	body_lines.append("%svar %s = %s.rotated(%s)" % [indent, max_axis_var, hvel_var, yaw_expr])
+	body_lines.append("%svar %s_limit = maxf(absf(%s.x), absf(%s.y))" % [indent, max_axis_var, max_axis_var, max_axis_var])
+	max_axis_var += "_limit"
 	body_lines.append("%sif %s > 0.0 and %s.length() > %s:" % [indent, max_axis_var, hvel_var, max_axis_var])
 	body_lines.append("%s\t%s = %s.normalized() * %s" % [indent, hvel_var, hvel_var, max_axis_var])
 	body_lines.append("%s\t%s.x = %s.x" % [indent, velocity_expr, hvel_var])
@@ -229,8 +271,8 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 	# If no name is given, falls back to get_viewport().get_camera_3d().
 	if camera_relative:
 		if not camera_name.is_empty():
-			body_lines.append("# Camera-relative movement — finding camera node '%s'" % camera_name)
-			body_lines.append("var _cam = get_tree().root.find_child(\"%s\", true, false)" % camera_name)
+			body_lines.append("# Camera-relative movement — finding camera node '%s'" % _gd_string(str(camera_name)))
+			body_lines.append("var _cam = get_tree().root.find_child(\"%s\", true, false)" % _gd_string(str(camera_name)))
 		else:
 			body_lines.append("# Camera-relative movement — using active viewport camera")
 			body_lines.append("var _cam = get_viewport().get_camera_3d()")
@@ -268,22 +310,22 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 				body_lines.append("\tif _logic_brick_character_use_acceleration:")
 				body_lines.append("\t\t_logic_brick_character_target_velocity.x += _motion_dir.x")
 				body_lines.append("\t\t_logic_brick_character_target_velocity.z += _motion_dir.z")
-				_append_character_horizontal_speed_clamp(body_lines, "_logic_brick_character_target_velocity", "\t\t", clamp_suffix)
+				_append_character_horizontal_speed_clamp(body_lines, "_logic_brick_character_target_velocity", "\t\t", clamp_suffix, "_cam_yaw")
 				body_lines.append("\telse:")
 				body_lines.append("\t\t%s.velocity.x += _motion_dir.x" % target_var)
 				body_lines.append("\t\t%s.velocity.z += _motion_dir.z" % target_var)
-				_append_character_horizontal_speed_clamp(body_lines, "%s.velocity" % target_var, "\t\t", clamp_suffix)
+				_append_character_horizontal_speed_clamp(body_lines, "%s.velocity" % target_var, "\t\t", clamp_suffix, "_cam_yaw")
 				body_lines.append("\t# velocity.y intentionally preserved (gravity/jump from Character Actuator)")
 			elif space == "local":
 				body_lines.append("\tvar _motion_dir = %s.global_transform.basis.orthonormalized() * %s" % [target_var, vec])
 				body_lines.append("\tif _logic_brick_character_use_acceleration:")
 				body_lines.append("\t\t_logic_brick_character_target_velocity.x += _motion_dir.x")
 				body_lines.append("\t\t_logic_brick_character_target_velocity.z += _motion_dir.z")
-				_append_character_horizontal_speed_clamp(body_lines, "_logic_brick_character_target_velocity", "\t\t", clamp_suffix)
+				_append_character_horizontal_speed_clamp(body_lines, "_logic_brick_character_target_velocity", "\t\t", clamp_suffix, "%s.global_rotation.y" % target_var)
 				body_lines.append("\telse:")
 				body_lines.append("\t\t%s.velocity.x += _motion_dir.x" % target_var)
 				body_lines.append("\t\t%s.velocity.z += _motion_dir.z" % target_var)
-				_append_character_horizontal_speed_clamp(body_lines, "%s.velocity" % target_var, "\t\t", clamp_suffix)
+				_append_character_horizontal_speed_clamp(body_lines, "%s.velocity" % target_var, "\t\t", clamp_suffix, "%s.global_rotation.y" % target_var)
 				body_lines.append("\t# velocity.y intentionally preserved (gravity/jump from Character Actuator)")
 			else:
 				if not _is_literal_zero(x):
@@ -318,7 +360,7 @@ func _generate_location_code(node: Node, chain_name: String) -> Dictionary:
 				body_lines.append("%s.global_position = %s" % [target_var, vec])
 
 		_:
-			body_lines.append("push_warning(\"Motion Actuator: unknown movement method '%s'\")" % movement_method)
+			body_lines.append("push_warning(\"Motion Actuator: unknown movement method '%s'\")" % _gd_string(str(movement_method)))
 
 	if body_lines.is_empty():
 		body_lines.append("pass")

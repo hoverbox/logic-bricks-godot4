@@ -15,7 +15,7 @@ Screenshot placeholders are in `assets/images/screenshots/`. Replace a placehold
 
 ## Action page organization
 
-The 3D and 2D action pages mirror the addon right-click menu. Each submenu has an in-page anchor, so links can point directly to sections such as `actions-3d.html#motion` or `actions-2d.html#camera`. The UI action page remains flat because the addon intentionally shows UI actions in a flat menu. Each domain page also begins with its own setup workflow.
+The 3D and 2D action pages mirror the addon right-click menu. Each submenu has an in-page anchor, so links can point directly to sections such as `actuators-3d.html#motion` or `actuators-2d.html#camera`. The UI action page remains flat because the addon intentionally shows UI actions in a flat menu. Each domain page also begins with its own setup workflow.
 
 ## Phase 2 visual system
 

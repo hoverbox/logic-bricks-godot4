@@ -13,7 +13,9 @@ func get_brick_info() -> Dictionary:
 		"class": "Tween2DActuator",
 		"name": "Tween",
 		"type": "actuator",
-		"category": "UI",
+		# Not "UI": the 2D/3D menus hide that category, which left 2D with no
+		# tween brick at all (the common Tween is replaced by this one in 2D).
+		"category": "Animation",
 		"description": "Tween a 2D node property such as position, rotation, scale, or modulate.",
 		"menu_order": 310,
 		"domain": "2d",

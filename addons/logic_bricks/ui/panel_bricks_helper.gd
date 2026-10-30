@@ -112,6 +112,8 @@ func create_graph_node(brick_type: String, brick_class: String, position: Vector
 
 	if panel.current_node and brick_instance.has_method("apply_context_defaults"):
 		brick_instance.call("apply_context_defaults", panel.current_node)
+	if brick_type == "controller" and not panel._states_helper.view_state_id.is_empty():
+		brick_instance.set_property("state_id", panel._states_helper.view_state_id)
 
 	var graph_node = BrickGraphNode.new()
 	graph_node.name = "brick_node_%d" % panel.next_node_id
@@ -206,6 +208,14 @@ func setup_graph_node_context_menu(graph_node: GraphNode) -> void:
 	var popup_menu = PopupMenu.new()
 	popup_menu.add_item("Duplicate", 0)
 	popup_menu.add_item("View Documentation", 2)
+	popup_menu.about_to_popup.connect(func():
+		var index := popup_menu.get_item_index(3)
+		if index >= 0:
+			popup_menu.remove_item(index)
+		if not panel._get_selected_framed_bricks().is_empty():
+			popup_menu.add_item("Remove From Frame", 3)
+		popup_menu.reset_size()
+	)
 	popup_menu.add_separator()
 	popup_menu.add_item("Delete", 1)
 	panel._apply_popup_menu_size(popup_menu)
@@ -213,12 +223,16 @@ func setup_graph_node_context_menu(graph_node: GraphNode) -> void:
 	graph_node.add_child(popup_menu)
 	graph_node.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			graph_node.accept_event()
 			popup_menu.position = graph_node.get_screen_position() + event.position
 			popup_menu.popup()
 	)
 
 
 func on_graph_node_context_menu(id: int, graph_node: GraphNode) -> void:
+	if id == 3:
+		panel._on_main_menu_id_pressed(5)
+		return
 	if id == 2:
 		if graph_node.has_meta("brick_data"):
 			var brick_data: Dictionary = graph_node.get_meta("brick_data")

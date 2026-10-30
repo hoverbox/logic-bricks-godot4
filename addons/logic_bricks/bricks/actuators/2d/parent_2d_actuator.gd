@@ -45,6 +45,35 @@ func get_tooltip_definitions() -> Dictionary:
 		"keep_transform": "Keep the node in the same global position, rotation, and scale while reparenting.",
 	}
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var mode = properties.get("mode", "set_parent")
+	var target_mode = properties.get("parent_target_mode", "node_name")
+
+	# Normalize modes
+	if typeof(mode) == TYPE_STRING:
+		mode = mode.to_lower().replace(" ", "_")
+	if typeof(target_mode) == TYPE_STRING:
+		target_mode = target_mode.to_lower().replace(" ", "_")
+
+	# Only show the target field selected by Parent Target Mode.
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"parent_target_mode":
+					shown[child] = (mode == "set_parent")
+				"parent_node":
+					shown[child] = (mode == "set_parent" and target_mode == "node_name")
+				"parent_group":
+					shown[child] = (mode == "set_parent" and target_mode == "group")
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode := str(properties.get("mode", "set_parent")).to_lower().replace(" ", "_")
 	var target_mode := str(properties.get("parent_target_mode", "node_name")).to_lower().replace(" ", "_")

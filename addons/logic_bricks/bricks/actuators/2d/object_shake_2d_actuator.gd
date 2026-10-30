@@ -69,6 +69,23 @@ func get_preset_values(preset_name: String) -> Array:
 		shake_type = "translate"
 	return PRESETS_BY_TYPE[shake_type].get(preset_key, [])
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var shake_type = str(properties.get("shake_type", "translate")).to_lower().replace(" ", "_")
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			if prop_name in ["x", "y"]:
+				shown[child] = shake_type in ["translate", "scale"]
+			elif prop_name == "rotation_degrees":
+				shown[child] = shake_type == "rotate"
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var shake_type := str(properties.get("shake_type", "translate")).to_lower().replace(" ", "_")
 	var target_name := str(properties.get("target_node_name", "self")).strip_edges()
@@ -157,7 +174,7 @@ func _run_object_shake_2d_{suffix}(target: Node2D, shake_mode: String, amount: V
 	var lines: Array[String] = []
 	lines.append("var %s = _resolve_object_shake_2d_target_%s(\"%s\")" % [target_var, suffix, target_name.c_escape()])
 	lines.append("if is_instance_valid(%s):" % target_var)
-	lines.append("\t_run_object_shake_2d_%s(%s, \"%s\", Vector2(float(%s), float(%s)), float(%s))" % [suffix,target_var,shake_type,x_expr,y_expr,rotation_expr])
+	lines.append("\t_run_object_shake_2d_%s(%s, \"%s\", Vector2(float(%s), float(%s)), float(%s))" % [suffix,target_var,_gd_string(str(shake_type)),x_expr,y_expr,rotation_expr])
 	lines.append("else:")
 	lines.append("\tpush_warning(\"Object Shake 2D: target Node2D not found\")")
 	return {

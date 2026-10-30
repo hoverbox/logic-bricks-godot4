@@ -98,7 +98,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("\t%s.set_loops()" % tween_var)
 		code_lines.append("\t%s.set_trans(%s)" % [tween_var, trans_const])
 		code_lines.append("\t%s.set_ease(%s)" % [tween_var, ease_const])
-		code_lines.append("\t%s.tween_property(%s, \"%s\", %s, %s)" % [tween_var, node_var, property, target_value, duration])
+		code_lines.append("\t%s.tween_property(%s, \"%s\", %s, %s)" % [tween_var, node_var, _gd_string(str(property)), target_value, duration])
 		code_lines.append("else:")
 		code_lines.append("\tpush_warning(\"Tween Actuator: could not find node named '\" + str(_target_name_%s) + \"'\")" % label)
 	else:
@@ -108,7 +108,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			code_lines.append("%s.set_loops()" % tween_var)
 		code_lines.append("%s.set_trans(%s)" % [tween_var, trans_const])
 		code_lines.append("%s.set_ease(%s)" % [tween_var, ease_const])
-		code_lines.append("%s.tween_property(self, \"%s\", %s, %s)" % [tween_var, property, target_value, duration])
+		code_lines.append("%s.tween_property(self, \"%s\", %s, %s)" % [tween_var, _gd_string(str(property)), target_value, duration])
 	var result = {"actuator_code": "\n".join(code_lines)}
 	if member_vars.size() > 0:
 		result["member_vars"] = member_vars

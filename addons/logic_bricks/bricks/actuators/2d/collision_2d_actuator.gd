@@ -16,12 +16,12 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 func generate_code(node:Node,chain_name:String)->Dictionary:
-	var a=str(properties.get("action","disable_shape")).to_lower().replace(" ","_"); var n=_gd_string(str(properties.get("target_node","CollisionShape2D"))); var bit=int(properties.get("layer_value",1)); var en=str(bool(properties.get("bit_enabled",true))).to_lower(); var l=["var _c2 = get_tree().current_scene.find_child(\"%s\", true, false) if get_tree().current_scene else null"%n,"if _c2:"]
+	var a=str(properties.get("action","disable_shape")).to_lower().replace(" ","_"); var n=_gd_string(str(properties.get("target_node","CollisionShape2D"))); var bit=_int_num("layer_value",1); var en=str(bool(properties.get("bit_enabled",true))).to_lower(); var l=["var _c2 = get_tree().current_scene.find_child(\"%s\", true, false) if get_tree().current_scene else null"%_gd_string(str(n)),"if _c2:"]
 	match a:
 		"disable_shape": l.append("\tif _c2 is CollisionShape2D or _c2 is CollisionPolygon2D: _c2.set_deferred(\"disabled\", true)")
 		"enable_shape": l.append("\tif _c2 is CollisionShape2D or _c2 is CollisionPolygon2D: _c2.set_deferred(\"disabled\", false)")
-		"set_layer_bit": l.append("\tif _c2 is CollisionObject2D: _c2.set_collision_layer_value(%d, %s)"%[bit,en])
-		"set_mask_bit": l.append("\tif _c2 is CollisionObject2D: _c2.set_collision_mask_value(%d, %s)"%[bit,en])
+		"set_layer_bit": l.append("\tif _c2 is CollisionObject2D: _c2.set_collision_layer_value(%s, %s)"%[bit,en])
+		"set_mask_bit": l.append("\tif _c2 is CollisionObject2D: _c2.set_collision_mask_value(%s, %s)"%[bit,en])
 		"enable_monitoring": l.append("\tif _c2 is Area2D: _c2.set_deferred(\"monitoring\", true)")
 		"disable_monitoring": l.append("\tif _c2 is Area2D: _c2.set_deferred(\"monitoring\", false)")
 	l += ["else:","\tpush_warning(\"Collisions: target not found\")"]

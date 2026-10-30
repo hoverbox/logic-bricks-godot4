@@ -190,6 +190,42 @@ func get_tooltip_definitions() -> Dictionary:
 ## True only when the user entered a literal numeric value greater than zero.
 ## Variable/expression values are treated as potentially non-zero so generated code preserves them.
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var behavior = str(properties.get("behavior", "seek")).to_lower().replace(" ", "_")
+	var needs_target = behavior != "wander"
+	var target_mode = str(properties.get("target_mode", "group")).to_lower().replace(" ", "_")
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"navigation_agent_node_name", "use_navmesh_normal":
+					shown[child] = (behavior == "path_follow")
+				"target_mode":
+					shown[child] = needs_target
+				"target_name":
+					shown[child] = needs_target and target_mode != "vector_variable"
+				"target_variable":
+					shown[child] = needs_target and target_mode == "vector_variable"
+				"arrival_distance":
+					shown[child] = behavior in ["seek", "flee", "arrive", "path_follow"]
+				"slowing_distance":
+					shown[child] = (behavior == "arrive")
+				"desired_distance", "distance_tolerance":
+					shown[child] = (behavior == "maintain_distance")
+				"orbit_distance", "orbit_direction":
+					shown[child] = (behavior == "orbit")
+				"wander_amount", "wander_frequency":
+					shown[child] = (behavior == "wander")
+				"self_terminate":
+					shown[child] = behavior in ["seek", "flee", "arrive", "path_follow"]
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var navigation_agent_node_name = str(properties.get("navigation_agent_node_name", "NavigationAgent3D")).strip_edges()
 	var behavior = properties.get("behavior", "seek")
@@ -282,7 +318,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 func _generate_direct_movement(behavior: String, target_mode: String, target_name: String, arrival_dist, vel, accel, turn, face: bool, axis: String, lock_y: bool, terminate: bool) -> String:
 	var lines: Array[String] = []
-	var escaped = target_name.replace("\"", "\\\"")
+	var escaped = _gd_string(target_name)
 
 	# Find target based on mode
 	if target_mode == "node_name":
@@ -368,7 +404,7 @@ func _generate_direct_movement(behavior: String, target_mode: String, target_nam
 
 func _generate_pathfinding_movement(chain_name: String, target_mode: String, target_name: String, nav_var: String, nav_node_name: String, arrival_dist, vel, accel, turn, face: bool, axis: String, use_normal: bool, lock_y: bool, terminate: bool) -> String:
 	var lines: Array[String] = []
-	var escaped = target_name.replace("\"", "\\\"")
+	var escaped = _gd_string(target_name)
 
 	# Resolve NavigationAgent3D by typed node name
 	lines.append("var _nav_name_%s = \"%s\"" % [chain_name, _gd_string(nav_node_name)])
@@ -541,7 +577,7 @@ func _append_advanced_body(lines: Array[String], indent: String, behavior: Strin
 
 func _generate_advanced_movement(behavior: String, target_mode: String, target_name: String, arrival_dist, slowing_dist, desired_dist, tolerance, orbit_dist, orbit_direction: String, vel, accel, turn, face: bool, axis: String, lock_y: bool, terminate: bool) -> String:
 	var lines: Array[String] = []
-	var escaped = target_name.replace("\"", "\\\"")
+	var escaped = _gd_string(target_name)
 	if target_mode == "node_name":
 		lines.append("var _nearest_target = get_tree().root.find_child(\"%s\", true, false)" % escaped)
 		lines.append("if _nearest_target and _nearest_target is Node3D:")
@@ -567,7 +603,7 @@ func _generate_vector_advanced_movement(behavior: String, variable_name: String,
 	lines.append("if _target_position is Vector3:")
 	_append_advanced_body(lines, "\t", behavior, "_target_position", arrival_dist, slowing_dist, desired_dist, tolerance, orbit_dist, orbit_direction, vel, accel, turn, face, axis, lock_y, terminate)
 	lines.append("else:")
-	lines.append("\tpush_warning(\"Steering: variable '%s' was not found or is not a Vector3\")" % variable_name)
+	lines.append("\tpush_warning(\"Steering: variable '%s' was not found or is not a Vector3\")" % _gd_string(str(variable_name)))
 	return "\n".join(lines)
 
 
@@ -651,12 +687,12 @@ func _generate_look_at_code(target_pos: String, axis: String, turn_speed) -> Str
 func _generate_vector_resolve_lines(variable_name: String, value_name: String, indent: String = "") -> Array[String]:
 	var lines: Array[String] = []
 	lines.append("%svar %s = null" % [indent, value_name])
-	lines.append("%sif \"%s\" in self:" % [indent, variable_name])
-	lines.append("%s\t%s = get(\"%s\")" % [indent, value_name, variable_name])
+	lines.append("%sif \"%s\" in self:" % [indent, _gd_string(str(variable_name))])
+	lines.append("%s\t%s = get(\"%s\")" % [indent, value_name, _gd_string(str(variable_name))])
 	lines.append("%selse:" % indent)
 	lines.append("%s\tvar _move_globals = get_node_or_null(\"/root/GlobalVars\")" % indent)
-	lines.append("%s\tif _move_globals and \"%s\" in _move_globals:" % [indent, variable_name])
-	lines.append("%s\t\t%s = _move_globals.get(\"%s\")" % [indent, value_name, variable_name])
+	lines.append("%s\tif _move_globals and \"%s\" in _move_globals:" % [indent, _gd_string(str(variable_name))])
+	lines.append("%s\t\t%s = _move_globals.get(\"%s\")" % [indent, value_name, _gd_string(str(variable_name))])
 	return lines
 
 
@@ -706,7 +742,7 @@ func _generate_vector_direct_movement(behavior: String, variable_name: String, a
 	lines.append("%selse:" % indent)
 	lines.append("%s\tglobal_position += _new_vel * _delta" % indent)
 	lines.append("else:")
-	lines.append("\tpush_warning(\"Steering: variable '%s' was not found or is not a Vector3\")" % variable_name)
+	lines.append("\tpush_warning(\"Steering: variable '%s' was not found or is not a Vector3\")" % _gd_string(str(variable_name)))
 	return "\n".join(lines)
 
 
@@ -757,5 +793,5 @@ func _generate_vector_pathfinding_movement(chain_name: String, variable_name: St
 	lines.append("%s\telse:" % indent)
 	lines.append("%s\t\tglobal_position += _new_vel * _delta" % indent)
 	lines.append("else:")
-	lines.append("\tpush_warning(\"Steering: NavigationAgent3D or Vector3 variable '%s' is unavailable\")" % variable_name)
+	lines.append("\tpush_warning(\"Steering: NavigationAgent3D or Vector3 variable '%s' is unavailable\")" % _gd_string(str(variable_name)))
 	return "\n".join(lines)

@@ -104,3 +104,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	return {
 		"actuator_code": "\n".join(code_lines)
 	}
+
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Applies a rotational force (torque) to a RigidBody3D each physics frame.\nRequires a RigidBody3D node.",
+		"x": "Torque around the X axis.",
+		"y": "Torque around the Y axis.",
+		"z": "Torque around the Z axis.",
+		"space": "Local: torque is relative to the node\'s rotation.\nGlobal: torque is in world-space axes.",
+	}

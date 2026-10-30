@@ -184,7 +184,46 @@ func _parse_value(value_str: String) -> String:
 
 	# Default: string literal. For AnimationTree conditions, the generated code
 	# will report a type error if the final value is not a bool.
-	return "\"%s\"" % value_str.replace("\"", "\\\"")
+	return "\"%s\"" % _gd_string(value_str)
+
+
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var tree_mode = properties.get("mode", "go_to_state")
+	if typeof(tree_mode) == TYPE_STRING:
+		tree_mode = tree_mode.to_lower().replace(" ", "_")
+	var param_type = properties.get("param_type", "float")
+	if typeof(param_type) == TYPE_STRING:
+		param_type = param_type.to_lower().replace(" ", "_")
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"animation_tree_name":
+					shown[child] = true
+				"state_name":
+					shown[child] = (tree_mode in ["travel", "go_to_state"])
+				"true_condition_name", "false_condition_name":
+					shown[child] = (tree_mode == "set_condition_pair")
+				"condition_name", "condition_value":
+					shown[child] = (tree_mode in ["set_condition", "set_condition_value"])
+				"parameter_name", "param_type":
+					shown[child] = (tree_mode == "set_parameter")
+				"param_float":
+					shown[child] = (tree_mode == "set_parameter" and param_type == "float")
+				"param_int":
+					shown[child] = (tree_mode == "set_parameter" and param_type == "int")
+				"param_bool":
+					shown[child] = (tree_mode == "set_parameter" and param_type == "bool")
+				"param_x", "param_y":
+					shown[child] = (tree_mode == "set_parameter" and param_type == "vector2")
+				"state_machine_path", "parameter_path":
+					shown[child] = false
+	return shown
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
@@ -284,18 +323,16 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				var value_expr = "null"
 				match param_type:
 					"float":
-						value_expr = "%.3f" % float(str(properties.get("param_float", 0.0)).to_float())
+						value_expr = _num("param_float")
 					"int":
-						value_expr = "%d" % int(str(properties.get("param_int", 0)).to_int())
+						value_expr = _int_num("param_int")
 					"bool":
 						var _raw_bool = properties.get("param_bool", true)
 						value_expr = "true" if (str(_raw_bool).to_lower() not in ["false", "0", ""]) else "false"
 					"vector2":
-						var px = float(str(properties.get("param_x", 0.0)).to_float())
-						var py = float(str(properties.get("param_y", 0.0)).to_float())
-						value_expr = "Vector2(%.3f, %.3f)" % [px, py]
+						value_expr = "Vector2(%s, %s)" % [_num("param_x"), _num("param_y")]
 					_:
-						value_expr = "%.3f" % float(str(properties.get("param_float", 0.0)).to_float())
+						value_expr = _num("param_float")
 
 				code_lines.append("\t# Set parameter '%s'" % _gd_string(param_path))
 				code_lines.append("\t%s.set(\"%s\", %s)" % [anim_tree_var, _gd_string(param_path), value_expr])
@@ -327,7 +364,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			else:
 				var value_expr = _parse_value(condition_value_raw)
 				var value_var = "_condition_value_%s" % chain_name
-				code_lines.append("\t# Set condition '%s' = %s every active frame" % [_gd_string(condition_name), condition_value_raw])
+				code_lines.append("\t# Set condition '%s' = %s every active frame" % [_gd_string(condition_name), _gd_string(str(condition_value_raw))])
 				code_lines.append("\t%s.active = true" % anim_tree_var)
 				code_lines.append("\tvar %s = %s" % [value_var, value_expr])
 				code_lines.append("\tif typeof(%s) == TYPE_BOOL:" % value_var)

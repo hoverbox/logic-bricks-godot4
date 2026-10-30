@@ -85,8 +85,6 @@ func get_tooltip_definitions() -> Dictionary:
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target_node_name = str(properties.get("target_node_name", "Target")).strip_edges()
 	var mode = properties.get("mode", "target_node")
-	var x = float(properties.get("x", 0.0))
-	var y = float(properties.get("y", 0.0))
 	var vector_variable = _sanitize_identifier(str(properties.get("vector_variable", "")))
 	var clear_velocity = properties.get("clear_velocity", true)
 
@@ -131,7 +129,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 		"coordinates":
 			code_lines.append("# Teleport 2D to coordinates")
-			code_lines.append("global_position = Vector2(%.3f, %.3f)" % [x, y])
+			code_lines.append("global_position = Vector2(%s, %s)" % [_num("x"), _num("y")])
 			if clear_velocity:
 				_append_clear_velocity_code(code_lines)
 
@@ -141,18 +139,18 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				return {"actuator_code": "\n".join(code_lines), "member_vars": member_vars}
 			code_lines.append("# Teleport 2D to a Vector2 variable")
 			code_lines.append("var _teleport_value = null")
-			code_lines.append("if \"%s\" in self:" % vector_variable)
-			code_lines.append("\t_teleport_value = get(\"%s\")" % vector_variable)
+			code_lines.append("if \"%s\" in self:" % _gd_string(str(vector_variable)))
+			code_lines.append("\t_teleport_value = get(\"%s\")" % _gd_string(str(vector_variable)))
 			code_lines.append("else:")
 			code_lines.append("\tvar _teleport_globals = get_node_or_null(\"/root/GlobalVars\")")
-			code_lines.append("\tif _teleport_globals and \"%s\" in _teleport_globals:" % vector_variable)
-			code_lines.append("\t\t_teleport_value = _teleport_globals.get(\"%s\")" % vector_variable)
+			code_lines.append("\tif _teleport_globals and \"%s\" in _teleport_globals:" % _gd_string(str(vector_variable)))
+			code_lines.append("\t\t_teleport_value = _teleport_globals.get(\"%s\")" % _gd_string(str(vector_variable)))
 			code_lines.append("if _teleport_value is Vector2:")
 			code_lines.append("\tglobal_position = _teleport_value")
 			if clear_velocity:
 				_append_clear_velocity_code(code_lines, "\t")
 			code_lines.append("else:")
-			code_lines.append("\tpush_warning(\"Teleport 2D Actuator: variable '%s' was not found or is not a Vector2\")" % vector_variable)
+			code_lines.append("\tpush_warning(\"Teleport 2D Actuator: variable '%s' was not found or is not a Vector2\")" % _gd_string(str(vector_variable)))
 
 		_:
 			code_lines.append("pass  # Unknown teleport 2D mode")

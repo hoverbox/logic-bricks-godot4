@@ -119,12 +119,16 @@
        and leave its logic mode set to AND for a single-trigger chain.
       </li>
 <li>
-       Add the appropriate 2D or 3D motion action.
+       Add a <strong>Position</strong> action (<strong>Position 2D</strong> on a 2D node) with Movement Method set to Character Velocity, and enter the speed on the axis to move along.
       </li>
 <li>
-       Connect the bricks and apply/rebuild the generated logic as required by your workflow.
+       Connect Input → Gate → Position, then press <strong>Apply Code</strong> to write the script.
       </li>
 </ol>
+<div class="callout tip">
+<strong>Characters need Character Physics</strong>
+<p>On a CharacterBody, add a second chain, <code>Always → Gate → Character Physics</code> (Character 2D Physics in 2D). It applies gravity and moves the body every frame; the Position chain only says which way to go.</p>
+</div>
 </section>
 
 <section class="related-topics">
@@ -135,7 +139,7 @@
       Related topics
      </h2>
 <div class="related-topic-grid">
-<a class="related-topic-card" href="sensors.html">
+<a class="related-topic-card" href="sensors-3d.html">
 <strong>
         Triggers
        </strong>
@@ -143,7 +147,7 @@
         Choose the event or condition that begins a chain.
        </span>
 </a>
-<a class="related-topic-card" href="controllers.html">
+<a class="related-topic-card" href="controllers-3d.html">
 <strong>
         Gates
        </strong>
@@ -151,9 +155,9 @@
         Decide how conditions combine.
        </span>
 </a>
-<a class="related-topic-card" href="actuators-common.html">
+<a class="related-topic-card" href="actuators-3d.html">
 <strong>
-        Common Actions
+        Actions
        </strong>
 <span>
         Choose an action that runs after the gate.
@@ -175,7 +179,7 @@
        Next →
       </span>
 <strong>
-       Interface &amp; Organization
+       Interface &amp;amp; Organization
       </strong>
 </a>
 </div>

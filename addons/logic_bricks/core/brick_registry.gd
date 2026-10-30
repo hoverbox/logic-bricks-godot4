@@ -43,7 +43,6 @@ static var _legacy_aliases: Dictionary = {
 	"InputMap2DSensor": "InputMapSensor",
 	"Message2DSensor": "MessageSensor",
 	"Mouse2DSensor": "MouseSensor",
-	"Mouse2DActuator": "Mouse2DActuator",
 	"Random2DSensor": "RandomSensor",
 	"Variable2DSensor": "VariableSensor",
 	"Animation2DActuator": "SpriteAnimation2DActuator",
@@ -61,7 +60,6 @@ static var _legacy_aliases: Dictionary = {
 	"ScreenFlash2DActuator": "ScreenFlashActuator",
 	"State2DActuator": "StateActuator",
 	"TweenAnimation2DActuator": "Tween2DActuator",
-	"Tween2DActuator": "Tween2DActuator",
 	"Variable2DActuator": "VariableActuator",
 	"Visibility2DActuator": "VisibilityActuator",
 	# UI Button was briefly serialized from its file name before UI bricks
@@ -113,7 +111,7 @@ static var _ui_actuator_whitelist: Array[String] = [
 ]
 
 static var _fallback_categories: Dictionary = {
-	"MotionActuator": "Motion", "CharacterActuator": "Motion", "JumpActuator": "Motion", "PositionActuator": "Motion", "RotationActuator": "Motion", "ScaleActuator": "Motion",
+	"MotionActuator": "Motion", "CharacterActuator": "Physics", "JumpActuator": "Motion", "PositionActuator": "Motion", "RotationActuator": "Motion", "ScaleActuator": "Motion",
 	"LookAtMovementActuator": "Motion", "LookAtInputActuator": "Motion", "RotateTowardsActuator": "Motion",
 	"WaypointPathActuator": "Motion", "MoveTowardsActuator": "Motion", "TeleportActuator": "Motion",
 	"MouseActuator": "Motion", "Mouse2DActuator": "Motion",
@@ -131,7 +129,7 @@ static var _fallback_categories: Dictionary = {
 	"ProgressBarActuator": "UI", "TweenActuator": "UI", "StateActuator": "Logic",
 	"RandomActuator": "Logic", "MessageActuator": "Logic", "VariableActuator": "Logic",
 	"GameActuator": "Game", "SceneActuator": "Game", "SaveLoadActuator": "Game", "PreloadActuator": "Game",
-	"AnimationActuator": "Animation", "AnimationTreeActuator": "Animation", "SpriteFramesActuator": "Animation", "SpriteAnimation2DActuator": "Animation", "TweenAnimation2DActuator": "Animation"
+	"AnimationActuator": "Animation", "AnimationTreeActuator": "Animation", "SpriteFramesActuator": "Animation", "SpriteAnimation2DActuator": "Animation"
 }
 
 static func refresh() -> void:

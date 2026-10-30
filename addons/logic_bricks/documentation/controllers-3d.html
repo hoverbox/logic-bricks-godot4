@@ -108,392 +108,454 @@
 <div class="page-tools">
 <input class="search" id="docSearch" placeholder="Filter gates on this page…" type="search"/>
 </div>
-<section class="brick controller" data-compatibility="3d 2d ui" data-search="Gate AND: all connected triggers must be active OR: any connected trigger must be active NAND: NOT all triggers active (fires unless all are true) NOR: NO triggers active (fires only when all are false) XOR: exactly one trigger is active General" id="controller-controller-gd">
+<section class="brick controller" data-compatibility="3d 2d ui" data-search="Gate Logic gate that combines Trigger inputs. AND: all Triggers must be active. OR: any Trigger active. NAND/NOR/XOR: inverted and exclusive logic. Gates" id="controller-controller-gd">
 <div class="brick-heading">
 <span class="badge">
-       gate • 3d
-      </span>
-<h2>Gate</h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
-<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
-        2D
-       </span>
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      AND: all connected triggers must be active OR: any connected trigger must be active NAND: NOT all triggers active (fires unless all are true) NOR: NO triggers active (fires only when all are false) XOR: exactly one trigger is active
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Gates
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          logic_mode
-         </code>
-</td>
-<td>
-         Logic Mode
-         <br/>
-<small>
-          Choices: AND,OR,NAND,NOR,XOR
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           and
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          all_states
-         </code>
-</td>
-<td>
-         All States
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          state_id
-         </code>
-</td>
-<td>
-         State Id
-         <br/>
-<small>
-          Choices: __STATE_LIST__
-         </small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Combine one or more trigger results before actions run.
-         </li>
-<li>
-          Keep decision-making separate from the actions that follow.
-         </li>
-<li>
-          Switch between AND, OR, NAND, NOR, and XOR without adding separate gate bricks.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          One or more triggers
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an
-          <span aria-label="action: A brick that performs an action after a trigger and optional gate succeed." class="glossary-term" data-tooltip="A brick that performs an action after a trigger and optional gate succeed." tabindex="0">
-           action
-          </span>
-</span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Use AND when every connected condition must be true, and OR when any connected condition may continue the chain.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        Do not create separate bricks for AND, OR, NAND, NOR, or XOR; choose the mode inside the Gate brick.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="sensors-3d.html#actuator-3d">Action Triggered</a>
-<a href="controllers-2d.html#script-controller-script-controller-gd">
-         Script Gate
-        </a>
-<a href="sensors-3d.html#animation-tree-3d">
-         Animation Tree
-        </a>
-<a href="actuators-3d.html#force-3d">
-         Force
-        </a>
-</div>
-</section>
-</details>
-</section>
-<section class="brick controller" data-compatibility="3d 2d ui" data-search='Script Gate Runs a custom GDScript module function: - Point to a .gd file - That file defines a top-level function: func run(node: Node) -&gt; void: - When the trigger fires, run(node) is called — node is the scene object Example script (my_script.gd): func run(node: Node) -&gt; void: node.health -= 10 print("Health: ", node.health) The script does NOT need extends — it is called as a module, not instantiated. General' id="script-controller-script-controller-gd">
-<div class="brick-heading">
-<span class="badge">
-       gate • 3d
-      </span>
-<h2>Script Gate</h2>
-<div class="brick-xp-meta">
-<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
-        3D
-       </span>
-<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
-        2D
-       </span>
-<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
-        UI
-       </span>
-</div>
-</div>
-<p>
-      Runs a custom GDScript module function: - Point to a .gd file - That file defines a top-level function: func run(node: Node) -&gt; void: - When the trigger fires, run(node) is called — node is the scene object Example script (my_script.gd): func run(node: Node) -&gt; void: node.health -= 10 print("Health: ", node.health) The script does NOT need extends — it is called as a module, not instantiated.
-     </p>
-<div class="meta-grid">
-<div>
-<strong>
-        Menu
-       </strong>
-<span>
-        Add Logic Brick → Gates
-       </span>
-</div>
-</div>
-<h3>
-      Options
-     </h3>
-<table class="option-table">
-<thead>
-<tr>
-<th>
-         Property
-        </th>
-<th>
-         Details
-        </th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>
-          logic_mode
-         </code>
-</td>
-<td>
-         Logic Mode
-         <br/>
-<small>
-          Choices: AND,OR,NAND,NOR,XOR
-         </small>
-<br/>
-<small>
-          Default:
-          <code>
-           and
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          script_path
-         </code>
-</td>
-<td>
-         Script Path
-         <br/>
-<small>
-          Choices: *.gd
-         </small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          all_states
-         </code>
-</td>
-<td>
-         All States
-         <br/>
-<small>
-          Default:
-          <code>
-           false
-          </code>
-</small>
-</td>
-</tr>
-<tr>
-<td>
-<code>
-          state_id
-         </code>
-</td>
-<td>
-         State Id
-         <br/>
-<small>
-          Choices: __STATE_LIST__
-         </small>
-</td>
-</tr>
-</tbody>
-</table>
-<details class="brick-guidance collapsible-guidance" open="">
-<summary>
-       Using this brick
-      </summary>
-<div class="guidance-columns">
-<section class="guidance-panel uses">
-<h4>
-         Typical uses
-        </h4>
-<ul>
-<li>
-          Combine one or more trigger results before actions run.
-         </li>
-<li>
-          Keep decision-making separate from the actions that follow.
-         </li>
-<li>
-          Call a small reusable GDScript module when visual logic needs custom behavior.
-         </li>
-</ul>
-</section>
-<section class="guidance-panel example">
-<h4>
-         Example chain
-        </h4>
-<div aria-label="Example logic chain" class="logic-chain">
-<span class="chain-node">
-          One or more triggers
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Script Gate
-         </span>
-<span aria-hidden="true" class="chain-arrow">
-          →
-         </span>
-<span class="chain-node">
-          Choose an action
-         </span>
-</div>
-</section>
-</div>
-<div class="guidance-notes">
-<div class="mini-callout tip">
-<strong>
-         Tip
-        </strong>
-        Keep the module function small and focused, and test its file path before connecting it to a larger chain.
-       </div>
-<div class="mini-callout caution">
-<strong>
-         Common mistake
-        </strong>
-        The module script must expose the function format described above; it is not used like a normal node script.
-       </div>
-</div>
-<section class="related-bricks">
-<h4>
-        Related bricks
-       </h4>
-<div class="related-link-list">
-<a href="controllers-2d.html#controller-controller-gd">
+         gate • 3d
+        </span>
+<h2>
          Gate
-        </a>
-<a href="sensors-3d.html#actuator-3d">Action Triggered</a>
-<a href="actuators-3d.html#look-at-input-3d">
-         Look At Input
-        </a>
-<a href="actuators-3d.html#look-at-movement-3d">
-         Look At Movement
-        </a>
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Logic gate that combines Trigger inputs.
+       </p>
+<ul class="brick-description-list">
+<li><b>AND:</b> all Triggers must be active. OR: any Trigger active.</li>
+<li><b>NAND/NOR/XOR:</b> inverted and exclusive logic.</li>
+</ul>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Gates
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            logic_mode
+           </code>
+</td>
+<td>
+           Logic Mode
+           <br/>
+<small>
+            Choices: AND, OR, NAND, NOR, XOR
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             AND
+            </code>
+           </small>
+           <br/>
+<small>
+            Logic gate type:<br/>• AND: All connected Triggers must be active<br/>• OR: At least one Trigger must be active<br/>• NAND: NOT AND — active when not all Triggers are active<br/>• NOR: NOT OR — active only when no Triggers are active<br/>• XOR: Exclusive OR — active when exactly one Trigger is active
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            all_states
+           </code>
+</td>
+<td>
+           All States
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            state_id
+           </code>
+</td>
+<td>
+           State
+           <br/>
+<small>
+            Choices: the node's states (set up in the States panel)
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Combine one or more trigger results before actions run.
+           </li>
+<li>
+            Keep decision-making separate from the actions that follow.
+           </li>
+<li>
+            Switch between AND, OR, NAND, NOR, and XOR without adding separate gate bricks.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Input
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Gate
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Character Jump
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use AND when every connected trigger must be true, and OR when any one is enough.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Adding separate gates for AND, OR and NOT. Choose the mode inside one Gate brick.
+         </div>
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Use AND when every connected condition must be true, and OR when any connected condition may continue the chain.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Do not create separate bricks for AND, OR, NAND, NOR, or XOR; choose the mode inside the Gate brick.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="controllers-3d.html#script-controller-script-controller-gd">
+           Script Gate
+          </a>
+<a href="sensors-3d.html#always-common">
+           Always
+          </a>
+<a href="sensors-3d.html#input-map-common">
+           Input
+          </a>
+<a href="actuators-3d.html#state-3d">
+           State
+          </a>
 </div>
 </section>
 </details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Gate brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/controller-3d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Gate
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
+</section>
+<section class="brick controller" data-compatibility="3d 2d ui" data-search="Script Gate Calls a function in a custom .gd script when triggers fire. Runs a custom GDScript module function: no separate Action is needed — the script performs the action. Gates" id="script-controller-script-controller-gd">
+<div class="brick-heading">
+<span class="badge">
+         gate • 3d
+        </span>
+<h2>
+         Script Gate
+        </h2>
+<div class="brick-xp-meta">
+<span class="compatibility-badge compatibility-3d" title="Available for 3D nodes">
+          3D
+         </span>
+<span class="compatibility-badge compatibility-2d" title="Available for 2D nodes">
+          2D
+         </span>
+<span class="compatibility-badge compatibility-ui" title="Available for UI nodes">
+          UI
+         </span>
+</div>
+</div>
+<p>
+        Calls a function in a custom .gd script when triggers fire. Runs a custom GDScript module function: no separate Action is needed — the script performs the action.
+       </p>
+<div class="meta-grid">
+<div>
+<strong>
+          Menu
+         </strong>
+<span>
+          Right-click → Gates
+         </span>
+</div>
+</div>
+<h3>
+        Options
+       </h3>
+<table class="option-table">
+<thead>
+<tr>
+<th>
+           Property
+          </th>
+<th>
+           Details
+          </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>
+            logic_mode
+           </code>
+</td>
+<td>
+           Logic Mode
+           <br/>
+<small>
+            Choices: AND, OR, NAND, NOR, XOR
+           </small>
+           <br/>
+<small>
+            Default:
+            <code>
+             AND
+            </code>
+           </small>
+           <br/>
+<small>
+            Logic gate type:<br/>• AND: All connected Triggers must be active<br/>• OR: At least one Trigger must be active<br/>• NAND: NOT AND — active when not all Triggers are active<br/>• NOR: NOT OR — active only when no Triggers are active<br/>• XOR: Exclusive OR — active when exactly one Trigger is active
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            script_path
+           </code>
+</td>
+<td>
+           Script Path
+           <br/>
+<small>
+            File: *.gd
+           </small>
+           <br/>
+<small>
+            Path to the .gd script file to run.<br/>The script must define: func run(node: Node) -&gt; void:<br/>'node' is the scene object this brick is attached to.<br/>Do NOT add 'extends' to the script — it is called as a module.
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            all_states
+           </code>
+</td>
+<td>
+           All States
+           <br/>
+<small>
+            Default:
+            <code>
+             false
+            </code>
+           </small>
+</td>
+</tr>
+<tr>
+<td>
+<code>
+            state_id
+           </code>
+</td>
+<td>
+           State
+           <br/>
+<small>
+            Choices: the node's states (set up in the States panel)
+           </small>
+</td>
+</tr>
+</tbody>
+</table>
+<details class="brick-guidance collapsible-guidance" open="">
+<summary>
+         Using this brick
+        </summary>
+<div class="guidance-columns">
+<section class="guidance-panel uses">
+<h4>
+           Typical uses
+          </h4>
+<ul>
+<li>
+            Combine one or more trigger results before actions run.
+           </li>
+<li>
+            Keep decision-making separate from the actions that follow.
+           </li>
+<li>
+            Call a small reusable GDScript module when visual logic needs custom behavior.
+           </li>
+</ul>
+</section>
+<section class="guidance-panel example">
+<h4>
+           Example chain
+          </h4>
+<div aria-label="Example logic chain" class="logic-chain">
+<span class="chain-node">
+            Collision
+           </span>
+<span aria-hidden="true" class="chain-arrow">
+            →
+           </span>
+<span class="chain-node">
+            Script Gate
+           </span>
+</div>
+</section>
+</div>
+<div class="guidance-notes">
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Keep the module small. It needs a top-level func run(node: Node) -&gt; void.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          Writing the module like a node script with extends and _ready(). It is called as a module, not attached.
+         </div>
+<div class="mini-callout tip">
+<strong>
+           Tip
+          </strong>
+          Keep the module function small and focused, and test its file path before connecting it to a larger chain.
+         </div>
+<div class="mini-callout caution">
+<strong>
+           Common mistake
+          </strong>
+          The module script must expose the function format described above; it is not used like a normal node script.
+         </div>
+</div>
+<section class="related-bricks">
+<h4>
+          Related bricks
+         </h4>
+<div class="related-link-list">
+<a href="controllers-3d.html#controller-controller-gd">
+           Gate
+          </a>
+<a href="sensors-3d.html#always-common">
+           Always
+          </a>
+<a href="sensors-3d.html#input-map-common">
+           Input
+          </a>
+</div>
+</section>
+</details>
+<figure class="screenshot compact">
+<div class="screenshot-image">
+<img alt="Script Gate brick in the Logic Bricks editor" decoding="async" loading="lazy" src="assets/images/screenshots/bricks/scriptcontroller-3d.png"/>
+</div>
+<figcaption>
+<strong class="screenshot-caption-title">
+          Script Gate
+         </strong>
+<span>
+          
+         </span>
+</figcaption>
+</figure>
 </section>
 <div class="page-nav">
-<a class="page-nav-card previous" href="sensors.html">
+<a class="page-nav-card previous" href="sensors-3d.html">
 <span class="page-nav-label">
        ← Previous
       </span>
 <strong>
-       Triggers
+       3D Triggers
       </strong>
 </a>
-<a class="page-nav-card next" href="actuators-common.html">
+<a class="page-nav-card next" href="actuators-3d.html">
 <span class="page-nav-label">
        Next →
       </span>
 <strong>
-       Common Actions
+       3D Actions
       </strong>
 </a>
 </div>

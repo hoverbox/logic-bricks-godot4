@@ -67,6 +67,10 @@ func restore_graph_snapshot(target_node: Node, snapshot: Dictionary) -> void:
 	_set_or_remove_meta(target_node, "logic_bricks_states", snapshot.get("states", []), [])
 	_set_or_remove_meta(target_node, "logic_bricks_debug_watch_state", snapshot.get("debug_watch_state", {}), {})
 	_set_or_remove_meta(target_node, "logic_bricks_global_usage", snapshot.get("global_usage", {}), {})
+	# Only actions that also replace the chain metadata (Rebuild from Script)
+	# put it in their snapshots; ordinary edits leave it alone.
+	if snapshot.has("chains"):
+		_set_or_remove_meta(target_node, "logic_bricks", snapshot["chains"], [])
 	var schema_version := int(snapshot.get("schema_version", 0))
 	if schema_version > 0:
 		target_node.set_meta("logic_bricks_schema_version", schema_version)

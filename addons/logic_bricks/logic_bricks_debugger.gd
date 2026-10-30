@@ -14,6 +14,13 @@ var _scan_elapsed := 0.0
 var _update_elapsed := 0.0
 var _overlay_visible := true
 
+# Live graph debugging uses low-frequency state snapshots instead of reporting
+# every brick execution. Generated scripts register once, then this autoload
+# polls their compact chain-state arrays four times per second.
+const GRAPH_SNAPSHOT_INTERVAL := 0.25
+var _graph_snapshot_elapsed := 0.0
+var _debug_nodes: Array[WeakRef] = []
+
 
 func _ready() -> void:
 	if Engine.is_editor_hint():
@@ -37,12 +44,50 @@ func _process(delta: float) -> void:
 		return
 	_scan_elapsed += delta
 	_update_elapsed += delta
+	_graph_snapshot_elapsed += delta
+	if _graph_snapshot_elapsed >= GRAPH_SNAPSHOT_INTERVAL:
+		_graph_snapshot_elapsed = 0.0
+		_send_graph_snapshot()
 	if _scan_elapsed >= SCAN_INTERVAL:
 		_scan_elapsed = 0.0
 		_scan_nodes()
 	if _update_elapsed >= UPDATE_INTERVAL:
 		_update_elapsed = 0.0
 		_refresh_text()
+
+
+
+## Generated Logic Bricks scripts call this once from _ready(). We keep WeakRef
+## entries so scenes can be reloaded/freed without explicit unregister traffic.
+func register_debug_node(node: Node) -> void:
+	if not EngineDebugger.is_active() or node == null:
+		return
+	for existing_ref in _debug_nodes:
+		var existing = existing_ref.get_ref()
+		if existing == node:
+			return
+	_debug_nodes.append(weakref(node))
+
+
+func _send_graph_snapshot() -> void:
+	if not EngineDebugger.is_active():
+		return
+	var batch: Array = []
+	var live_refs: Array[WeakRef] = []
+	for node_ref in _debug_nodes:
+		var node = node_ref.get_ref()
+		if node == null or not is_instance_valid(node):
+			continue
+		live_refs.append(node_ref)
+		if not node.has_method("_logic_bricks_get_debug_snapshot"):
+			continue
+		var active_ids = node.call("_logic_bricks_get_debug_snapshot")
+		if not (active_ids is Array):
+			active_ids = []
+		batch.append([str(node.get_path()), active_ids])
+	_debug_nodes = live_refs
+	if not batch.is_empty():
+		EngineDebugger.send_message("logic_bricks:graph_snapshot_batch", batch)
 
 
 func _build_overlay() -> void:

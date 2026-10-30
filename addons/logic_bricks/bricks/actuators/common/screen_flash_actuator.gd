@@ -120,10 +120,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\tif is_instance_valid(%s) and is_instance_valid(%s):" % [svc_var, cl_var])
 	# Reuse or create the overlay ColorRect as a sibling of the container
 	# inside the same CanvasLayer.
-	code_lines.append("\t\tvar %s = %s.get_node_or_null(\"%s\") as ColorRect" % [rect_var, cl_var, overlay_name])
+	code_lines.append("\t\tvar %s = %s.get_node_or_null(\"%s\") as ColorRect" % [rect_var, cl_var, _gd_string(str(overlay_name))])
 	code_lines.append("\t\tif not is_instance_valid(%s):" % rect_var)
 	code_lines.append("\t\t\t%s = ColorRect.new()" % rect_var)
-	code_lines.append("\t\t\t%s.name = \"%s\"" % [rect_var, overlay_name])
+	code_lines.append("\t\t\t%s.name = \"%s\"" % [rect_var, _gd_string(str(overlay_name))])
 	code_lines.append("\t\t\t%s.mouse_filter = Control.MOUSE_FILTER_IGNORE" % rect_var)
 	code_lines.append("\t\t\t%s.z_index = 100" % rect_var)
 	code_lines.append("\t\t\t%s.add_child(%s)" % [cl_var, rect_var])
@@ -157,7 +157,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\tif is_instance_valid(get_tree().current_scene) and get_tree().current_scene not in _flash_roots_%s: _flash_roots_%s.append(get_tree().current_scene)" % [chain_name, chain_name])
 	code_lines.append("\t# Search recursively because helper nodes may live inside an instanced scene root.")
 	code_lines.append("\tfor _flash_search_root_%s in _flash_roots_%s:" % [chain_name, chain_name])
-	code_lines.append("\t\tfor _flash_node_%s in _flash_search_root_%s.find_children(\"%s\", \"CanvasLayer\", true, false):" % [chain_name, chain_name, layer_name])
+	code_lines.append("\t\tfor _flash_node_%s in _flash_search_root_%s.find_children(\"%s\", \"CanvasLayer\", true, false):" % [chain_name, chain_name, _gd_string(str(layer_name))])
 	code_lines.append("\t\t\t_flash_layer_%s = _flash_node_%s as CanvasLayer" % [chain_name, chain_name])
 	code_lines.append("\t\t\tbreak")
 	code_lines.append("\t\tif is_instance_valid(_flash_layer_%s): break" % chain_name)
@@ -166,7 +166,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\t\tvar _flash_parent_%s: Node = get_tree().current_scene if is_instance_valid(get_tree().current_scene) else _flash_own_root_%s" % [chain_name, chain_name])
 	code_lines.append("\t\tif is_instance_valid(_flash_parent_%s):" % chain_name)
 	code_lines.append("\t\t\t_flash_layer_%s = CanvasLayer.new()" % chain_name)
-	code_lines.append("\t\t\t_flash_layer_%s.name = \"%s\"" % [chain_name, layer_name])
+	code_lines.append("\t\t\t_flash_layer_%s.name = \"%s\"" % [chain_name, _gd_string(str(layer_name))])
 	code_lines.append("\t\t\t_flash_layer_%s.layer = 128" % chain_name)
 	code_lines.append("\t\t\t_flash_parent_%s.add_child(_flash_layer_%s)" % [chain_name, chain_name])
 	code_lines.append("\tif is_instance_valid(_flash_layer_%s):" % chain_name)
@@ -192,7 +192,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\t\t%s.tween_property(%s, \"color\", %s, %s - %s)" % [tw_var, flash_var, clear_str, duration, fade_in])
 	code_lines.append("\t\t%s.finished.connect(func(): %s.visible = false)" % [tw_var, flash_var])
 	code_lines.append("\telse:")
-	code_lines.append("\t\tpush_warning(\"Screen Flash Actuator: could not create or find '%s/ColorRect'\")" % layer_name)
+	code_lines.append("\t\tpush_warning(\"Screen Flash Actuator: could not create or find '%s/ColorRect'\")" % _gd_string(str(layer_name)))
 
 	return {
 		"actuator_code": "\n".join(code_lines),

@@ -123,19 +123,40 @@ func _is_literal_speed(val) -> bool:
 	return s.is_valid_float() or s.is_valid_int() or s.is_empty()
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var anim_mode = properties.get("mode", "play").to_lower().replace(" ", "_")
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"play_backwards", "from_end":
+					shown[child] = (anim_mode == "play")
+				"blend_time":
+					shown[child] = (anim_mode in ["play", "ping_pong", "flipper"])
+				"speed":
+					shown[child] = (anim_mode != "stop" and anim_mode != "pause")
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = str(properties.get("mode", "play")).to_lower()
 	var anim_name = str(properties.get("animation_name", ""))
 	var playback_mode = str(properties.get("playback_mode", "as_authored")).to_lower()
 	var trigger_end = str(properties.get("trigger_end", "play_to_end")).to_lower()
 	var speed_raw = properties.get("speed", "1.0")
-	var blend_time = properties.get("blend_time", -1.0)
-	var priority = int(properties.get("priority", 0))
+	# Blend time: a negative number means "use the AnimationPlayer default".
+	# A variable/math is passed through as is (play() treats < 0 as default too).
+	var blend_literal = _literal_number("blend_time", -1.0)
+	var use_blend: bool = blend_literal == null or float(blend_literal) >= 0.0
+	var blend_code := _num("blend_time", -1.0)
+	var priority := _int_num("priority")
 	var play_backwards = bool(properties.get("play_backwards", false))
 	var from_end = bool(properties.get("from_end", false))
-
-	if typeof(blend_time) == TYPE_STRING:
-		blend_time = float(blend_time) if str(blend_time).is_valid_float() else -1.0
 
 	var speed_expr = _speed_to_expr(speed_raw)
 	var is_literal = _is_literal_speed(speed_raw)
@@ -180,7 +201,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	elif mode == "play" and playback_mode == "as_authored":
 		member_vars.append("var %s: int = -1" % original_loop_var)
 
-	code_lines.append("# Animation Actuator: find player that owns \"%s\"" % anim_name)
+	code_lines.append("# Animation Actuator: find player that owns \"%s\"" % _gd_string(str(anim_name)))
 	code_lines.append("var %s = _find_anim_player(\"%s\")" % [player_var, anim_name.c_escape()])
 	code_lines.append("if %s:" % player_var)
 
@@ -209,12 +230,12 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			if playback_mode == "flipper":
 				var abs_speed_expr = "absf(float(%s))" % speed_expr
 				code_lines.append("\tif not %s:" % flipper_var)
-				code_lines.append("\t\tvar %s := _lb_animation_request(%s, \"%s\", %d)" % [request_var, player_var, anim_name.c_escape(), priority])
+				code_lines.append("\t\tvar %s := _lb_animation_request(%s, \"%s\", %s)" % [request_var, player_var, anim_name.c_escape(), priority])
 				code_lines.append("\t\tif %s > 0:" % request_var)
 				code_lines.append("\t\t\t%s.speed_scale = %s" % [player_var, abs_speed_expr])
 				code_lines.append("\t\t\tif %s == 2:" % request_var)
-				if blend_time >= 0.0:
-					code_lines.append("\t\t\t\t%s.play(\"%s\", %.3f, %s, false)" % [player_var, anim_name.c_escape(), float(blend_time), abs_speed_expr])
+				if use_blend:
+					code_lines.append("\t\t\t\t%s.play(\"%s\", %s, %s, false)" % [player_var, anim_name.c_escape(), blend_code, abs_speed_expr])
 				else:
 					code_lines.append("\t\t\t\t%s.play(\"%s\", -1, %s, false)" % [player_var, anim_name.c_escape(), abs_speed_expr])
 				code_lines.append("\t\t%s = true" % flipper_var)
@@ -225,7 +246,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				if playback_mode == "play_once":
 					code_lines.append("\tif not %s:" % state_var)
 					gate_prefix = "\t"
-				code_lines.append("\t%svar %s := _lb_animation_request(%s, \"%s\", %d)" % [gate_prefix, request_var, player_var, anim_name.c_escape(), priority])
+				code_lines.append("\t%svar %s := _lb_animation_request(%s, \"%s\", %s)" % [gate_prefix, request_var, player_var, anim_name.c_escape(), priority])
 				code_lines.append("\t%sif %s > 0:" % [gate_prefix, request_var])
 				if not is_literal:
 					code_lines.append("\t%s\t%s.speed_scale = %s" % [gate_prefix, player_var, speed_expr])
@@ -236,10 +257,10 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				code_lines.append("\t%s\tif %s == 2:" % [gate_prefix, request_var])
 				var custom_speed = -abs(literal_speed) if play_backwards and is_literal else literal_speed
 				var from_end_flag = play_backwards or from_end
-				if blend_time >= 0.0 and is_literal:
-					code_lines.append("\t%s\t\t%s.play(\"%s\", %.3f, %.3f, %s)" % [gate_prefix, player_var, anim_name.c_escape(), float(blend_time), custom_speed, "true" if from_end_flag else "false"])
-				elif blend_time >= 0.0:
-					code_lines.append("\t%s\t\t%s.play(\"%s\", %.3f)" % [gate_prefix, player_var, anim_name.c_escape(), float(blend_time)])
+				if use_blend and is_literal:
+					code_lines.append("\t%s\t\t%s.play(\"%s\", %s, %.3f, %s)" % [gate_prefix, player_var, anim_name.c_escape(), blend_code, custom_speed, "true" if from_end_flag else "false"])
+				elif use_blend:
+					code_lines.append("\t%s\t\t%s.play(\"%s\", %s)" % [gate_prefix, player_var, anim_name.c_escape(), blend_code])
 				elif play_backwards or from_end:
 					if is_literal:
 						code_lines.append("\t%s\t\t%s.play(\"%s\", -1, %.3f, true)" % [gate_prefix, player_var, anim_name.c_escape(), -abs(literal_speed)])
@@ -259,13 +280,13 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				var reverse_speed_expr = "-absf(float(%s))" % speed_expr
 				var reverse_request_var = "_anim_reverse_request_%s" % chain_name
 				inactive_lines.append("\tif %s:" % flipper_var)
-				inactive_lines.append("\t\tvar %s := _lb_animation_request(%s, \"%s\", %d)" % [reverse_request_var, player_var, anim_name.c_escape(), priority])
+				inactive_lines.append("\t\tvar %s := _lb_animation_request(%s, \"%s\", %s)" % [reverse_request_var, player_var, anim_name.c_escape(), priority])
 				inactive_lines.append("\t\tif %s > 0:" % reverse_request_var)
 				inactive_lines.append("\t\t\tif %s.current_animation == \"%s\" and %s.is_playing():" % [player_var, anim_name.c_escape(), player_var])
 				inactive_lines.append("\t\t\t\t%s.speed_scale = %s" % [player_var, reverse_speed_expr])
 				inactive_lines.append("\t\t\telse:")
-				if blend_time >= 0.0:
-					inactive_lines.append("\t\t\t\t%s.play(\"%s\", %.3f, %s, true)" % [player_var, anim_name.c_escape(), float(blend_time), reverse_speed_expr])
+				if use_blend:
+					inactive_lines.append("\t\t\t\t%s.play(\"%s\", %s, %s, true)" % [player_var, anim_name.c_escape(), blend_code, reverse_speed_expr])
 				else:
 					inactive_lines.append("\t\t\t\t%s.play(\"%s\", -1, %s, true)" % [player_var, anim_name.c_escape(), reverse_speed_expr])
 				inactive_lines.append("\t\t\t%s = false" % flipper_var)
@@ -273,7 +294,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 				if playback_mode == "play_once":
 					inactive_lines.append("\t%s = false" % state_var)
 				if trigger_end == "stop":
-					inactive_lines.append("\tif %s.current_animation == \"%s\" and int(%s.get_meta(\"_lb_animation_priority\", 0)) <= %d:" % [player_var, anim_name.c_escape(), player_var, priority])
+					inactive_lines.append("\tif %s.current_animation == \"%s\" and int(%s.get_meta(\"_lb_animation_priority\", 0)) <= %s:" % [player_var, anim_name.c_escape(), player_var, priority])
 					inactive_lines.append("\t\t%s.stop()" % player_var)
 					inactive_lines.append("\t\t%s.remove_meta(\"_lb_animation_priority\")" % player_var)
 				elif playback_mode == "loop" or playback_mode == "ping_pong" or playback_mode == "as_authored":

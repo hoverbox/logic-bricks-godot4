@@ -90,14 +90,33 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var action = properties.get("action", "vibrate")
+	if typeof(action) == TYPE_STRING:
+		action = action.to_lower()
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"weak_motor", "strong_motor", "duration":
+					shown[child] = (action == "vibrate")
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var action       = str(properties.get("action",       "pattern")).to_lower().replace(" ", "_")
-	var weak_motor   = float(properties.get("weak_motor",   0.5))
-	var strong_motor = float(properties.get("strong_motor", 0.5))
-	var duration     = float(properties.get("duration",     0.5))
+	# Number fields as generated code (a number, or a variable/math).
+	var weak_motor   := _num("weak_motor",   0.5)
+	var strong_motor := _num("strong_motor", 0.5)
+	var duration     := _num("duration",     0.5)
 	var pattern      = str(properties.get("pattern",        "single_pulse")).to_lower().replace(" ", "_")
-	var intensity    = float(properties.get("intensity",    1.0))
-	var device       = int(properties.get("device",         0))
+	var intensity    := _num("intensity",    1.0)
+	var device       := _int_num("device",   0)
 
 	var member_vars:      Array[String] = []
 	var code_lines:       Array[String] = []
@@ -107,11 +126,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	match action:
 		"vibrate":
 			code_lines.append("# Rumble: manual vibrate")
-			code_lines.append("Input.start_joy_vibration(%d, %.3f, %.3f, %.3f)" % [device, weak_motor, strong_motor, duration])
+			code_lines.append("Input.start_joy_vibration(%s, %s, %s, %s)" % [device, weak_motor, strong_motor, duration])
 
 		"stop":
 			code_lines.append("# Rumble: stop vibration")
-			code_lines.append("Input.stop_joy_vibration(%d)" % device)
+			code_lines.append("Input.stop_joy_vibration(%s)" % device)
 
 		"pattern", _:
 			# State vars — unique per chain instance so multiple rumble actuators coexist
@@ -137,7 +156,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 			# actuator_code: fires inside "if controller_active:" — starts the pattern.
 			# Only starts if not already running so a held sensor doesn't restart it.
-			code_lines.append("# Rumble pattern: start %s (runs to completion independently)" % pattern)
+			code_lines.append("# Rumble pattern: start %s (runs to completion independently)" % _gd_string(str(pattern)))
 			code_lines.append("if not %s:" % active_var)
 			code_lines.append("\t%s = true"  % active_var)
 			code_lines.append("\t%s = 0.0"   % timer_var)
@@ -160,32 +179,40 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 			match pattern:
 				"single_pulse":
-					m.append("\t_s = (1.0 - _t) * %.3f" % intensity)
+					m.append("\t_s = (1.0 - _t) * %s" % intensity)
 					m.append("\t_w = _s * 0.4")
 				"double_pulse":
 					m.append("\tvar _p1 = exp(-pow((_t - 0.1) / 0.08, 2.0))")
 					m.append("\tvar _p2 = exp(-pow((_t - 0.6) / 0.08, 2.0))")
-					m.append("\t_s = maxf(_p1, _p2) * %.3f" % intensity)
+					m.append("\t_s = maxf(_p1, _p2) * %s" % intensity)
 					m.append("\t_w = _s * 0.5")
 				"sustained":
-					m.append("\t_s = %.3f" % (intensity * strong_motor))
-					m.append("\t_w = %.3f" % (intensity * weak_motor))
+					# Plain numbers are multiplied here; a variable/math is multiplied at runtime.
+					var strong_literal = _literal_number("strong_motor", 0.5)
+					var weak_literal = _literal_number("weak_motor", 0.5)
+					var intensity_literal = _literal_number("intensity", 1.0)
+					if strong_literal != null and weak_literal != null and intensity_literal != null:
+						m.append("\t_s = %.3f" % (float(intensity_literal) * float(strong_literal)))
+						m.append("\t_w = %.3f" % (float(intensity_literal) * float(weak_literal)))
+					else:
+						m.append("\t_s = %s * %s" % [intensity, strong_motor])
+						m.append("\t_w = %s * %s" % [intensity, weak_motor])
 				"ramp_up":
-					m.append("\t_s = _t * %.3f" % intensity)
-					m.append("\t_w = _t * %.3f * 0.5" % intensity)
+					m.append("\t_s = _t * %s" % intensity)
+					m.append("\t_w = _t * %s * 0.5" % intensity)
 				"ramp_down":
-					m.append("\t_s = (1.0 - _t) * %.3f" % intensity)
-					m.append("\t_w = (1.0 - _t) * %.3f * 0.5" % intensity)
+					m.append("\t_s = (1.0 - _t) * %s" % intensity)
+					m.append("\t_w = (1.0 - _t) * %s * 0.5" % intensity)
 				"heartbeat":
 					m.append("\tvar _beat = fmod(%s / %.3f, 1.0)" % [timer_var, pat_duration])
 					m.append("\tvar _b1 = exp(-pow((_beat - 0.0)  / 0.06, 2.0))")
 					m.append("\tvar _b2 = exp(-pow((_beat - 0.18) / 0.06, 2.0))")
-					m.append("\t_s = maxf(_b1, _b2) * %.3f" % intensity)
+					m.append("\t_s = maxf(_b1, _b2) * %s" % intensity)
 					m.append("\t_w = _s * 0.3")
 
-			m.append("\tInput.start_joy_vibration(%d, _w, _s, 0.05)" % device)
+			m.append("\tInput.start_joy_vibration(%s, _w, _s, 0.05)" % device)
 			m.append("\tif %s >= %s:" % [timer_var, dur_var])
-			m.append("\t\tInput.stop_joy_vibration(%d)" % device)
+			m.append("\t\tInput.stop_joy_vibration(%s)" % device)
 			m.append("\t\t%s = false" % active_var)
 			m.append("\t\t%s = 0.0"  % timer_var)
 

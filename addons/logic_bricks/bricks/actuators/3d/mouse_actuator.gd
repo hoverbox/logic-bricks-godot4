@@ -35,6 +35,7 @@ func _initialize_properties() -> void:
 		"x_use_local": false,
 		"y_use_local": false,
 		"recenter_cursor": true,
+		"enable_physics_interpolation": true,
 		# Mouse cursor world interaction properties
 		"mouse_target": "self",              # self or child node name to rotate/move
 		"mouse_velocity": "5.0",            # Movement speed; accepts numbers, variables, or expressions
@@ -61,6 +62,7 @@ func get_property_definitions() -> Array:
 			"type": TYPE_BOOL,
 			"default": false
 		},
+		{"name": "enable_physics_interpolation", "type": TYPE_BOOL, "default": true},
 		{
 			"name": "use_x_axis",
 			"type": TYPE_BOOL,
@@ -216,6 +218,84 @@ func get_property_definitions() -> Array:
 	]
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var mode = properties.get("mode", "cursor_visibility")
+
+	# Normalize
+	if typeof(mode) == TYPE_STRING:
+		mode = mode.to_lower().replace(" ", "_")
+
+	# Show/hide fields based on mode
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"cursor_visible":
+					shown[child] = (mode == "cursor_visibility")
+				"use_x_axis", "use_y_axis", "x_target", "y_target", "x_sensitivity", "y_sensitivity", "x_invert", "y_invert", "x_threshold", "y_threshold", "x_min_degrees", "x_max_degrees", "y_min_degrees", "y_max_degrees", "x_rotation_axis", "y_rotation_axis", "x_use_local", "y_use_local", "recenter_cursor", "enable_physics_interpolation":
+					shown[child] = (mode == "mouse_look")
+				"mouse_turn_speed", "mouse_facing_axis":
+					shown[child] = (mode == "look_towards")
+				"mouse_target", "mouse_lock_y":
+					shown[child] = (mode in ["look_towards", "move_towards_cursor", "move_to_mouse_click"])
+				"mouse_velocity", "mouse_acceleration", "mouse_arrival_distance":
+					shown[child] = (mode in ["move_towards_cursor", "move_to_mouse_click"])
+				"click_button":
+					shown[child] = (mode == "move_to_mouse_click")
+	return shown
+
+
+
+## Mouse look turns the view on physics ticks (smoothed by physics
+## interpolation). Ticks fall 2 or 3 rendered frames apart, so handing a tick
+## "everything since the last tick" made each tick turn by a different amount
+## even when the mouse moved steadily, which showed as jitter. Each tick now
+## takes only the motion that arrived during its own slice of real time.
+## Mouse Look with "Enable Physics Interpolation" needs it on for the project.
+func get_required_project_settings() -> Dictionary:
+	if str(properties.get("mode", "")).to_lower().replace(" ", "_") == "mouse_look" and bool(properties.get("enable_physics_interpolation", true)):
+		return {"physics/common/physics_interpolation": true}
+	return {}
+
+
+const MOUSE_TICK_INPUT_METHOD := """
+func _logic_mouse_record_motion(relative: Vector2) -> void:
+	# Godot delivers mouse motion once per rendered frame; spread it over the
+	# real time since the previous delivery.
+	var now := Time.get_ticks_usec()
+	var start := _logic_mouse_clock_usec if _logic_mouse_events.is_empty() else int(_logic_mouse_events[-1][1])
+	if start <= 0 or now - start > 100000:
+		start = now - 16667
+	_logic_mouse_events.append([start, now, relative])
+
+
+func _logic_mouse_take_tick_input() -> void:
+	var now := Time.get_ticks_usec()
+	var tick_usec := 1000000 / maxi(1, Engine.physics_ticks_per_second)
+	if _logic_mouse_clock_usec == 0:
+		_logic_mouse_clock_usec = now - tick_usec
+	_logic_mouse_clock_usec = clampi(_logic_mouse_clock_usec + tick_usec, now - 2 * tick_usec, now)
+	while not _logic_mouse_events.is_empty():
+		var slice: Array = _logic_mouse_events[0]
+		var start: int = slice[0]
+		var end: int = slice[1]
+		if end <= _logic_mouse_clock_usec:
+			_logic_mouse_delta += slice[2]
+			_logic_mouse_events.pop_front()
+			continue
+		if start < _logic_mouse_clock_usec:
+			var part := float(_logic_mouse_clock_usec - start) / float(maxi(1, end - start))
+			_logic_mouse_delta += slice[2] * part
+			slice[2] = slice[2] * (1.0 - part)
+			slice[0] = _logic_mouse_clock_usec
+		break
+"""
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var mode = properties.get("mode", "cursor_visibility")
 	var cursor_visible = properties.get("cursor_visible", false)
@@ -223,16 +303,24 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var use_y_axis = properties.get("use_y_axis", true)
 	var x_target = properties.get("x_target", "self")
 	var y_target = properties.get("y_target", "self")
-	var x_sensitivity = float(properties.get("x_sensitivity", 0.1))
-	var y_sensitivity = float(properties.get("y_sensitivity", 0.1))
+	var x_sensitivity := _num("x_sensitivity", 0.1, 3)
+	var y_sensitivity := _num("y_sensitivity", 0.1, 3)
+	var x_sensitivity_check := _num("x_sensitivity", 0.1, 6)
+	var y_sensitivity_check := _num("y_sensitivity", 0.1, 6)
 	var x_invert = properties.get("x_invert", false)
 	var y_invert = properties.get("y_invert", false)
-	var x_threshold = float(properties.get("x_threshold", 0.0))
-	var y_threshold = float(properties.get("y_threshold", 0.0))
-	var x_min = float(properties.get("x_min_degrees", 0.0))
-	var x_max = float(properties.get("x_max_degrees", 0.0))
-	var y_min = float(properties.get("y_min_degrees", -90.0))
-	var y_max = float(properties.get("y_max_degrees", 90.0))
+	var x_threshold := _num("x_threshold", 0.0, 3)
+	var y_threshold := _num("y_threshold", 0.0, 3)
+	# Limits in degrees, 0 = no limit. A literal number decides now; a variable/math
+	# (null here) is checked at runtime. *_code is the generated value.
+	var x_min = _literal_number("x_min_degrees", 0.0)
+	var x_max = _literal_number("x_max_degrees", 0.0)
+	var y_min = _literal_number("y_min_degrees", -90.0)
+	var y_max = _literal_number("y_max_degrees", 90.0)
+	var x_min_code := _num("x_min_degrees", 0.0, 2)
+	var x_max_code := _num("x_max_degrees", 0.0, 2)
+	var y_min_code := _num("y_min_degrees", -90.0, 2)
+	var y_max_code := _num("y_max_degrees", 90.0, 2)
 	var x_rot_axis = properties.get("x_rotation_axis", "y")
 	var y_rot_axis = properties.get("y_rotation_axis", "x")
 	var x_use_local = properties.get("x_use_local", false)
@@ -266,17 +354,15 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		"cursor_visibility":
 			code_lines.append("# Set cursor visibility")
 			if cursor_visible:
-				code_lines.append("Input.mouse_mode = Input.MOUSE_MODE_VISIBLE")
+				code_lines.append('if not get_meta("_logic_mouse_look_enabled", false):')
+				code_lines.append("\tInput.mouse_mode = Input.MOUSE_MODE_VISIBLE")
 			else:
-				code_lines.append("Input.mouse_mode = Input.MOUSE_MODE_HIDDEN")
+				code_lines.append('if not get_meta("_logic_mouse_look_enabled", false):')
+				code_lines.append("\tInput.mouse_mode = Input.MOUSE_MODE_HIDDEN")
 
 		"mouse_look":
 			code_lines.append("# Mouse look rotation")
-			code_lines.append("var _viewport = get_viewport()")
-			code_lines.append("var _viewport_size = _viewport.get_visible_rect().size")
-			code_lines.append("var _mouse_pos = _viewport.get_mouse_position()")
-			code_lines.append("var _center = _viewport_size / 2.0")
-			code_lines.append("var _mouse_delta = _mouse_pos - _center")
+			code_lines.append("var _mouse_delta = _logic_mouse_delta if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED else Vector2.ZERO")
 			code_lines.append("")
 
 			if use_x_axis:
@@ -284,43 +370,36 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 				# Determine target node and indentation
 				var x_indent = ""
-				var x_node_ref = "self" if x_target == "self" else ("get_node_or_null(\"%s\")" % x_target)
 				if x_target != "self":
-					code_lines.append("var _x_target = %s" % x_node_ref)
-					code_lines.append("if _x_target == null and get_tree().current_scene:")
-					code_lines.append("\t_x_target = get_tree().current_scene.find_child(\"%s\", true, false)" % str(x_target).replace("\"", "\\\""))
-					code_lines.append("if _x_target == null:")
-					code_lines.append("\t_x_target = get_tree().root.find_child(\"%s\", true, false)" % str(x_target).replace("\"", "\\\""))
+					code_lines.append("var _x_target = _logic_mouse_look_target(%s)" % ('"%s"' % str(x_target).c_escape()))
 					code_lines.append("if _x_target:")
 					x_indent = "\t"
 
-				code_lines.append("%sif abs(_mouse_delta.x) > %.3f:" % [x_indent, x_threshold])
+				code_lines.append("%sif abs(_mouse_delta.x) > %s and not is_zero_approx(%s):" % [x_indent, x_threshold, x_sensitivity_check])
 				var x_mult = 1.0 if x_invert else -1.0
-				code_lines.append("%s\tvar _x_rotation = _mouse_delta.x * %.3f * %.1f" % [x_indent, x_sensitivity, x_mult])
+				code_lines.append("%s\tvar _x_rotation = _mouse_delta.x * %s * %.1f" % [x_indent, x_sensitivity, x_mult])
 
 				# Apply limits if set
 				if x_min != 0.0 or x_max != 0.0:
 					var axis_index = {"x": "0", "y": "1", "z": "2"}[x_rot_axis]
 					var target_prefix = "_x_target." if x_target != "self" else ""
-					if x_use_local:
-						code_lines.append("%s\tvar _current_rot = %srotation_degrees[%s]" % [x_indent, target_prefix, axis_index])
-					else:
-						code_lines.append("%s\tvar _current_rot = %sglobal_rotation_degrees[%s]" % [x_indent, target_prefix, axis_index])
+					code_lines.append("%s\tvar _current_rot = %srotation_degrees[%s]" % [x_indent, target_prefix, axis_index])
 
 					code_lines.append("%s\tvar _new_rot = _current_rot + _x_rotation" % x_indent)
-					if x_min != 0.0:
-						code_lines.append("%s\t_new_rot = max(_new_rot, %.2f)" % [x_indent, x_min])
-					if x_max != 0.0:
-						code_lines.append("%s\t_new_rot = min(_new_rot, %.2f)" % [x_indent, x_max])
+					_append_limit(code_lines, x_indent + "\t", "max", x_min, x_min_code, "_min_deg")
+					_append_limit(code_lines, x_indent + "\t", "min", x_max, x_max_code, "_max_deg")
 					code_lines.append("%s\t_x_rotation = _new_rot - _current_rot" % x_indent)
 
 				# Apply rotation
 				var x_axis_vector = {"x": "Vector3.RIGHT", "y": "Vector3.UP", "z": "Vector3.BACK"}[x_rot_axis]
 				var target_prefix = "_x_target." if x_target != "self" else ""
+				# Do not touch transforms on a zero/clamped rotation: that can invalidate
+				# physics interpolation even when mouse sensitivity is zero.
+				code_lines.append("%s\tif not is_zero_approx(_x_rotation):" % x_indent)
 				if x_use_local:
-					code_lines.append("%s\t%srotate_object_local(%s, deg_to_rad(_x_rotation))" % [x_indent, target_prefix, x_axis_vector])
+					code_lines.append("%s\t\t%srotate_object_local(%s, deg_to_rad(_x_rotation))" % [x_indent, target_prefix, x_axis_vector])
 				else:
-					code_lines.append("%s\t%srotate(%s, deg_to_rad(_x_rotation))" % [x_indent, target_prefix, x_axis_vector])
+					code_lines.append("%s\t\t%srotate(%s, deg_to_rad(_x_rotation))" % [x_indent, target_prefix, x_axis_vector])
 				code_lines.append("")
 
 			if use_y_axis:
@@ -328,45 +407,56 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 				# Determine target node and indentation
 				var y_indent = ""
-				var y_node_ref = "self" if y_target == "self" else ("get_node_or_null(\"%s\")" % y_target)
 				if y_target != "self":
-					code_lines.append("var _y_target = %s" % y_node_ref)
-					code_lines.append("if _y_target == null and get_tree().current_scene:")
-					code_lines.append("\t_y_target = get_tree().current_scene.find_child(\"%s\", true, false)" % str(y_target).replace("\"", "\\\""))
-					code_lines.append("if _y_target == null:")
-					code_lines.append("\t_y_target = get_tree().root.find_child(\"%s\", true, false)" % str(y_target).replace("\"", "\\\""))
+					code_lines.append("var _y_target = _logic_mouse_look_target(%s)" % ('"%s"' % str(y_target).c_escape()))
 					code_lines.append("if _y_target:")
 					y_indent = "\t"
 
-				code_lines.append("%sif abs(_mouse_delta.y) > %.3f:" % [y_indent, y_threshold])
+				code_lines.append("%sif abs(_mouse_delta.y) > %s and not is_zero_approx(%s):" % [y_indent, y_threshold, y_sensitivity_check])
 				var y_mult = 1.0 if y_invert else -1.0
-				code_lines.append("%s\tvar _y_rotation = _mouse_delta.y * %.3f * %.1f" % [y_indent, y_sensitivity, y_mult])
+				code_lines.append("%s\tvar _y_rotation = _mouse_delta.y * %s * %.1f" % [y_indent, y_sensitivity, y_mult])
 
 				# Apply limits
-				if y_min != 0.0 or y_max != 0.0:
+				var y_limit_indent = y_indent + "\t"
+				var y_has_limits = y_min != 0.0 or y_max != 0.0
+				if y_min == null or y_max == null:
+					# Limits are variables/math: only clamp when one of them is not 0 at runtime
+					code_lines.append("%svar _min_deg = %s" % [y_limit_indent, y_min_code])
+					code_lines.append("%svar _max_deg = %s" % [y_limit_indent, y_max_code])
+					code_lines.append("%sif _min_deg != 0.0 or _max_deg != 0.0:" % y_limit_indent)
+					y_limit_indent += "\t"
+					y_min_code = "_min_deg"
+					y_max_code = "_max_deg"
+					y_has_limits = true
+				if y_has_limits:
 					var axis_index = {"x": "0", "y": "1", "z": "2"}[y_rot_axis]
 					var target_prefix = "_y_target." if y_target != "self" else ""
-					if y_use_local:
-						code_lines.append("%s\tvar _current_rot = %srotation_degrees[%s]" % [y_indent, target_prefix, axis_index])
-					else:
-						code_lines.append("%s\tvar _current_rot = %sglobal_rotation_degrees[%s]" % [y_indent, target_prefix, axis_index])
+					code_lines.append("%svar _current_rot = %srotation_degrees[%s]" % [y_limit_indent, target_prefix, axis_index])
 
-					code_lines.append("%s\tvar _new_rot = _current_rot + _y_rotation" % y_indent)
-					code_lines.append("%s\t_new_rot = clamp(_new_rot, %.2f, %.2f)" % [y_indent, y_min, y_max])
-					code_lines.append("%s\t_y_rotation = _new_rot - _current_rot" % y_indent)
+					code_lines.append("%svar _new_rot = _current_rot + _y_rotation" % y_limit_indent)
+					code_lines.append("%s_new_rot = clamp(_new_rot, %s, %s)" % [y_limit_indent, y_min_code, y_max_code])
+					code_lines.append("%s_y_rotation = _new_rot - _current_rot" % y_limit_indent)
 
 				# Apply rotation
 				var y_axis_vector = {"x": "Vector3.RIGHT", "y": "Vector3.UP", "z": "Vector3.BACK"}[y_rot_axis]
 				var target_prefix = "_y_target." if y_target != "self" else ""
+				# Do not touch transforms on a zero/clamped rotation: that can invalidate
+				# physics interpolation even when mouse sensitivity is zero.
+				code_lines.append("%s\tif not is_zero_approx(_y_rotation):" % y_indent)
 				if y_use_local:
-					code_lines.append("%s\t%srotate_object_local(%s, deg_to_rad(_y_rotation))" % [y_indent, target_prefix, y_axis_vector])
+					code_lines.append("%s\t\t%srotate_object_local(%s, deg_to_rad(_y_rotation))" % [y_indent, target_prefix, y_axis_vector])
 				else:
-					code_lines.append("%s\t%srotate(%s, deg_to_rad(_y_rotation))" % [y_indent, target_prefix, y_axis_vector])
+					code_lines.append("%s\t\t%srotate(%s, deg_to_rad(_y_rotation))" % [y_indent, target_prefix, y_axis_vector])
 				code_lines.append("")
 
-			if recenter:
-				code_lines.append("# Recenter cursor")
-				code_lines.append("_viewport.warp_mouse(_center)")
+			if not use_x_axis and not use_y_axis:
+				code_lines.append("pass")
+			# Avoid target lookups entirely when there is no input.
+			for i in range(2, code_lines.size()):
+				code_lines[i] = "\t" + code_lines[i]
+			code_lines.insert(2, "if _mouse_delta != Vector2.ZERO:")
+
+			# Captured mouse mode handles recentering without synthetic cursor motion.
 
 		"look_towards":
 			var mouse_world_suffix = _safe_var_suffix(chain_name)
@@ -417,6 +507,28 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var result = {
 		"actuator_code": "\n".join(code_lines)
 	}
+	if mode == "mouse_look":
+		result["member_vars"] = [
+			"var _logic_mouse_delta: Vector2 = Vector2.ZERO",
+			"var _logic_mouse_events: Array = []  # [start usec, end usec, motion still to apply]",
+			"var _logic_mouse_clock_usec: int = 0",
+			"var _logic_mouse_look_targets: Dictionary = {}"
+		]
+		# Hand each physics tick the mouse motion that arrived during its own
+		# slice of real time (see _logic_mouse_take_tick_input()).
+		result["pre_process_code"] = ["_logic_mouse_take_tick_input()"]
+		result["ready_code"] = ["Input.mouse_mode = Input.MOUSE_MODE_CAPTURED", "set_meta(\"_logic_mouse_look_enabled\", true)"]
+		# Clear once per tick, including ticks with inactive look chains.
+		result["post_process_code"] = ["_logic_mouse_delta = Vector2.ZERO"]
+		if properties.get("enable_physics_interpolation", true):
+			# Physics interpolation itself is switched on in Project Settings by
+			# Apply Code (get_required_project_settings()); doing it here, while
+			# the scene is already running, drew scenery at the world origin.
+			result["ready_code"].append("physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON")
+			result["ready_code"].append("if not get_tree().physics_interpolation: push_warning(\"Mouse Look: turn on Project Settings > Physics > Common > Physics Interpolation (Apply Code does this) for smooth turning.\")")
+		result["methods"] = ["input_handler::if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:\n\t_logic_mouse_record_motion(event.relative)\nelif event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed and not event.echo:\n\t_logic_mouse_delta = Vector2.ZERO\n\t_logic_mouse_events.clear()\n\tInput.mouse_mode = Input.MOUSE_MODE_VISIBLE\nelif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:\n\t_logic_mouse_delta = Vector2.ZERO\n\t_logic_mouse_events.clear()\n\tInput.mouse_mode = Input.MOUSE_MODE_CAPTURED"]
+		result["methods"].append(MOUSE_TICK_INPUT_METHOD)
+		result["methods"].append("\nfunc _logic_mouse_look_target(path: String) -> Node3D:\n\tvar cached: Dictionary = _logic_mouse_look_targets.get(path, {})\n\tvar target = cached.get(\"node\")\n\tif is_instance_valid(target):\n\t\treturn target\n\tvar now := Time.get_ticks_msec()\n\tif now < int(cached.get(\"retry_at\", 0)):\n\t\treturn null\n\ttarget = get_node_or_null(NodePath(path))\n\tif target == null and get_tree().current_scene:\n\t\ttarget = get_tree().current_scene.find_child(path, true, false)\n\tif target == null:\n\t\ttarget = get_tree().root.find_child(path, true, false)\n\tif not target is Node3D:\n\t\ttarget = null\n\t_logic_mouse_look_targets[path] = {\"node\": target, \"retry_at\": now + 1000}\n\treturn target\n")
 	if mode == "move_to_mouse_click":
 		result["member_vars"] = [
 			"var _mouse_click_target_%s: Vector3 = Vector3.ZERO" % chain_name,
@@ -431,6 +543,18 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 ## Otherwise returns it as-is (a variable name or expression).
 ## True only when the user entered a literal numeric value greater than zero.
 ## Variable/expression values are treated as potentially non-zero so generated code preserves them.
+
+## One mouse-look limit: op is "max" for a minimum, "min" for a maximum.
+## A literal 0 means no limit (nothing added); a variable/math limit is
+## checked at runtime (0 = no limit).
+func _append_limit(lines: Array[String], indent: String, op: String, literal, code: String, var_name: String) -> void:
+	if literal == null:
+		lines.append("%svar %s = %s" % [indent, var_name, code])
+		lines.append("%sif %s != 0.0:" % [indent, var_name])
+		lines.append("%s\t_new_rot = %s(_new_rot, %s)" % [indent, op, var_name])
+	elif literal != 0.0:
+		lines.append("%s_new_rot = %s(_new_rot, %s)" % [indent, op, code])
+
 
 func _mouse_button_code(button: String) -> String:
 	match button:
@@ -494,7 +618,7 @@ func _generate_mouse_target_ref(target_name: String) -> String:
 	if target_name == "self" or str(target_name).strip_edges().is_empty():
 		lines.append("var _mouse_node = self")
 	else:
-		var escaped = str(target_name).replace("\"", "\\\"")
+		var escaped = _gd_string(str(target_name))
 		lines.append("var _mouse_node = get_node_or_null(\"%s\")" % escaped)
 		lines.append("if _mouse_node == null and get_tree().current_scene:")
 		lines.append("\t_mouse_node = get_tree().current_scene.find_child(\"%s\", true, false)" % escaped)
@@ -586,3 +710,25 @@ func _generate_move_to_point_code(target_pos: String, velocity, acceleration, ar
 		lines.append("\t\t\t_arrived_cb3d.velocity.y = 0.0")
 	lines.append("\t\t\t_arrived_cb3d.velocity.z = 0.0")
 	return "\n".join(lines)
+
+func get_tooltip_definitions() -> Dictionary:
+	return {
+		"_description": "Controls cursor visibility, mouse-look rotation, and mouse cursor world interactions.",
+		"enable_physics_interpolation": "Turn on physics interpolation in Project Settings (done when you press Apply Code) for smooth physics-tick mouse look. This affects the whole scene and adds up to one physics tick of visual delay. Disable if your project manages interpolation itself. Camera targets should use Inherit or On.",
+		"mode": "Cursor Visibility: show/hide the OS cursor.\nMouse Look: rotate from mouse movement.\nLook Towards: face the world point under the cursor.\nMove Towards Cursor: continuously move toward the world point under the cursor.\nMove To Mouse Click: store the clicked world point and move to it.",
+		"cursor_visible": "Show or hide the OS mouse cursor.",
+		"x_sensitivity": "Horizontal mouse-look sensitivity. Higher = faster turning.",
+		"y_sensitivity": "Vertical mouse-look sensitivity. Higher = faster looking up/down.",
+		"x_threshold": "Minimum horizontal mouse movement to register.",
+		"y_threshold": "Minimum vertical mouse movement to register.",
+		"x_invert": "Invert horizontal mouse-look direction.",
+		"y_invert": "Invert vertical mouse-look direction.",
+		"mouse_target": "Node to rotate or move. Use self, or a child node path/name.",
+		"mouse_velocity": "Movement speed in units per second. Accepts numbers, variables, or expressions.",
+		"mouse_acceleration": "Acceleration rate. 0 = instant full speed. Accepts numbers, variables, or expressions.",
+		"mouse_turn_speed": "Rotation speed in degrees/sec. 0 = instant. Accepts numbers, variables, or expressions.",
+		"mouse_arrival_distance": "Distance at which the move-to point is considered reached.",
+		"mouse_facing_axis": "Which local axis points toward the cursor world point.",
+		"mouse_lock_y": "Keep movement/aiming flat on the XZ plane.",
+		"click_button": "Mouse button that stores the Move To Mouse Click destination.",
+	}

@@ -150,7 +150,7 @@ func get_configuration_warnings(node: Node = null) -> Array[String]:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Smoothly follows this node with the assigned Camera3D,\nmaintaining the camera's initial offset from the target.\n\nPosition follow: camera tracks the node's position per axis.\nRotation follow: camera orbits the node, keeping it in frame.\nDead zone: camera only moves once the node exceeds the threshold.\n\n⚠ Adds an @export in the Inspector — assign your Camera3D there.",
+		"_description": "Smoothly follows this node with the assigned Camera3D,\nmaintaining the camera's initial offset from the target.\n\nPosition follow: camera tracks the node's position per axis.\nRotation follow: camera orbits the node, keeping it in frame.\nDead zone: camera only moves once the node exceeds the threshold.\n\nChoose the Camera3D by name; it is found anywhere in the current scene.",
 		"camera_node_name": "Camera3D to move when this brick is on a character or other object.\nType a name, Ctrl-drag a node, or use the picker.",
 		"target_node_name": "Node3D this Camera3D should follow when the brick is placed directly on a Camera3D.\nType a node name, pick one from the dropdown, or enter the name of a Logic Bricks String variable. If a String variable is used, changing that variable at runtime retargets the camera.",
 		"positioning": "Horizontal framing relative to the followed node.\nKeep Offset preserves the camera's captured X offset.\nLeft places the camera to the left by Offset Amount.\nCenter aligns the camera's X with the target.\nRight places the camera to the right by Offset Amount.",
@@ -170,28 +170,49 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var on_camera := context_node is Camera3D
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			if prop_name == "camera_node_name":
+				shown[child] = not on_camera
+			elif prop_name == "target_node_name":
+				shown[child] = on_camera
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var camera_mode := node is Camera3D
 	var camera_node_name = str(properties.get("camera_node_name", "Camera3D")).strip_edges()
 	var target_node_name = str(properties.get("target_node_name", "")).strip_edges()
 	var rotation_source_node_name = str(properties.get("rotation_source_node_name", "")).strip_edges()
 	var positioning := str(properties.get("positioning", "Keep Offset")).strip_edges().to_lower()
-	var position_offset_amount := abs(float(properties.get("position_offset_amount", 3.0)))
-	var follow_speed   = properties.get("follow_speed",   5.0)
+	var position_offset_amount := "%.6f" % absf(_literal_number("position_offset_amount", 3.0)) \
+		if not _is_number_expression("position_offset_amount") \
+		else "absf(%s)" % _num("position_offset_amount", 3.0, 6)
+	var follow_speed := _num("follow_speed", 5.0, 2)
 	var follow_pos_x   = properties.get("follow_pos_x",   true)
 	var follow_pos_y   = properties.get("follow_pos_y",   true)
 	var follow_pos_z   = properties.get("follow_pos_z",   true)
 	var follow_rot_x   = properties.get("follow_rot_x",   false)
 	var follow_rot_y   = properties.get("follow_rot_y",   false)
 	var follow_rot_z   = properties.get("follow_rot_z",   false)
-	var rotation_speed = properties.get("rotation_speed", 5.0)
-	var dead_zone_x    = properties.get("dead_zone_x",    0.0)
-	var dead_zone_y    = properties.get("dead_zone_y",    0.0)
-	var dead_zone_z    = properties.get("dead_zone_z",    0.0)
+	var rotation_speed := _num("rotation_speed", 5.0, 2)
+	# Dead zones: generated code ("" = no dead zone on that axis).
+	# A variable/math dead zone is clamped to >= 0 at runtime (0 = always follow).
+	var dead_zone_x := _dead_zone_code("dead_zone_x")
+	var dead_zone_y := _dead_zone_code("dead_zone_y")
+	var dead_zone_z := _dead_zone_code("dead_zone_z")
 
 	var has_position = follow_pos_x or follow_pos_y or follow_pos_z
 	var has_rotation = follow_rot_x or follow_rot_y or follow_rot_z
-	var has_dead_zone = dead_zone_x > 0.0 or dead_zone_y > 0.0 or dead_zone_z > 0.0
+	var has_dead_zone = not (dead_zone_x.is_empty() and dead_zone_y.is_empty() and dead_zone_z.is_empty())
 
 	# instance_name contributes to generated member names, so it must always be a valid GDScript identifier.
 	var _base := _safe_identifier(instance_name)
@@ -278,11 +299,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	lines.append("\tif not %s:" % init_flag_var)
 	lines.append("\t\t%s = %s.global_position - _follow_pos_%s" % [offset_var, generated_camera, chain_name])
 	if positioning == "left":
-		lines.append("\t\t%s.x = -%.6f" % [offset_var, position_offset_amount])
+		lines.append("\t\t%s.x = -%s" % [offset_var, position_offset_amount])
 	elif positioning == "center":
 		lines.append("\t\t%s.x = 0.0" % offset_var)
 	elif positioning == "right":
-		lines.append("\t\t%s.x = %.6f" % [offset_var, position_offset_amount])
+		lines.append("\t\t%s.x = %s" % [offset_var, position_offset_amount])
 	if has_rotation:
 		lines.append("\t\t%s = %s.global_rotation - _rot_source.global_rotation" % [rot_offset_var, generated_camera])
 	else:
@@ -317,25 +338,25 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			lines.append("\tvar _follow_target = _cam_pos")
 
 			if follow_pos_x:
-				if dead_zone_x > 0.0:
-					lines.append("\tif abs(_diff.x) > %.3f:" % dead_zone_x)
-					lines.append("\t\tvar _overshoot_x = _diff.x - sign(_diff.x) * %.3f" % dead_zone_x)
+				if not dead_zone_x.is_empty():
+					lines.append("\tif abs(_diff.x) > %s:" % dead_zone_x)
+					lines.append("\t\tvar _overshoot_x = _diff.x - sign(_diff.x) * %s" % dead_zone_x)
 					lines.append("\t\t_follow_target.x = _cam_pos.x + _overshoot_x")
 				else:
 					lines.append("\t_follow_target.x = _desired_pos.x")
 
 			if follow_pos_y:
-				if dead_zone_y > 0.0:
-					lines.append("\tif abs(_diff.y) > %.3f:" % dead_zone_y)
-					lines.append("\t\tvar _overshoot_y = _diff.y - sign(_diff.y) * %.3f" % dead_zone_y)
+				if not dead_zone_y.is_empty():
+					lines.append("\tif abs(_diff.y) > %s:" % dead_zone_y)
+					lines.append("\t\tvar _overshoot_y = _diff.y - sign(_diff.y) * %s" % dead_zone_y)
 					lines.append("\t\t_follow_target.y = _cam_pos.y + _overshoot_y")
 				else:
 					lines.append("\t_follow_target.y = _desired_pos.y")
 
 			if follow_pos_z:
-				if dead_zone_z > 0.0:
-					lines.append("\tif abs(_diff.z) > %.3f:" % dead_zone_z)
-					lines.append("\t\tvar _overshoot_z = _diff.z - sign(_diff.z) * %.3f" % dead_zone_z)
+				if not dead_zone_z.is_empty():
+					lines.append("\tif abs(_diff.z) > %s:" % dead_zone_z)
+					lines.append("\t\tvar _overshoot_z = _diff.z - sign(_diff.z) * %s" % dead_zone_z)
 					lines.append("\t\t_follow_target.z = _cam_pos.z + _overshoot_z")
 				else:
 					lines.append("\t_follow_target.z = _desired_pos.z")
@@ -343,21 +364,21 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 			lines.append("\t")
 			lines.append("\tvar _new_pos = _cam_pos")
 			if follow_pos_x:
-				lines.append("\t_new_pos.x = lerp(_cam_pos.x, _follow_target.x, %.2f * _delta)" % follow_speed)
+				lines.append("\t_new_pos.x = lerp(_cam_pos.x, _follow_target.x, %s * _delta)" % follow_speed)
 			if follow_pos_y:
-				lines.append("\t_new_pos.y = lerp(_cam_pos.y, _follow_target.y, %.2f * _delta)" % follow_speed)
+				lines.append("\t_new_pos.y = lerp(_cam_pos.y, _follow_target.y, %s * _delta)" % follow_speed)
 			if follow_pos_z:
-				lines.append("\t_new_pos.z = lerp(_cam_pos.z, _follow_target.z, %.2f * _delta)" % follow_speed)
+				lines.append("\t_new_pos.z = lerp(_cam_pos.z, _follow_target.z, %s * _delta)" % follow_speed)
 
 		else:
 			lines.append("\t")
 			lines.append("\tvar _new_pos = _cam_pos")
 			if follow_pos_x:
-				lines.append("\t_new_pos.x = lerp(_cam_pos.x, _desired_pos.x, %.2f * _delta)" % follow_speed)
+				lines.append("\t_new_pos.x = lerp(_cam_pos.x, _desired_pos.x, %s * _delta)" % follow_speed)
 			if follow_pos_y:
-				lines.append("\t_new_pos.y = lerp(_cam_pos.y, _desired_pos.y, %.2f * _delta)" % follow_speed)
+				lines.append("\t_new_pos.y = lerp(_cam_pos.y, _desired_pos.y, %s * _delta)" % follow_speed)
 			if follow_pos_z:
-				lines.append("\t_new_pos.z = lerp(_cam_pos.z, _desired_pos.z, %.2f * _delta)" % follow_speed)
+				lines.append("\t_new_pos.z = lerp(_cam_pos.z, _desired_pos.z, %s * _delta)" % follow_speed)
 
 		lines.append("\t%s.global_position = _new_pos" % generated_camera)
 
@@ -368,11 +389,11 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 		lines.append("\tvar _cam_rot = %s.global_rotation" % generated_camera)
 		lines.append("\tvar _new_rot = _cam_rot")
 		if follow_rot_x:
-			lines.append("\t_new_rot.x = lerp_angle(_cam_rot.x, _desired_rot.x, %.2f * _delta)" % rotation_speed)
+			lines.append("\t_new_rot.x = lerp_angle(_cam_rot.x, _desired_rot.x, %s * _delta)" % rotation_speed)
 		if follow_rot_y:
-			lines.append("\t_new_rot.y = lerp_angle(_cam_rot.y, _desired_rot.y, %.2f * _delta)" % rotation_speed)
+			lines.append("\t_new_rot.y = lerp_angle(_cam_rot.y, _desired_rot.y, %s * _delta)" % rotation_speed)
 		if follow_rot_z:
-			lines.append("\t_new_rot.z = lerp_angle(_cam_rot.z, _desired_rot.z, %.2f * _delta)" % rotation_speed)
+			lines.append("\t_new_rot.z = lerp_angle(_cam_rot.z, _desired_rot.z, %s * _delta)" % rotation_speed)
 		lines.append("\t%s.global_rotation = _new_rot" % generated_camera)
 
 	return {
@@ -381,6 +402,15 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	}
 
 
+
+
+## Dead zone as generated code: "" when the axis has no dead zone (0 or less),
+## a number, or a variable/math clamped to 0 or more at runtime.
+func _dead_zone_code(key: String) -> String:
+	var value = _literal_number(key, 0.0)
+	if value == null:
+		return "maxf(%s, 0.0)" % _num(key)
+	return "%.3f" % value if value > 0.0 else ""
 
 
 func _node_has_string_variable(node: Node, variable_name: String) -> bool:

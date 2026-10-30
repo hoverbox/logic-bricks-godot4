@@ -77,6 +77,15 @@
 <strong>Array indexes start at 0</strong>
       The first item is index <code>0</code>, the second item is index <code>1</code>, and so on. Compare Variable and Modify Variable automatically detect when the named variable is an Array and change their available operations to Array-specific options.
      </div>
+<h3 id="variables-in-number-fields">
+      Variables and math in number fields
+     </h3>
+<p>
+      Every number field on a brick accepts a plain number, a variable name, or math. For example, a Proximity trigger's Distance can be <code>5</code>, <code>detect_range</code>, or <code>detect_range * 2</code>, and a Teleport action's X can be <code>spawn_x + 10</code>. The value is worked out each time the brick runs, so changing the variable while the game runs changes what the brick does.
+     </p>
+<p>
+      Start typing a name to get suggestions from your local and global variables. If a name looks like a misspelling of one of your variables (or differs only in capitalization), a warning under the field names the variable you probably meant. Plain numbers are kept within the field's allowed range when you leave the field. Variables and math are not limited, so keep their values sensible (for example, a Chance of 0 to 100).
+     </p>
 </section>
 <section>
 <h2 id="states">
@@ -96,6 +105,9 @@
        All States
       </strong>
       option.
+     </p>
+<p>
+      Use <strong>View State</strong> above the graph to focus on one state's chains, or choose <strong>All</strong> to see the complete graph. Shared bricks, dependent gates, and <strong>All States</strong> chains remain visible. Unconnected bricks stay visible while you build. New gates use the state you are viewing. Filtering changes only the editor view; hidden bricks and connections still save and generate code normally. Switching scene nodes resets the view to <strong>All</strong>.
      </p>
 </section>
 <section>
@@ -120,7 +132,7 @@
       Related topics
      </h2>
 <div class="related-topic-grid">
-<a class="related-topic-card" href="sensors.html">
+<a class="related-topic-card" href="sensors-3d.html">
 <strong>
         Triggers
        </strong>
@@ -152,15 +164,15 @@
        ← Previous
       </span>
 <strong>
-       Interface &amp; Organization
+       Interface &amp;amp; Organization
       </strong>
 </a>
-<a class="page-nav-card next" href="sensors.html">
+<a class="page-nav-card next" href="sensors-3d.html">
 <span class="page-nav-label">
        Next →
       </span>
 <strong>
-       Triggers
+       3D Triggers
       </strong>
 </a>
 </div>

@@ -1,16 +1,8 @@
 @tool
+extends "res://addons/logic_bricks/bricks/sensors/common/always_sensor.gd"
 
-extends "res://addons/logic_bricks/core/logic_brick.gd"
-
-## Always active sensor - triggers every frame (like onUpdate)
-
-
-func _init() -> void:
-	super._init()
-	brick_type = BrickType.SENSOR
-	brick_name = "Always"
-
-
+## UI-domain version of always_sensor.gd: same code generation, its own
+## registry entry (class, menu, domain). Fix behavior in the base file.
 
 func get_brick_info() -> Dictionary:
 	return {
@@ -24,44 +16,7 @@ func get_brick_info() -> Dictionary:
 	}
 
 
-func serialize() -> Dictionary:
-	var data = super.serialize()
-	var info = get_brick_info()
-	if typeof(info) == TYPE_DICTIONARY and info.has("class"):
-		data["type"] = str(info["class"])
-	return data
-
-func _initialize_properties() -> void:
-	properties = {
-		"enabled": true  # Can be used to toggle on/off
-	}
-
-
-func get_property_definitions() -> Array:
-	return [
-		{
-			"name": "enabled",
-			"type": TYPE_BOOL,
-			"default": true
-		}
-	]
-
-
 func get_tooltip_definitions() -> Dictionary:
 	return {
 		"_description": "Runs continuously while this logic chain is active. Useful for UI updates that need to happen every frame.",
-	}
-
-func generate_code(node: Node, chain_name: String) -> Dictionary:
-	var enabled = properties.get("enabled", true)
-
-	# Always sensor is just always true (when enabled)
-	var code = ""
-	if enabled:
-		code = "var sensor_active = true"
-	else:
-		code = "var sensor_active = false"
-
-	return {
-		"sensor_code": code
 	}

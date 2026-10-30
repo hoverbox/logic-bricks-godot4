@@ -33,19 +33,24 @@ func open_search_popup(screen_pos: Vector2, initial_text: String = "") -> void:
 	# Use the real OS mouse position so the popup always appears under the
 	# cursor, regardless of which editor dock currently has keyboard focus.
 	# The caller's screen_pos is a fallback for menu-button-triggered opens.
+	# Clamp against the monitor under the cursor, not the primary screen: with
+	# the panel popped out onto a second monitor the old primary-screen check
+	# threw the popup back onto the first monitor.
 	var mouse_pos := Vector2(DisplayServer.mouse_get_position())
-	var screen_size := Vector2(DisplayServer.screen_get_size())
-	var use_mouse := Rect2(Vector2.ZERO, screen_size).has_point(mouse_pos)
-	var pos := mouse_pos if use_mouse else screen_pos
+	var on_a_screen := false
+	for i in DisplayServer.get_screen_count():
+		if Rect2(DisplayServer.screen_get_usable_rect(i)).has_point(mouse_pos):
+			on_a_screen = true
+			break
+	var pos := mouse_pos if on_a_screen else screen_pos
+	var usable := Rect2(panel._usable_screen_rect_at(pos))
 
 	search_popup.reset_size()
 	var pop_size = Vector2(search_popup.size)
 	if pop_size == Vector2.ZERO:
 		pop_size = Vector2(456, 300)
-	if pos.x + pop_size.x > screen_size.x:
-		pos.x = screen_size.x - pop_size.x - 8
-	if pos.y + pop_size.y > screen_size.y:
-		pos.y = screen_size.y - pop_size.y - 8
+	pos.x = clampf(pos.x, usable.position.x + 8, maxf(usable.position.x + 8, usable.end.x - pop_size.x - 8))
+	pos.y = clampf(pos.y, usable.position.y + 8, maxf(usable.position.y + 8, usable.end.y - pop_size.y - 8))
 	search_popup.position = Vector2i(pos)
 	search_popup.popup()
 
@@ -106,7 +111,7 @@ func _build_search_popup() -> void:
 	vbox.add_child(no_results)
 	search_no_results_ref = no_results
 
-	panel.add_child(search_popup)
+	panel._popup_host().add_child(search_popup)
 
 func _search_on_text_changed(text: String) -> void:
 	_search_update_results(text)

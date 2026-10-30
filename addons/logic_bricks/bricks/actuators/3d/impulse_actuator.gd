@@ -109,6 +109,26 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var impulse_type = properties.get("impulse_type", "central")
+	if typeof(impulse_type) == TYPE_STRING:
+		impulse_type = impulse_type.to_lower()
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"pos_x", "pos_y", "pos_z":
+					shown[child] = (impulse_type == "positional")
+				"space":
+					shown[child] = (impulse_type != "torque")
+	return shown
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var impulse_type = _normalized_impulse_type()
 	var space = str(properties.get("space", "local")).to_lower()
@@ -124,7 +144,7 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 
 	if not (node is RigidBody3D or node is SoftBody3D):
 		code_lines.append("# WARNING: Impulse actuator only works with RigidBody3D or SoftBody3D!")
-		code_lines.append("push_warning(\"Impulse actuator requires RigidBody3D or SoftBody3D, but node is %s\")" % node.get_class())
+		code_lines.append("push_warning(\"Impulse actuator requires RigidBody3D or SoftBody3D, but node is %s\")" % _gd_string(str(node.get_class())))
 		return {"actuator_code": "\n".join(code_lines)}
 
 	if node is SoftBody3D:

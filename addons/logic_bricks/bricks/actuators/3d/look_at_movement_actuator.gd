@@ -61,10 +61,16 @@ func get_tooltip_definitions() -> Dictionary:
 	}
 
 
+## Member variables this brick declares that keep their value when the node
+## changes state (other state-specific variables are reset on state entry).
+## External motion is accumulated by the Character brick across frames.
+func get_kept_member_vars() -> PackedStringArray:
+	return PackedStringArray(["_logic_brick_external_motion_*"])
+
+
 func generate_code(node: Node, chain_name: String) -> Dictionary:
 	var target_node_name = str(properties.get("target_node_name", "MeshInstance3D")).strip_edges()
 	var forward_axis = properties.get("forward_axis", "-z")
-	var smoothing = properties.get("smoothing", 0.1)
 	var ignore_platform_motion = properties.get("ignore_platform_motion", true)
 
 	# Normalize
@@ -141,11 +147,21 @@ func generate_code(node: Node, chain_name: String) -> Dictionary:
 	code_lines.append("\t\tvar _look_target = global_position + _movement_dir.normalized()")
 	code_lines.append("\t\t")
 
-	if smoothing > 0.001:
+	var smoothing = _literal_number("smoothing", 0.1)
+	var smoothing_code := _num("smoothing", 0.1, 6)
+	if smoothing == null:
+		# Smoothing is a variable/math: choose smooth or instant rotation at runtime
+		code_lines.append("\t\tvar _look_smoothing = %s" % smoothing_code)
+		code_lines.append("\t\tif _look_smoothing > 0.001:")
+		code_lines.append("\t\t\tvar _target_angle = atan2(_movement_dir.x, _movement_dir.z) + %s" % y_offset)
+		code_lines.append("\t\t\t%s.global_rotation.y = lerp_angle(%s.global_rotation.y, _target_angle, _look_smoothing)" % [target_var, target_var])
+		code_lines.append("\t\telse:")
+		code_lines.append("\t\t\t%s.global_rotation.y = atan2(_movement_dir.x, _movement_dir.z) + %s" % [target_var, y_offset])
+	elif smoothing > 0.001:
 		code_lines.append("\t\t# Smooth Y-axis rotation only")
 		code_lines.append("\t\tvar _target_angle = atan2(_movement_dir.x, _movement_dir.z) + %s" % y_offset)
 		code_lines.append("\t\tvar _current_y = %s.global_rotation.y" % target_var)
-		code_lines.append("\t\t%s.global_rotation.y = lerp_angle(_current_y, _target_angle, %f)" % [target_var, smoothing])
+		code_lines.append("\t\t%s.global_rotation.y = lerp_angle(_current_y, _target_angle, %s)" % [target_var, smoothing_code])
 	else:
 		code_lines.append("\t\t# Instant Y-axis rotation")
 		code_lines.append("\t\t%s.global_rotation.y = atan2(_movement_dir.x, _movement_dir.z) + %s" % [target_var, y_offset])

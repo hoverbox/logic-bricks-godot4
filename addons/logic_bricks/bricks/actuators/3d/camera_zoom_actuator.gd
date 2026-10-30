@@ -63,13 +63,36 @@ func get_property_definitions() -> Array:
 
 func get_tooltip_definitions() -> Dictionary:
 	return {
-		"_description": "Changes camera FOV (3D) or zoom (2D).\nDrag your camera into the inspector slot.",
+		"_description": "Changes a camera's FOV (3D) or zoom (2D).\nChoose the camera by name; it is found anywhere in the current scene.",
 		"camera_type":  "Camera 3D: adjusts Field of View in degrees.\nCamera 2D: adjusts zoom multiplier.",
 		"fov":          "Target FOV in degrees (Camera 3D only).\nDefault is 75.0. Lower = more zoomed in.",
 		"zoom":         "Target zoom (Camera 2D only).\n1.0 = normal, 2.0 = zoomed in, 0.5 = zoomed out.",
 		"transition":   "Smoothly lerp to the target value.",
 		"transition_speed": "Lerp speed. Accepts a number or variable.",
 	}
+
+
+## Which of this brick's fields the editor shows for its current settings:
+## {property_name: visible}. Fields not listed keep their default (shown).
+## context_node is the node the brick is on. "visible_if" in a property
+## definition is applied on top (see LogicBrick.get_field_visibility()).
+func get_field_visibility_rules(context_node: Node) -> Dictionary:
+	var shown := {}
+	var camera_type = properties.get("camera_type", "camera_3d")
+	if typeof(camera_type) == TYPE_STRING:
+		camera_type = camera_type.to_lower().replace(" ", "_")
+	var transition = properties.get("transition", true)
+	for child in _get_field_names():
+		if true:
+			var prop_name = child
+			match prop_name:
+				"fov":
+					shown[child] = (camera_type == "camera_3d")
+				"zoom":
+					shown[child] = (camera_type == "camera_2d")
+				"transition_speed":
+					shown[child] = transition
+	return shown
 
 
 func generate_code(node: Node, chain_name: String) -> Dictionary:
